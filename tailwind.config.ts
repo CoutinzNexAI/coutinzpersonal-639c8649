@@ -130,20 +130,6 @@ export default {
 					'50%': {
 						transform: 'translateY(-10px)'
 					}
-				},
-				"cursor-glow": {
-					"0%": {
-						transform: "translate(-50%, -50%) scale(1)",
-						opacity: "0.3"
-					},
-					"50%": {
-						transform: "translate(-50%, -50%) scale(1.5)",
-						opacity: "0.1"
-					},
-					"100%": {
-						transform: "translate(-50%, -50%) scale(1)",
-						opacity: "0.3"
-					}
 				}
 			},
 			animation: {
@@ -152,8 +138,7 @@ export default {
 				'fade-in': 'fade-in 0.5s ease-out',
 				'scale-in': 'scale-in 0.3s ease-out',
 				'pulse-glow': 'pulse-glow 2s infinite',
-				'float': 'float 3s ease-in-out infinite',
-				"cursor-glow": "cursor-glow 2s ease-in-out infinite"
+				'float': 'float 3s ease-in-out infinite'
 			}
 		}
 	},
