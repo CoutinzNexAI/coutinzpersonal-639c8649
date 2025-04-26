@@ -51,7 +51,7 @@ const Projects = () => {
           {projects.map(project => (
             <div 
               key={project.id}
-              className="glass-panel overflow-hidden rounded-xl transition-transform duration-300 hover:-translate-y-2"
+              className="glass-panel overflow-hidden rounded-xl transition-all duration-300 transform hover:-translate-y-2 hover:shadow-lg hover:shadow-cosmic-blue/20"
               onMouseEnter={() => setHoveredId(project.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
@@ -69,7 +69,9 @@ const Projects = () => {
               
               {/* Project info */}
               <div className="p-6">
-                <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+                <h3 className="text-xl font-bold mb-2 transition-colors duration-300 hover:text-cosmic-blue">
+                  {project.title}
+                </h3>
                 <p className="text-gray-400 mb-4">{project.description}</p>
                 
                 {/* Tags */}
@@ -77,7 +79,7 @@ const Projects = () => {
                   {project.tags.map((tag, index) => (
                     <span 
                       key={index}
-                      className="text-xs bg-cosmic-purple/20 text-cosmic-purple px-2 py-1 rounded"
+                      className="text-xs bg-cosmic-blue/20 text-cosmic-blue px-2 py-1 rounded"
                     >
                       {tag}
                     </span>
@@ -87,7 +89,7 @@ const Projects = () => {
                 {/* Project link */}
                 <GlowingButton 
                   href={project.link} 
-                  className="w-full flex items-center justify-center gap-2"
+                  className="w-full flex items-center justify-center gap-2 hover:scale-105 transition-transform duration-300"
                 >
                   <Link size={16} />
                   <span>View Project</span>

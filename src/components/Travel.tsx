@@ -1,6 +1,7 @@
-
 import React, { useState } from 'react';
 import { Map, Earth } from 'lucide-react';
+import Globe3D from './Globe3D';
+import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 
 type Location = {
   id: number;
@@ -51,13 +52,9 @@ const Travel = () => {
         <h2 className="section-title text-center">Travel Journal</h2>
         
         <div className="max-w-5xl mx-auto">
-          {/* Map visualization placeholder */}
-          <div className="glass-panel p-6 mb-12 flex items-center justify-center">
-            <div className="text-center py-12">
-              <Earth size={64} className="mx-auto mb-4 text-cosmic-blue animate-float" />
-              <h3 className="text-xl font-bold mb-2">Travel Map</h3>
-              <p className="text-gray-400">I've explored {locations.length} amazing destinations so far!</p>
-            </div>
+          {/* 3D Globe */}
+          <div className="glass-panel p-6 mb-12">
+            <Globe3D visitedCountries={locations.map(l => l.country)} />
           </div>
           
           {/* Travel tabs */}
@@ -66,9 +63,9 @@ const Travel = () => {
               <button
                 key={location.id}
                 onClick={() => setActiveLocation(location)}
-                className={`px-5 py-3 whitespace-nowrap transition-colors ${
+                className={`px-5 py-3 whitespace-nowrap transition-all duration-300 transform hover:scale-105 ${
                   activeLocation.id === location.id
-                    ? 'bg-cosmic-purple text-white rounded-lg'
+                    ? 'bg-cosmic-blue text-white rounded-lg'
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
@@ -78,39 +75,65 @@ const Travel = () => {
           </div>
           
           {/* Selected location details */}
-          <div className="glass-panel overflow-hidden rounded-xl animate-fade-in">
-            <div className="h-64 md:h-80 relative">
-              <img 
-                src={activeLocation.image} 
-                alt={`${activeLocation.city}, ${activeLocation.country}`}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-cosmic-black to-transparent" />
-              <div className="absolute bottom-0 left-0 p-6">
-                <h3 className="text-2xl md:text-3xl font-bold">{activeLocation.city}, {activeLocation.country}</h3>
-                <p className="text-gray-300">{activeLocation.date}</p>
+          <Dialog>
+            <DialogTrigger asChild>
+              <div className="glass-panel overflow-hidden rounded-xl animate-fade-in cursor-pointer transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-cosmic-blue/20">
+                <div className="h-64 md:h-80 relative">
+                  <img 
+                    src={activeLocation.image} 
+                    alt={`${activeLocation.city}, ${activeLocation.country}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-cosmic-black to-transparent" />
+                  <div className="absolute bottom-0 left-0 p-6">
+                    <h3 className="text-2xl md:text-3xl font-bold">{activeLocation.city}, {activeLocation.country}</h3>
+                    <p className="text-gray-300">{activeLocation.date}</p>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <p className="text-gray-300 mb-6">{activeLocation.description}</p>
+                  
+                  <div>
+                    <h4 className="font-bold mb-2 flex items-center">
+                      <Map size={16} className="mr-2 text-cosmic-purple" />
+                      Highlights
+                    </h4>
+                    <ul className="space-y-2">
+                      {activeLocation.highlights.map((highlight, index) => (
+                        <li key={index} className="flex items-center">
+                          <span className="h-2 w-2 rounded-full bg-cosmic-purple mr-2"></span>
+                          <span className="text-gray-400">{highlight}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            <div className="p-6">
-              <p className="text-gray-300 mb-6">{activeLocation.description}</p>
-              
-              <div>
-                <h4 className="font-bold mb-2 flex items-center">
-                  <Map size={16} className="mr-2 text-cosmic-purple" />
-                  Highlights
-                </h4>
-                <ul className="space-y-2">
-                  {activeLocation.highlights.map((highlight, index) => (
-                    <li key={index} className="flex items-center">
-                      <span className="h-2 w-2 rounded-full bg-cosmic-purple mr-2"></span>
-                      <span className="text-gray-400">{highlight}</span>
-                    </li>
-                  ))}
-                </ul>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl bg-cosmic-black/95 border-cosmic-blue">
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-4">{activeLocation.city}, {activeLocation.country}</h2>
+                <img 
+                  src={activeLocation.image} 
+                  alt={`${activeLocation.city}, ${activeLocation.country}`}
+                  className="w-full h-64 object-cover rounded-lg mb-4"
+                />
+                <p className="text-gray-300">{activeLocation.description}</p>
+                <div className="mt-4">
+                  <h3 className="font-bold mb-2">Highlights</h3>
+                  <ul className="space-y-2">
+                    {activeLocation.highlights.map((highlight, index) => (
+                      <li key={index} className="flex items-center">
+                        <span className="h-2 w-2 rounded-full bg-cosmic-blue mr-2"></span>
+                        <span>{highlight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            </div>
-          </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </section>

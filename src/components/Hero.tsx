@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import GlowingButton from './GlowingButton';
+import { ArrowDown } from 'lucide-react';
 
 const Hero = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -152,8 +153,7 @@ const Hero = () => {
       </div>
       
       <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center animate-float">
-        <p className="text-sm text-gray-400 mb-2">Scroll Down</p>
-        <div className="h-12 w-0.5 bg-gradient-to-b from-cosmic-purple to-transparent"></div>
+        <ArrowDown className="h-8 w-8 text-cosmic-blue animate-bounce" />
       </div>
     </section>
   );

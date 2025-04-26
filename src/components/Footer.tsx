@@ -17,7 +17,7 @@ const Footer = () => {
               <a 
                 key={platform}
                 href="#"
-                className="text-gray-400 hover:text-cosmic-purple transition-colors"
+                className="text-gray-400 hover:text-cosmic-blue transition-colors duration-300 transform hover:scale-110"
               >
                 {platform}
               </a>
@@ -26,7 +26,7 @@ const Footer = () => {
         </div>
         
         <p className="text-sm text-gray-500">
-          © {currentYear} Your Name — All Rights Reserved
+          © {currentYear} Diogo Coutinho — All Rights Reserved
         </p>
       </div>
     </footer>
