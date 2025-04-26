@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Briefcase, GraduationCap } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import ProjectModal from './ProjectModal';
 
 type ExperienceItem = {
   id: number;
@@ -60,13 +60,14 @@ const Experience = () => {
     <section id="experience" className="section-padding bg-cosmic-black/50">
       <div className="container mx-auto px-4">
         <h2 className="section-title text-center">Experience & Education</h2>
+        <div className="flex justify-center mb-8">
+          <ProjectModal />
+        </div>
         
         <div className="max-w-4xl mx-auto">
           <div className="relative">
-            {/* Timeline line */}
             <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-cosmic-purple via-cosmic-blue to-cosmic-pink"></div>
             
-            {/* Timeline items */}
             <div className="space-y-12">
               {experiences.map((exp, index) => (
                 <div 
@@ -76,7 +77,6 @@ const Experience = () => {
                     index % 2 === 0 ? "md:flex-row-reverse" : ""
                   )}
                 >
-                  {/* Timeline dot */}
                   <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 flex items-center justify-center z-10">
                     <div className={cn(
                       "h-8 w-8 rounded-full flex items-center justify-center",
@@ -90,7 +90,6 @@ const Experience = () => {
                     </div>
                   </div>
                   
-                  {/* Content */}
                   <div className={cn(
                     "glass-panel p-6 md:w-5/12 ml-12 md:ml-0 animate-fade-in",
                     index % 2 === 0 ? "md:mr-8" : "md:ml-8"
