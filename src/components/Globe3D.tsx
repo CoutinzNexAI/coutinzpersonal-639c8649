@@ -1,14 +1,18 @@
 
 import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, Environment, OrbitControls } from '@react-three/drei';
+import { Environment, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 
-const Globe = ({ visitedCountries }) => {
-  const meshRef = useRef();
+interface GlobeProps {
+  visitedCountries: string[];
+}
+
+const Globe: React.FC<GlobeProps> = ({ visitedCountries }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
   const globeTexture = useRef(new THREE.TextureLoader().load('/earth-texture.jpg'));
 
-  useFrame((state) => {
+  useFrame(() => {
     if (!meshRef.current) return;
     meshRef.current.rotation.y += 0.001;
   });
@@ -25,7 +29,7 @@ const Globe = ({ visitedCountries }) => {
   );
 };
 
-const Globe3D = ({ visitedCountries }) => {
+const Globe3D: React.FC<GlobeProps> = ({ visitedCountries }) => {
   return (
     <div className="h-[500px] w-full">
       <Canvas camera={{ position: [0, 0, 2.5], fov: 45 }}>
