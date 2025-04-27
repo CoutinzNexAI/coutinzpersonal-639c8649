@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Briefcase, GraduationCap } from 'lucide-react';
 import { cn } from "@/lib/utils";
@@ -58,13 +59,10 @@ const experiences: ExperienceItem[] = [
 const Experience = () => {
   return (
     <section id="experience" className="section-padding bg-cosmic-black/50">
-      <div className="container mx-auto px-4">
-        <h2 className="section-title text-center">Experience & Education</h2>
-        <div className="flex justify-center mb-8">
-          <ProjectModal />
-        </div>
+      <div className="container mx-auto px-4 overflow-x-hidden">
+        <h2 className="section-title text-center animate-fade-in">Experience & Education</h2>
         
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="relative">
             <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-cosmic-purple via-cosmic-blue to-cosmic-pink"></div>
             
@@ -73,9 +71,10 @@ const Experience = () => {
                 <div 
                   key={exp.id}
                   className={cn(
-                    "relative flex md:flex-row flex-col md:items-center",
+                    "relative flex md:flex-row flex-col md:items-center animate-fade-in",
                     index % 2 === 0 ? "md:flex-row-reverse" : ""
                   )}
+                  style={{ animationDelay: `${index * 0.2}s` }}
                 >
                   <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 flex items-center justify-center z-10">
                     <div className={cn(
@@ -91,7 +90,7 @@ const Experience = () => {
                   </div>
                   
                   <div className={cn(
-                    "glass-panel p-6 md:w-5/12 ml-12 md:ml-0 animate-fade-in",
+                    "glass-panel p-6 md:w-5/12 ml-12 md:ml-0 relative group hover:scale-105 transition-transform duration-300",
                     index % 2 === 0 ? "md:mr-8" : "md:ml-8"
                   )}>
                     <div className="mb-2">
@@ -107,7 +106,10 @@ const Experience = () => {
                     <h3 className="text-xl font-bold">{exp.title}</h3>
                     <p className="text-gray-400">{exp.organization}</p>
                     <p className="text-sm text-gray-500 mb-3">{exp.duration}</p>
-                    <p className="text-gray-300">{exp.description}</p>
+                    <p className="text-gray-300 mb-4">{exp.description}</p>
+                    <div className="flex justify-end">
+                      <ProjectModal />
+                    </div>
                   </div>
                 </div>
               ))}

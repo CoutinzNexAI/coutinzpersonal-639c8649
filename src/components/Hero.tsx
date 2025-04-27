@@ -123,28 +123,29 @@ const Hero = () => {
   }, []);
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center">
+    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 z-0 opacity-30"
+        className="absolute inset-0 z-0 opacity-30 animate-fade-in"
+        style={{ animationDelay: '0.5s' }}
       />
       
       <div className="container mx-auto px-6 z-10">
         <div className="flex flex-col items-center justify-center text-center">
-          <div className="glass-panel p-8 md:p-12 max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
+          <div className="glass-panel p-8 md:p-12 max-w-3xl mx-auto transform translate-y-12 animate-fade-in opacity-0" style={{ animation: 'fade-in 1s ease-out forwards, slide-up 1s ease-out forwards' }}>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
               <span className="cosmic-gradient-text">Hi, I'm Your Name</span>
             </h1>
             
-            <p className="text-xl md:text-2xl mb-8 text-gray-300 animate-fade-in" style={{animationDelay: '0.2s'}}>
+            <p className="text-xl md:text-2xl mb-8 text-gray-300 animate-fade-in" style={{animationDelay: '0.7s'}}>
               Developer • Designer • Creative Thinker
             </p>
             
-            <p className="text-lg text-gray-400 mb-10 animate-fade-in" style={{animationDelay: '0.3s'}}>
+            <p className="text-lg text-gray-400 mb-10 animate-fade-in" style={{animationDelay: '0.9s'}}>
               I create innovative digital experiences and transform ideas into reality
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{animationDelay: '0.4s'}}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{animationDelay: '1.1s'}}>
               <GlowingButton href="#projects">View My Work</GlowingButton>
               <GlowingButton href="#experience" variant="outline">My Experience</GlowingButton>
             </div>
