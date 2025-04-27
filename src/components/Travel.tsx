@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Map } from 'lucide-react';
-import WorldMap from './WorldMap';
+import { Map, Earth } from 'lucide-react';
+import Globe3D from './Globe3D';
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 
 type Location = {
@@ -45,17 +45,16 @@ const locations: Location[] = [
 
 const Travel = () => {
   const [activeLocation, setActiveLocation] = useState(locations[0]);
-  const visitedCountries = locations.map(l => l.country);
 
   return (
     <section id="travel" className="section-padding bg-cosmic-black/50">
-      <div className="container mx-auto px-4 overflow-x-hidden">
+      <div className="container mx-auto px-4">
         <h2 className="section-title text-center">Travel Journal</h2>
         
         <div className="max-w-5xl mx-auto">
-          {/* World Map */}
+          {/* 3D Globe */}
           <div className="glass-panel p-6 mb-12">
-            <WorldMap visitedCountries={visitedCountries} />
+            <Globe3D visitedCountries={locations.map(l => l.country)} />
           </div>
           
           {/* Travel tabs */}

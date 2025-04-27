@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Briefcase, GraduationCap } from 'lucide-react';
 import { cn } from "@/lib/utils";
@@ -59,8 +58,11 @@ const experiences: ExperienceItem[] = [
 const Experience = () => {
   return (
     <section id="experience" className="section-padding bg-cosmic-black/50">
-      <div className="container mx-auto px-4 overflow-x-hidden">
+      <div className="container mx-auto px-4">
         <h2 className="section-title text-center">Experience & Education</h2>
+        <div className="flex justify-center mb-8">
+          <ProjectModal />
+        </div>
         
         <div className="max-w-4xl mx-auto">
           <div className="relative">
@@ -89,28 +91,23 @@ const Experience = () => {
                   </div>
                   
                   <div className={cn(
-                    "glass-panel p-6 md:w-5/12 ml-12 md:ml-0 animate-fade-in flex flex-col justify-between",
+                    "glass-panel p-6 md:w-5/12 ml-12 md:ml-0 animate-fade-in",
                     index % 2 === 0 ? "md:mr-8" : "md:ml-8"
                   )}>
-                    <div>
-                      <div className="mb-2">
-                        <span className={cn(
-                          "text-xs font-semibold px-3 py-1 rounded-full",
-                          exp.type === 'work' 
-                            ? 'bg-cosmic-purple/20 text-cosmic-purple' 
-                            : 'bg-cosmic-blue/20 text-cosmic-blue'
-                        )}>
-                          {exp.type === 'work' ? 'Work' : 'Education'}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-bold">{exp.title}</h3>
-                      <p className="text-gray-400">{exp.organization}</p>
-                      <p className="text-sm text-gray-500 mb-3">{exp.duration}</p>
-                      <p className="text-gray-300">{exp.description}</p>
+                    <div className="mb-2">
+                      <span className={cn(
+                        "text-xs font-semibold px-3 py-1 rounded-full",
+                        exp.type === 'work' 
+                          ? 'bg-cosmic-purple/20 text-cosmic-purple' 
+                          : 'bg-cosmic-blue/20 text-cosmic-blue'
+                      )}>
+                        {exp.type === 'work' ? 'Work' : 'Education'}
+                      </span>
                     </div>
-                    <div className="mt-4">
-                      <ProjectModal />
-                    </div>
+                    <h3 className="text-xl font-bold">{exp.title}</h3>
+                    <p className="text-gray-400">{exp.organization}</p>
+                    <p className="text-sm text-gray-500 mb-3">{exp.duration}</p>
+                    <p className="text-gray-300">{exp.description}</p>
                   </div>
                 </div>
               ))}
