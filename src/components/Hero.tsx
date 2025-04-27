@@ -38,10 +38,8 @@ const Hero = () => {
       speedX: number;
       speedY: number;
       color: string;
-      initialDelay: number;
-      active: boolean;
       
-      constructor(index: number) {
+      constructor() {
         this.x = Math.random() * width;
         this.y = Math.random() * height;
         this.size = Math.random() * 3 + 0.5;
@@ -50,20 +48,9 @@ const Hero = () => {
         
         const colors = ['#8B5CF6', '#0EA5E9', '#D946EF'];
         this.color = colors[Math.floor(Math.random() * colors.length)];
-        
-        // Add initial entrance delay based on particle index
-        this.initialDelay = index * 20;
-        this.active = false;
       }
       
       update() {
-        // Don't move until delay is over
-        if (this.initialDelay > 0) {
-          this.initialDelay--;
-          return;
-        }
-        
-        this.active = true;
         this.x += this.speedX;
         this.y += this.speedY;
         
@@ -75,8 +62,7 @@ const Hero = () => {
       }
       
       draw() {
-        if (!ctx || !this.active) return;
-        
+        if (!ctx) return;
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -89,7 +75,7 @@ const Hero = () => {
     function createParticles() {
       const arr = [];
       for (let i = 0; i < particleCount; i++) {
-        arr.push(new Particle(i));
+        arr.push(new Particle());
       }
       return arr;
     }
@@ -98,11 +84,7 @@ const Hero = () => {
       if (!ctx) return;
       
       for (let i = 0; i < particles.length; i++) {
-        if (!particles[i].active) continue;
-        
         for (let j = i; j < particles.length; j++) {
-          if (!particles[j].active) continue;
-          
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
@@ -150,42 +132,20 @@ const Hero = () => {
       
       <div className="container mx-auto px-6 z-10">
         <div className="flex flex-col items-center justify-center text-center">
-          {/* Hero content with staggered entrance animation */}
-          <div 
-            className="glass-panel p-8 md:p-12 max-w-3xl mx-auto opacity-0" 
-            style={{ animation: 'fade-in 0.8s ease-out 0.2s forwards, slide-up 1s ease-out 0.2s forwards' }}
-          >
-            <div className="overflow-hidden mb-6">
-              <h1 
-                className="text-4xl md:text-6xl font-bold transform translate-y-full"
-                style={{ animation: 'slide-up 1.2s ease-out 0.5s forwards' }}
-              >
-                <span className="cosmic-gradient-text inline-block">Hi, I'm Your Name</span>
-              </h1>
-            </div>
+          <div className="glass-panel p-8 md:p-12 max-w-3xl mx-auto transform translate-y-12 animate-fade-in opacity-0" style={{ animation: 'fade-in 1s ease-out forwards, slide-up 1s ease-out forwards' }}>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+              <span className="cosmic-gradient-text">Hi, I'm Your Name</span>
+            </h1>
             
-            <div className="overflow-hidden">
-              <p 
-                className="text-xl md:text-2xl mb-8 text-gray-300 transform translate-y-full"
-                style={{ animation: 'slide-up 1.2s ease-out 0.8s forwards' }}
-              >
-                Developer • Designer • Creative Thinker
-              </p>
-            </div>
+            <p className="text-xl md:text-2xl mb-8 text-gray-300 animate-fade-in" style={{animationDelay: '0.7s'}}>
+              Developer • Designer • Creative Thinker
+            </p>
             
-            <div className="overflow-hidden">
-              <p 
-                className="text-lg text-gray-400 mb-10 transform translate-y-full"
-                style={{ animation: 'slide-up 1.2s ease-out 1.1s forwards' }}
-              >
-                I create innovative digital experiences and transform ideas into reality
-              </p>
-            </div>
+            <p className="text-lg text-gray-400 mb-10 animate-fade-in" style={{animationDelay: '0.9s'}}>
+              I create innovative digital experiences and transform ideas into reality
+            </p>
             
-            <div 
-              className="flex flex-col sm:flex-row gap-4 justify-center opacity-0"
-              style={{ animation: 'fade-in 1.2s ease-out 1.4s forwards' }}
-            >
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{animationDelay: '1.1s'}}>
               <GlowingButton href="#projects">View My Work</GlowingButton>
               <GlowingButton href="#experience" variant="outline">My Experience</GlowingButton>
             </div>
@@ -193,26 +153,9 @@ const Hero = () => {
         </div>
       </div>
       
-      <div 
-        className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0"
-        style={{ animation: 'fade-in 1s ease-out 2s forwards, float 3s ease-in-out 3s infinite' }}
-      >
+      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center animate-float">
         <ArrowDown className="h-8 w-8 text-cosmic-blue animate-bounce" />
       </div>
-      
-      {/* Decorative elements with entrance animations */}
-      <div 
-        className="absolute top-20 left-20 w-24 h-24 rounded-full bg-cosmic-purple/10 blur-xl -z-10 opacity-0"
-        style={{ animation: 'fade-in 2s ease-out 0.5s forwards' }}
-      />
-      <div 
-        className="absolute bottom-40 right-20 w-32 h-32 rounded-full bg-cosmic-blue/10 blur-xl -z-10 opacity-0"
-        style={{ animation: 'fade-in 2s ease-out 0.8s forwards' }}
-      />
-      <div 
-        className="absolute top-1/3 right-1/4 w-16 h-16 rounded-full bg-cosmic-pink/5 blur-lg -z-10 opacity-0"
-        style={{ animation: 'fade-in 2s ease-out 1.2s forwards' }}
-      />
     </section>
   );
 };
