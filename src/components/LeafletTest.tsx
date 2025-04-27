@@ -2,14 +2,17 @@
 import React from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { LatLngExpression } from 'leaflet';
 
 const LeafletTest = () => {
+  const position: LatLngExpression = [51.505, -0.09];
+
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Leaflet Test</h2>
       <div style={{ height: '400px', width: '100%' }} className="rounded-lg overflow-hidden">
         <MapContainer
-          center={[51.505, -0.09]}
+          center={position}
           zoom={13}
           style={{ height: '100%', width: '100%' }}
         >

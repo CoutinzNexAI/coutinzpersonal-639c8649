@@ -3,6 +3,7 @@ import React from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { LatLngExpression } from 'leaflet';
 
 // Fix Leaflet's default icon path issues
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -17,13 +18,13 @@ interface WorldMapProps {
 }
 
 const WorldMap: React.FC<WorldMapProps> = ({ visitedCountries }) => {
-  // The key issue was related to how MapContainer was used
-  // Using a render function approach to ensure proper context handling
+  const position: LatLngExpression = [20, 0];
+  
   return (
     <div className="h-[500px] w-full rounded-lg overflow-hidden">
       <div style={{ height: '100%', width: '100%' }}>
         <MapContainer
-          center={[20, 0]}
+          center={position}
           zoom={2}
           scrollWheelZoom={false}
           style={{ height: '100%', width: '100%' }}
