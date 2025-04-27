@@ -8,7 +8,6 @@ import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import MouseEffect from "./components/MouseEffect";
-import LeafletTest from "./components/LeafletTest";
 
 const queryClient = new QueryClient();
 
@@ -19,7 +18,7 @@ const App = () => {
     // Delay rendering of main content to ensure all dependencies are properly loaded
     const timer = setTimeout(() => {
       setIsLoaded(true);
-    }, 100);
+    }, 300); // Increased timeout to ensure Leaflet is properly loaded
     
     return () => clearTimeout(timer);
   }, []);
