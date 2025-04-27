@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -19,15 +19,15 @@ interface WorldMapProps {
 const WorldMap: React.FC<WorldMapProps> = ({ visitedCountries }) => {
   return (
     <div className="h-[500px] w-full rounded-lg overflow-hidden">
-      <MapContainer
-        center={[20, 0]}
-        zoom={2}
-        scrollWheelZoom={false}
+      <MapContainer 
         style={{ height: '100%', width: '100%' }}
+        center={[20, 0] as [number, number]} 
+        zoom={2} 
+        scrollWheelZoom={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
       </MapContainer>
       <div className="mt-4 glass-panel p-4">
