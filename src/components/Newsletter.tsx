@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Mail, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,8 +21,7 @@ const Newsletter = () => {
       setEmail('');
       toast({
         title: "Subscribed!",
-        description: "You've successfully subscribed to my newsletter.",
-        icon: <CheckCircle className="h-5 w-5 text-green-500" />
+        description: "You've successfully subscribed to my newsletter."
       });
     }, 1000);
   };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Mail, Send, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,6 @@ const Contact = () => {
       toast({
         title: "Message sent successfully!",
         description: "Thank you for reaching out. I'll get back to you soon.",
-        icon: <CheckCircle className="h-5 w-5 text-green-500" />
       });
     }, 1500);
   };
