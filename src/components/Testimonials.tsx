@@ -45,6 +45,36 @@ const testimonials: Testimonial[] = [
   },
 ];
 
+const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) => {
+  return (
+    <div className="glass-panel p-6 h-full flex flex-col">
+      <div className="mb-4 flex justify-center">
+        <div className="relative">
+          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-cosmic-blue">
+            <img 
+              src={testimonial.image} 
+              alt={testimonial.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="absolute -bottom-2 -right-2 bg-cosmic-blue rounded-full p-1">
+            <Quote size={12} className="text-white" />
+          </div>
+        </div>
+      </div>
+      
+      <blockquote className="text-gray-300 text-center italic mb-4 flex-grow">
+        "{testimonial.content}"
+      </blockquote>
+      
+      <div className="text-center">
+        <p className="font-bold text-white">{testimonial.name}</p>
+        <p className="text-gray-400 text-sm">{testimonial.role}, {testimonial.company}</p>
+      </div>
+    </div>
+  );
+};
+
 const Testimonials = () => {
   return (
     <section id="testimonials" className="section-padding overflow-hidden">
@@ -62,31 +92,7 @@ const Testimonials = () => {
             <CarouselContent>
               {testimonials.map((testimonial) => (
                 <CarouselItem key={testimonial.id} className="md:basis-1/1 lg:basis-1/2">
-                  <div className="glass-panel p-6 h-full flex flex-col">
-                    <div className="mb-4 flex justify-center">
-                      <div className="relative">
-                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-cosmic-blue">
-                          <img 
-                            src={testimonial.image} 
-                            alt={testimonial.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="absolute -bottom-2 -right-2 bg-cosmic-blue rounded-full p-1">
-                          <Quote size={12} className="text-white" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <blockquote className="text-gray-300 text-center italic mb-4 flex-grow">
-                      "{testimonial.content}"
-                    </blockquote>
-                    
-                    <div className="text-center">
-                      <p className="font-bold text-white">{testimonial.name}</p>
-                      <p className="text-gray-400 text-sm">{testimonial.role}, {testimonial.company}</p>
-                    </div>
-                  </div>
+                  <TestimonialCard testimonial={testimonial} />
                 </CarouselItem>
               ))}
             </CarouselContent>
