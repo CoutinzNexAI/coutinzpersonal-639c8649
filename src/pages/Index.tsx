@@ -9,7 +9,6 @@ import Travel from '@/components/Travel';
 import Testimonials from '@/components/Testimonials';
 import Diary from '@/components/Diary';
 import Contact from '@/components/Contact';
-import Newsletter from '@/components/Newsletter';
 import Footer from '@/components/Footer';
 
 const Index = () => {
@@ -24,7 +23,6 @@ const Index = () => {
       <Travel />
       <Diary />
       <Contact />
-      <Newsletter />
       <Footer />
     </div>
   );
