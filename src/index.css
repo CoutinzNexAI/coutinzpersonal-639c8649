@@ -81,6 +81,23 @@
   .section-subtitle {
     @apply text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto;
   }
+  
+  /* New animation classes for the image upload */
+  .upload-appear {
+    @apply animate-fade-in;
+  }
+
+  .upload-area {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .upload-area-dragging {
+    @apply border-primary bg-primary/5 scale-[1.02];
+  }
+  
+  .image-preview-container {
+    @apply transition-all duration-300;
+  }
 }
 
 @layer utilities {
@@ -90,5 +107,10 @@
   
   .text-gradient {
     @apply bg-clip-text text-transparent bg-ghibli-gradient;
+  }
+  
+  /* Additional utilities for our upload component */
+  .backdrop-blur-hover {
+    @apply hover:backdrop-blur-md transition-all duration-300;
   }
 }
