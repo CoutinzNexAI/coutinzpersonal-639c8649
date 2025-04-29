@@ -1,8 +1,8 @@
-
-import React, { useState } from 'react';
-import { FileImage, ArrowRight } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { FileImage, ArrowRight, Download, RefreshCw, CheckCircle2, AlertTriangle, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
+import { Progress } from "@/components/ui/progress";
 import ImageUpload, { UploadedFile } from './ImageUpload';
 import StyleSelectorModal, { Style } from './StyleSelectorModal';
 
@@ -10,14 +10,101 @@ const StudioSection = () => {
   const [uploadedImage, setUploadedImage] = useState<UploadedFile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<Style | null>(null);
+  const [processingState, setProcessingState] = useState<'idle' | 'processing' | 'completed' | 'error'>('idle');
+  const [progressValue, setProgressValue] = useState(0);
+  const [transformedImage, setTransformedImage] = useState<string | null>(null);
   
   const handleFileChange = (file: UploadedFile | null) => {
     setUploadedImage(file);
+    // Reset other states when a new image is uploaded
+    setSelectedStyle(null);
+    setProcessingState('idle');
+    setProgressValue(0);
+    setTransformedImage(null);
   };
   
   const handleStyleSelect = (style: Style) => {
     setSelectedStyle(style);
     toast.success(`Estilo "${style.name}" selecionado!`);
+    
+    // Start the processing simulation
+    setProcessingState('processing');
+    setProgressValue(0);
+    simulateProcessing();
+  };
+  
+  const simulateProcessing = () => {
+    // Reset progress
+    setProgressValue(0);
+    
+    // Simulate processing with progress updates
+    const interval = setInterval(() => {
+      setProgressValue(prev => {
+        const newValue = prev + 5;
+        
+        if (newValue >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            // Complete the process after full progress
+            handleProcessingComplete();
+          }, 500);
+          return 100;
+        }
+        
+        return newValue;
+      });
+    }, 300);
+  };
+  
+  const handleProcessingComplete = () => {
+    // 10% chance of error for demonstration
+    const shouldError = Math.random() < 0.1;
+    
+    if (shouldError) {
+      setProcessingState('error');
+      toast.error("Erro ao processar a imagem", {
+        description: "Ocorreu um problema durante a transformação."
+      });
+    } else {
+      setProcessingState('completed');
+      // Use the original image as the transformed result for placeholder
+      setTransformedImage(uploadedImage?.preview || null);
+      toast.success("Transformação concluída!", {
+        description: "Sua imagem foi transformada com sucesso."
+      });
+    }
+  };
+  
+  const handleReset = () => {
+    // Reset just the processing states but keep the image and style
+    setProcessingState('idle');
+    setProgressValue(0);
+    setTransformedImage(null);
+  };
+  
+  const handleNewImage = () => {
+    // Reset everything
+    setUploadedImage(null);
+    setSelectedStyle(null);
+    setProcessingState('idle');
+    setProgressValue(0);
+    setTransformedImage(null);
+  };
+  
+  const handleDownload = () => {
+    if (!transformedImage) return;
+    
+    // Create an anchor and trigger download
+    const link = document.createElement('a');
+    link.href = transformedImage;
+    link.download = `transformed-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Download iniciado", {
+      description: "Sua obra de arte está sendo baixada."
+    });
   };
   
   const openStyleSelector = () => {
@@ -100,8 +187,15 @@ const StudioSection = () => {
             <p className="text-muted-foreground text-center mb-6">
               Veja o resultado da transformação da sua imagem
             </p>
-            <div className="ghibli-card w-full aspect-square flex items-center justify-center bg-muted/30">
-              {selectedStyle ? (
+            <div className="ghibli-card w-full aspect-square flex items-center justify-center bg-muted/30 overflow-hidden">
+              {!selectedStyle ? (
+                <div className="text-center">
+                  <FileImage className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-sm text-muted-foreground">
+                    Sua imagem transformada aparecerá aqui
+                  </p>
+                </div>
+              ) : processingState === 'processing' ? (
                 <div className="relative w-full h-full">
                   {uploadedImage && (
                     <img 
@@ -111,33 +205,111 @@ const StudioSection = () => {
                     />
                   )}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center bg-background/80 backdrop-blur-sm p-4 rounded-xl">
+                    <div className="text-center bg-background/80 backdrop-blur-sm p-6 rounded-xl w-4/5 max-w-xs">
+                      <div className="flex items-center justify-center mb-3">
+                        <LoaderCircle className="h-8 w-8 text-primary animate-spin" />
+                      </div>
                       <p className="font-medium text-lg mb-2">Processando...</p>
-                      <p className="text-sm text-muted-foreground mb-3">
+                      <p className="text-sm text-muted-foreground mb-4">
                         Aplicando o estilo "{selectedStyle.name}"
                       </p>
-                      <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-                        <div className="h-full bg-primary w-2/3 animate-pulse"></div>
+                      <Progress value={progressValue} className="h-2" />
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {progressValue}% concluído
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : processingState === 'error' ? (
+                <div className="relative w-full h-full">
+                  {uploadedImage && (
+                    <img 
+                      src={uploadedImage.preview}
+                      alt="Imagem original" 
+                      className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm grayscale"
+                    />
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center bg-background/80 backdrop-blur-sm p-6 rounded-xl">
+                      <div className="flex items-center justify-center mb-3">
+                        <AlertTriangle className="h-10 w-10 text-destructive" />
+                      </div>
+                      <p className="font-medium text-lg mb-2 text-destructive">Erro no processamento</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Não foi possível aplicar o estilo. Por favor, tente novamente.
+                      </p>
+                      <Button 
+                        onClick={handleReset}
+                        variant="outline"
+                        size="sm"
+                        className="mr-2"
+                      >
+                        <RefreshCw className="mr-2 h-4 w-4" /> 
+                        Tentar Novamente
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : processingState === 'completed' ? (
+                <div className="relative w-full h-full">
+                  {transformedImage && (
+                    <img 
+                      src={transformedImage}
+                      alt="Imagem transformada" 
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <Button
+                      size="sm"
+                      className="bg-background/80 backdrop-blur-sm text-foreground hover:bg-background/95"
+                      onClick={handleDownload}
+                    >
+                      <Download className="mr-1 h-4 w-4" />
+                      Baixar
+                    </Button>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                    <div className="flex items-center">
+                      <div className="mr-3">
+                        <div className="rounded-full bg-primary p-1">
+                          <CheckCircle2 className="h-4 w-4 text-white" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium text-sm">
+                          Transformação concluída! 
+                        </p>
+                        <p className="text-white/80 text-xs">
+                          Estilo: {selectedStyle.name}
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="text-center">
-                  <FileImage className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-sm text-muted-foreground">
-                    Sua imagem transformada aparecerá aqui
-                  </p>
-                </div>
-              )}
+              ) : null}
             </div>
-            <Button 
-              className="mt-4 w-full" 
-              variant="outline" 
-              disabled={!selectedStyle}
-            >
-              Baixar Resultado
-            </Button>
+            
+            <div className="mt-4 flex gap-2">
+              <Button 
+                className="flex-1" 
+                variant="outline" 
+                disabled={processingState !== 'completed'}
+                onClick={handleDownload}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Baixar
+              </Button>
+              
+              <Button
+                className="flex-1"
+                disabled={!selectedStyle}
+                onClick={handleNewImage}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Nova Imagem
+              </Button>
+            </div>
           </div>
         </div>
 
