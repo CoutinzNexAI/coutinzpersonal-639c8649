@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Map, Earth } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Map, Earth, Globe } from 'lucide-react';
 import Globe3D from './Globe3D';
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 
@@ -45,6 +45,32 @@ const locations: Location[] = [
 
 const Travel = () => {
   const [activeLocation, setActiveLocation] = useState(locations[0]);
+  const [isGlobeVisible, setIsGlobeVisible] = useState(true);
+
+  const visitedCountries = locations.map(location => location.country);
+  
+  // Encontrar a localização pelo nome do país
+  const findLocationByCountry = useCallback((country: string) => {
+    const location = locations.find(loc => loc.country === country);
+    if (location) {
+      setActiveLocation(location);
+    }
+  }, []);
+  
+  // Manipulador para quando um país é selecionado no globo
+  const handleCountrySelect = useCallback((country: string) => {
+    findLocationByCountry(country);
+  }, [findLocationByCountry]);
+  
+  // Atualizar o scroll quando uma localização é selecionada
+  useEffect(() => {
+    if (!isGlobeVisible) {
+      const element = document.getElementById(`location-${activeLocation.id}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [activeLocation, isGlobeVisible]);
 
   return (
     <section id="travel" className="section-padding bg-cosmic-black/50">
@@ -52,27 +78,82 @@ const Travel = () => {
         <h2 className="section-title text-center">Travel Journal</h2>
         
         <div className="max-w-5xl mx-auto">
-          {/* 3D Globe */}
-          <div className="glass-panel p-6 mb-12">
-            <Globe3D visitedCountries={locations.map(l => l.country)} />
+          {/* Botões de visualização */}
+          <div className="flex justify-center mb-6 space-x-4">
+            <button
+              onClick={() => setIsGlobeVisible(true)}
+              className={`flex items-center px-4 py-2 rounded-full transition-all ${
+                isGlobeVisible 
+                  ? 'bg-cosmic-blue text-white' 
+                  : 'bg-cosmic-black/30 text-gray-400 hover:text-white'
+              }`}
+            >
+              <Globe size={18} className="mr-2" />
+              Mapa Global
+            </button>
+            <button
+              onClick={() => setIsGlobeVisible(false)}
+              className={`flex items-center px-4 py-2 rounded-full transition-all ${
+                !isGlobeVisible 
+                  ? 'bg-cosmic-blue text-white' 
+                  : 'bg-cosmic-black/30 text-gray-400 hover:text-white'
+              }`}
+            >
+              <Map size={18} className="mr-2" />
+              Lista de Viagens
+            </button>
           </div>
           
-          {/* Travel tabs */}
-          <div className="flex overflow-x-auto space-x-4 pb-4 mb-6">
-            {locations.map(location => (
-              <button
-                key={location.id}
-                onClick={() => setActiveLocation(location)}
-                className={`px-5 py-3 whitespace-nowrap transition-all duration-300 transform hover:scale-105 ${
-                  activeLocation.id === location.id
-                    ? 'bg-cosmic-blue text-white rounded-lg'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                {location.country} - {location.city}
-              </button>
-            ))}
-          </div>
+          {/* 3D Globe */}
+          {isGlobeVisible && (
+            <div className="glass-panel p-6 mb-12 animate-fade-in">
+              <div className="text-center mb-4">
+                <h3 className="text-xl text-cosmic-blue font-semibold mb-2">Destinos Visitados</h3>
+                <p className="text-gray-300">Clique nos pins de localização para ver detalhes de cada país.</p>
+              </div>
+              
+              <Globe3D 
+                visitedCountries={visitedCountries} 
+                onCountrySelect={handleCountrySelect}
+              />
+              
+              <div className="mt-6 grid grid-cols-3 gap-2">
+                {locations.map(location => (
+                  <button
+                    key={location.id}
+                    onClick={() => setActiveLocation(location)}
+                    className={`p-2 text-center text-sm rounded hover:bg-cosmic-blue/20 transition-all ${
+                      activeLocation.id === location.id 
+                        ? 'border border-cosmic-blue bg-cosmic-blue/10 text-white' 
+                        : 'text-gray-400'
+                    }`}
+                  >
+                    {location.country}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Travel tabs - apenas mostrado quando o globo não está visível */}
+          {!isGlobeVisible && (
+            <div className="flex overflow-x-auto space-x-4 pb-4 mb-6 animate-fade-in">
+              {locations.map(location => (
+                <button
+                  id={`location-${location.id}`}
+                  key={location.id}
+                  onClick={() => setActiveLocation(location)}
+                  className={`px-5 py-3 whitespace-nowrap transition-all duration-300 transform hover:scale-105 ${
+                    activeLocation.id === location.id
+                      ? 'bg-cosmic-blue text-white rounded-lg'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {location.country} - {location.city}
+                </button>
+              ))}
+            </div>
+          )}
           
           {/* Selected location details */}
           <Dialog>
@@ -86,7 +167,10 @@ const Travel = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-cosmic-black to-transparent" />
                   <div className="absolute bottom-0 left-0 p-6">
-                    <h3 className="text-2xl md:text-3xl font-bold">{activeLocation.city}, {activeLocation.country}</h3>
+                    <h3 className="text-2xl md:text-3xl font-bold flex items-center">
+                      <span className="mr-2 text-xl">📍</span>
+                      {activeLocation.city}, {activeLocation.country}
+                    </h3>
                     <p className="text-gray-300">{activeLocation.date}</p>
                   </div>
                 </div>
@@ -113,7 +197,10 @@ const Travel = () => {
             </DialogTrigger>
             <DialogContent className="max-w-4xl bg-cosmic-black/95 border-cosmic-blue">
               <div className="p-6">
-                <h2 className="text-2xl font-bold mb-4">{activeLocation.city}, {activeLocation.country}</h2>
+                <h2 className="text-2xl font-bold mb-4 flex items-center">
+                  <span className="mr-2 text-2xl">📍</span>
+                  {activeLocation.city}, {activeLocation.country}
+                </h2>
                 <img 
                   src={activeLocation.image} 
                   alt={`${activeLocation.city}, ${activeLocation.country}`}

@@ -10,50 +10,51 @@ type ExperienceItem = {
   organization: string;
   duration: string;
   description: string;
-  type: 'work' | 'education';
+  type: 'work' | 'education' | 'course';
+  location?: string;
+  projects?: { title: string; pdfUrl: string; }[];
 };
 
 const experiences: ExperienceItem[] = [
   {
     id: 1,
-    title: "Senior Developer",
-    organization: "Tech Company Inc.",
-    duration: "2021 - Present",
-    description: "Led development of innovative products and mentored junior developers. Implemented new technologies and improved existing systems.",
-    type: "work"
+    title: "Intership: Mathematical Model Implementation & Operational Performance Analysis",
+    organization: "INESC TEC",
+    duration: "Feb 2025 – Present",
+    description: "•Implementing mathematical planning models • Analyzing operational performance of workshops • Supporting the team in process optimization.",
+    type: "work",
+    location: "Porto, Portugal"
   },
   {
     id: 2,
-    title: "Master's Degree in Computer Science",
-    organization: "University of Technology",
-    duration: "2019 - 2021",
-    description: "Specialized in artificial intelligence and machine learning. Completed thesis on image transformation algorithms.",
-    type: "education"
+    title: "Erasmus Student Exchange",
+    organization: "UPC - EEBE (Polytechnic University of Catalonia)",
+    duration: "Sep 2024 – Feb 2025",
+    description: "International study experience as part of the Industrial Engineering and Management degree.",
+    type: "education",
+    location: "Barcelona, Spain",
+    projects: [
+      { title: "Data Analytics Project", pdfUrl: "/Laboratory_task_code.pdf" } // Using the correct web path
+    ]
   },
   {
     id: 3,
-    title: "Frontend Developer",
-    organization: "Digital Studio",
-    duration: "2018 - 2021",
-    description: "Developed responsive web applications and implemented modern UI/UX practices. Collaborated with designers to create seamless user experiences.",
-    type: "work"
+    title: "Bachelor's Degree in Industrial Engineering and Management",
+    organization: "Instituto Superior de Engenharia do Porto (ISEP)",
+    duration: "Sep 2022 – Sep 2025",
+    description: "• Building a solid foundation in mathematics, physics, and management principles • Proactive, collaborative, strong problem-solving abilities.",
+    type: "education",
+    location: "Porto, Portugal"
   },
   {
     id: 4,
-    title: "Bachelor's Degree in Software Engineering",
-    organization: "State University",
-    duration: "2014 - 2018",
-    description: "Studied software development, data structures, and algorithms. Participated in multiple hackathons and coding competitions.",
-    type: "education"
+    title: "Internship: Production Control",
+    organization: "Confeitarias Arca e Arcádia SA",
+    duration: "Aug 2023",
+    description: "• Monitored production and logistics processes in the factories • Collaborated in preparing performance reports and metrics.",
+    type: "work",
+    location: "Grijó, Portugal"
   },
-  {
-    id: 5,
-    title: "Junior Developer Intern",
-    organization: "Startup Hub",
-    duration: "2017 - 2018",
-    description: "Assisted in developing features for web applications. Gained hands-on experience with agile methodologies.",
-    type: "work"
-  }
 ];
 
 const Experience = () => {
@@ -104,11 +105,11 @@ const Experience = () => {
                       </span>
                     </div>
                     <h3 className="text-xl font-bold">{exp.title}</h3>
-                    <p className="text-gray-400">{exp.organization}</p>
+                    <p className="text-gray-300 text-sm mb-1">{exp.organization}{exp.location ? ` - ${exp.location}` : ''}</p>
                     <p className="text-sm text-gray-500 mb-3">{exp.duration}</p>
                     <p className="text-gray-300 mb-4">{exp.description}</p>
                     <div className="flex justify-end">
-                      <ProjectModal />
+                      <ProjectModal projects={exp.projects || []}/>
                     </div>
                   </div>
                 </div>
