@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FileImage, ArrowRight, Download, RefreshCw, CheckCircle2, AlertTriangle, LoaderCircle } from "lucide-react";
+import React, { useState } from 'react';
+import { FileImage, ArrowRight, Download, RefreshCw, CheckCircle2, AlertTriangle, LoaderCircle, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import { Progress } from "@/components/ui/progress";
@@ -10,9 +10,10 @@ const StudioSection = () => {
   const [uploadedImage, setUploadedImage] = useState<UploadedFile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<Style | null>(null);
-  const [processingState, setProcessingState] = useState<'idle' | 'processing' | 'completed' | 'error'>('idle');
+  const [processingState, setProcessingState] = useState<'idle' | 'awaiting_payment' | 'processing' | 'completed' | 'error'>('idle');
   const [progressValue, setProgressValue] = useState(0);
   const [transformedImage, setTransformedImage] = useState<string | null>(null);
+  const [activeStep, setActiveStep] = useState(1);
   
   const handleFileChange = (file: UploadedFile | null) => {
     setUploadedImage(file);
@@ -21,16 +22,30 @@ const StudioSection = () => {
     setProcessingState('idle');
     setProgressValue(0);
     setTransformedImage(null);
+    
+    // Update active step
+    setActiveStep(file ? 2 : 1);
   };
   
   const handleStyleSelect = (style: Style) => {
     setSelectedStyle(style);
     toast.success(`Estilo "${style.name}" selecionado!`);
     
+    // Move to payment step
+    setProcessingState('awaiting_payment');
+    setActiveStep(3);
+    setIsModalOpen(false);
+  };
+  
+  const handlePaymentClick = () => {
     // Start the processing simulation
     setProcessingState('processing');
     setProgressValue(0);
     simulateProcessing();
+    
+    toast.success("Pagamento processado!", {
+      description: "Iniciando transformação da sua imagem..."
+    });
   };
   
   const simulateProcessing = () => {
@@ -77,7 +92,7 @@ const StudioSection = () => {
   
   const handleReset = () => {
     // Reset just the processing states but keep the image and style
-    setProcessingState('idle');
+    setProcessingState('awaiting_payment');
     setProgressValue(0);
     setTransformedImage(null);
   };
@@ -89,6 +104,7 @@ const StudioSection = () => {
     setProcessingState('idle');
     setProgressValue(0);
     setTransformedImage(null);
+    setActiveStep(1);
   };
   
   const handleDownload = () => {
@@ -132,7 +148,7 @@ const StudioSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Step 1: Upload */}
-          <div className="step-card">
+          <div className={`step-card ${activeStep === 1 ? 'ring-2 ring-primary ring-opacity-50' : ''}`}>
             <div className="mb-6 rounded-full bg-primary/10 p-4">
               <div className="h-8 w-8 text-primary flex items-center justify-center font-bold">1</div>
             </div>
@@ -146,7 +162,7 @@ const StudioSection = () => {
           </div>
 
           {/* Step 2: Choose Style */}
-          <div className={`step-card ${uploadedImage ? 'opacity-100' : 'opacity-60'}`}>
+          <div className={`step-card ${activeStep === 2 ? 'ring-2 ring-primary ring-opacity-50' : ''} ${uploadedImage ? 'opacity-100' : 'opacity-60'}`}>
             <div className="mb-6 rounded-full bg-primary/10 p-4">
               <div className="h-8 w-8 text-primary flex items-center justify-center font-bold">2</div>
             </div>
@@ -179,7 +195,7 @@ const StudioSection = () => {
           </div>
 
           {/* Step 3: Result */}
-          <div className={`step-card ${selectedStyle ? 'opacity-100' : 'opacity-60'}`}>
+          <div className={`step-card ${activeStep === 3 ? 'ring-2 ring-primary ring-opacity-50' : ''} ${selectedStyle ? 'opacity-100' : 'opacity-60'}`}>
             <div className="mb-6 rounded-full bg-primary/10 p-4">
               <div className="h-8 w-8 text-primary flex items-center justify-center font-bold">3</div>
             </div>
@@ -194,6 +210,33 @@ const StudioSection = () => {
                   <p className="text-sm text-muted-foreground">
                     Sua imagem transformada aparecerá aqui
                   </p>
+                </div>
+              ) : processingState === 'awaiting_payment' ? (
+                <div className="relative w-full h-full">
+                  {uploadedImage && (
+                    <img 
+                      src={uploadedImage.preview}
+                      alt="Imagem original" 
+                      className="absolute inset-0 w-full h-full object-cover opacity-50 blur-sm"
+                    />
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center bg-background/80 backdrop-blur-sm p-6 rounded-xl w-4/5 max-w-xs">
+                      <div className="flex items-center justify-center mb-3">
+                        <CreditCard className="h-8 w-8 text-primary" />
+                      </div>
+                      <p className="font-medium text-lg mb-2">Pronto para transformar</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Clique no botão abaixo para pagar e iniciar a transformação
+                      </p>
+                      <Button 
+                        onClick={handlePaymentClick}
+                        className="w-full"
+                      >
+                        Pagar 1.00€ e Transformar
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               ) : processingState === 'processing' ? (
                 <div className="relative w-full h-full">
