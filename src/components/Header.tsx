@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, User } from "lucide-react";
+import { Menu } from "lucide-react";
+import UserMenu from "./UserMenu";
 
 const Header = () => {
   return (
@@ -25,9 +26,7 @@ const Header = () => {
           <a href="#studio" className="text-foreground hover:text-primary transition-colors">Estúdio</a>
           <a href="#" className="text-foreground hover:text-primary transition-colors">Galeria</a>
           <a href="#" className="text-foreground hover:text-primary transition-colors">Sobre</a>
-          <Button variant="ghost" size="icon" className="ml-2">
-            <User className="h-5 w-5" />
-          </Button>
+          <UserMenu />
         </nav>
       </div>
     </header>
