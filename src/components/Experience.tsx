@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Briefcase, GraduationCap } from 'lucide-react';
 import { cn } from "@/lib/utils";
@@ -34,26 +33,31 @@ const experiences: ExperienceItem[] = [
     type: "education",
     location: "Barcelona, Spain",
     projects: [
-      { title: "Data Analytics Project", pdfUrl: "/Laboratory_task_code.pdf" } // Using the correct web path
+      { title: "Data Analytics Project", pdfUrl: "/Laboratory_task_code.pdf" },
+      { title: "Diapers Project", pdfUrl: "/Comparison of the environmental impact of disposable diapers vs cloth diapers FINAL.pdf" },
+      { title: "Numerical Simulation", pdfUrl: "/NSAE.pdf" }
     ]
   },
   {
     id: 3,
-    title: "Bachelor's Degree in Industrial Engineering and Management",
-    organization: "Instituto Superior de Engenharia do Porto (ISEP)",
-    duration: "Sep 2022 – Sep 2025",
-    description: "• Building a solid foundation in mathematics, physics, and management principles • Proactive, collaborative, strong problem-solving abilities.",
-    type: "education",
-    location: "Porto, Portugal"
-  },
-  {
-    id: 4,
     title: "Internship: Production Control",
     organization: "Confeitarias Arca e Arcádia SA",
     duration: "Aug 2023",
     description: "• Monitored production and logistics processes in the factories • Collaborated in preparing performance reports and metrics.",
     type: "work",
     location: "Grijó, Portugal"
+  },
+  {
+    id: 4,
+    title: "Bachelor's Degree in Industrial Engineering and Management",
+    organization: "Instituto Superior de Engenharia do Porto (ISEP)",
+    duration: "Sep 2022 – Sep 2025",
+    description: "• Building a solid foundation in mathematics, physics, and management principles • Proactive, collaborative, strong problem-solving abilities.",
+    type: "education",
+    location: "Porto, Portugal",
+    projects: [
+      { title: "Second year final project", pdfUrl: "/ReCupBox_Relatório.pdf" },
+    ]
   },
 ];
 
