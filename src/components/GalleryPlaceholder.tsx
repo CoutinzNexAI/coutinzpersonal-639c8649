@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Gallery } from "lucide-react";
+import { GalleryHorizontal } from "lucide-react";
 
 const GalleryPlaceholder = () => {
   return (
@@ -12,7 +12,7 @@ const GalleryPlaceholder = () => {
         </p>
         
         <div className="ghibli-card p-8 mt-12 flex flex-col items-center justify-center min-h-[300px]">
-          <Gallery className="h-16 w-16 text-ghibli-moss-light mb-6" />
+          <GalleryHorizontal className="h-16 w-16 text-ghibli-moss-light mb-6" />
           <h3 className="text-xl font-ghibli text-ghibli-wood mb-2">Galeria de Exemplos</h3>
           <p className="text-ghibli-earth text-center max-w-lg">
             Aqui você encontrará uma coleção de transformações "Antes e Depois" com diferentes filtros de estilo.
