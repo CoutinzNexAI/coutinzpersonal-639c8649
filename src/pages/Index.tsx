@@ -1,16 +1,24 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-import Hero from '@/components/Hero';
+import GhibliHero from '@/components/GhibliHero';
 import StudioSection from '@/components/StudioSection';
+import GalleryPlaceholder from '@/components/GalleryPlaceholder';
+import HowItWorks from '@/components/HowItWorks';
 import Footer from '@/components/Footer';
 
 const Index = () => {
   return (
     <div className="min-h-screen">
       <Header />
-      <Hero />
-      <StudioSection />
+      <main>
+        <GhibliHero />
+        <StudioSection />
+        <div className="ghibli-divider" />
+        <GalleryPlaceholder />
+        <div className="ghibli-divider" />
+        <HowItWorks />
+      </main>
       <Footer />
     </div>
   );

@@ -10,6 +10,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { TransformationsModalProvider } from "./hooks/useTransformationsModal";
 import TransformationsModal from "./components/TransformationsModal";
 
+// Create a new query client
 const queryClient = new QueryClient();
 
 const App = () => (

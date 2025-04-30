@@ -5,35 +5,35 @@
 
 @layer base {
   :root {
-    --background: 260 100% 98%;
-    --foreground: 260 10% 15%;
+    --background: 43 40% 96%;
+    --foreground: 35 25% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 260 10% 15%;
+    --card-foreground: 35 25% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 260 10% 15%;
+    --popover-foreground: 35 25% 15%;
 
-    --primary: 260 70% 55%;
+    --primary: 86 16% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 324 100% 96%;
-    --secondary-foreground: 260 10% 15%;
+    --secondary: 45 25% 83%;
+    --secondary-foreground: 35 25% 15%;
 
-    --muted: 260 20% 90%;
-    --muted-foreground: 260 10% 40%;
+    --muted: 45 16% 86%;
+    --muted-foreground: 35 10% 40%;
 
-    --accent: 260 40% 96%;
-    --accent-foreground: 260 10% 15%;
+    --accent: 210 30% 86%;
+    --accent-foreground: 35 25% 15%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 260 20% 85%;
-    --input: 260 20% 85%;
-    --ring: 260 70% 55%;
+    --border: 45 20% 85%;
+    --input: 45 20% 85%;
+    --ring: 86 16% 42%;
 
-    --radius: 1.2rem;
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -56,26 +56,26 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-ghibli-paper text-foreground bg-paper-texture;
     font-family: 'Inter', sans-serif;
   }
 }
 
 @layer components {
   .ghibli-card {
-    @apply relative overflow-hidden rounded-2xl bg-white/70 backdrop-blur-sm border border-white/50 shadow-xl;
+    @apply relative overflow-hidden rounded-xl bg-white/90 backdrop-blur-sm border border-ghibli-sand/30 shadow-sm;
   }
   
   .ghibli-button {
-    @apply inline-flex items-center justify-center rounded-xl bg-ghibli-gradient text-white font-medium px-6 py-3 shadow-md transition-all hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 active:scale-[0.98];
+    @apply inline-flex items-center justify-center rounded-full bg-ghibli-moss text-white font-medium px-6 py-3 shadow-sm transition-all hover:bg-ghibli-moss-light hover:text-ghibli-wood hover:shadow focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 active:scale-[0.98];
   }
 
-  .step-card {
-    @apply flex flex-col items-center justify-center ghibli-card p-8 transition-all duration-300 hover:shadow-2xl hover:border-ghibli-purple/50;
+  .ghibli-accent-button {
+    @apply inline-flex items-center justify-center rounded-full bg-ghibli-sunflower text-ghibli-wood font-medium px-6 py-3 shadow-sm transition-all hover:bg-ghibli-sunflower/90 hover:shadow focus:outline-none focus:ring-2 focus:ring-ghibli-sunflower focus:ring-offset-2 active:scale-[0.98];
   }
 
   .section-title {
-    @apply text-3xl md:text-4xl font-bold text-foreground mb-4 tracking-tight;
+    @apply text-3xl md:text-4xl font-ghibli font-bold text-ghibli-wood mb-4 tracking-tight;
   }
 
   .section-subtitle {
@@ -98,6 +98,19 @@
   .image-preview-container {
     @apply transition-all duration-300;
   }
+
+  /* Ghibli decorative elements */
+  .leaf-decoration {
+    @apply absolute pointer-events-none animate-leaf-float text-ghibli-moss-light/30;
+  }
+
+  .star-decoration {
+    @apply absolute pointer-events-none animate-star-twinkle text-ghibli-sunflower/50;
+  }
+
+  .ghibli-divider {
+    @apply w-full h-px bg-gradient-to-r from-transparent via-ghibli-earth/20 to-transparent my-16;
+  }
 }
 
 @layer utilities {
@@ -105,12 +118,11 @@
     text-wrap: balance;
   }
   
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-ghibli-gradient;
+  .text-gradient-ghibli {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-ghibli-moss to-ghibli-earth;
   }
-  
-  /* Additional utilities for our upload component */
-  .backdrop-blur-hover {
-    @apply hover:backdrop-blur-md transition-all duration-300;
+
+  .paper-texture {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23D2CAB8' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
 }
