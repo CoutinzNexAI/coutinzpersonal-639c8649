@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Briefcase, GraduationCap } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import ProjectModal from './ProjectModal';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ExperienceItem = {
   id: number;
@@ -62,6 +64,8 @@ const experiences: ExperienceItem[] = [
 ];
 
 const Experience = () => {
+  const isMobile = useIsMobile();
+  
   return (
     <section id="experience" className="section-padding bg-cosmic-black/50">
       <div className="container mx-auto px-4 overflow-x-hidden">
@@ -69,19 +73,29 @@ const Experience = () => {
         
         <div className="max-w-7xl mx-auto">
           <div className="relative">
-            <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-cosmic-purple via-cosmic-blue to-cosmic-pink"></div>
+            {/* Timeline line */}
+            <div className={cn(
+              "absolute h-full w-0.5 bg-gradient-to-b from-cosmic-purple via-cosmic-blue to-cosmic-pink",
+              isMobile ? "left-4" : "left-1/2 transform -translate-x-1/2"
+            )}></div>
             
-            <div className="space-y-12">
+            <div className="space-y-8 md:space-y-12">
               {experiences.map((exp, index) => (
                 <div 
                   key={exp.id}
                   className={cn(
-                    "relative flex md:flex-row flex-col md:items-center animate-fade-in",
-                    index % 2 === 0 ? "md:flex-row-reverse" : ""
+                    "relative flex items-start animate-fade-in",
+                    isMobile 
+                      ? "flex-col ml-12" 
+                      : cn("md:items-center", index % 2 === 0 ? "md:flex-row-reverse" : "md:flex-row")
                   )}
                   style={{ animationDelay: `${index * 0.2}s` }}
                 >
-                  <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 flex items-center justify-center z-10">
+                  {/* Timeline dot */}
+                  <div className={cn(
+                    "absolute flex items-center justify-center z-10",
+                    isMobile ? "left-4 top-0" : "left-1/2 transform -translate-x-1/2"
+                  )}>
                     <div className={cn(
                       "h-8 w-8 rounded-full flex items-center justify-center",
                       exp.type === 'work' ? 'bg-cosmic-purple' : 'bg-cosmic-blue'
@@ -94,9 +108,12 @@ const Experience = () => {
                     </div>
                   </div>
                   
+                  {/* Content panel */}
                   <div className={cn(
-                    "glass-panel p-6 md:w-5/12 ml-12 md:ml-0 relative group hover:scale-105 transition-transform duration-300",
-                    index % 2 === 0 ? "md:mr-8" : "md:ml-8"
+                    "glass-panel p-5 md:p-6 relative group hover:scale-105 transition-transform duration-300 w-full",
+                    isMobile 
+                      ? "mt-2" 
+                      : cn("md:w-5/12", index % 2 === 0 ? "md:mr-8" : "md:ml-8")
                   )}>
                     <div className="mb-2">
                       <span className={cn(
@@ -108,13 +125,15 @@ const Experience = () => {
                         {exp.type === 'work' ? 'Work' : 'Education'}
                       </span>
                     </div>
-                    <h3 className="text-xl font-bold">{exp.title}</h3>
+                    <h3 className="text-lg md:text-xl font-bold line-clamp-2">{exp.title}</h3>
                     <p className="text-gray-300 text-sm mb-1">{exp.organization}{exp.location ? ` - ${exp.location}` : ''}</p>
                     <p className="text-sm text-gray-500 mb-3">{exp.duration}</p>
-                    <p className="text-gray-300 mb-4">{exp.description}</p>
-                    <div className="flex justify-end">
-                      <ProjectModal projects={exp.projects || []}/>
-                    </div>
+                    <p className="text-gray-300 text-sm md:text-base mb-4">{exp.description}</p>
+                    {(exp.projects && exp.projects.length > 0) && (
+                      <div className="flex justify-end">
+                        <ProjectModal projects={exp.projects}/>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

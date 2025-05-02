@@ -12,8 +12,9 @@ import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 
 const Index = () => {
+  // Add a class to better handle the global mobile styling
   return (
-    <div className="min-h-screen bg-cosmic-black text-white">
+    <div className="min-h-screen bg-cosmic-black text-white overflow-x-hidden">
       <Navbar />
       <Hero />
       <Skills />
