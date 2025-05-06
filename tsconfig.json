@@ -1,19 +1,39 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
+  // SEM "files", SEM "references"
   "compilerOptions": {
+    "target": "ES2020", // Ou "ES2022" - mais moderno que ES2017
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true, // Permite ficheiros JS
+    "skipLibCheck": true, // Evita verificar tipos em node_modules
+    "strict": false, // Mantendo a tua preferência (mas true é recomendado!)
+    "forceConsistentCasingInFileNames": true, // Boa prática
+    "noEmit": true, // Next.js trata da emissão de ficheiros
+    "esModuleInterop": true, // Compatibilidade entre módulos
+    "module": "esnext", // Módulos ES
+    "moduleResolution": "node", // Resolução de módulos padrão para Node/Next.js
+    "resolveJsonModule": true, // Permite importar JSON
+    "isolatedModules": true, // Garante que ficheiros podem ser compilados separadamente
+    "jsx": "preserve", // **MUITO IMPORTANTE para Next.js**
+    "incremental": true, // Melhora velocidade de builds seguintes
+
+    // --- Path Alias (do teu ficheiro original) ---
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
+
+    // --- Linting (mantendo as tuas opções permissivas por agora) ---
     "noImplicitAny": false,
-    "noUnusedParameters": false,
-    "skipLibCheck": true,
-    "allowJs": true,
     "noUnusedLocals": false,
-    "strictNullChecks": false
-  }
+    "noUnusedParameters": false,
+    "strictNullChecks": false, // 'strict: true' ativa isto e mais
+    "noFallthroughCasesInSwitch": true // Mantendo a mais rigorosa das duas que tinhas
+  },
+  "include": [
+    "next-env.d.ts", // Tipos específicos do Next.js
+    "**/*.ts",
+    "**/*.tsx"
+    // Considera adicionar ".next/types/**/*.ts" se usares o App Router no futuro
+  ],
+  "exclude": ["node_modules"]
 }

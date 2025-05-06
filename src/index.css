@@ -1,40 +1,51 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Definições de variáveis CSS para o tema (HSL) */
 @layer base {
   :root {
-    --background: 43 40% 96%;
-    --foreground: 35 25% 15%;
+    /* Cores Base */
+    --background: 43 40% 96%; /* Cor de fundo principal (bege claro) */
+    --foreground: 35 25% 15%; /* Cor do texto principal (castanho escuro) */
 
-    --card: 0 0% 100%;
-    --card-foreground: 35 25% 15%;
+    /* Cores do Card */
+    --card: 0 0% 100%; /* Fundo do card (branco) */
+    --card-foreground: 35 25% 15%; /* Texto dentro do card */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 35 25% 15%;
+    /* Cores do Popover */
+    --popover: 0 0% 100%; /* Fundo do popover (branco) */
+    --popover-foreground: 35 25% 15%; /* Texto dentro do popover */
 
-    --primary: 86 16% 42%;
-    --primary-foreground: 0 0% 100%;
+    /* Cores Primárias (usadas em botões, links, foco) */
+    --primary: 86 16% 42%; /* Verde musgo (ghibli-moss) */
+    --primary-foreground: 0 0% 100%; /* Texto sobre cor primária (branco) */
 
-    --secondary: 45 25% 83%;
-    --secondary-foreground: 35 25% 15%;
+    /* Cores Secundárias (elementos menos importantes) */
+    --secondary: 45 25% 83%; /* Bege acinzentado claro */
+    --secondary-foreground: 35 25% 15%; /* Texto sobre cor secundária */
 
-    --muted: 45 16% 86%;
-    --muted-foreground: 35 10% 40%;
+    /* Cores Muted (texto secundário, placeholders) */
+    --muted: 45 16% 86%; /* Cinza claro */
+    --muted-foreground: 35 10% 40%; /* Cinza escuro para texto muted */
 
-    --accent: 210 30% 86%;
-    --accent-foreground: 35 25% 15%;
+    /* Cores Accent (destaques subtis) */
+    --accent: 210 30% 86%; /* Azul acinzentado claro */
+    --accent-foreground: 35 25% 15%; /* Texto sobre cor accent */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    /* Cores Destructive (erros, alertas) */
+    --destructive: 0 84.2% 60.2%; /* Vermelho */
+    --destructive-foreground: 0 0% 98%; /* Texto sobre cor destructive (branco) */
 
-    --border: 45 20% 85%;
-    --input: 45 20% 85%;
-    --ring: 86 16% 42%;
+    /* Cores de Bordas e Inputs */
+    --border: 45 20% 85%; /* Cor da borda padrão */
+    --input: 45 20% 85%; /* Cor da borda do input */
+    --ring: 86 16% 42%; /* Cor do anel de foco (igual à primária) */
 
-    --radius: 1rem;
+    /* Raio de Borda Padrão */
+    --radius: 1rem; /* Bordas bastante arredondadas */
 
+    /* Cores específicas da Sidebar (se aplicável) */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -43,63 +54,89 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Cores Temáticas Ghibli (Adicionadas manualmente ou via Tailwind config) */
+    /* Certifica-te que estas cores estão definidas no teu tailwind.config.ts */
+    /* Exemplo: */
+    /* --ghibli-paper: theme('colors.ghibli-paper'); */
+    /* --ghibli-moss: theme('colors.ghibli-moss'); */
+    /* ... etc ... */
   }
+
+  /* Tema escuro (opcional, exemplo) */
+  /* .dark { ... define variáveis para o tema escuro ... } */
 }
 
+/* Estilos base aplicados a elementos HTML */
 @layer base {
   * {
-    @apply border-border;
+    /* Aplica a cor de borda padrão a todos os elementos (cuidado com esta regra global) */
+    /* @apply border-border; */ /* Comentado - pode causar bordas indesejadas */
   }
 
   html {
+    /* Ativa o scroll suave */
     scroll-behavior: smooth;
   }
 
   body {
+    /* Aplica cor de fundo, cor de texto e textura de papel */
+    /* Garante que 'ghibli-paper' está definido no teu tema Tailwind */
     @apply bg-ghibli-paper text-foreground bg-paper-texture;
+    /* Define a fonte padrão */
     font-family: 'Inter', sans-serif;
+    /* Melhora a renderização da fonte */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
+/* Estilos para componentes reutilizáveis */
 @layer components {
+  /* Estilo base para os cards temáticos */
   .ghibli-card {
     @apply relative overflow-hidden rounded-xl bg-white/90 backdrop-blur-sm border border-ghibli-sand/30 shadow-sm;
   }
-  
+
+  /* Estilo base para o botão principal temático */
   .ghibli-button {
     @apply inline-flex items-center justify-center rounded-full bg-ghibli-moss text-white font-medium px-6 py-3 shadow-sm transition-all hover:bg-ghibli-moss-light hover:text-ghibli-wood hover:shadow focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 active:scale-[0.98];
   }
 
+  /* Estilo para um botão de acento (cor diferente) */
   .ghibli-accent-button {
     @apply inline-flex items-center justify-center rounded-full bg-ghibli-sunflower text-ghibli-wood font-medium px-6 py-3 shadow-sm transition-all hover:bg-ghibli-sunflower/90 hover:shadow focus:outline-none focus:ring-2 focus:ring-ghibli-sunflower focus:ring-offset-2 active:scale-[0.98];
   }
 
+  /* Estilo para títulos de secção */
   .section-title {
     @apply text-3xl md:text-4xl font-ghibli font-bold text-ghibli-wood mb-4 tracking-tight;
   }
 
+  /* Estilo para subtítulos de secção */
   .section-subtitle {
     @apply text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto;
   }
-  
-  /* New animation classes for the image upload */
+
+  /* Animações para o componente de upload de imagem */
   .upload-appear {
-    @apply animate-fade-in;
+    @apply animate-fade-in; /* Requer definição de keyframes 'fade-in' */
   }
 
   .upload-area {
     @apply transition-all duration-300 ease-in-out;
   }
-  
+
   .upload-area-dragging {
     @apply border-primary bg-primary/5 scale-[1.02];
   }
-  
+
   .image-preview-container {
     @apply transition-all duration-300;
   }
 
-  /* Ghibli decorative elements */
+  /* Estilos para elementos decorativos (folhas, estrelas) */
+  /* Requerem definições de keyframes 'leaf-float' e 'star-twinkle' */
   .leaf-decoration {
     @apply absolute pointer-events-none animate-leaf-float text-ghibli-moss-light/30;
   }
@@ -108,21 +145,81 @@
     @apply absolute pointer-events-none animate-star-twinkle text-ghibli-sunflower/50;
   }
 
+  /* Divisor temático */
   .ghibli-divider {
     @apply w-full h-px bg-gradient-to-r from-transparent via-ghibli-earth/20 to-transparent my-16;
   }
 }
 
+/* Utilitários CSS customizados */
 @layer utilities {
+  /* Utilitário para balancear texto (melhora quebras de linha em títulos) */
   .text-balance {
     text-wrap: balance;
   }
-  
+
+  /* Utilitário para gradiente de texto temático */
   .text-gradient-ghibli {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-ghibli-moss to-ghibli-earth;
   }
 
+  /* Textura de papel aplicada ao body (Base64 SVG) */
   .paper-texture {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23D2CAB8' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
+
+  /* --- NOVAS REGRAS PARA ELEMENTOS CAINDO --- */
+  /* Define a animação de queda */
+  @keyframes fall {
+    0% {
+      /* Estado inicial: acima do ecrã, com transformações e opacidade 0 */
+      transform: translateY(-10vh) translateX(var(--start-x)) rotate(var(--start-rotate));
+      opacity: 0;
+    }
+    10% {
+      /* Fade-in gradual */
+      opacity: var(--max-opacity, 0.7);
+    }
+    90% {
+      /* Mantém a opacidade máxima durante a maior parte da queda */
+      opacity: var(--max-opacity, 0.7);
+    }
+    100% {
+      /* Estado final: abaixo do ecrã, com transformações e opacidade 0 */
+      transform: translateY(110vh) translateX(var(--end-x)) rotate(var(--end-rotate));
+      opacity: 0;
+    }
+  }
+
+  /* Estilo base para cada elemento que cai */
+  .falling-element {
+    position: fixed; /* Posição fixa em relação à janela */
+    top: 0; /* Alinhamento ao topo para translateY funcionar */
+    left: var(--left-pos); /* Posição horizontal definida via JS */
+    z-index: 15; /* Fica atrás do conteúdo principal */
+    pointer-events: none; /* Não bloqueia cliques no conteúdo */
+    font-size: var(--element-size, 1.5rem); /* Tamanho padrão do emoji/elemento */
+    /* Aplica a animação 'fall' */
+    animation-name: fall;
+    animation-timing-function: linear; /* Velocidade constante */
+    animation-iteration-count: infinite; /* Repete infinitamente */
+    animation-duration: var(--duration); /* Duração definida via JS */
+    animation-delay: var(--delay); /* Atraso inicial definido via JS */
+    opacity: 0; /* Começa invisível (a animação controla a opacidade) */
+    /* Variáveis CSS que serão populadas pelo componente React */
+    --start-x: 0vw;
+    --end-x: 0vw;
+    --start-rotate: 0deg;
+    --end-rotate: 0deg;
+    --max-opacity: 0.7;
+  }
+
+  /* Media query para ajustar o tamanho em ecrãs menores */
+  @media (max-width: 768px) {
+    .falling-element {
+      /* Usa a variável de tamanho mobile definida via JS */
+      font-size: var(--element-size-mobile, 1rem);
+    }
+  }
+  /* --- FIM DAS NOVAS REGRAS PARA ELEMENTOS CAINDO --- */
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 interface ProcessingSimulationProps {
@@ -36,5 +35,5 @@ export const useProcessingSimulation = ({ onComplete }: ProcessingSimulationProp
     return () => clearInterval(interval);
   };
 
-  return { progressValue, startProcessing };
+  return { progressValue, setProgressValue, startProcessing };
 };
