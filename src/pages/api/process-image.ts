@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import OpenAI from 'openai';
 import { Buffer } from 'buffer';
 import axios, { AxiosError } from 'axios'; // Import AxiosError
 import FormData from 'form-data';
@@ -13,9 +12,6 @@ if (!process.env.OPENAI_API_KEY) {
   console.error("❌ [Process Image API] CRITICAL ERROR: OPENAI_API_KEY not defined!");
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-});
 
 type ResponseData = {
   success?: boolean;

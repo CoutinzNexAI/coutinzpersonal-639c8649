@@ -83,7 +83,7 @@ const ImageCompareModal: React.FC<ImageCompareModalProps> = ({
   return (
     <AnimatePresence>
       <motion.div 
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 backdrop-blur-sm pt-16"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -135,7 +135,7 @@ const ImageCompareModal: React.FC<ImageCompareModalProps> = ({
         
         {/* Main content */}
         <motion.div 
-          className="w-[90vw] max-w-6xl"
+          className="w-[90vw] max-w-4xl"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
@@ -176,8 +176,10 @@ const ImageCompareModal: React.FC<ImageCompareModalProps> = ({
                 />
               }
               style={{
-                height: '70vh',
-                maxHeight: '800px',
+                height: 'min(calc(100vw - 20vw), calc(100vh - 200px))',
+                width: 'min(calc(100vw - 20vw), calc(100vh - 200px))',
+                margin: '0 auto',
+                aspectRatio: '1/1',
               }}
             />
             

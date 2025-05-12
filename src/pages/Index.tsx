@@ -5,6 +5,8 @@ import GhibliHero from '@/components/GhibliHero'; // Componente principal com te
 import InteractiveGallery from '@/components/InteractiveGallery'; // Secção da galeria de exemplos
 import HowItWorks from '@/components/HowItWorks'; // Secção "Como Funciona"
 import Footer from '@/components/Footer'; // Rodapé
+import { FAQSection } from '@/components/FAQSection'; // Ajusta o caminho se necessário
+
 
 // Componente funcional para a página inicial (rota '/')
 const Index = () => {
@@ -37,6 +39,9 @@ const Index = () => {
 
         {/* Renderiza a secção "Como Funciona" */}
         <HowItWorks />
+
+        {/* Renderiza a secção de Perguntas Frequentes */}
+        <FAQSection />
 
       </main> {/* Fim do conteúdo principal */}
 

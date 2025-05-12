@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { GalleryHorizontal } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { GalleryHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import GalleryCard from './gallery/GalleryCard';
 import ImageCompareModal, { GalleryItem } from './gallery/ImageCompareModal';
+import { Button } from "@/components/ui/button";
 
 const GALLERY_ITEMS: GalleryItem[] = [
   {
@@ -30,18 +31,80 @@ const GALLERY_ITEMS: GalleryItem[] = [
     id: 4,
     title: "Arquitetura moderna",
     style: "Neo-Futurista",
+    before: "gyokerespotenormal.jpeg",
+    after: "gyopoteghibli.png"
+  },
+  {
+    id: 5,
+    title: "Arquitetura moderna",
+    style: "Neo-Futurista",
     before: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=500&q=80",
     after: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&q=80"
-  }
+  },
+  {
+    id: 6,
+    title: "Arquitetura moderna",
+    style: "Neo-Futurista",
+    before: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=500&q=80",
+    after: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&q=80"
+  },
+  {
+    id: 7,
+    title: "Arquitetura moderna",
+    style: "Neo-Futurista",
+    before: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=500&q=80",
+    after: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&q=80"
+  } 
 ];
 
 const InteractiveGallery = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [pageIndex, setPageIndex] = useState(0);
+  
+  // Calcular o número total de páginas
+  const itemsPerPage = 3;
+  const totalPages = Math.ceil(GALLERY_ITEMS.length / itemsPerPage);
+  
+  // Obter os itens atuais com base na página
+  const currentItems = GALLERY_ITEMS.slice(
+    pageIndex * itemsPerPage, 
+    (pageIndex + 1) * itemsPerPage
+  );
 
   const openModal = (index: number) => {
-    setSelectedImageIndex(index);
+    // Converter o índice local para o índice global na lista completa
+    const globalIndex = pageIndex * itemsPerPage + index;
+    setSelectedImageIndex(globalIndex);
     setModalOpen(true);
+  };
+
+  const goToNextPage = () => {
+    setPageIndex((prev) => (prev + 1) % totalPages);
+  };
+
+  const goToPrevPage = () => {
+    setPageIndex((prev) => (prev - 1 + totalPages) % totalPages);
+  };
+
+  // Indicadores de página
+  const renderPageIndicators = () => {
+    return (
+      <div className="flex justify-center gap-2 mt-6">
+        {Array.from({ length: totalPages }).map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setPageIndex(idx)}
+            className={`w-2.5 h-2.5 rounded-full transition-all ${
+              pageIndex === idx 
+                ? "bg-ghibli-moss scale-110" 
+                : "bg-ghibli-stone/40 hover:bg-ghibli-stone/60"
+            }`}
+            aria-label={`Página ${idx + 1}`}
+          />
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -70,21 +133,60 @@ const InteractiveGallery = () => {
         </motion.div>
         
         {GALLERY_ITEMS.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-            {GALLERY_ITEMS.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+          <div className="relative">
+            {/* Botão de navegação à esquerda */}
+            {totalPages > 1 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 backdrop-blur-sm shadow-md rounded-full hover:bg-white hidden md:flex"
+                onClick={goToPrevPage}
+                aria-label="Página anterior"
               >
-                <GalleryCard
-                  item={item}
-                  onClick={() => openModal(index)}
-                />
+                <ChevronLeft className="h-5 w-5 text-ghibli-wood" />
+              </Button>
+            )}
+            
+            {/* Animação de transição entre páginas */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pageIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.4 }}
+                className="grid grid-cols-1 md:grid-cols-3 gap-8"
+              >
+                {currentItems.map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    className="aspect-[3/4]" // Proporção mais alta que larga
+                  >
+                    <GalleryCard
+                      item={item}
+                      onClick={() => openModal(index)}
+                    />
+                  </motion.div>
+                ))}
               </motion.div>
-            ))}
+            </AnimatePresence>
+            
+            {/* Botão de navegação à direita */}
+            {totalPages > 1 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 backdrop-blur-sm shadow-md rounded-full hover:bg-white hidden md:flex"
+                onClick={goToNextPage}
+                aria-label="Próxima página"
+              >
+                <ChevronRight className="h-5 w-5 text-ghibli-wood" />
+              </Button>
+            )}
           </div>
         ) : (
           <div className="ghibli-card p-8 mt-8 flex flex-col items-center justify-center min-h-[300px]">
@@ -93,6 +195,33 @@ const InteractiveGallery = () => {
             <p className="text-ghibli-earth text-center max-w-lg">
               Em breve teremos uma coleção de exemplos incríveis para você se inspirar.
             </p>
+          </div>
+        )}
+        
+        {/* Indicadores de página e controles móveis */}
+        {totalPages > 1 && (
+          <div className="mt-8">
+            {renderPageIndicators()}
+            
+            {/* Controles para dispositivos móveis */}
+            <div className="flex justify-center gap-4 mt-6 md:hidden">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToPrevPage}
+                className="flex items-center"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToNextPage}
+                className="flex items-center"
+              >
+                Próximo <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
           </div>
         )}
       </div>

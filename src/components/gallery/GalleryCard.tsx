@@ -36,7 +36,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ item, onClick }) => {
           </motion.div>
         </div>
         
-        <div className="relative aspect-video">
+        <div className="relative aspect-square">
           {/* Imagem Original */}
           <motion.div 
             className="absolute inset-0"
@@ -61,11 +61,12 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ item, onClick }) => {
             }}
             transition={{ duration: 0.5 }}
           >
-            <img 
-              src={item.after} 
-              alt="Imagem transformada" 
-              className="w-full h-full object-cover"
-            />
+            <div className="group overflow-hidden rounded-lg">
+              <img 
+                src={item.after} 
+                className="transition-transform duration-500 group-hover:scale-110" 
+              />
+            </div>
             
             {/* Overlay quando hover */}
             {isHovered && (

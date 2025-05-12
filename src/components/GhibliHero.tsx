@@ -77,23 +77,23 @@ const GhibliHero = () => {
 
       // Pontos de controlo para Curvas de Bézier Cúbicas (C) para criar "nós"
       // Ajustar estes valores requer experimentação visual!
-      const curveFactor = 0.6; // Quão pronunciados são os nós (0 a 1)
-      const midPointX = startX + (endX - startX) * 0.5;
-      const midPointY = startY + (endY - startY) * 0.5;
+      const curveFactor = 0.4; // Quão pronunciados são os nós (0 a 1)
+      const midPointX = startX + (endX - startX) * 0.7;
+      const midPointY = startY + (endY - startY) * 0.4;
 
       // Controles para a primeira curva (saindo do botão)
-      const cp1X = startX + (midPointX - startX) * 0.2;
-      const cp1Y = startY - (startY - midPointY) * curveFactor * 1.5; // Nó para cima
+      const cp1X = startX + (midPointX - startX) * 1;
+      const cp1Y = startY - (startY - midPointY) * curveFactor * -2; // Nó para cima
 
       const cp2X = midPointX - (midPointX - startX) * curveFactor;
       const cp2Y = midPointY + (midPointY - startY) * curveFactor * 0.8; // Nó para baixo
 
       // Controles para a segunda curva (chegando ao cartão)
       const cp3X = midPointX + (endX - midPointX) * curveFactor;
-      const cp3Y = midPointY - (endY - midPointY) * curveFactor * 0.5; // Nó para cima
+      const cp3Y = midPointY - (endY - midPointY) * curveFactor * 0; // Nó para cima
 
       const cp4X = endX - (endX - midPointX) * 0.2;
-      const cp4Y = endY + (endY - midPointY) * curveFactor * 1.2; // Curva final para baixo
+      const cp4Y = endY + (endY - midPointY) * curveFactor * 0; // Curva final para baixo
 
       // Define o atributo 'd' para o path SVG: M = MoveTo, C = Cubic Bézier curve
       // M startX startY C cp1X cp1Y, cp2X cp2Y, midPointX midPointY C cp3X cp3Y, cp4X cp4Y, endX endY
@@ -235,11 +235,9 @@ const GhibliHero = () => {
         if (['awaiting_payment', 'creating_job', 'uploading_image', 'redirecting_to_payment'].includes(processingState)) {
           return (
             <div className="w-full h-full flex flex-col items-center justify-center p-4">
-              <h3 className="text-xl font-ghibli text-ghibli-wood mb-2 text-center">Passo 3: Pagamento</h3>
-              <Step3Preview imageUrl={uploadedImage?.preview} styleName={selectedStyle?.name} />
-              <p className="text-ghibli-earth text-center text-sm mb-4">Confirme para iniciar a transformação</p>
               <div className="w-full flex-grow relative">
                 <PaymentState
+                  selectedStyleName={selectedStyle?.name || 'Estilo não definido'}
                   onPaymentClick={initiatePayment}
                   isRedirecting={isLoading}
                   errorMessage={errorMessage}

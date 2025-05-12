@@ -25,7 +25,7 @@ const examples: CarouselExample[] = [
     {
       id: 2,
       beforeSrc: '/casamentonormal.jpg',
-      afterSrc: '/mikeghibli.jpg',
+      afterSrc: '/casalghibli.png',
       alt: 'Exemplo 2: Paisagem transformada em estilo Ghibli',
     },
     {

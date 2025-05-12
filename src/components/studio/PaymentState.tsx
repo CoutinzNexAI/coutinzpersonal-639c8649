@@ -8,6 +8,8 @@ interface PaymentStateProps {
   // uploadedImageUrl: string; // Removed
   // selectedStyle: Style | null; // Removed
   // jobId: string | null; // Removed
+  selectedStyleName: string; // Added to display the chosen style
+  // originalImagePreviewUrl?: string; // Optional: Added to display a preview of the original image
   onPaymentClick: () => void;
   isRedirecting: boolean;
   errorMessage?: string | null;
@@ -17,6 +19,8 @@ const PaymentState: React.FC<PaymentStateProps> = ({
   // uploadedImageUrl, // Removed
   // selectedStyle, // Removed
   // jobId, // Removed
+  selectedStyleName, // Added
+  // originalImagePreviewUrl, // Added
   onPaymentClick,
   isRedirecting,
   errorMessage,
@@ -27,15 +31,28 @@ const PaymentState: React.FC<PaymentStateProps> = ({
     // Centered content vertically and horizontally
     <div className="w-full h-full flex flex-col items-center justify-center text-center p-6">
 
-      {/* Title and Info Text */}
-      <div className="mb-8">
-         <h4 className="text-xl font-semibold text-ghibli-wood mb-3">Passo 3: Pagamento</h4>
-         <p className="text-md text-muted-foreground mb-2">
-             Sua imagem está quase pronta!
-         </p>
-         <p className="text-sm text-muted-foreground">
-             Após a confirmação do pagamento (1€), a transformação começará e o resultado estará disponível em breve.
-         </p>
+      <h2 className="text-2xl font-semibold text-ghibli-charcoal mb-4">Passo 3: Pagamento</h2>
+
+      {/* {originalImagePreviewUrl && (
+        <div className="mb-6">
+          <img
+            src={originalImagePreviewUrl}
+            alt="Pré-visualização da imagem original"
+            className="rounded-lg shadow-md max-w-xs mx-auto h-auto object-contain"
+            style={{ maxHeight: '150px' }} // Adjust as needed
+          />
+        </div>
+      )} */}
+
+      <div className="bg-ghibli-cream p-6 rounded-lg shadow-lg w-full max-w-md mb-8">
+        <p className="text-sm text-ghibli- 次元洞察 mb-1">Estilo Selecionado:</p>
+        <h3 className="text-xl font-bold text-ghibli-ocean-deep mb-4">{selectedStyleName}</h3>
+        <p className="text-sm text-ghibli- 次元洞察">
+          Confirme o pagamento de <strong>1€</strong> para iniciar a transformação.
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+            O resultado estará disponível em breve.
+        </p>
       </div>
 
 

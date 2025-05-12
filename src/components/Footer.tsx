@@ -1,19 +1,21 @@
+// src/components/Footer.tsx
 import React from 'react';
 import { Github, Twitter, Instagram, Leaf } from 'lucide-react'; // Importa ícones
 import { motion } from 'framer-motion'; // Para animações subtis
+import Link from 'next/link'; // Importa o componente Link do Next.js
 
 const Footer = () => {
   const year = new Date().getFullYear();
 
-  // Itens de navegação do rodapé
+  // Itens de navegação do rodapé - hrefs ATUALIZADOS
   const footerLinks = [
-    { name: "Termos de Serviço", href: "#" },
-    { name: "Política de Privacidade", href: "#" },
-    { name: "Sobre", href: "#" },
-    { name: "Contato", href: "#" },
+    { name: "Termos de Serviço", href: "/termos-servicos" },
+    { name: "Política de Privacidade", href: "/politica-privacidade" }, // <-- HREF ATUALIZADO
+    { name: "Sobre", href: "#" }, // Mantém # ou define o link correto (ex: /sobre)
+    { name: "Contato", href: "#" }, // Mantém # ou define o link correto (ex: /contato)
   ];
 
-  // Ícones de redes sociais (placeholder)
+  // Ícones de redes sociais (placeholder) - Adiciona os teus links reais
   const socialLinks = [
     { name: "GitHub", href: "#", icon: Github },
     { name: "Twitter", href: "#", icon: Twitter },
@@ -27,24 +29,29 @@ const Footer = () => {
 
           {/* Nome/Logo */}
           <div className="mb-6">
-            <span className="text-2xl font-ghibli font-bold text-ghibli-wood flex items-center gap-2">
-              <Leaf className="h-6 w-6 text-ghibli-moss inline-block" /> {/* Ícone de folha */}
-              Estúdio Criativo AI
-            </span>
+             {/* Link na Logo para a página inicial */}
+            <Link href="/" legacyBehavior>
+              <a className="text-2xl font-ghibli font-bold text-ghibli-wood flex items-center gap-2 hover:text-ghibli-moss transition-colors">
+                <Leaf className="h-6 w-6 text-ghibli-moss inline-block" /> {/* Ícone de folha */}
+                MODULA {/* Nome Atualizado */}
+              </a>
+            </Link>
           </div>
 
           {/* Links de Navegação */}
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 mb-8" aria-label="Footer navigation">
             {footerLinks.map((link) => (
-              <motion.a
-                key={link.name}
-                href={link.href}
-                className="text-sm text-ghibli-earth hover:text-ghibli-moss transition-colors"
-                whileHover={{ scale: 1.05 }} // Efeito de escala no hover
-                transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-              >
-                {link.name}
-              </motion.a>
+              // Envolve cada link com o componente Link do Next.js
+              <Link key={link.name} href={link.href} legacyBehavior passHref>
+                <motion.a
+                  // href é herdado de passHref
+                  className="text-sm text-ghibli-earth hover:text-ghibli-moss transition-colors"
+                  whileHover={{ scale: 1.05 }} // Efeito de escala no hover
+                  transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                >
+                  {link.name}
+                </motion.a>
+              </Link>
             ))}
           </nav>
 
@@ -54,6 +61,8 @@ const Footer = () => {
               <motion.a
                 key={social.name}
                 href={social.href}
+                target="_blank" // Abrir links sociais em nova aba
+                rel="noopener noreferrer" // Boas práticas de segurança
                 aria-label={social.name}
                 className="text-ghibli-earth hover:text-ghibli-moss transition-colors"
                 whileHover={{ scale: 1.1, rotate: 5 }} // Efeito de escala e rotação
@@ -66,7 +75,7 @@ const Footer = () => {
 
           {/* Copyright */}
           <div className="text-xs text-ghibli-earth">
-            &copy; {year} Estúdio Criativo AI. Todos os direitos reservados.
+            &copy; {year} MODULA. Todos os direitos reservados. {/* Nome Atualizado */}
           </div>
 
         </div>
