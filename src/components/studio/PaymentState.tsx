@@ -52,7 +52,7 @@ const PaymentState: React.FC<PaymentStateProps> = ({
         </p>
         <p className="text-xs text-muted-foreground mt-1">
             O resultado estará disponível em breve.
-        </p>
+         </p>
       </div>
 
 

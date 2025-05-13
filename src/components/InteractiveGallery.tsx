@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GalleryHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import GalleryCard from './gallery/GalleryCard';
@@ -33,28 +33,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
     style: "Neo-Futurista",
     before: "gyokerespotenormal.jpeg",
     after: "gyopoteghibli.png"
-  },
-  {
-    id: 5,
-    title: "Arquitetura moderna",
-    style: "Neo-Futurista",
-    before: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=500&q=80",
-    after: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&q=80"
-  },
-  {
-    id: 6,
-    title: "Arquitetura moderna",
-    style: "Neo-Futurista",
-    before: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=500&q=80",
-    after: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&q=80"
-  },
-  {
-    id: 7,
-    title: "Arquitetura moderna",
-    style: "Neo-Futurista",
-    before: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=500&q=80",
-    after: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&q=80"
-  } 
+  }
 ];
 
 const InteractiveGallery = () => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
 import { ReactCompareSlider, ReactCompareSliderImage, ReactCompareSliderHandle } from 'react-compare-slider';
@@ -30,13 +30,13 @@ const ImageCompareModal: React.FC<ImageCompareModalProps> = ({
   
   const currentItem = items[currentIndex];
   
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % items.length);
-  };
+  }, [items]);
   
-  const goToPrevious = () => {
+  const goToPrevious = useCallback(() => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + items.length) % items.length);
-  };
+  }, [items]);
   
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -66,7 +66,7 @@ const ImageCompareModal: React.FC<ImageCompareModalProps> = ({
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [onClose, goToNext, goToPrevious]);
   
   // Listen for fullscreen changes
   React.useEffect(() => {

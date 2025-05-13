@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext } from 'react';
 
 // Interface for user information
 export interface UserInfo {
@@ -14,6 +14,7 @@ export interface AuthContextType {
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  refreshSession: () => Promise<void>;
 }
 
 // --- Define a Default State ---
@@ -23,6 +24,7 @@ const defaultAuthValue: AuthContextType = {
   isLoading: true, // Start in loading state by default
   signInWithGoogle: async () => { console.warn("AuthProvider not yet initialized"); }, // Placeholder function
   signOut: async () => { console.warn("AuthProvider not yet initialized"); },         // Placeholder function
+  refreshSession: async () => { console.warn("AuthProvider not yet initialized"); },  // Placeholder for refreshSession
 };
 // --- End Default State ---
 

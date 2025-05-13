@@ -2,7 +2,6 @@ import React from 'react';
 import { Upload, Brush, Sun } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion'; // Import framer-motion
-import { cn } from '@/lib/utils'; // Import cn utility
 
 const HowItWorks = () => {
 

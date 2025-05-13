@@ -46,7 +46,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ item, onClick }) => {
             transition={{ duration: 0.5 }}
           >
             <img 
-              src={item.before} 
+              src={item.before.startsWith('http') ? item.before : `/${item.before}`} 
               alt="Imagem original" 
               className="w-full h-full object-cover"
             />
@@ -63,7 +63,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ item, onClick }) => {
           >
             <div className="group overflow-hidden rounded-lg">
               <img 
-                src={item.after} 
+                src={item.after.startsWith('http') ? item.after : `/${item.after}`} 
                 className="transition-transform duration-500 group-hover:scale-110" 
               />
             </div>

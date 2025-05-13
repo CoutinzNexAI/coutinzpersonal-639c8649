@@ -8,11 +8,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useAccountSettingsModal } from '@/hooks/accountSettingsModalContext';
+import { useAccountSettingsModal } from '@/hooks';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase/client'; // Importa Supabase client
-// Importa ícones necessários, incluindo Loader2 e AlertTriangle
-import { Loader2, AlertTriangle, UserCircle, Mail, Calendar } from 'lucide-react';
+import { supabase } from '@/lib/supabase/client';
+import { Loader2, UserCircle, Mail, Calendar } from 'lucide-react';
 
 // Não precisamos mais da interface UserDetails
 

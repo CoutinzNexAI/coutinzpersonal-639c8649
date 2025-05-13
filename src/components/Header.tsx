@@ -106,7 +106,7 @@ const Header: React.FC = () => {
             <a className="flex items-center group" aria-label="Página Inicial">
               <Brush className="h-6 w-6 mr-2 text-ghibli-moss" />
               <span className="text-2xl font-ghibli font-bold text-ghibli-wood group-hover:text-ghibli-moss transition-colors">
-                Estúdio Criativo AI
+                MODULA
               </span>
             </a>
           </Link>

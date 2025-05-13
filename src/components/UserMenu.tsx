@@ -12,8 +12,8 @@ import {
 // Importa Loader2 para o estado de carregamento
 import { User, LogOut, Images, Settings, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth"; // Caminho correto após limpeza
-import { useTransformationsModal } from '@/hooks/transformationsModalContext';
-import { useAccountSettingsModal } from '@/hooks/accountSettingsModalContext';
+import { useTransformationsModal } from '@/hooks';
+import { useAccountSettingsModal } from '@/hooks';
 
 // Exporta o componente React (pode ser export default se preferir)
 export const UserMenu: React.FC = () => {

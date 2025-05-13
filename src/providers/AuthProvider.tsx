@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 // Import context, types, and hook from the dedicated context file
 import { AuthContext, AuthContextType, UserInfo } from '@/contexts/AuthContext'; // Ajusta o caminho se necessário
+import { usePathname } from 'next/navigation'; // Import for page navigation detection
 
 /**
  * Provider de autenticação para a aplicação
@@ -16,9 +17,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // *** NEW DEBUG LOG: Check if the component function itself is running ***
   console.log('[AuthProvider Component] Function execution started.');
 
+  // For detecting navigation changes
+  const pathname = usePathname();
+
   // State remains here
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true); // Start as true
+  const [sessionChecked, setSessionChecked] = useState(false);
+
+  // Safety timeout to ensure isLoading is never stuck indefinitely
+  useEffect(() => {
+    if (isLoading) {
+      const safetyTimeout = setTimeout(() => {
+        console.log('[Safety Timeout] Forcing isLoading to false after timeout');
+        setIsLoading(false);
+        setSessionChecked(true);
+      }, 8000); // 8 seconds should be more than enough for any auth operation
+
+      return () => clearTimeout(safetyTimeout);
+    }
+  }, [isLoading]);
 
   // Sincroniza dados do usuário com o banco de dados
   const syncUserWithDatabase = useCallback(async (user: User) => {
@@ -65,6 +83,121 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []); // Removed toast from dependencies
 
+  // Create a function to refresh the session state that can be called from other effects
+  const refreshSession = useCallback(async () => {
+    console.log('[refreshSession] Refreshing session state...');
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('[refreshSession] Error getting session:', error.message);
+        return;
+      }
+      
+      const session = data?.session;
+      if (session?.user) {
+        console.log('[refreshSession] Session found, user ID:', session.user.id);
+        const userData: UserInfo = {
+          id: session.user.id,
+          email: session.user.email || '',
+          full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Usuário',
+          avatar_url: session.user.user_metadata?.avatar_url || ''
+        };
+        setUserInfo(userData);
+        
+        // Also sync with database to ensure all user data is properly loaded
+        await syncUserWithDatabase(session.user);
+        console.log('[refreshSession] User data synced with database');
+      } else {
+        console.log('[refreshSession] No active session found');
+        setUserInfo(null);
+      }
+    } catch (e) {
+      console.error('[refreshSession] Exception:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [syncUserWithDatabase]);
+
+  // Check session explicitly on path change to ensure auth state persists across navigations
+  useEffect(() => {
+    if (sessionChecked) {
+      console.log(`[PathChange] Detected navigation to: ${pathname}`);
+      refreshSession();
+    }
+  }, [pathname, sessionChecked, refreshSession]);
+
+  // Add visibility change handler to refresh session when tab becomes visible again
+  useEffect(() => {
+    console.log('[visibilityChange] Setting up visibility and focus handlers');
+    
+    const handleVisibilityOrFocus = async () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[visibilityOrFocus] Tab visible again, forcing session refresh');
+        setIsLoading(true); // Define o estado de carregamento no início
+
+        try {
+          // Força a atualização da sessão do Supabase
+          const { data, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('[visibilityOrFocus] Error refreshing session:', error.message);
+            setUserInfo(null);
+            // setIsLoading(false) será tratado no bloco finally
+            return; // Sai mais cedo em caso de erro na obtenção da sessão
+          }
+          
+          const session = data?.session;
+          console.log('[visibilityOrFocus] Session check result:', !!session);
+          
+          if (session?.user) {
+            // Atualiza a UI com dados básicos da sessão primeiro para feedback rápido (ex: avatar)
+            const basicUserData: UserInfo = {
+              id: session.user.id,
+              email: session.user.email || '',
+              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Usuário',
+              avatar_url: session.user.user_metadata?.avatar_url || ''
+            };
+            setUserInfo(basicUserData);
+
+            // DEPOIS, espera pela sincronização completa com a base de dados.
+            // syncUserWithDatabase também chama setUserInfo internamente com os dados da BD.
+            await syncUserWithDatabase(session.user); 
+            console.log('[visibilityOrFocus] Successfully refreshed user session AND synced with DB.');
+          } else {
+            console.log('[visibilityOrFocus] No session found, setting user to null');
+            setUserInfo(null);
+          }
+        } catch (error) {
+          console.error('[visibilityOrFocus] Exception during session refresh:', error);
+          setUserInfo(null); // Limpa o estado do utilizador em caso de excepção
+        } finally {
+          // Define isLoading como false APENAS DEPOIS de todas as operações terem terminado
+          setIsLoading(false); 
+          setSessionChecked(true); // Confirma que a verificação de sessão (despoletada pelo foco) foi feita
+        }
+      }
+    };
+    
+    // Anexa os listeners de eventos
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    
+    // Configura um refresh periódico da sessão
+    const periodicRefreshInterval = setInterval(() => {
+      if (document.visibilityState === 'visible' && userInfo) { // Só faz refresh periódico se houver um utilizador
+        console.log('[periodicRefresh] Running scheduled session refresh for logged-in user');
+        handleVisibilityOrFocus(); // Reutiliza a mesma lógica
+      }
+    }, 5 * 60 * 1000); // A cada 5 minutos
+    
+    // Limpeza
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      clearInterval(periodicRefreshInterval);
+    };
+  }, [syncUserWithDatabase, userInfo]); // Adiciona userInfo às dependências do useEffect para o refresh periódico
+
   // Configura o listener de estado de autenticação e sincroniza com a tabela de usuários
   useEffect(() => {
     let isMounted = true; // Flag para evitar updates após desmontar
@@ -72,6 +205,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Flag to track if the initial state has been set by onAuthStateChange
     let initialAuthStateSet = false;
+
+    // Force a refresh of the auth library to ensure it has latest cookies
+    const refreshAuthLibrary = async () => {
+      try {
+        console.log('[refreshAuthLibrary] Forcing Supabase auth library refresh...');
+        // This forces Supabase to check for cookies again
+        await supabase.auth.getSession();
+        console.log('[refreshAuthLibrary] Auth library refreshed successfully');
+      } catch (error) {
+        console.error('[refreshAuthLibrary] Error refreshing auth library:', error);
+      }
+    };
+
+    // Refresh auth library immediately
+    refreshAuthLibrary().then(() => {
+      if (isMounted) {
+        // Only continue with auth checks if component is still mounted
+        console.log('[AuthProvider useEffect] Auth library refreshed, continuing with auth setup');
+      }
+    });
 
     // Ouve por futuras mudanças no estado de autenticação FIRST
     console.log('[AuthProvider useEffect] Subscribing to onAuthStateChange...');
@@ -101,8 +254,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const currentUser = session?.user ?? null;
         console.log('[onAuthStateChange] Current user from event:', currentUser?.id || 'null');
 
-        let processed = false; // Flag to track if event led to state change
-
         // Atualiza o estado da UI com base no evento
         if (currentUser) {
            const currentUserInfo: UserInfo = {
@@ -115,7 +266,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
            setUserInfo(prevInfo => {
                if (JSON.stringify(prevInfo) !== JSON.stringify(currentUserInfo)) {
                    console.log('[onAuthStateChange] User found, setting userInfo state.');
-                   processed = true;
                    return currentUserInfo;
                }
                console.log('[onAuthStateChange] User info unchanged, skipping setUserInfo.');
@@ -127,11 +277,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') { // Sync on initial session too
              console.log(`[onAuthStateChange] Event is ${event}, triggering sync...`);
              await syncUserWithDatabase(currentUser);
-             processed = true; // Sync counts as processing
           } else if (event === 'USER_UPDATED') {
               console.log(`[onAuthStateChange] Event is ${event}, triggering sync...`);
               await syncUserWithDatabase(currentUser); // Sync on update too
-              processed = true;
           }
 
         } else { // No currentUser
@@ -139,7 +287,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
            // Only update if userInfo is not already null
            setUserInfo(prevInfo => {
                if (prevInfo !== null) {
-                   processed = true;
                    return null;
                }
                return prevInfo;
@@ -150,6 +297,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
          if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
             console.log(`[onAuthStateChange] Finished processing ${event}. Setting isLoading: false.`);
             setIsLoading(false);
+            setSessionChecked(true); // Mark that initial session check is complete
          } else {
              console.log(`[onAuthStateChange] Event ${event} doesn't conclude loading state.`);
              // Don't set isLoading false here for non-concluding events like USER_UPDATED or TOKEN_REFRESHED
@@ -163,12 +311,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('[checkSession] Checking initial session...');
       setIsLoading(true); // Set loading true before checking
       try {
-        // Add a small delay to potentially allow INITIAL_SESSION to fire first
-        // await new Promise(resolve => setTimeout(resolve, 50));
+        // Add a delay to ensure cookies are initialized
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         const { data, error: sessionError } = await supabase.auth.getSession();
         const session = data?.session;
-        console.log('[checkSession] getSession response:', { session: !!session, sessionError });
+        console.log('[checkSession] getSession response:', { session: !!session, error: !!sessionError });
 
         if (!isMounted) {
             console.log('[checkSession] Component unmounted, aborting state update.');
@@ -181,19 +329,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
              console.log('[checkSession] No session and INITIAL_SESSION event likely missed/delayed. Setting isLoading false.');
              setUserInfo(null); // Ensure user info is null
              setIsLoading(false);
-        } else if (sessionError) {
+             setSessionChecked(true); // Mark that initial session check is complete
+        } 
+        // Check if there was an error fetching the session
+        else if (sessionError) {
              console.error("[checkSession] Error getting initial session:", sessionError.message);
              // If there was an error, ensure loading is false if the listener hasn't handled it
              if (!initialAuthStateSet) {
                  console.log('[checkSession] Error occurred, setting isLoading false.');
                  setUserInfo(null);
-                 setIsLoading(false);
+                 setIsLoading(false); 
+                 setSessionChecked(true); // Mark that initial session check is complete
              }
-        } else {
+        } 
+        // User has a session but INITIAL_SESSION event wasn't fired
+        else if (session?.user && !initialAuthStateSet) {
+            // Session exists but no INITIAL_SESSION event yet - populate user info manually
+            console.log('[checkSession] Session exists but no INITIAL_SESSION event yet, populating user data manually');
+            const userData: UserInfo = {
+              id: session.user.id,
+              email: session.user.email || '',
+              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Usuário',
+              avatar_url: session.user.user_metadata?.avatar_url || ''
+            };
+            setUserInfo(userData);
+            await syncUserWithDatabase(session.user);
+            setIsLoading(false);
+            setSessionChecked(true); // Mark that initial session check is complete
+        } 
+        // INITIAL_SESSION has already been handled by the auth listener
+        else {
             // Session check successful, rely on onAuthStateChange to set loading false
             console.log('[checkSession] Session check successful. Relying on onAuthStateChange.');
+            // Ensure we always exit the loading state after a reasonable timeout
+            setTimeout(() => {
+                if (isLoading) {
+                    console.log('[checkSession] Timeout reached, forcing isLoading to false');
+                    setIsLoading(false);
+                    setSessionChecked(true);
+                }
+            }, 3000); // 3 second timeout as safety
         }
-
       } catch (error) {
         console.error("[checkSession] Exception:", error);
         if (isMounted) {
@@ -201,6 +377,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Ensure loading becomes false on exception too
           console.log('[checkSession] Exception caught, setting isLoading false.');
           setIsLoading(false);
+          setSessionChecked(true); // Mark that initial session check is complete
         }
       }
     };
@@ -213,7 +390,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isMounted = false;
       authListener?.subscription?.unsubscribe();
     };
-  }, [syncUserWithDatabase]); // Apenas syncUserWithDatabase como dependência
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncUserWithDatabase, refreshSession]);
 
   // Login com Google
   const signInWithGoogle = async () => {
@@ -251,44 +429,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Logout
+  // Add explicit session refresh method
   const signOut = async () => {
-    console.log('[signOut] Attempting Sign Out...');
+    console.log('[signOut] Attempting to sign out...');
+    // Set loading state to indicate auth change is in progress
+    setIsLoading(true);
     try {
-      // Set loading true immediately for sign out
-      setIsLoading(true);
-
-      const { error } = await supabase.auth.signOut();
-
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
       if (error) {
-          console.error('[signOut] Supabase sign out error:', error);
+          console.error('[signOut] Sign out error:', error);
           throw error;
       }
-
-      console.log('[signOut] Sign out successful.');
-      // Let onAuthStateChange handle setting userInfo to null and isLoading to false
-
-      toast.success("Logout bem-sucedido", {
-        description: "Até breve!",
-      });
-
+      console.log('[signOut] Signed out successfully.');
+      // Let onAuthStateChange handle the state updates
     } catch (error: unknown) {
-      console.error('[signOut] Logout error caught:', error);
+      console.error('[signOut] Error caught during sign out:', error);
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
-      toast.error("Erro ao fazer logout", {
-        description: errorMessage || "Não foi possível fazer logout. Tente novamente.",
+      toast.error("Erro ao sair", {
+        description: errorMessage || "Não foi possível encerrar a sessão corretamente.",
       });
-       // Ensure loading is false if sign out fails
-       setIsLoading(false);
+      // Manually reset loading and user state on error
+      setIsLoading(false);
+      setUserInfo(null);
     }
   };
 
-  // Provide the context value using the imported AuthContext
-  const authContextValue = { userInfo, isLoading, signInWithGoogle, signOut };
+  // Auth context value to be provided
+  const authContextValue: AuthContextType = {
+    userInfo,
+    isLoading,
+    signInWithGoogle,
+    signOut,
+    // Add the refresh method to the context for external components to use if needed
+    refreshSession
+  };
 
-  // Log less frequently
-  // console.log('[AuthProvider Render] Rendering Provider with value:', { isLoading, hasUserInfo: !!userInfo });
-
+  // Render the provider
   return (
     <AuthContext.Provider value={authContextValue}>
       {children}

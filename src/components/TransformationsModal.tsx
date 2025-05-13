@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Eye, Loader2, AlertTriangle, ImageOff, ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
-import { useTransformationsModal } from '@/hooks/transformationsModalContext';
+import { useTransformationsModal } from '@/hooks';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from '@/components/ui/sonner';
@@ -112,7 +112,8 @@ const TransformationsModal: React.FC = () => {
       setCurrentPage(0);
       setError(null);
     }
-  }, [isOpen, userInfo]); // Depende só de isOpen e userInfo para resetar/buscar inicialmente
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, userInfo]);
 
    // Efeito separado para buscar ao mudar de página
    useEffect(() => {
@@ -120,6 +121,7 @@ const TransformationsModal: React.FC = () => {
       // Não busca na montagem inicial aqui, só na mudança de página
       fetchTransformations(currentPage, true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]); // Depende só de currentPage
 
   // Função para abrir imagem
@@ -151,7 +153,7 @@ const TransformationsModal: React.FC = () => {
       return new Date(dateString).toLocaleDateString('pt-PT', {
         day: '2-digit', month: 'short', year: 'numeric',
       });
-    } catch (e) { return 'Data inválida'; }
+    } catch { return 'Data inválida'; }
   };
 
   return (
