@@ -1,5 +1,4 @@
 import React from 'react';
-import Link from 'next/link'; // Importa o Link do Next.js
 import { Button } from '@/components/ui/button'; // Usa o Button para consistência
 import { Home } from 'lucide-react'; // Ícone opcional
 
@@ -7,8 +6,13 @@ import { Home } from 'lucide-react'; // Ícone opcional
 // O Next.js usa automaticamente este ficheiro quando uma rota não é encontrada.
 const NotFoundPage = () => {
 
-  // Não precisamos de useLocation ou useEffect aqui,
-  // o Next.js já sabe que esta é a página 404.
+  // Função para navegação direta - evita o router do Next.js
+  const navigateToHome = () => {
+    // Logs para depuração
+    console.log("[404 Page] Navegando diretamente para a home");
+    // Navegação direta sem usar o router
+    window.location.href = "/";
+  };
 
   return (
     // Container principal para centralizar o conteúdo
@@ -20,15 +24,11 @@ const NotFoundPage = () => {
         <p className="text-xl md:text-2xl text-ghibli-earth mb-8">
           Oops! Página não encontrada.
         </p>
-        {/* Link para voltar à página inicial usando o componente Link do Next.js */}
-        <Link href="/" passHref legacyBehavior>
-           <Button asChild className="ghibli-button">
-             <a> {/* Tag 'a' necessária dentro do Button com asChild */}
-               <Home className="mr-2 h-4 w-4" />
-               Voltar para o Início
-             </a>
-           </Button>
-        </Link>
+        {/* Botão com navegação direta, evitando o router */}
+        <Button className="ghibli-button" onClick={navigateToHome}>
+          <Home className="mr-2 h-4 w-4" />
+          Voltar para o Início
+        </Button>
       </div>
     </div>
   );
