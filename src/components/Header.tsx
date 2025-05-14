@@ -32,10 +32,10 @@ const Header: React.FC = () => {
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Se já estiver na página inicial, apenas faz um refresh e vai para o topo
+    // Se já estiver na página inicial, apenas faz um scroll para o topo
     if (router.pathname === '/') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      router.reload();
+      // Removido router.reload() para evitar refresh desnecessário que poderia causar loops
     } else {
       // Se estiver em outra página, navega para a página inicial
       router.push('/');
@@ -127,7 +127,7 @@ const Header: React.FC = () => {
           >
             <div className="relative h-14 w-40">
               <Image 
-                src="/PicTuzLogo.jpg" 
+                src="/PicTuzSemBack.png" 
                 alt="PicTuz Logo" 
                 fill
                 style={{ objectFit: "contain" }}

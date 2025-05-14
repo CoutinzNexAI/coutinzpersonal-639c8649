@@ -70,7 +70,10 @@ const SuccessPage = (): JSX.Element => {
   // Navega para a página inicial
   const navigateToHome = useCallback(() => {
     stopPollingAndCleanup('error'); // Considera um erro se o utilizador sair antes de completar
-    window.location.href = '/'; // Ou use o router do Next.js se preferir: router.push('/')
+    // Verifica se já estamos na página inicial antes de redirecionar
+    if (window.location.pathname !== '/') {
+      window.location.href = '/';
+    }
   }, [stopPollingAndCleanup]);
 
   // Handler para download da imagem
