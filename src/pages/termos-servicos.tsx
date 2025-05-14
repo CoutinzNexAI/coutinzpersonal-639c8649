@@ -7,7 +7,7 @@ import Head from 'next/head'; // Para definir o título da página
 const TermosServicosPage: React.FC = () => {
   // --- PREENCHE ESTES DADOS ---
   const nomeEmpresaOuSeuNome = "PicTuz Team"; // Substitui pelo nome correto
-  const urlSite = "https://doingthingsbig.net/en/"; // Confirma se este é o URL final
+  const urlSite = "https://pictuz.com"; // Confirma se este é o URL final
   const emailContacto = "pictuzinfo@gmail.com"; // Substitui pelo teu email de suporte
   const dataAtualizacao = "14 de Maio de 2025"; // Atualiza a data
   const urlPoliticaPrivacidade = "/politica-privacidade"; // Link para a página da Política de Privacidade
