@@ -7,8 +7,8 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-// Timeout estendido para a Vercel
-export const config = { maxDuration: 300 };
+// Timeout para a Vercel (máximo de 60s no plano hobby)
+export const config = { maxDuration: 60 };
 
 // Tipos
 type JobData = {
