@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Style } from '../StyleSelectorModal';
+import Image from 'next/image';
 
 interface CompletedStateProps {
   transformedImageUrl: string;
@@ -17,11 +17,13 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   return (
     <div className="relative w-full h-full flex flex-col">
       {/* Transformed image result */}
-      <div className="flex-1 overflow-hidden">
-        <img 
+      <div className="flex-1 overflow-hidden relative">
+        <Image 
           src={transformedImageUrl} 
           alt="Imagem transformada" 
-          className="w-full h-full object-cover"
+          fill
+          style={{ objectFit: "cover" }}
+          priority
         />
       </div>
       

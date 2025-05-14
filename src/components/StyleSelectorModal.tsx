@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from 'next/image';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +48,13 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
     onOpenChange(false); // Close the modal after selection
   };
   
+  // Track image loading errors
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  
+  const handleImageError = (styleId: string) => {
+    setImageErrors(prev => ({ ...prev, [styleId]: true }));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] p-0">
@@ -83,14 +91,14 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
                   )}
                   onClick={() => handleStyleClick(style)}
                 >
-                  <div className="aspect-square overflow-hidden">
-                    <img 
-                      src={style.example_image_url || PLACEHOLDER_IMAGE} 
+                  <div className="aspect-square overflow-hidden relative">
+                    <Image 
+                      src={imageErrors[style.id] ? PLACEHOLDER_IMAGE : (style.example_image_url || PLACEHOLDER_IMAGE)}
                       alt={style.name}
-                      className="w-full h-full object-cover transition-transform hover:scale-105"
-                      onError={(e) => {
-                        e.currentTarget.src = PLACEHOLDER_IMAGE;
-                      }}
+                      fill
+                      style={{ objectFit: "cover" }}
+                      className="transition-transform hover:scale-105"
+                      onError={() => handleImageError(style.id)}
                     />
                     
                     {selectedStyleId === style.id && (

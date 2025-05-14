@@ -6,17 +6,17 @@ import Head from 'next/head'; // Para definir o título da página
 
 const TermosServicosPage: React.FC = () => {
   // --- PREENCHE ESTES DADOS ---
-  const nomeEmpresaOuSeuNome = "MODULA Team"; // Substitui pelo nome correto
+  const nomeEmpresaOuSeuNome = "PicTuz Team"; // Substitui pelo nome correto
   const urlSite = "https://doingthingsbig.net/en/"; // Confirma se este é o URL final
-  const emailContacto = "suporte@modula.app"; // Substitui pelo teu email de suporte
-  const dataAtualizacao = "7 de Maio de 2025"; // Atualiza a data
+  const emailContacto = "pictuzinfo@gmail.com"; // Substitui pelo teu email de suporte
+  const dataAtualizacao = "14 de Maio de 2025"; // Atualiza a data
   const urlPoliticaPrivacidade = "/politica-privacidade"; // Link para a página da Política de Privacidade
 
   return (
     <div className="flex flex-col min-h-screen bg-ghibli-paper">
       <Head>
-        <title>Termos e Condições de Serviço - MODULA</title>
-        <meta name="description" content="Termos e Condições de utilização do serviço MODULA." />
+        <title>Termos e Condições de Serviço - PicTuz</title>
+        <meta name="description" content="Termos e Condições de utilização do serviço PicTuz." />
       </Head>
 
       <Header />
@@ -25,7 +25,7 @@ const TermosServicosPage: React.FC = () => {
         <div className="max-w-3xl mx-auto bg-white/80 backdrop-blur-sm p-6 md:p-10 rounded-lg shadow-md border border-ghibli-sand/30">
           {/* Título Principal */}
           <h1 className="text-3xl md:text-4xl font-ghibli font-bold text-ghibli-wood mb-6 text-center">
-            Termos e Condições de Serviço - MODULA
+            Termos e Condições de Serviço - PicTuz
           </h1>
           <p className="text-sm text-center text-muted-foreground mb-8">
             Última Atualização: {dataAtualizacao}
@@ -33,7 +33,7 @@ const TermosServicosPage: React.FC = () => {
 
           {/* Introdução */}
           <p className="mb-6 text-ghibli-earth">
-            Bem-vindo(a) ao MODULA! Estes Termos e Condições de Serviço ("Termos") regem o seu acesso e utilização da aplicação web MODULA e serviços associados (coletivamente, o "Serviço"), fornecidos por {nomeEmpresaOuSeuNome} ("nós", "nosso").
+            Bem-vindo(a) ao PicTuz! Estes Termos e Condições de Serviço ("Termos") regem o seu acesso e utilização da aplicação web PicTuz e serviços associados (coletivamente, o "Serviço"), fornecidos por {nomeEmpresaOuSeuNome} ("nós", "nosso").
           </p>
           <p className="mb-6 text-ghibli-earth">
             Ao aceder ou utilizar o Serviço, concorda em ficar vinculado por estes Termos e pela nossa <a href={urlPoliticaPrivacidade} className="text-ghibli-sky hover:underline">Política de Privacidade</a>. Se não concordar com qualquer parte destes Termos, não poderá aceder ou utilizar o Serviço.
@@ -44,7 +44,7 @@ const TermosServicosPage: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">1. Definições</h2>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Serviço:</strong> Refere-se à aplicação web MODULA, acessível em <a href={urlSite} target="_blank" rel="noopener noreferrer" className="text-ghibli-sky hover:underline">{urlSite}</a>, incluindo todas as suas funcionalidades, ferramentas, conteúdos e APIs.</li>
+              <li><strong>Serviço:</strong> Refere-se à aplicação web PicTuz, acessível em <a href={urlSite} target="_blank" rel="noopener noreferrer" className="text-ghibli-sky hover:underline">{urlSite}</a>, incluindo todas as suas funcionalidades, ferramentas, conteúdos e APIs.</li>
               <li><strong>Utilizador ("você"):</strong> Qualquer pessoa singular ou coletiva que aceda ou utilize o Serviço.</li>
               <li><strong>Conta:</strong> A conta pessoal criada pelo Utilizador para aceder a funcionalidades específicas do Serviço, geralmente através de autenticação Google via Supabase Auth.</li>
               <li><strong>Conteúdo do Utilizador:</strong> Refere-se a qualquer fotografia, imagem ou outro material que você carregue, submeta ou disponibilize através do Serviço.</li>
@@ -57,7 +57,7 @@ const TermosServicosPage: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">2. Descrição do Serviço</h2>
             <p className="text-ghibli-earth">
-              O MODULA permite aos Utilizadores carregar as suas fotografias digitais, selecionar um Estilo artístico disponível na nossa plataforma e, mediante pagamento, solicitar uma Transformação dessas fotografias utilizando algoritmos de inteligência artificial. As Imagens Transformadas ficam disponíveis para download pelo Utilizador através da sua Conta.
+              O PicTuz permite aos Utilizadores carregar as suas fotografias digitais, selecionar um Estilo artístico disponível na nossa plataforma e, mediante pagamento, solicitar uma Transformação dessas fotografias utilizando algoritmos de inteligência artificial. As Imagens Transformadas ficam disponíveis para download pelo Utilizador através da sua Conta.
             </p>
           </section>
 
@@ -109,7 +109,7 @@ const TermosServicosPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">7. Propriedade Intelectual do Serviço MODULA</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">7. Propriedade Intelectual do Serviço PicTuz</h2>
             <p className="text-ghibli-earth">
               O Serviço e todo o seu conteúdo original (excluindo o Conteúdo do Utilizador e as Imagens Transformadas conforme licenciado acima), características e funcionalidades são e permanecerão propriedade exclusiva de {nomeEmpresaOuSeuNome} e dos seus licenciadores. O Serviço está protegido por direitos de autor, marcas registadas e outras leis de Portugal e de países estrangeiros. As nossas marcas e imagem comercial não podem ser usadas em conexão com qualquer produto ou serviço sem o nosso consentimento prévio por escrito.
             </p>

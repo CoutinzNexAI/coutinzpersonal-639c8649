@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils'; // Import cn utility
+import Image from 'next/image';
 
 // Estrutura dos dados da transformação
 interface FetchedTransformation {
@@ -198,9 +199,13 @@ const TransformationsModal: React.FC = () => {
                            <AlertTriangle className="h-6 w-6 mx-auto mb-1"/> Erro ao<br/>carregar<br/>imagem
                        </div>
                     ) : item.output_url ? (
-                      <img src={item.output_url} alt={`Transformação estilo ${item.styles?.name || item.style_requested}`}
-                           className="object-cover w-full h-full" loading="lazy"
-                           onError={() => handleImageError(item.id)} // Chama handler de erro
+                      <Image
+                        src={item.output_url}
+                        alt={`Transformação estilo ${item.styles?.name || item.style_requested}`}
+                        fill
+                        style={{ objectFit: "cover" }}
+                        className="w-full h-full"
+                        onError={() => handleImageError(item.id)}
                       />
                     ) : (
                        // Placeholder se URL for nula (não deveria acontecer devido à query)

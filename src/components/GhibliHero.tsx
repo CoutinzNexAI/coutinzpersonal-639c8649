@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 // Removido ArrowRight dos imports
 import { Wand, RefreshCw, LoaderCircle, Check, Images } from "lucide-react";
 import { useImageProcessing } from '@/hooks/useImageProcessing'; // Hook principal
+import Image from 'next/image';
 
 // Importa componentes de UI usados nos passos
 import ImageUpload from './ImageUpload';
@@ -33,12 +34,15 @@ const Step3Preview: React.FC<{ imageUrl: string | undefined; styleName: string |
     if (!imageUrl || !styleName) return null;
     return (
       <div className="mb-4 p-3 border rounded-lg bg-white/50 backdrop-blur-sm flex items-center gap-3 w-full max-w-sm mx-auto">
-        <img
-          src={imageUrl}
-          alt="Pré-visualização"
-          className="w-12 h-12 object-cover rounded-md flex-shrink-0"
-          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-        />
+        <div className="w-12 h-12 relative flex-shrink-0 rounded-md overflow-hidden">
+          <Image
+            src={imageUrl}
+            alt="Pré-visualização"
+            fill
+            style={{ objectFit: "cover" }}
+            onError={() => {}} // Será tratado pelo fallback do Next.js
+          />
+        </div>
         <div className="text-sm overflow-hidden">
           <p className="text-muted-foreground text-xs">A transformar:</p>
           <p className="font-medium truncate" title={styleName}>Estilo: {styleName}</p>
@@ -285,13 +289,16 @@ const GhibliHero = () => {
                       )}
                     >
                       {style.example_image_url ? (
-                        <img
-                          src={style.example_image_url}
-                          alt={style.name}
-                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                          loading="lazy"
-                          onError={(e) => (e.currentTarget.src = 'https://placehold.co/100x100/EEE/31343C?text=Erro')}
-                        />
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={style.example_image_url}
+                            alt={style.name}
+                            fill
+                            style={{ objectFit: "cover" }}
+                            className="transition-transform duration-200 group-hover:scale-105"
+                            onError={() => {}}
+                          />
+                        </div>
                       ) : (
                         <div className="w-full h-full bg-ghibli-stone/10 flex items-center justify-center p-1">
                           <span className="text-xs text-center text-ghibli-wood">{style.name}</span>
@@ -588,11 +595,15 @@ const GhibliHero = () => {
                                   whileHover={{ scale: 1.05 }}
                                   className="w-full h-full rounded-lg overflow-hidden shadow-md"
                                 >
-                                  <img 
-                                    src={example.before} 
-                                    alt="Imagem original" 
-                                    className="w-full aspect-square object-cover transition-all duration-300"
-                                  />
+                                  <div className="relative w-full aspect-square">
+                                    <Image 
+                                      src={example.before} 
+                                      alt="Imagem original" 
+                                      fill
+                                      style={{ objectFit: "cover" }}
+                                      className="transition-all duration-300"
+                                    />
+                                  </div>
                                 </motion.div>
                               </div>
                               
@@ -613,13 +624,17 @@ const GhibliHero = () => {
                                   }}
                                   className="w-full h-full rounded-lg overflow-hidden shadow-lg relative"
                                 >
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                  <img 
-                                    src={example.after} 
-                                    alt="Imagem transformada" 
-                                    className="w-full aspect-square object-cover transition-all duration-300" 
-                                  />
-                                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+                                  <div className="relative w-full aspect-square">
+                                    <Image 
+                                      src={example.after} 
+                                      alt="Imagem transformada" 
+                                      fill
+                                      style={{ objectFit: "cover" }}
+                                      className="transition-all duration-300" 
+                                    />
+                                  </div>
+                                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
                                     <motion.div
                                       initial={{ y: 10, opacity: 0 }}
                                       whileHover={{ y: 0, opacity: 1 }}

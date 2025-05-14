@@ -20,12 +20,12 @@ interface FaqItem {
 const faqData: FaqItem[] = [
   {
     id: "item-1",
-    question: "O que é o MODULA?",
-    answer: "O MODULA é uma plataforma online inovadora que utiliza inteligência artificial para transformar as suas fotografias em obras de arte únicas. Explore uma variedade de estilos e dê uma nova vida às suas imagens!",
+    question: "O que é o PicTuz?",
+    answer: "O PicTuz é uma plataforma online inovadora que utiliza inteligência artificial para transformar as suas fotografias em obras de arte únicas. Explore uma variedade de estilos e dê uma nova vida às suas imagens!",
   },
   {
     id: "item-2",
-    question: "Como funciona o MODULA?",
+    question: "Como funciona o PicTuz?",
     answer: (
       <div className="space-y-2">
         <p>É muito simples!</p>
@@ -41,18 +41,18 @@ const faqData: FaqItem[] = [
   },
   {
     id: "item-3",
-    question: "O MODULA é gratuito?",
-    answer: "Cada transformação de imagem no MODULA envolve um pequeno custo, pago no momento do processamento. Isto permite-nos manter e evoluir a tecnologia de IA. Fique atento a possíveis promoções!",
+    question: "O PicTuz é gratuito?",
+    answer: "Cada transformação de imagem no PicTuz envolve um pequeno custo, pago no momento do processamento. Isto permite-nos manter e evoluir a tecnologia de IA. Fique atento a possíveis promoções!",
   },
   {
     id: "item-4",
-    question: "As minhas fotos são armazenadas nos servidores do MODULA?",
+    question: "As minhas fotos são armazenadas nos servidores do PicTuz?",
     answer: "Para processar a sua imagem, precisamos de a carregar temporariamente para os nossos servidores seguros. A imagem original é usada para a transformação e depois guardamos a imagem transformada no seu histórico pessoal para que a possa descarregar. Levamos a sua privacidade muito a sério. Consulte a nossa Política de Privacidade para mais detalhes.",
   },
   {
     id: "item-5",
-    question: "É seguro fazer pagamentos no MODULA?",
-    answer: "Sim, completamente! Todos os pagamentos são processados através do Stripe, uma das plataformas de pagamento mais seguras e reconhecidas mundialmente. O MODULA não armazena os dados do seu cartão.",
+    question: "É seguro fazer pagamentos no PicTuz?",
+    answer: "Sim, completamente! Todos os pagamentos são processados através do Stripe, uma das plataformas de pagamento mais seguras e reconhecidas mundialmente. O PicTuz não armazena os dados do seu cartão.",
   },
   // Adiciona mais perguntas aqui...
   {

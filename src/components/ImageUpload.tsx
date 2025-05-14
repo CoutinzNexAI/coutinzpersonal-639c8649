@@ -1,7 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Upload, X, Image as ImageIcon, Check, AlertTriangle } from "lucide-react"; // Renomeado Image para ImageIcon
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Image from 'next/image';
 import { useImageUpload, UploadedFile } from '@/hooks/useImageUpload'; // Assume que este hook existe e funciona
 
 interface ImageUploadProps {
@@ -51,13 +52,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onFileChange, className }) =>
   };
 
   // Função para lidar com erro ao carregar a preview da imagem
-  const handlePreviewError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    // Esconde a imagem quebrada e mostra uma mensagem ou placeholder
-    event.currentTarget.style.display = 'none';
-    // Poderia mostrar um placeholder SVG ou uma div de erro aqui
+  const handlePreviewError = () => {
+    // Update preview error state
+    setPreviewError(true);
     console.error("Erro ao carregar preview da imagem");
-    // Opcional: Adicionar um estado para mostrar uma mensagem de erro específica da preview
   };
+
+  // State to track preview image error
+  const [previewError, setPreviewError] = useState(false);
 
   return (
     // Container principal com altura total
@@ -143,13 +145,20 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onFileChange, className }) =>
 
           {/* Pré-visualização da Imagem (ocupa espaço restante) */}
           <div className="relative aspect-video w-full overflow-hidden flex-grow bg-muted/30"> {/* Adicionado flex-grow e fundo */}
-            <img
-              src={uploadedFile.preview} // URL de pré-visualização gerada pelo hook
-              alt="Pré-visualização da imagem selecionada"
-              className="w-full h-full object-cover" // Mudado para object-contain para ver imagem inteira
-              onError={handlePreviewError} // Handler para erro ao carregar preview
-            />
-            {/* TODO: Adicionar um placeholder/mensagem aqui caso a preview falhe */}
+            {previewError ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-destructive/80">
+                <AlertTriangle className="h-8 w-8 mb-2" />
+                <p className="text-sm text-center">Não foi possível carregar a pré-visualização</p>
+              </div>
+            ) : (
+              <Image
+                src={uploadedFile.preview} // URL de pré-visualização gerada pelo hook
+                alt="Pré-visualização da imagem selecionada"
+                fill
+                style={{ objectFit: "cover" }}
+                onError={handlePreviewError} // Handler para erro ao carregar preview
+              />
+            )}
           </div>
 
           {/* Informação do Ficheiro (rodapé) */}

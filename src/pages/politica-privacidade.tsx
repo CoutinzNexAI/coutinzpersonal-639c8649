@@ -7,17 +7,17 @@ import Link from 'next/link'; // Para links internos
 
 const PoliticaPrivacidadePage: React.FC = () => {
   // --- PREENCHE ESTES DADOS ---
-  const nomeEmpresaOuSeuNome = "MODULA Team"; // Substitui pelo nome correto
+  const nomeEmpresaOuSeuNome = "PicTuz Team"; // Substitui pelo nome correto
   const urlSite = "https://doingthingsbig.net/en/"; // Confirma se este é o URL final
-  const emailContacto = "suporte@modula.app"; // Substitui pelo teu email de suporte
-  const dataAtualizacao = "7 de Maio de 2025"; // Atualiza a data
+  const emailContacto = "pictuzinfo@gmail.com"; // Substitui pelo teu email de suporte
+  const dataAtualizacao = "14 de Maio de 2025"; // Atualiza a data
   const urlTermosServicos = "/termos-servicos"; // Link para a página de Termos
 
   return (
     <div className="flex flex-col min-h-screen bg-ghibli-paper">
       <Head>
-        <title>Política de Privacidade - MODULA</title>
-        <meta name="description" content="Política de Privacidade do serviço MODULA, explicando como tratamos os seus dados." />
+        <title>Política de Privacidade - PicTuz</title>
+        <meta name="description" content="Política de Privacidade do serviço PicTuz, explicando como tratamos os seus dados." />
       </Head>
 
       <Header />
@@ -26,7 +26,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
         <div className="max-w-3xl mx-auto bg-white/80 backdrop-blur-sm p-6 md:p-10 rounded-lg shadow-md border border-ghibli-sand/30">
           {/* Título Principal */}
           <h1 className="text-3xl md:text-4xl font-ghibli font-bold text-ghibli-wood mb-6 text-center">
-            Política de Privacidade - MODULA
+            Política de Privacidade - PicTuz
           </h1>
           <p className="text-sm text-center text-muted-foreground mb-8">
             Última Atualização: {dataAtualizacao}
@@ -34,7 +34,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
 
           {/* Introdução */}
           <p className="mb-6 text-ghibli-earth">
-            Bem-vindo(a) à Política de Privacidade do MODULA. A sua privacidade é extremamente importante para nós. Este documento explica como {nomeEmpresaOuSeuNome} ("nós", "nosso") recolhe, utiliza, armazena e protege as suas informações pessoais quando utiliza o nosso serviço MODULA (o "Serviço"), acessível através de <a href={urlSite} target="_blank" rel="noopener noreferrer" className="text-ghibli-sky hover:underline">{urlSite}</a>.
+            Bem-vindo(a) à Política de Privacidade do PicTuz. A sua privacidade é extremamente importante para nós. Este documento explica como {nomeEmpresaOuSeuNome} ("nós", "nosso") recolhe, utiliza, armazena e protege as suas informações pessoais quando utiliza o nosso serviço PicTuz (o "Serviço"), acessível através de <a href={urlSite} target="_blank" rel="noopener noreferrer" className="text-ghibli-sky hover:underline">{urlSite}</a>.
           </p>
           <p className="mb-6 text-ghibli-earth">
             Ao utilizar o Serviço, concorda com a recolha e utilização de informações de acordo com esta política. Esta Política de Privacidade deve ser lida em conjunto com os nossos <Link href={urlTermosServicos} legacyBehavior><a className="text-ghibli-sky hover:underline">Termos de Serviço</a></Link>.

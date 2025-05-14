@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Style } from '../StyleSelectorModal';
+import Image from 'next/image';
 
 interface ProcessingStateProps {
   uploadedImageUrl: string;
@@ -18,11 +18,15 @@ const ProcessingState: React.FC<ProcessingStateProps> = ({
   return (
     <div className="relative w-full h-full">
       {uploadedImageUrl && (
-        <img 
-          src={uploadedImageUrl}
-          alt="Imagem original" 
-          className="absolute inset-0 w-full h-full object-cover opacity-50 blur-sm"
-        />
+        <div className="absolute inset-0">
+          <Image 
+            src={uploadedImageUrl}
+            alt="Imagem original" 
+            fill
+            style={{ objectFit: "cover", opacity: 0.5, filter: "blur(4px)" }}
+            priority={false}
+          />
+        </div>
       )}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-center bg-background/80 backdrop-blur-sm p-6 rounded-xl w-4/5 max-w-xs">

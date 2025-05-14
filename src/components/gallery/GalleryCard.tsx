@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { GalleryItem } from './ImageCompareModal';
 import { Card } from '@/components/ui/card';
 import { Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 interface GalleryCardProps {
   item: GalleryItem;
@@ -45,11 +46,14 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ item, onClick }) => {
             }}
             transition={{ duration: 0.5 }}
           >
-            <img 
-              src={item.before.startsWith('http') ? item.before : `/${item.before}`} 
-              alt="Imagem original" 
-              className="w-full h-full object-cover"
-            />
+            <div className="relative w-full h-full">
+              <Image 
+                src={item.before.startsWith('http') ? item.before : `/${item.before}`} 
+                alt="Imagem original" 
+                fill
+                style={{ objectFit: "cover" }}
+              />
+            </div>
           </motion.div>
           
           {/* Imagem Transformada */}
@@ -61,10 +65,13 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ item, onClick }) => {
             }}
             transition={{ duration: 0.5 }}
           >
-            <div className="group overflow-hidden rounded-lg">
-              <img 
-                src={item.after.startsWith('http') ? item.after : `/${item.after}`} 
-                className="transition-transform duration-500 group-hover:scale-110" 
+            <div className="group overflow-hidden rounded-lg relative w-full h-full">
+              <Image 
+                src={item.after.startsWith('http') ? item.after : `/${item.after}`}
+                alt="Imagem transformada"
+                fill
+                style={{ objectFit: "cover" }}
+                className="transition-transform duration-500 group-hover:scale-110"
               />
             </div>
             

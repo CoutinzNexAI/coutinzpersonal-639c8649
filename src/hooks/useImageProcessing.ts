@@ -173,7 +173,7 @@ export function useImageProcessing() {
         console.error("❌ Erro ao carregar estado do localStorage:", error);
         localStorage.removeItem('studioState'); // Limpa em caso de erro
     }
-  }, [availableStyles, stylesLoading]); // Depende de availableStyles e stylesLoading
+  }, [availableStyles, stylesLoading, currentJobId]); // Depende de availableStyles, stylesLoading e currentJobId
 
 
   // --- Save state to localStorage (Simplified: only selectedStyleId) ---
@@ -198,7 +198,7 @@ export function useImageProcessing() {
     } catch (error) {
         console.error("❌ Erro ao salvar estado no localStorage:", error);
     }
-  }, [selectedStyle]); // Salva apenas quando o estilo muda
+  }, [selectedStyle, currentJobId]); // Adicionado currentJobId como dependência
 
 
   // --- Polling Effect (Mantido como na versão anterior robusta) ---
@@ -240,7 +240,7 @@ export function useImageProcessing() {
         if (response.headers.get("content-type")?.includes("application/json")) {
             try {
                 data = await response.json();
-            } catch (jsonError) {
+            } catch {
                 // Handle cases where JSON parsing fails for a non-OK response
                 const errorMsg = `Falha ao processar resposta do servidor (status: ${response.status})`;
                 setErrorMessage(errorMsg);
@@ -356,7 +356,7 @@ export function useImageProcessing() {
         pollingIntervalRef.current = null;
       }
     };
-  }, [currentJobId, processingState, userInfo?.id, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage]); // Added userInfo?.id
+  }, [currentJobId, processingState, userInfo, userInfo?.id, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage]); // Added userInfo
 
 
   // --- Handlers ---
@@ -377,7 +377,7 @@ export function useImageProcessing() {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
     }
-  }, [setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setSelectedStyle, setTransformedImage, setCurrentJobId]); // Adiciona setters
+  }, [setErrorMessage, setIsLoading, setProcessingState, setSelectedStyle, setTransformedImage, setCurrentJobId]); // Removido setActiveStep
 
   const handleFileChange = useCallback((file: UploadedFile | null) => {
     console.log('[handleFileChange] File changed:', file ? file.file.name : 'null');
@@ -472,7 +472,7 @@ export function useImageProcessing() {
       });
       if (!checkoutResponse.ok) { 
         let errData = { message: `API Error (${checkoutResponse.status}) ao criar sessão.` }; 
-        try { errData = await checkoutResponse.json(); } catch (e) { /* ignore */ } 
+        try { errData = await checkoutResponse.json(); } catch { /* ignore */ } 
         throw new Error(errData.message); 
       }
       const { sessionId } = await checkoutResponse.json();
@@ -508,7 +508,7 @@ export function useImageProcessing() {
       }
       setIsLoading(false);
     }
-  }, [uploadedImage, selectedStyle, userInfo, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setCurrentJobId]);
+  }, [uploadedImage, selectedStyle, userInfo, isAuthLoading, setErrorMessage, setIsLoading, setProcessingState, setCurrentJobId]);
 
   const handleNewImage = useCallback(() => {
     console.log('[handleNewImage] Calling full reset.');

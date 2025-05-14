@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion'; // Importa framer-motion
 import { Button } from "@/components/ui/button";
-import { Menu, X, Brush } from "lucide-react";
+import { Menu, X} from "lucide-react";
 import UserMenu from "./UserMenu";
 import { cn } from '@/lib/utils'; // Importa cn
+import { useRouter } from 'next/router';
 
 // Interface para os links de navegação
 interface NavLink {
@@ -24,6 +26,21 @@ const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string | null>(null); // Estado para scrollspy
   const mobileMenuRef = useRef<HTMLDivElement>(null); // Ref para o menu mobile
   const headerRef = useRef<HTMLElement>(null); // Ref para o header
+  const router = useRouter();
+
+  // Função para lidar com o clique no logo
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // Se já estiver na página inicial, apenas faz um refresh e vai para o topo
+    if (router.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      router.reload();
+    } else {
+      // Se estiver em outra página, navega para a página inicial
+      router.push('/');
+    }
+  };
 
   // Fecha menu mobile
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
@@ -100,15 +117,23 @@ const Header: React.FC = () => {
     // Header fixo no topo
     <header ref={headerRef} className="sticky top-0 z-50 w-full py-4 border-b border-ghibli-sand/30 bg-ghibli-paper/80 backdrop-blur-md">
       <div className="container mx-auto flex items-center justify-between px-4 md:px-6">
-        {/* Logo com Link */}
+        {/* Logo com Link - Atualizado para usar onClick com o componente Link */}
         <div className="flex items-center">
-          <Link href="/" legacyBehavior passHref>
-            <a className="flex items-center group" aria-label="Página Inicial">
-              <Brush className="h-6 w-6 mr-2 text-ghibli-moss" />
-              <span className="text-2xl font-ghibli font-bold text-ghibli-wood group-hover:text-ghibli-moss transition-colors">
-                MODULA
-              </span>
-            </a>
+          <Link 
+            href="/" 
+            onClick={handleLogoClick}
+            className="flex items-center group"
+            aria-label="Página Inicial"
+          >
+            <div className="relative h-14 w-40">
+              <Image 
+                src="/PicTuzLogo.jpg" 
+                alt="PicTuz Logo" 
+                fill
+                style={{ objectFit: "contain" }}
+                priority
+              />
+            </div>
           </Link>
         </div>
 

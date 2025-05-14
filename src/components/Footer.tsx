@@ -33,7 +33,7 @@ const Footer = () => {
             <Link href="/" legacyBehavior>
               <a className="text-2xl font-ghibli font-bold text-ghibli-wood flex items-center gap-2 hover:text-ghibli-moss transition-colors">
                 <Leaf className="h-6 w-6 text-ghibli-moss inline-block" /> {/* Ícone de folha */}
-                MODULA {/* Nome Atualizado */}
+                PicTuz {/* Nome Atualizado */}
               </a>
             </Link>
           </div>
@@ -75,7 +75,7 @@ const Footer = () => {
 
           {/* Copyright */}
           <div className="text-xs text-ghibli-earth">
-            &copy; {year} MODULA. Todos os direitos reservados. {/* Nome Atualizado */}
+            &copy; {year} PicTuz. Todos os direitos reservados. {/* Nome Atualizado */}
           </div>
 
         </div>

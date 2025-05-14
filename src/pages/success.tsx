@@ -529,11 +529,14 @@ const SuccessPage = (): JSX.Element => {
             <div className="w-full max-w-md aspect-square rounded-lg overflow-hidden border mb-6 bg-gray-100 relative">
               {/* Imagem de preload escondida para tentar carregar na cache do browser */}
               <div className="hidden">
-                <img 
+                <Image 
                   src={completedJobData.outputUrl} 
                   alt="Preload" 
+                  width={1}
+                  height={1}
                   onLoad={() => console.log("[Success Page Image] Preloaded successfully")}
                   onError={() => console.error("[Success Page Image] Preload failed")}
+                  unoptimized
                 />
               </div>
               <Image

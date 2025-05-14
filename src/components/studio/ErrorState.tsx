@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 interface ErrorStateProps {
   uploadedImageUrl: string;
@@ -12,11 +12,15 @@ const ErrorState: React.FC<ErrorStateProps> = ({ uploadedImageUrl, onReset }) =>
   return (
     <div className="relative w-full h-full">
       {uploadedImageUrl && (
-        <img 
-          src={uploadedImageUrl}
-          alt="Imagem original" 
-          className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm"
-        />
+        <div className="absolute inset-0">
+          <Image 
+            src={uploadedImageUrl}
+            alt="Imagem original" 
+            fill
+            style={{ objectFit: "cover", opacity: 0.3, filter: "blur(4px)" }}
+            priority={false}
+          />
+        </div>
       )}
       
       <div className="absolute inset-0 flex items-center justify-center">

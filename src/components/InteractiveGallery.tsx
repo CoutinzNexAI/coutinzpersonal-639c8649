@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: 1,
-    title: "Simpson Style",
-    style: "Wet Bed Gang Transformaram-se em Simpsons",
-    before: "/wbgnormal.jpg",
-    after: "/wbgsimpson.png"
+    title: "Camo",
+    style: "Camo",
+    before: "barbarabandeiranormal.webp",
+    after: "barbarabandeiralego.png"
   },
   {
     id: 2,

@@ -375,8 +375,8 @@ async function processImage(jobId: string, jobData: JobData) {
             outputMetadata = outputMetadata || {};
             outputMetadata.recoveryNote = "Recuperado após erro de processamento";
           }
-        } catch (e) {
-          console.error(`[processImage] Error checking for existing results for job ${jobId}:`, e);
+        } catch (_e) {
+          console.error(`[processImage] Error checking for existing results for job ${jobId}:`, _e);
         }
       }
       
@@ -402,7 +402,7 @@ async function processImage(jobId: string, jobData: JobData) {
       try {
         fs.unlinkSync(tempFilePath);
         console.log(`[processImage] Cleaned up temp file for job ${jobId}: ${tempFilePath}`);
-      } catch (e) {
+      } catch {
         // Ignorar erros na limpeza final
       }
     }
@@ -475,8 +475,8 @@ export default async function handler(
 
     // 7. Iniciar processamento em background após responder
     console.log(`[Background API] Iniciando processamento de imagem para job ${jobId}`);
-    processImage(jobId, jobData as JobData).catch(error => {
-      console.error(`[Background API] Erro não capturado no processamento: ${jobId}`, error);
+    processImage(jobId, jobData as JobData).catch(_error => {
+      console.error(`[Background API] Erro não capturado no processamento: ${jobId}`, _error);
     });
 
   } catch (error) {

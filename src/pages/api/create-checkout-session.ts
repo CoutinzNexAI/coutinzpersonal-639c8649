@@ -17,7 +17,7 @@ if (PRICE_ID === 'price_substituir_pelo_real') {
   // Considera lançar um erro ou retornar 500 se for obrigatório
 }
 
-type ResponseData = {
+type _ResponseData = {
   sessionId?: string;
   message?: string;
 }
@@ -54,7 +54,7 @@ export default async function handler(
 
     // Obter dados do corpo da requisição
     // Em Vercel/Node, o corpo já vem parseado se for JSON
-    const { jobId, style, imageUrl, userEmail } = req.body;
+    const { jobId, style, userEmail } = req.body;
 
     // Validar campos obrigatórios
     if (!jobId) {
