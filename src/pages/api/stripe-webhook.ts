@@ -15,30 +15,6 @@ type ResponseData = {
   error?: string;
 }
 
-// Helper function to update job status (optional, but can be useful)
-// async function updateJobStatus(jobId: string, status: string, errorMessage: string | null = null) {
-//   console.log(`[Webhook Helper] Updating job ${jobId} status to ${status} ${errorMessage ? `Error: ${errorMessage}` : ''}`);
-//   const updateData: { status: string; error_message?: string; updated_at: string } = {
-//     status,
-//     updated_at: new Date().toISOString(), // This would need correction too if used
-//   };
-//   if (errorMessage) {
-//     updateData.error_message = errorMessage;
-//   }
-//   const { error } = await supabaseAdmin
-//     .from('transformations')
-//     .update(updateData)
-//     .eq('id', jobId);
-
-//   if (error) {
-//     console.error(`❌ [Webhook Helper] Failed to update job ${jobId} status to ${status}: ${error.message}`);
-//     // Decide if you want to throw here or just log
-//   } else {
-//      console.log(`✅ [Webhook Helper] Successfully updated job ${jobId} status to ${status}`);
-//   }
-// }
-
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
@@ -145,7 +121,7 @@ export default async function handler(
         console.log(`✅ [Webhook] Successfully updated job status to 'paid' for job: ${jobId}`);
 
         // --- Step 5b: Trigger Image Processing ---
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.headers.origin || 'http://localhost:3000';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.headers.origin || 'https://www.pictuz.com/';
         const processImageUrl = `${baseUrl}/api/process-image`;
 
         console.log(`[Webhook] Attempting to trigger image processing for job ${jobId} via POST to: ${processImageUrl}`);
