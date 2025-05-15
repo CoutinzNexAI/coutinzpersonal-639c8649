@@ -8,7 +8,7 @@ import path from 'path';
 import os from 'os';
 
 // Timeout para a Vercel (máximo de 60s no plano hobby)
-export const config = { maxDuration: 60 };
+export const config = { maxDuration: 55 };
 
 // Tipos
 type JobData = {
@@ -47,6 +47,7 @@ async function updateJobStatus(
   // Caminho e URL de saída
   if (outputFilePath) {
     updateData.output_file_path = outputFilePath;
+    console.log(`[updateJobStatus] Attempting to generate public URL for outputFilePath: ${outputFilePath}`);
     
     try {
       const { data: publicUrlData } = await supabaseAdmin
@@ -58,19 +59,19 @@ async function updateJobStatus(
         console.log(`[updateJobStatus] Generated public URL for job ${jobId}: ${publicUrlData.publicUrl}`);
         updateData.output_url = publicUrlData.publicUrl;
       } else {
-        // Fallback: construct URL if Supabase didn't return one
+        console.warn(`[updateJobStatus] getPublicUrl for ${outputFilePath} did not return a publicUrl (publicUrlData: ${JSON.stringify(publicUrlData)}). Attempting fallback.`);
         const storageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
         if (storageUrl) {
           const fallbackUrl = `${storageUrl}/storage/v1/object/public/results/${outputFilePath}`;
           console.warn(`[updateJobStatus] Using fallback URL construction for job ${jobId}: ${fallbackUrl}`);
           updateData.output_url = fallbackUrl;
         } else {
-          console.error(`[updateJobStatus] Failed to generate URL for job ${jobId} - no storage URL available`);
+          console.error(`[updateJobStatus] Failed to generate URL for job ${jobId} - no storage URL available for fallback`);
         }
       }
     } catch (urlException) {
-      console.error(`[updateJobStatus] Exception getting public URL for ${outputFilePath}:`, urlException);
-      // Don't rethrow - continue with the update but without URL
+      console.error(`[updateJobStatus] Exception during public URL generation for ${outputFilePath}:`, urlException);
+      // Log the error, but proceed to update the job status without the URL if necessary
     }
   }
 
@@ -220,7 +221,7 @@ async function processImage(jobId: string, jobData: JobData) {
           ...formData.getHeaders(),
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
-        timeout: 120000 // 2 minutos
+        timeout: 50000 // 50 segundos
       }
     );
 
@@ -230,6 +231,8 @@ async function processImage(jobId: string, jobData: JobData) {
       tempFilePath = null;
       console.log(`[processImage] Deleted temp file for job ${jobId}`);
     }
+
+    console.log(`[processImage] OpenAI response for job ${jobId}:`, JSON.stringify(openaiResponse.data, null, 2));
 
     // 9. Validar resposta da OpenAI
     if (openaiResponse.status !== 200 || !openaiResponse.data?.data || openaiResponse.data.data.length === 0) {

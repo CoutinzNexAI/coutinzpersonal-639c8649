@@ -78,7 +78,7 @@ export default async function handler(
     }
 
     // 6. Chamar a API de processamento em background
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.pictuz.com';
     console.log(`[API process-image] URL base para processamento: ${baseUrl}`);
    
     // Chamada assíncrona sem await para não bloquear a resposta
