@@ -105,25 +105,38 @@ const TransformationsModal: React.FC = () => {
 
   // Efeito para buscar dados
   useEffect(() => {
-    if (isOpen && userInfo) {
+    // Log para debugging do estado atual ao entrar neste useEffect
+    console.log('[TransformationsModal useEffect main]', { isOpen, userId: userInfo?.id, isAuthLoading, currentPage });
+
+    if (isOpen && userInfo && !isAuthLoading) { // Adiciona !isAuthLoading aqui
+      // Quando o modal está aberto, temos um utilizador, e o carregamento da autenticação terminou,
+      // fazemos o fetch inicial para a página atual (que é 0 se o modal acabou de abrir/resetar).
+      console.log('[TransformationsModal useEffect main] Condições satisfeitas, chamando fetchTransformations.');
       fetchTransformations(currentPage, false); // Fetch inicial
-    } else {
+    } else if (!isOpen || !userInfo) {
+      // Limpa os dados e reseta a página se o modal estiver fechado ou não houver utilizador
+      console.log('[TransformationsModal useEffect main] Modal fechado ou sem utilizador, limpando estado.');
       setGridItems([]);
       setTotalCount(0);
-      setCurrentPage(0);
+      setCurrentPage(0); // Garante que currentPage é resetado
       setError(null);
+    } else {
+      // Caso onde isOpen=true, userInfo=true, mas isAuthLoading=true
+      console.log('[TransformationsModal useEffect main] Aguardando autenticação (isAuthLoading ainda é true).');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, userInfo]);
+  }, [isOpen, userInfo, isAuthLoading, fetchTransformations, currentPage]); // Adicionado isAuthLoading e fetchTransformations
 
    // Efeito separado para buscar ao mudar de página
    useEffect(() => {
-    if (isOpen && userInfo) {
-      // Não busca na montagem inicial aqui, só na mudança de página
-      fetchTransformations(currentPage, true);
+    // Este useEffect é para quando o utilizador clica nos botões de paginação.
+    // A condição !isAuthLoading também é importante aqui.
+    if (isOpen && userInfo && !isAuthLoading) {
+      console.log(`[TransformationsModal useEffect currentPage] Mudança de página para: ${currentPage}, chamando fetchTransformations.`);
+      fetchTransformations(currentPage, true); // O true indica que é uma mudança de página
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]); // Depende só de currentPage
+  // Adiciona fetchTransformations, isOpen, userInfo, isAuthLoading para robustez,
+  // embora o principal gatilho aqui seja currentPage.
+  }, [currentPage, isOpen, userInfo, isAuthLoading, fetchTransformations]);
 
   // Função para abrir imagem
   const handleViewClick = useCallback((url: string | null) => {
