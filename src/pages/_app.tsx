@@ -1,46 +1,15 @@
-// --- CORREÇÃO DO IMPORT CSS ---
-// import '@/styles/globals.css'; // Ficheiro não existe
-import '@/index.css'; // Importa o index.css que está em src/
-// --- FIM DA CORREÇÃO ---
+// src/pages/_app.tsx (VERSÃO DE TESTE SIMPLIFICADA)
 import type { AppProps } from 'next/app';
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/providers/AuthProvider';
-import { TransformationsModalProvider } from '@/hooks/transformationsModalContext';
-import { AccountSettingsModalProvider } from '@/hooks/accountSettingsModalContext';
-import TransformationsModal from '@/components/TransformationsModal';
-import AccountSettingsModal from '@/components/AccountSettingsModal';
-import FallingElements from '@/components/effects/FallingElements';
+import '@/index.css'; // Mantém os teus estilos globais base, se necessário
 
-const queryClient = new QueryClient();
-console.log("[_app.tsx] Ficheiro _app.tsx carregado");
+console.log("[_app.tsx SIMPLIFICADO] Ficheiro _app.tsx de TESTE carregado");
 
-function MyApp({ Component, pageProps }: AppProps) {
-  console.log("[_app.tsx] Rendering MyApp component...");
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <TransformationsModalProvider>
-            <AccountSettingsModalProvider>
-              
-              <FallingElements />
-              
-              <Component {...pageProps} />
-
-              <Sonner richColors position="top-right" />
-
-              <TransformationsModal />
-              <AccountSettingsModal />
-
-            </AccountSettingsModalProvider>
-          </TransformationsModalProvider>
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
+function MyAppSimplified({ Component, pageProps, router }: AppProps) { // Adicionado router para logar o caminho
+  // Nota: pageProps.router pode não estar sempre disponível aqui da forma esperada
+  // para obter o caminho. Usar o router importado de 'next/router' dentro do componente
+  // é mais fiável se precisares dele para lógica. Para este log, tentamos assim.
+  console.log(`[_app.tsx SIMPLIFICADO] Componente MyApp de TESTE a renderizar para o caminho: ${router?.asPath || 'caminho desconhecido'}`);
+  return <Component {...pageProps} />;
 }
 
-export default MyApp;
+export default MyAppSimplified;
