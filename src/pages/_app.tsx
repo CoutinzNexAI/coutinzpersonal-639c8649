@@ -14,6 +14,7 @@ import AccountSettingsModal from '@/components/AccountSettingsModal';
 import FallingElements from '@/components/effects/FallingElements';
 
 const queryClient = new QueryClient();
+console.log("[_app.tsx] Ficheiro _app.tsx carregado");
 
 function MyApp({ Component, pageProps }: AppProps) {
   console.log("[_app.tsx] Rendering MyApp component...");
