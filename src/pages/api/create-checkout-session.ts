@@ -48,7 +48,7 @@ export default async function handler(
     // Inicializar Stripe
     // A API version pode ser especificada para garantir consistência
     const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: '2025-03-31.basil', // Usa a versão da API que estás a testar/usar
+      apiVersion: '2025-04-30.basil', // Usa a versão da API que estás a testar/usar
       typescript: true
     });
 
