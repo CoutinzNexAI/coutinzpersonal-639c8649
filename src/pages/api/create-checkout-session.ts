@@ -64,9 +64,9 @@ export default async function handler(
     // Adiciona mais validações se necessário (ex: style existe?)
 
     // Determinar URLs de sucesso e cancelamento de forma mais robusta
-    const proto = req.headers['x-forwarded-proto'] || 'http';
+    const proto = req.headers['x-forwarded-proto'] || 'https';
     const host = process.env.VERCEL_URL || req.headers['x-forwarded-host'] || req.headers['host'];
-    const defaultBase = `http://localhost:${process.env.PORT || 3000}`;
+    const defaultBase = `https://www.pictuz.com/`;
     const baseUrl = host ? `${proto}://${host}` : defaultBase;
 
     console.log(`[create-checkout-session] Determined baseUrl: ${baseUrl}`);
