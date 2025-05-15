@@ -1,56 +1,36 @@
-console.log("[index.tsx] Ficheiro carregado, a iniciar renderização do componente para /");
+// src/pages/index.tsx
+import Link from 'next/link';
 import React from 'react';
-import Header from '@/components/Header';
-import GhibliHero from '@/components/GhibliHero'; // Componente principal com texto e área interativa
-import InteractiveGallery from '@/components/InteractiveGallery'; // Secção da galeria de exemplos
-import HowItWorks from '@/components/HowItWorks'; // Secção "Como Funciona"
-import Footer from '@/components/Footer'; // Rodapé
-import { FAQSection } from '@/components/FAQSection'; // Ajusta o caminho se necessário
 
+// Este console.log pode ou não aparecer nos Runtime Logs da Vercel
+// dependendo se esta página for renderizada no servidor em runtime ou no build.
+// Mas se a página funcionar, veremos o conteúdo no navegador.
+console.log("[index.tsx] MINIMAL PAGE: Ficheiro carregado, a iniciar renderização para /");
 
-// Componente funcional para a página inicial (rota '/')
-const Index = () => {
-  console.log("[index.tsx] Componente Index a renderizar para /");
-
+const MinimalIndexPage = () => {
+  // Este console.log aparecerá na consola do NAVEGADOR se a página renderizar.
+  console.log("[index.tsx] MINIMAL PAGE: Componente MinimalIndexPage a renderizar para / (CLIENT-SIDE)");
   return (
-    // Container principal da página com layout flexível vertical e cor de fundo
-    <div className="min-h-screen bg-ghibli-cream flex flex-col">
-      {/* Renderiza o cabeçalho */}
-      <Header />
-
-      {/* Conteúdo principal da página */}
-      {/* flex-grow garante que ocupa o espaço disponível, empurrando o footer para baixo */}
-      {/* pt-* adiciona padding no topo para compensar a altura do header fixo */}
-      <main className="flex-grow pt-16 md:pt-20">
-
-        {/* Renderiza a secção principal (Hero + Estúdio Interativo) */}
-        {/* Toda a lógica de passos (upload, estilo, pagamento, etc.) está encapsulada aqui */}
-        <GhibliHero />
-
-        {/* Renderiza as secções inferiores da página */}
-
-        {/* Separador visual customizado (assume que a classe ghibli-divider está definida no CSS global) */}
-        <div className="ghibli-divider my-12 md:my-16 lg:my-20" />
-
-        {/* Renderiza a secção da galeria interativa */}
-        <InteractiveGallery />
-
-        {/* Outro separador visual */}
-        <div className="ghibli-divider my-12 md:my-16 lg:my-20" />
-
-        {/* Renderiza a secção "Como Funciona" */}
-        <HowItWorks />
-
-        {/* Renderiza a secção de Perguntas Frequentes */}
-        <FAQSection />
-
-      </main> {/* Fim do conteúdo principal */}
-
-      {/* Renderiza o rodapé */}
-      <Footer />
-    </div> // Fim do container principal
+    <div style={{ 
+        padding: '50px', 
+        textAlign: 'center', 
+        backgroundColor: '#f0f0f0', 
+        color: '#333', 
+        minHeight: '100vh', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        fontFamily: 'Arial, sans-serif' // Adiciona uma fonte básica para melhor legibilidade
+    }}>
+      <h1>Página Inicial Mínima de Teste</h1>
+      <p>Se estás a ver isto, o ficheiro <code>index.tsx</code> básico está a ser alcançado e renderizado.</p>
+      <p>Data e Hora (Cliente): {new Date().toISOString()}</p>
+      <Link href="/politica-privacidade" style={{marginTop: '20px', color: 'blue', textDecoration: 'underline'}}>
+        Ir para Política de Privacidade (teste de link)
+      </Link>
+    </div>
   );
 };
 
-// Exporta o componente como default para ser usado pelo Next.js
-export default Index;
+export default MinimalIndexPage;
