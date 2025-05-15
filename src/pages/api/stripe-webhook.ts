@@ -92,7 +92,7 @@ export default async function handler(
     console.log('[Webhook] Initializing Stripe client...');
     const stripe = new Stripe(stripeSecretKey, {
       typescript: true,
-      apiVersion: '2025-03-31.basil', // Or your preferred version
+      apiVersion: '2025-04-30.basil', // Or your preferred version
     });
 
     console.log('[Webhook] Attempting to construct Stripe event...');
