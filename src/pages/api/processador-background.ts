@@ -144,9 +144,23 @@ async function updateJobStatus(
     } else {
       console.log(`[updateJobStatus] Successfully updated job ${jobId} to status: ${updateData.status}`);
     }
-  } catch (updateError) {
-    console.error(`[updateJobStatus] Exception during database update for job ${jobId}:`, updateError);
-    throw updateError; // Re-lançar para permitir tratamento no processImage
+  } catch (caughtError) {
+    const logMessage = `[updateJobStatus] Exception during database update for job ${jobId}.`;
+    let errorToThrow: Error;
+
+    if (caughtError instanceof Error) {
+      console.error(`${logMessage} Message: ${caughtError.message}`, caughtError.stack);
+      errorToThrow = new Error(`${logMessage} Details: ${caughtError.message}`);
+      // Preserve the original stack if available, otherwise, the new Error will have its own.
+      if (caughtError.stack) {
+        errorToThrow.stack = caughtError.stack;
+      }
+    } else {
+      const nonErrorString = String(caughtError);
+      console.error(`${logMessage} Caught non-error: ${nonErrorString}`);
+      errorToThrow = new Error(`${logMessage} Non-error thrown: ${nonErrorString}`);
+    }
+    throw errorToThrow; // Ensures an Error object is thrown, notifying the finally block in processImage
   }
 }
 
