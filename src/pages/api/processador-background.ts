@@ -280,28 +280,6 @@ async function processImage(jobId: string, jobData: JobData) {
     if (uploadError) {
       throw new Error(`Falha ao fazer upload do resultado: ${uploadError.message}`);
     }
-
-    // Ensure the file has public read access
-    const { error: aclError } = await supabaseAdmin
-      .storage
-      .from('results')
-      .update(outputFilePath, outputImageBuffer, {
-        contentType: 'image/png',
-        cacheControl: '31536000', // 1 year
-        upsert: true,
-        duplex: 'half',
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET',
-          'Cache-Control': 'public, max-age=31536000'
-        }
-      });
-      
-    if (aclError) {
-      console.error(`[processImage] Warning: Failed to update ACL permissions: ${aclError.message}`);
-      // Continue anyway, initial upload was successful
-    }
-
     // 13. Definir status final de sucesso
     finalStatus = 'completed';
     outputMetadata = {
