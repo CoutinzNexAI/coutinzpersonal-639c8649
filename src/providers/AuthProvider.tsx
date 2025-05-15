@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, createContext } from 'react';
 import { toast } from '@/components/ui/sonner'; // Assumindo que ainda queres toasts para erros
 import { supabase } from '@/lib/supabase/client';
-import { User, Session } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 
 // Tipos (mantidos para consistência, mas UserInfo pode ser mais simples)
 export interface UserInfo {
@@ -62,17 +62,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Verifica a sessão inicial explicitamente uma vez para acionar o INITIAL_SESSION mais rapidamente
     // e definir isLoading corretamente.
+    // Dentro do useEffect principal, onde checkInitialSession é definida e chamada:
     const checkInitialSession = async () => {
-        console.log('[AuthProvider SIMPLIFICADO] checkInitialSession - Explicitly calling getSession().');
-        const { data } = await supabase.auth.getSession();
-        // O onAuthStateChange deverá tratar de definir os estados com base nesta chamada,
-        // mas garantimos que isLoading é falso se não houver sessão após esta verificação.
-        if (!data.session) {
-            console.log('[AuthProvider SIMPLIFICADO] checkInitialSession - No session found, setting isLoading false.');
-            setIsLoading(false);
-        }
-    };
-    checkInitialSession();
+      console.log('[AuthProvider SIMPLIFICADO] checkInitialSession - Explicitly calling getSession().');
+      // Não precisamos de setIsLoading(true) aqui porque o useEffect principal já o fez.
+      try {
+          const { data, error } = await supabase.auth.getSession();
+
+          if (error) {
+              console.error('[AuthProvider SIMPLIFICADO] checkInitialSession - Error getting session:', error);
+          } else {
+              console.log('[AuthProvider SIMPLIFICADO] checkInitialSession - getSession() call completed. Session found:', !!data.session);
+          }
+          
+          // PONTO CHAVE DA ALTERAÇÃO:
+          // Independentemente de haver sessão ou não, após esta verificação inicial,
+          // queremos que a UI não fique mais em "loading" devido a esta verificação específica.
+          // O onAuthStateChange tratará de atualizar userInfo e session, e também chamará setIsLoading(false)
+          // quando receber o evento INITIAL_SESSION, mas esta chamada garante que saímos do loading
+          // da verificação inicial.
+          console.log('[AuthProvider SIMPLIFICADO] checkInitialSession - Setting isLoading false after initial getSession attempt.');
+          setIsLoading(false);
+
+      } catch (e) {
+          console.error('[AuthProvider SIMPLIFICADO] checkInitialSession - Exception during getSession:', e);
+          setIsLoading(false); // Garante que isLoading é falso também em caso de exceção.
+      }
+  };
+  checkInitialSession();
 
     return () => {
       console.log('[AuthProvider SIMPLIFICADO] useEffect - Cleaning up onAuthStateChange listener.');
