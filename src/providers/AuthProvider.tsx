@@ -13,17 +13,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const pathname = usePathname();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [sessionChecked, setSessionChecked] = useState(false); // Para saber se a verificação inicial já ocorreu
+  const [sessionChecked, setSessionChecked] = useState(false);
 
-  // Timeout de segurança para isLoading
   useEffect(() => {
     let safetyTimeoutId: NodeJS.Timeout | null = null;
     if (isLoading) {
       safetyTimeoutId = setTimeout(() => {
-        console.warn('[Safety Timeout] Forcing isLoading to false after 8s timeout');
-        setIsLoading(false);
-        if (!sessionChecked) {
-            setSessionChecked(true); // Garante que não fica preso esperando a sessão inicial
+        if (isLoading) { // Verifica novamente se ainda está loading
+          console.warn('[Safety Timeout] Forcing isLoading to false after 8s timeout');
+          setIsLoading(false);
+          if (!sessionChecked) {
+              setSessionChecked(true); 
+          }
         }
       }, 8000); 
     }
@@ -32,9 +33,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [isLoading, sessionChecked]);
 
-  // Sincroniza dados do utilizador com a base de dados
-  const syncUserWithDatabase = useCallback(async (user: User) => {
+  const syncUserWithDatabase = useCallback(async (user: User, updateLoadingState = true) => {
     console.log('[syncUserWithDatabase] Attempting to sync user:', user.id);
+    if (updateLoadingState) setIsLoading(true); // Opcional: definir loading se esta função for chamada isoladamente
     try {
       const userData: UserInfo = {
         id: user.id,
@@ -42,8 +43,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
         avatar_url: user.user_metadata?.avatar_url || '',
       };
-      console.log('[syncUserWithDatabase] User data prepared:', userData);
+      console.log('[syncUserWithDatabase] User data (from session/metadata) prepared:', userData);
 
+      // Primeiro, atualiza a UI com os dados básicos para resposta rápida
+      setUserInfo(userData);
+
+      // Depois, sincroniza com a base de dados
       const { error: upsertError } = await supabase
         .from('users')
         .upsert({
@@ -51,42 +56,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: userData.email,
           full_name: userData.full_name,
           avatar_url: userData.avatar_url,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          // last_seen_at: new Date().toISOString(), // Exemplo: atualizar last_seen
         }, { onConflict: 'id' });
 
       if (upsertError) {
         console.error("[syncUserWithDatabase] Error upserting user:", upsertError.message);
         toast.error("Erro ao sincronizar perfil", { description: upsertError.message });
+        // Não reverte userInfo aqui, pois já temos dados básicos da sessão
       } else {
-        console.log("[syncUserWithDatabase] ✅ User profile synced successfully.");
+        console.log("[syncUserWithDatabase] ✅ User profile synced/updated successfully in DB.");
+        // Opcional: Se a BD tiver mais dados (ex: créditos), pode ser necessário refazer o fetch do perfil
+        // e chamar setUserInfo novamente com os dados completos da BD.
+        // Por agora, assumimos que os dados da sessão + metadata são suficientes para UserInfo.
       }
-      setUserInfo(userData); // Atualiza o estado da UI com os dados sincronizados
     } catch (error) {
       console.error('[syncUserWithDatabase] Exception:', error);
-      // Não define isLoading aqui, a função chamadora deve tratar disso
+    } finally {
+      if (updateLoadingState) setIsLoading(false);
     }
-  }, []); // Não depende de 'toast'
+  }, []); 
 
-  // Função para refrescar a sessão; o parâmetro controla se isLoading é afetado
   const refreshSession = useCallback(async (manageLoadingState = false) => {
     console.log(`[refreshSession] Refreshing session state. Manage loading: ${manageLoadingState}`);
-    if (manageLoadingState) {
-        setIsLoading(true);
-    }
+    if (manageLoadingState) setIsLoading(true);
+    
     try {
       const { data, error } = await supabase.auth.getSession();
       if (error) {
         console.error('[refreshSession] Error getting session:', error.message);
         setUserInfo(null);
-        if (manageLoadingState) setIsLoading(false); // Só mexe no loading se esta chamada for responsável
-        setSessionChecked(true); // Mesmo com erro, a tentativa de verificação foi feita
+        if (manageLoadingState) setIsLoading(false);
+        setSessionChecked(true);
         return;
       }
       
       const session = data?.session;
       if (session?.user) {
         console.log('[refreshSession] Session found, user ID:', session.user.id);
-        await syncUserWithDatabase(session.user); // syncUserWithDatabase vai chamar setUserInfo
+        // Aqui, syncUserWithDatabase não precisa gerir o loading, pois refreshSession já o faz
+        await syncUserWithDatabase(session.user, false); 
         console.log('[refreshSession] User data synced with database after session refresh.');
       } else {
         console.log('[refreshSession] No active session found after refresh.');
@@ -96,30 +105,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('[refreshSession] Exception:', e);
       setUserInfo(null);
     } finally {
-      if (manageLoadingState) {
-          setIsLoading(false);
-      }
-      setSessionChecked(true); // A tentativa de refresh implica que a sessão foi "verificada"
+      if (manageLoadingState) setIsLoading(false);
+      setSessionChecked(true); 
     }
   }, [syncUserWithDatabase]);
 
-  // Efeito para mudança de rota
   useEffect(() => {
-    // Só faz refresh na mudança de rota se a sessão inicial já foi verificada
-    // e não estamos no meio de um carregamento de autenticação.
     if (sessionChecked && pathname && !isLoading) { 
-      console.log(`[PathChange] Detected navigation to: ${pathname}. Refreshing session without forcing loading state.`);
-      refreshSession(false); // false para não mostrar loader em cada navegação
+      console.log(`[PathChange] Detected navigation to: ${pathname}. Refreshing session (no loading indicator).`);
+      refreshSession(false);
     }
   }, [pathname, sessionChecked, refreshSession, isLoading]);
 
-  // Efeito para visibilidade/foco da aba
   useEffect(() => {
     console.log('[visibilityChange] Setting up visibility and focus handlers');
     const handleVisibilityOrFocus = async () => {
       if (document.visibilityState === 'visible') {
-        console.log('[visibilityOrFocus] Tab visible again, forcing session refresh and managing loading state.');
-        await refreshSession(true); // true para gerir o estado de loading
+        console.log('[visibilityOrFocus] Tab visible again, calling refreshSession (will manage loading).');
+        await refreshSession(true); 
       }
     };
     
@@ -128,19 +131,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const periodicRefreshInterval = setInterval(() => {
       if (document.visibilityState === 'visible' && userInfo) {
-        console.log('[periodicRefresh] Running scheduled session refresh for logged-in user');
-        refreshSession(true); // Gerir loading state para refresh periódico
+        console.log('[periodicRefresh] Running scheduled session refresh for logged-in user.');
+        refreshSession(true);
       }
-    }, 5 * 60 * 1000); // A cada 5 minutos
+    }, 5 * 60 * 1000);
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
       window.removeEventListener('focus', handleVisibilityOrFocus);
       clearInterval(periodicRefreshInterval);
     };
-  }, [syncUserWithDatabase, userInfo, refreshSession]); // Adicionado refreshSession
+  }, [userInfo, refreshSession]);
 
-  // Efeito principal para onAuthStateChange e verificação inicial da sessão
   useEffect(() => {
     let isMounted = true;
     console.log('[AuthProvider Main useEffect] Setting up auth listener and initial session check.');
@@ -149,41 +151,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log(`[onAuthStateChange] Event received: ${event}. Session exists: ${!!session}`);
-        if (!isMounted) {
-          console.log('[onAuthStateChange] Component unmounted, ignoring event.');
-          return;
-        }
-
-        // setIsLoading(true) no início de eventos significativos
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
-           console.log(`[onAuthStateChange] Event ${event} - setting isLoading true.`);
-           setIsLoading(true);
-        }
+        if (!isMounted) return;
 
         const currentUser = session?.user ?? null;
         console.log('[onAuthStateChange] Current user from event:', currentUser?.id || 'null');
 
-        if (currentUser) {
-          await syncUserWithDatabase(currentUser);
-        } else {
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+          setIsLoading(true); // Garante que estamos a carregar
+          if (currentUser) {
+            // Define userInfo com dados básicos da sessão imediatamente para resposta rápida da UI
+            const basicUserInfo: UserInfo = {
+              id: currentUser.id,
+              email: currentUser.email || '',
+              full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Usuário',
+              avatar_url: currentUser.user_metadata?.avatar_url || '',
+            };
+            setUserInfo(basicUserInfo);
+            console.log('[onAuthStateChange] Basic userInfo set from session.');
+            
+            // Sincroniza com a base de dados em segundo plano (ou aguarda se for crucial)
+            // O segundo parâmetro 'false' em syncUserWithDatabase indica que ele não deve gerir o isLoading,
+            // pois o onAuthStateChange já o está a fazer.
+            await syncUserWithDatabase(currentUser, false); 
+            console.log('[onAuthStateChange] syncUserWithDatabase completed.');
+          } else {
+            setUserInfo(null); // Não há utilizador, limpa o estado
+          }
+          setIsLoading(false); // Define isLoading false APÓS ter userInfo básico e tentado a sincronização
+          setSessionChecked(true);
+        } else if (event === 'SIGNED_OUT') {
+          setIsLoading(true);
           setUserInfo(null);
-        }
-
-        // setIsLoading(false) no final de eventos conclusivos
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
-          console.log(`[onAuthStateChange] Finished processing ${event}. Setting isLoading: false.`);
           setIsLoading(false);
           setSessionChecked(true);
+        } else if (event === 'USER_UPDATED' && currentUser) {
+           // Para USER_UPDATED, podemos apenas querer re-sincronizar sem mostrar um loader global
+           console.log('[onAuthStateChange] USER_UPDATED event, re-syncing user data.');
+           await syncUserWithDatabase(currentUser, false); // Não mostra loader global
         }
+        // Outros eventos como TOKEN_REFRESHED, USER_DELETED podem ser tratados aqui se necessário
       }
     );
 
-    // Verifica a sessão inicial explicitamente
+    // Verificação inicial da sessão
     const checkInitialSession = async () => {
-        console.log('[checkInitialSession] Explicitly checking initial session...');
-        // O evento INITIAL_SESSION do onAuthStateChange deve tratar disso.
-        // Esta chamada é uma salvaguarda ou para acelerar a deteção inicial.
-        await refreshSession(true); // true para gerir o estado de loading e sessionChecked
+        console.log('[checkInitialSession] Explicitly checking initial session (will call refreshSession).');
+        // refreshSession com manageLoadingState=true irá definir isLoading e sessionChecked
+        await refreshSession(true); 
     };
     checkInitialSession();
 
@@ -192,9 +206,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isMounted = false;
       authListener?.subscription?.unsubscribe();
     };
-  }, [syncUserWithDatabase, refreshSession]); // Adicionado refreshSession
+  }, [syncUserWithDatabase, refreshSession]);
 
-  // Funções de login e logout
   const signInWithGoogle = async () => {
     console.log('[signInWithGoogle] Attempting Google Sign In...');
     setIsLoading(true);
@@ -207,7 +220,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       if (error) throw error;
       console.log('[signInWithGoogle] signInWithOAuth called. Waiting for redirect...');
-      // isLoading permanece true; onAuthStateChange tratará de o definir como false.
     } catch (error: unknown) {
       console.error('[signInWithGoogle] Login error caught:', error);
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
