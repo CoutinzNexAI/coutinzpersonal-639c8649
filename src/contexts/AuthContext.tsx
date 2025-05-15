@@ -1,36 +1,21 @@
+// src/contexts/AuthContext.ts
 import { createContext } from 'react';
+import { Session } from '@supabase/supabase-js';
 
-// Interface for user information
 export interface UserInfo {
   id: string;
   email: string;
-  full_name: string;
-  avatar_url: string;
+  full_name?: string; // Opcional é mais seguro aqui
+  avatar_url?: string; // Opcional é mais seguro aqui
 }
 
-// Interface for the context value
 export interface AuthContextType {
   userInfo: UserInfo | null;
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  refreshSession: () => Promise<void>;
+  session: Session | null; // Corresponde ao que auth_provider_simplified fornece
 }
 
-// --- Define a Default State ---
-// This represents the state before the AuthProvider has initialized
-const defaultAuthValue: AuthContextType = {
-  userInfo: null,
-  isLoading: true, // Start in loading state by default
-  signInWithGoogle: async () => { console.warn("AuthProvider not yet initialized"); }, // Placeholder function
-  signOut: async () => { console.warn("AuthProvider not yet initialized"); },         // Placeholder function
-  refreshSession: async () => { console.warn("AuthProvider not yet initialized"); },  // Placeholder for refreshSession
-};
-// --- End Default State ---
-
-
-// Contexto de autenticação
-// Provide the default value instead of undefined
-export const AuthContext = createContext<AuthContextType>(defaultAuthValue);
-
-
+// O teu hook useAuth lida bem com 'undefined'
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
