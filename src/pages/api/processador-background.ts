@@ -8,7 +8,7 @@ import path from 'path';
 import os from 'os';
 
 // Timeout para a Vercel (máximo de 60s no plano hobby)
-export const config = { maxDuration: 55 };
+export const config = { maxDuration: 59 };
 
 // Tipos
 type JobData = {
@@ -221,7 +221,7 @@ async function processImage(jobId: string, jobData: JobData) {
           ...formData.getHeaders(),
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
-        timeout: 50000 // 50 segundos
+        timeout: 59000 // 50 segundos
       }
     );
 
