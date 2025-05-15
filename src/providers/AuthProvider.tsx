@@ -84,8 +84,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []); // Removed toast from dependencies
 
   // Create a function to refresh the session state that can be called from other effects
-  const refreshSession = useCallback(async () => {
+  const refreshSession = useCallback(async (setLoadingState = true) => {
     console.log('[refreshSession] Refreshing session state...');
+    if (setLoadingState) {
+      setIsLoading(true);
+    }
     try {
       const { data, error } = await supabase.auth.getSession();
       if (error) {
@@ -115,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('[refreshSession] Exception:', e);
     } finally {
       setIsLoading(false);
+      setSessionChecked(true);
     }
   }, [syncUserWithDatabase]);
 
@@ -122,7 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (sessionChecked) {
       console.log(`[PathChange] Detected navigation to: ${pathname}`);
-      refreshSession();
+      refreshSession(false); // Don't set loading on navigation changes
     }
   }, [pathname, sessionChecked, refreshSession]);
 
@@ -441,7 +445,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw error;
       }
       console.log('[signOut] Signed out successfully.');
-      // Let onAuthStateChange handle the state updates
+      // Set state directly for immediate UI feedback
+      setUserInfo(null);
+      setIsLoading(false);
+      setSessionChecked(true);
+      // Let onAuthStateChange handle additional cleanup if needed
     } catch (error: unknown) {
       console.error('[signOut] Error caught during sign out:', error);
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
@@ -451,6 +459,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Manually reset loading and user state on error
       setIsLoading(false);
       setUserInfo(null);
+      setSessionChecked(true);
     }
   };
 
@@ -461,7 +470,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithGoogle,
     signOut,
     // Add the refresh method to the context for external components to use if needed
-    refreshSession
+    refreshSession: () => refreshSession(false)
   };
 
   // Render the provider

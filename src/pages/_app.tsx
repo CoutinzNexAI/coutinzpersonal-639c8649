@@ -1,5 +1,7 @@
-// src/pages/_app.tsx (VERSÃO ORIGINAL RESTAURADA)
+// --- CORREÇÃO DO IMPORT CSS ---
+// import '@/styles/globals.css'; // Ficheiro não existe
 import '@/index.css'; // Importa o index.css que está em src/
+// --- FIM DA CORREÇÃO ---
 import type { AppProps } from 'next/app';
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,13 +14,10 @@ import AccountSettingsModal from '@/components/AccountSettingsModal';
 import FallingElements from '@/components/effects/FallingElements';
 
 const queryClient = new QueryClient();
+console.log("[_app.tsx] Ficheiro _app.tsx carregado");
 
-// Adicionando console.log para verificar se o ficheiro é carregado durante o build/runtime no servidor
-console.log("[_app.tsx ORIGINAL] Ficheiro _app.tsx (original) carregado.");
-
-function MyApp({ Component, pageProps, router }: AppProps) { // Adicionado router para logar o caminho
-  // Adicionando console.log para verificar a renderização do componente e o caminho
-  console.log(`[_app.tsx ORIGINAL] Componente MyApp (original) a renderizar para o caminho: ${router?.asPath || 'caminho desconhecido'}`);
+function MyApp({ Component, pageProps }: AppProps) {
+  console.log("[_app.tsx] Rendering MyApp component...");
 
   return (
     <QueryClientProvider client={queryClient}>
