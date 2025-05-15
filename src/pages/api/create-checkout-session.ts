@@ -66,7 +66,13 @@ export default async function handler(
 
     // 1. Usar NEXT_PUBLIC_APP_URL se estiver definido (ideal para produção e para forçar um URL específico)
     if (process.env.NEXT_PUBLIC_APP_URL) {
-      baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+      let appUrl = process.env.NEXT_PUBLIC_APP_URL;
+      // Adicionar https:// se estiver em falta e não for localhost
+      if (!appUrl.startsWith('http') && !appUrl.includes('localhost')) {
+        console.warn(`[create-checkout-session] NEXT_PUBLIC_APP_URL (${appUrl}) não tem protocolo. Adicionando https://`);
+        appUrl = `https://${appUrl}`;
+      }
+      baseUrl = appUrl;
     }
     // 2. Se não, tentar VERCEL_URL (bom para previews da Vercel)
     else if (process.env.VERCEL_URL) {
@@ -89,7 +95,7 @@ export default async function handler(
     }
 
     console.log(`[create-checkout-session] Determined baseUrl: ${baseUrl}`);
-    console.log(`[create-checkout-session] Using NEXT_PUBLIC_APP_URL: ${process.env.NEXT_PUBLIC_APP_URL}`);
+    console.log(`[create-checkout-session] Original NEXT_PUBLIC_APP_URL: ${process.env.NEXT_PUBLIC_APP_URL}`);
     console.log(`[create-checkout-session] Using VERCEL_URL: ${process.env.VERCEL_URL}`);
 
 
