@@ -35,84 +35,90 @@ async function updateJobStatus(
   errorMessage: string | null = null,
   metadata: Record<string, unknown> | null = null
 ) {
-  const updateData: Record<string, unknown> = { status };
+  try {
+    const updateData: Record<string, unknown> = { status };
 
-  // Campos de timestamp
-  if (status === 'processing') {
-    updateData.processing_started_at = new Date().toISOString();
-  } else if (status === 'completed' || status === 'failed' || status === 'error' || status.startsWith('failed_')) {
-    updateData.completed_at = new Date().toISOString();
-  }
-
-  // Caminho e URL de saída
-  if (outputFilePath) {
-    updateData.output_file_path = outputFilePath;
-    console.log(`[updateJobStatus] Attempting to generate public URL for outputFilePath: ${outputFilePath}`);
-    
-    try {
-      const { data: publicUrlData } = await supabaseAdmin
-        .storage
-        .from('results')
-        .getPublicUrl(outputFilePath);
-
-      if (publicUrlData?.publicUrl) {
-        console.log(`[updateJobStatus] Generated public URL for job ${jobId}: ${publicUrlData.publicUrl}`);
-        updateData.output_url = publicUrlData.publicUrl;
-      } else {
-        console.warn(`[updateJobStatus] getPublicUrl for ${outputFilePath} did not return a publicUrl (publicUrlData: ${JSON.stringify(publicUrlData)}). Attempting fallback.`);
-        const storageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-        if (storageUrl) {
-          const fallbackUrl = `${storageUrl}/storage/v1/object/public/results/${outputFilePath}`;
-          console.warn(`[updateJobStatus] Using fallback URL construction for job ${jobId}: ${fallbackUrl}`);
-          updateData.output_url = fallbackUrl;
-        } else {
-          console.error(`[updateJobStatus] Failed to generate URL for job ${jobId} - no storage URL available for fallback`);
-        }
-      }
-    } catch (urlException) {
-      console.error(`[updateJobStatus] Exception during public URL generation for ${outputFilePath}:`, urlException);
-      // Log the error, but proceed to update the job status without the URL if necessary
+    // Campos de timestamp
+    if (status === 'processing') {
+      updateData.processing_started_at = new Date().toISOString();
+    } else if (status === 'completed' || status === 'failed' || status === 'error' || status.startsWith('failed_')) {
+      updateData.completed_at = new Date().toISOString();
     }
-  }
 
-  // Mensagem de erro (limitada para evitar problemas no banco)
-  if (errorMessage) {
-    updateData.error_message = errorMessage.substring(0, 500);
-  }
+    // Caminho e URL de saída
+    if (outputFilePath) {
+      updateData.output_file_path = outputFilePath;
+      console.log(`[updateJobStatus] Attempting to generate public URL for outputFilePath: ${outputFilePath}`);
+      
+      try {
+        const { data: publicUrlData } = await supabaseAdmin
+          .storage
+          .from('results')
+          .getPublicUrl(outputFilePath);
 
-  // Metadados
-  if (metadata) {
-    updateData.output_metadata = metadata;
-  }
+        if (publicUrlData?.publicUrl) {
+          console.log(`[updateJobStatus] Generated public URL for job ${jobId}: ${publicUrlData.publicUrl}`);
+          updateData.output_url = publicUrlData.publicUrl;
+        } else {
+          console.warn(`[updateJobStatus] getPublicUrl for ${outputFilePath} did not return a publicUrl (publicUrlData: ${JSON.stringify(publicUrlData)}). Attempting fallback.`);
+          const storageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+          if (storageUrl) {
+            const fallbackUrl = `${storageUrl}/storage/v1/object/public/results/${outputFilePath}`;
+            console.warn(`[updateJobStatus] Using fallback URL construction for job ${jobId}: ${fallbackUrl}`);
+            updateData.output_url = fallbackUrl;
+          } else {
+            console.error(`[updateJobStatus] Failed to generate URL for job ${jobId} - no storage URL available for fallback`);
+          }
+        }
+      } catch (urlException) {
+        console.error(`[updateJobStatus] Exception during public URL generation for ${outputFilePath}:`, urlException);
+        // Log the error, but proceed to update the job status without the URL if necessary
+      }
+    }
 
-  // Verificar se temos uma URL válida ao completar com sucesso
-  if (status === 'completed' && !updateData.output_url) {
-    console.error(`[updateJobStatus] Warning: Job ${jobId} marked as completed but has no output URL`);
-  }
+    // Mensagem de erro (limitada para evitar problemas no banco)
+    if (errorMessage) {
+      updateData.error_message = errorMessage.substring(0, 500);
+    }
 
-  // Converter status detalhados para 'completed' ou 'error' conforme schema
-  if (status.startsWith('failed_')) {
-    console.log(`[updateJobStatus] Converting detailed status ${status} to 'error' per schema`);
-    // Armazenar status original nos metadados
-    updateData.output_metadata = updateData.output_metadata || {};
-    Object.assign(updateData.output_metadata, { originalStatus: status });
-    updateData.status = 'error';
-  } else {
-    updateData.status = status;
-  }
+    // Metadados
+    if (metadata) {
+      updateData.output_metadata = metadata;
+    }
 
-  // Enviar atualização para o Supabase
-  console.log(`[updateJobStatus] Updating job ${jobId} with status: ${updateData.status}`);
-  const { error } = await supabaseAdmin
-    .from('transformations')
-    .update(updateData)
-    .eq('id', jobId);
+    // Verificar se temos uma URL válida ao completar com sucesso
+    if (status === 'completed' && !updateData.output_url) {
+      console.error(`[updateJobStatus] Warning: Job ${jobId} marked as completed but has no output URL`);
+    }
 
-  if (error) {
-    console.error(`[updateJobStatus] Error updating job ${jobId}:`, error);
-    throw new Error(`Falha ao atualizar status: ${error.message}`);
-  } else {
-    console.log(`[updateJobStatus] Successfully updated job ${jobId} to status: ${updateData.status}`);
+    // Converter status detalhados para 'completed' ou 'error' conforme schema
+    if (status.startsWith('failed_')) {
+      console.log(`[updateJobStatus] Converting detailed status ${status} to 'error' per schema`);
+      // Armazenar status original nos metadados
+      updateData.output_metadata = updateData.output_metadata || {};
+      Object.assign(updateData.output_metadata, { originalStatus: status });
+      updateData.status = 'error';
+    } else {
+      updateData.status = status;
+    }
+
+    // Enviar atualização para o Supabase
+    console.log(`[updateJobStatus] Updating job ${jobId} with status: ${updateData.status}`);
+    const { error } = await supabaseAdmin
+      .from('transformations')
+      .update(updateData)
+      .eq('id', jobId);
+
+    if (error) {
+      console.error(`[updateJobStatus] Error updating job ${jobId}:`, error);
+      throw new Error(`Falha ao atualizar status: ${error.message}`);
+    } else {
+      console.log(`[updateJobStatus] Successfully updated job ${jobId} to status: ${updateData.status}`);
+    }
+  } catch (updateError) {
+    // Capturar qualquer erro interno para não interromper o fluxo
+    console.error(`[updateJobStatus] CRITICAL: Failed to update status for job ${jobId}:`, updateError);
+    // Não relançamos o erro para não quebrar o fluxo principal
   }
 }
 
@@ -170,6 +176,7 @@ async function processImage(jobId: string, jobData: JobData) {
   try {
     // 1. Atualizar status para 'processing'
     await updateJobStatus(jobId, 'processing');
+    console.log(`[processImage] Status updated to 'processing' for job ${jobId}`);
 
     // 2. Verificar caminho do arquivo de entrada
     if (!jobData.input_file_path) {
@@ -183,8 +190,14 @@ async function processImage(jobId: string, jobData: JobData) {
       .from('images')
       .download(jobData.input_file_path);
 
-    if (downloadError || !downloadData) {
-      throw new Error(`Falha ao baixar imagem: ${downloadError?.message || 'Sem dados'}`);
+    if (downloadError) {
+      console.error(`[processImage] Error downloading image: ${downloadError.message}`);
+      throw new Error(`Falha ao baixar imagem: ${downloadError.message}`);
+    }
+
+    if (!downloadData) {
+      console.error(`[processImage] Download completed but no data received`);
+      throw new Error('Falha ao baixar imagem: Sem dados');
     }
 
     console.log(`[processImage] Successfully downloaded image for job ${jobId}`);
@@ -205,7 +218,7 @@ async function processImage(jobId: string, jobData: JobData) {
 
     // 6. Preparar FormData para a API da OpenAI
     const formData = new FormData();
-    formData.append('model', 'gpt-image-1');
+    formData.append('model', 'dall-e-2');
     formData.append('prompt', promptText);
     formData.append('image', fs.createReadStream(tempFilePath));
     formData.append('n', '1');
@@ -213,33 +226,67 @@ async function processImage(jobId: string, jobData: JobData) {
 
     // 7. Chamar a API da OpenAI
     console.log(`[processImage] Calling OpenAI API for job ${jobId}`);
-    const openaiResponse = await axios.post(
-      'https://api.openai.com/v1/images/edits',
-      formData,
-      {
-        headers: {
-          ...formData.getHeaders(),
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        timeout: 59000 // 50 segundos
+    let openaiResponse;
+    try {
+      openaiResponse = await axios.post(
+        'https://api.openai.com/v1/images/edits',
+        formData,
+        {
+          headers: {
+            ...formData.getHeaders(),
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+          },
+          // Reduzir timeout para deixar margem para o resto do processamento
+          timeout: 45000 // 45 segundos
+        }
+      );
+      console.log(`[processImage] Received response from OpenAI with status: ${openaiResponse.status}`);
+    } catch (openaiError) {
+      if (axios.isAxiosError(openaiError)) {
+        console.error(`[processImage] OpenAI API error for job ${jobId}:`, {
+          status: openaiError.response?.status,
+          statusText: openaiError.response?.statusText,
+          data: JSON.stringify(openaiError.response?.data || {}).substring(0, 500), // Limitar para evitar logs muito grandes
+          message: openaiError.message
+        });
+      } else {
+        console.error(`[processImage] Non-Axios error calling OpenAI for job ${jobId}:`, openaiError);
       }
-    );
+      throw openaiError; // Re-throw para ser capturado pelo catch externo
+    }
 
     // 8. Limpar arquivo temporário
     if (tempFilePath) {
-      fs.unlinkSync(tempFilePath);
-      tempFilePath = null;
-      console.log(`[processImage] Deleted temp file for job ${jobId}`);
+      try {
+        fs.unlinkSync(tempFilePath);
+        tempFilePath = null;
+        console.log(`[processImage] Deleted temp file for job ${jobId}`);
+      } catch (unlinkError) {
+        console.warn(`[processImage] Failed to delete temp file ${tempFilePath} for job ${jobId}:`, unlinkError);
+        // Não interrompe o fluxo se falhar na limpeza
+      }
     }
 
-    console.log(`[processImage] OpenAI response for job ${jobId}:`, JSON.stringify(openaiResponse.data, null, 2));
-
-    // 9. Validar resposta da OpenAI
-    if (openaiResponse.status !== 200 || !openaiResponse.data?.data || openaiResponse.data.data.length === 0) {
-      throw new Error(`Resposta inválida da API OpenAI: Status ${openaiResponse.status}`);
+    console.log(`[processImage] Processing OpenAI response for job ${jobId}`);
+    
+    // Validação mais detalhada da resposta
+    if (!openaiResponse) {
+      throw new Error('Resposta da OpenAI é undefined');
+    }
+    
+    if (openaiResponse.status !== 200) {
+      throw new Error(`Resposta com status inesperado da API OpenAI: ${openaiResponse.status}`);
+    }
+    
+    if (!openaiResponse.data) {
+      throw new Error('Resposta da OpenAI não contém dados');
+    }
+    
+    if (!openaiResponse.data.data || !Array.isArray(openaiResponse.data.data) || openaiResponse.data.data.length === 0) {
+      throw new Error('Resposta da OpenAI não contém itens de dados');
     }
 
-    console.log(`[processImage] Received valid OpenAI response for job ${jobId}`);
+    console.log(`[processImage] OpenAI response validation passed for job ${jobId}`);
 
     // 10. Processar resultado (b64_json ou url)
     const b64Image = openaiResponse.data.data[0].b64_json;
@@ -252,12 +299,21 @@ async function processImage(jobId: string, jobData: JobData) {
     // 11. Criar buffer a partir do resultado
     let outputImageBuffer: Buffer;
     if (b64Image) {
+      console.log(`[processImage] Using b64_json for job ${jobId} (length: ${b64Image.length})`);
       outputImageBuffer = Buffer.from(b64Image, 'base64');
-      console.log(`[processImage] Using b64_json for job ${jobId}`);
     } else {
       console.log(`[processImage] Using URL for job ${jobId}: ${imageUrl}`);
-      const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-      outputImageBuffer = Buffer.from(imageResponse.data);
+      try {
+        const imageResponse = await axios.get(imageUrl, { 
+          responseType: 'arraybuffer',
+          timeout: 10000 // 10 segundos para o download
+        });
+        outputImageBuffer = Buffer.from(imageResponse.data);
+        console.log(`[processImage] Successfully downloaded image from URL for job ${jobId}`);
+      } catch (imageDownloadError) {
+        console.error(`[processImage] Failed to download image from URL for job ${jobId}:`, imageDownloadError);
+        throw new Error(`Falha ao baixar imagem da URL: ${imageDownloadError instanceof Error ? imageDownloadError.message : 'Erro desconhecido'}`);
+      }
     }
 
     // 12. Upload do resultado para o Supabase
@@ -265,30 +321,39 @@ async function processImage(jobId: string, jobData: JobData) {
     outputFilePath = `public/${jobData.user_id}/${jobId}/result_${timestamp}.png`;
     
     console.log(`[processImage] Uploading result to Supabase for job ${jobId}: ${outputFilePath}`);
-    const { error: uploadError } = await supabaseAdmin
-      .storage
-      .from('results')
-      .upload(outputFilePath, outputImageBuffer, {
-        contentType: 'image/png',
-        cacheControl: '31536000', // 1 year
-        upsert: false,
-        duplex: 'half',
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET',
-          'Cache-Control': 'public, max-age=31536000'
-        }
-      });
+    try {
+      const { error: uploadError } = await supabaseAdmin
+        .storage
+        .from('results')
+        .upload(outputFilePath, outputImageBuffer, {
+          contentType: 'image/png',
+          cacheControl: '31536000', // 1 year
+          upsert: false,
+          duplex: 'half',
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET',
+            'Cache-Control': 'public, max-age=31536000'
+          }
+        });
 
-    if (uploadError) {
-      throw new Error(`Falha ao fazer upload do resultado: ${uploadError.message}`);
+      if (uploadError) {
+        console.error(`[processImage] Upload error details for job ${jobId}:`, uploadError);
+        throw new Error(`Falha ao fazer upload do resultado: ${uploadError.message}`);
+      }
+      
+      console.log(`[processImage] Successfully uploaded result to Supabase for job ${jobId}`);
+    } catch (uploadEx) {
+      console.error(`[processImage] Exception during Supabase upload for job ${jobId}:`, uploadEx);
+      throw uploadEx; // Re-throw para ser capturado pelo catch externo
     }
+    
     // 13. Definir status final de sucesso
     finalStatus = 'completed';
     outputMetadata = {
       processedAt: new Date().toISOString(),
       style: jobData.style_requested,
-      aiModel: 'gpt-image-1',
+      aiModel: 'dall-e-2',
       promptUsed: promptText
     };
 
@@ -310,7 +375,7 @@ async function processImage(jobId: string, jobData: JobData) {
       // Log mais detalhado para debug
       console.error(`[processImage] Axios error details for job ${jobId}:`, {
         status: axiosError.response?.status,
-        data: axiosError.response?.data,
+        data: axiosError.response?.data ? JSON.stringify(axiosError.response.data).substring(0, 500) : null,
         url: axiosError.config?.url,
         message: axiosError.message
       });
@@ -333,20 +398,24 @@ async function processImage(jobId: string, jobData: JobData) {
   } finally {
     // Atualização final do status e limpeza
     try {
+      console.log(`[processImage] Entering finally block for job ${jobId}`);
+      
       // Verificar se temos a imagem no storage mesmo com erro
       if (finalStatus.startsWith('failed') && outputFilePath === null) {
         try {
           console.log(`[processImage] Checking for existing results for failed job ${jobId}`);
           // Verifica se, apesar do erro, existe alguma imagem associada a este job
-          const { data: results } = await supabaseAdmin
+          const { data: results, error: listError } = await supabaseAdmin
             .storage
             .from('results')
             .list(`public/${jobData.user_id}/${jobId}`, {
               limit: 1,
               sortBy: { column: 'name', order: 'desc' },
             });
-            
-          if (results && results.length > 0) {
+          
+          if (listError) {
+            console.error(`[processImage] Error listing results for job ${jobId}:`, listError);
+          } else if (results && results.length > 0) {
             const fileName = results[0].name;
             console.log(`[processImage] Found existing result despite error for job ${jobId}: ${fileName}`);
             outputFilePath = `public/${jobData.user_id}/${jobId}/${fileName}`;
@@ -355,9 +424,28 @@ async function processImage(jobId: string, jobData: JobData) {
             // Adiciona informação ao metadata
             outputMetadata = outputMetadata || {};
             outputMetadata.recoveryNote = "Recuperado após erro de processamento";
+            
+            // Tenta explicitamente obter a URL pública
+            try {
+              const { data: publicUrlData } = await supabaseAdmin
+                .storage
+                .from('results')
+                .getPublicUrl(outputFilePath);
+                
+              if (publicUrlData?.publicUrl) {
+                console.log(`[processImage] Successfully generated public URL for recovered job ${jobId}: ${publicUrlData.publicUrl}`);
+                // A URL será adicionada pelo updateJobStatus
+              }
+            } catch (urlEx) {
+              console.error(`[processImage] Failed to get public URL for recovered file:`, urlEx);
+              // Continue mesmo sem a URL
+            }
+          } else {
+            console.log(`[processImage] No existing results found for failed job ${jobId}`);
           }
-        } catch (_e) {
-          console.error(`[processImage] Error checking for existing results for job ${jobId}:`, _e);
+        } catch (listEx) {
+          console.error(`[processImage] Exception checking for existing results for job ${jobId}:`, listEx);
+          // Continue mesmo com erro no listing
         }
       }
       
@@ -372,10 +460,34 @@ async function processImage(jobId: string, jobData: JobData) {
         outputMetadata.originalErrorType = originalStatus;
       }
       
-      await updateJobStatus(jobId, finalStatus, outputFilePath, errorMessage, outputMetadata);
-      console.log(`[processImage] Final status update for job ${jobId}: ${finalStatus}`);
-    } catch (updateError) {
-      console.error(`[processImage] CRITICAL: Failed to update final status for job ${jobId}: ${updateError instanceof Error ? updateError.message : 'Erro desconhecido'}`);
+      // Tentativa de update do status final com retry
+      let updateSuccess = false;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (!updateSuccess && retryCount < maxRetries) {
+        try {
+          console.log(`[processImage] Attempting final updateJobStatus for job ${jobId} (attempt ${retryCount + 1}/${maxRetries})`);
+          await updateJobStatus(jobId, finalStatus, outputFilePath, errorMessage, outputMetadata);
+          updateSuccess = true;
+          console.log(`[processImage] Final status update completed for job ${jobId}: ${finalStatus}`);
+        } catch (updateEx) {
+          retryCount++;
+          const retryDelay = retryCount * 1000; // incrementa o delay a cada retry
+          console.error(`[processImage] Failed update attempt ${retryCount}/${maxRetries} for job ${jobId}:`, updateEx);
+          
+          if (retryCount < maxRetries) {
+            console.log(`[processImage] Will retry update in ${retryDelay}ms`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+          }
+        }
+      }
+      
+      if (!updateSuccess) {
+        console.error(`[processImage] CRITICAL: All attempts to update final status failed for job ${jobId}`);
+      }
+    } catch (finallyError) {
+      console.error(`[processImage] CRITICAL: Error in finally block for job ${jobId}: ${finallyError instanceof Error ? finallyError.message : 'Erro desconhecido'}`);
     }
 
     // Limpeza de arquivo temporário remanescente
@@ -383,10 +495,13 @@ async function processImage(jobId: string, jobData: JobData) {
       try {
         fs.unlinkSync(tempFilePath);
         console.log(`[processImage] Cleaned up temp file for job ${jobId}: ${tempFilePath}`);
-      } catch {
+      } catch (cleanupError) {
+        console.warn(`[processImage] Failed to clean up temp file in finally block: ${tempFilePath}`);
         // Ignorar erros na limpeza final
       }
     }
+    
+    console.log(`[processImage] Processing completed for job ${jobId} with final status: ${finalStatus}`);
   }
 }
 
