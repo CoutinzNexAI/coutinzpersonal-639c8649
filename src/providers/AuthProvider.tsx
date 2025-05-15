@@ -1,18 +1,17 @@
-// src/providers/AuthProvider.tsx (VERSÃO SIMPLIFICADA)
+// src/providers/AuthProvider.tsx (VERSÃO SIMPLIFICADA - Com Correções ESLint)
 "use client"; 
 
-import React, { useState, useEffect, useCallback, createContext } from 'react';
-import { toast } from '@/components/ui/sonner'; // Assumindo que ainda queres toasts para erros
+import React, { useState, useEffect, useCallback, createContext, useRef } from 'react';
+import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/lib/supabase/client';
-import { Session } from '@supabase/supabase-js';
+import { Session } // Removida a importação 'User' que não estava a ser usada diretamente
+from '@supabase/supabase-js';
 
-// Tipos (mantidos para consistência, mas UserInfo pode ser mais simples)
 export interface UserInfo {
   id: string;
   email: string;
   full_name?: string;
   avatar_url?: string;
-  // Outros campos que vêm diretamente da tua tabela 'users' podem ser omitidos por agora
 }
 
 export interface AuthContextType {
@@ -20,121 +19,138 @@ export interface AuthContextType {
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  session: Session | null; // Expor a sessão completa pode ser útil para debugging
+  session: Session | null;
 }
 
-// Criação do Contexto (movido para aqui para ser auto-contido neste exemplo)
+// TODO: (Recomendação ESLint) Mover AuthContext para um ficheiro separado para otimizar o Fast Refresh.
+// eslint-disable-next-line react-refresh/only-export-components 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('[AuthProvider SIMPLIFICADO] Component Function execution started.');
+  console.log('%c[AuthProvider SIMPLIFICADO] Component INSTANCE created / re-rendered', 'color: orange; font-weight: bold;');
   
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Começa true até a sessão inicial ser verificada
+  const [isLoading, setIsLoading] = useState(true); 
+  
+  const setupEffectHasRun = useRef(false);
 
-  // Efeito principal para ouvir o estado de autenticação do Supabase
   useEffect(() => {
-    console.log('[AuthProvider SIMPLIFICADO] useEffect - Setting up onAuthStateChange listener.');
-    setIsLoading(true); // Define loading no início da configuração
+    console.log('%c[AuthProvider SIMPLIFICADO] Main useEffect RUNS', 'color: blue; font-weight: bold;', { isLoadingVal: isLoading, sessionValIsPresent: !!session });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log(`[AuthProvider SIMPLIFICADO] onAuthStateChange event: ${event}, session:`, session);
+    if (setupEffectHasRun.current) {
+      console.log('%c[AuthProvider SIMPLIFICADO] Main useEffect - Setup already run for this instance, skipping full setup.', 'color: blue;');
+      // Se o setup já correu e isLoading é true mas não há sessão (estado do componente),
+      // pode ser um re-render desnecessário que deixou isLoading true.
+      // O onAuthStateChange deve ser a fonte da verdade para isLoading após o setup.
+      // Esta condição é uma salvaguarda, mas a lógica principal de isLoading está no onAuthStateChange.
+      if (isLoading && !session) { 
+           console.log('%c[AuthProvider SIMPLIFICADO] Main useEffect - No session and isLoading is true after setup, setting isLoading false (safeguard).', 'color: blue;');
+           setIsLoading(false);
+      }
+      return; 
+    }
+
+    console.log('%c[AuthProvider SIMPLIFICADO] Main useEffect - Performing initial setup (attaching listener, initial check).', 'color: blue;');
+    setIsLoading(true); 
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      console.log(`%c[AuthProvider SIMPLIFICADO] onAuthStateChange event: ${event}`, 'color: green;', { sessionIsPresent: !!currentSession });
       
-      setSession(session); // Guarda a sessão completa
+      setSession(currentSession); 
 
-      if (session?.user) {
-        const currentUser = session.user;
+      if (currentSession?.user) {
+        const currentUser = currentSession.user;
         setUserInfo({
           id: currentUser.id,
           email: currentUser.email || '',
           full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Usuário',
           avatar_url: currentUser.user_metadata?.avatar_url || '',
         });
+        console.log('%c[AuthProvider SIMPLIFICADO] onAuthStateChange - UserInfo SET', 'color: green;');
       } else {
         setUserInfo(null);
+        console.log('%c[AuthProvider SIMPLIFICADO] onAuthStateChange - UserInfo set to NULL', 'color: green;');
       }
       
-      // Define isLoading como false APÓS o primeiro evento (INITIAL_SESSION) ser processado
-      // ou qualquer evento subsequente de login/logout.
+      console.log('%c[AuthProvider SIMPLIFICADO] onAuthStateChange - Setting isLoading: false.', 'color: green;');
       setIsLoading(false);
     });
 
-    // Verifica a sessão inicial explicitamente uma vez para acionar o INITIAL_SESSION mais rapidamente
-    // e definir isLoading corretamente.
-    // Dentro do useEffect principal, onde checkInitialSession é definida e chamada:
     const checkInitialSession = async () => {
-      console.log('[AuthProvider SIMPLIFICADO] checkInitialSession - Explicitly calling getSession().');
-      // Não precisamos de setIsLoading(true) aqui porque o useEffect principal já o fez.
-      try {
-          const { data, error } = await supabase.auth.getSession();
+        console.log('%c[AuthProvider SIMPLIFICADO] checkInitialSession - Calling getSession().', 'color: purple;');
+        try {
+            const { data, error } = await supabase.auth.getSession();
+            if (error) {
+                console.error('[AuthProvider SIMPLIFICADO] checkInitialSession - Error getting session:', error);
+            }
+            console.log('%c[AuthProvider SIMPLIFICADO] checkInitialSession - getSession() completed. Session found:', 'color: purple;', !!data.session);
+            
+            // O onAuthStateChange (evento INITIAL_SESSION) é acionado por getSession()
+            // e é responsável por definir userInfo, session, e isLoading.
+            // Se, após esta chamada, não houver sessão e isLoading ainda for true (vindo do setIsLoading(true) no início deste useEffect),
+            // o onAuthStateChange (INITIAL_SESSION com session null) deve tratar de definir isLoading para false.
+            // Esta verificação adicional é uma dupla segurança.
+            if (!data.session && isLoading) { 
+                 console.log('%c[AuthProvider SIMPLIFICADO] checkInitialSession - No session from getSession, ensuring isLoading is false if not handled by onAuthStateChange.', 'color: purple;');
+                 setIsLoading(false);
+            }
+        } catch (e: unknown) { // Corrigido para unknown
+            console.error('[AuthProvider SIMPLIFICADO] checkInitialSession - Exception:', e);
+            setIsLoading(false); 
+        }
+    };
 
-          if (error) {
-              console.error('[AuthProvider SIMPLIFICADO] checkInitialSession - Error getting session:', error);
-          } else {
-              console.log('[AuthProvider SIMPLIFICADO] checkInitialSession - getSession() call completed. Session found:', !!data.session);
-          }
-          
-          // PONTO CHAVE DA ALTERAÇÃO:
-          // Independentemente de haver sessão ou não, após esta verificação inicial,
-          // queremos que a UI não fique mais em "loading" devido a esta verificação específica.
-          // O onAuthStateChange tratará de atualizar userInfo e session, e também chamará setIsLoading(false)
-          // quando receber o evento INITIAL_SESSION, mas esta chamada garante que saímos do loading
-          // da verificação inicial.
-          console.log('[AuthProvider SIMPLIFICADO] checkInitialSession - Setting isLoading false after initial getSession attempt.');
-          setIsLoading(false);
-
-      } catch (e) {
-          console.error('[AuthProvider SIMPLIFICADO] checkInitialSession - Exception during getSession:', e);
-          setIsLoading(false); // Garante que isLoading é falso também em caso de exceção.
-      }
-  };
-  checkInitialSession();
+    checkInitialSession();
+    setupEffectHasRun.current = true; 
 
     return () => {
-      console.log('[AuthProvider SIMPLIFICADO] useEffect - Cleaning up onAuthStateChange listener.');
+      console.log('%c[AuthProvider SIMPLIFICADO] Main useEffect - CLEANUP. Unsubscribing listener. AuthProvider instance is being UNMOUNTED.', 'color: red; font-weight: bold;');
       authListener?.subscription?.unsubscribe();
     };
-  }, []); // Corre apenas uma vez na montagem
+  // Adicionadas isLoading e session para satisfazer o linter. A lógica setupEffectHasRun.current
+  // previne que o setup principal (anexar listener, checkInitialSession) corra mais de uma vez por montagem.
+  }, [isLoading, session]); 
 
   const signInWithGoogle = useCallback(async () => {
     console.log('[AuthProvider SIMPLIFICADO] signInWithGoogle - Attempting...');
-    setIsLoading(true); // Define loading antes de iniciar o OAuth
+    setIsLoading(true);
     try {
-      const redirectUrl = window.location.origin; // Para produção, deve ser o teu URL de produção
+      const redirectUrl = window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: redirectUrl },
       });
-      if (error) {
-        throw error;
-      }
-      // Não definimos isLoading(false) aqui; o onAuthStateChange tratará disso após o redirecionamento.
-      console.log('[AuthProvider SIMPLIFICADO] signInWithGoogle - signInWithOAuth called. Waiting for redirect.');
-    } catch (error: unknown) {
+      if (error) throw error;
+      console.log('[AuthProvider SIMPLIFICADO] signInWithGoogle - OAuth call initiated.');
+    } catch (error: unknown) { // Corrigido para unknown
       console.error('[AuthProvider SIMPLIFICADO] signInWithGoogle - Error:', error);
-      const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro.";
-      toast.error("Erro no login com Google", { description: errorMessage });
+      if (error instanceof Error) {
+        toast.error("Erro no login com Google", { description: error.message });
+      } else {
+        toast.error("Erro no login com Google", { description: "Ocorreu um erro desconhecido." });
+      }
       setIsLoading(false);
     }
   }, []);
 
   const signOut = useCallback(async () => {
     console.log('[AuthProvider SIMPLIFICADO] signOut - Attempting...');
-    setIsLoading(true); // Define loading antes de chamar signOut
+    setIsLoading(true);
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw error;
-      }
-      // setUserInfo(null) e setIsLoading(false) serão tratados pelo onAuthStateChange (evento SIGNED_OUT)
-      console.log('[AuthProvider SIMPLIFICADO] signOut - signOut called successfully.');
-    } catch (error: unknown) {
+      if (error) throw error;
+      console.log('[AuthProvider SIMPLIFICADO] signOut - signOut call successful.');
+      // O onAuthStateChange (evento SIGNED_OUT) deve tratar de limpar userInfo, session, e definir isLoading false.
+    } catch (error: unknown) { // Corrigido para unknown
       console.error('[AuthProvider SIMPLIFICADO] signOut - Error:', error);
-      const errorMessage = error instanceof Error ? error.message : "Ocorreu um erro.";
-      toast.error("Erro ao sair", { description: errorMessage });
-      // Mesmo com erro, tenta garantir que a UI reflete um estado de "não logado"
-      setUserInfo(null);
+      if (error instanceof Error) {
+        toast.error("Erro ao sair", { description: error.message });
+      } else {
+        toast.error("Erro ao sair", { description: "Ocorreu um erro desconhecido." });
+      }
+      // Garante que o estado é limpo e o loading termina em caso de erro no signOut
+      setUserInfo(null); 
       setSession(null);
       setIsLoading(false);
     }
@@ -147,6 +163,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     session,
   };
+
+  console.log('%c[AuthProvider SIMPLIFICADO] RENDERING Provider with value:', 'color: orange;', { isLoading, userId: userInfo?.id, sessionIsPresent: !!session });
 
   return (
     <AuthContext.Provider value={authContextValue}>
