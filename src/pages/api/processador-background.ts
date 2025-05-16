@@ -8,7 +8,7 @@ import path from 'path';
 import os from 'os';
 
 // Timeout para a Vercel (máximo de 60s no plano hobby)
-export const config = { maxDuration: 59 };
+export const config = { maxDuration: 58 };
 
 // Tipos
 type JobData = {
@@ -42,7 +42,7 @@ async function updateJobStatus(
     // Lançar um erro aqui pode ser uma boa ideia para parar o fluxo mais cedo.
     throw new Error(`[updateJobStatus] supabaseAdmin is not available for job ${jobId}`);
   } else {
-    console.log(`[updateJobStatus] supabaseAdmin client appears to be available for job ${jobId}.`);
+    console.log(`[updateJobStatus: ${jobId}] supabaseAdmin client appears to be available.`);
   }
 
   const updateData: Record<string, unknown> = { status };
@@ -57,30 +57,31 @@ async function updateJobStatus(
   // Caminho e URL de saída
   if (outputFilePath) {
     updateData.output_file_path = outputFilePath;
-    console.log(`[updateJobStatus] Attempting to generate public URL for outputFilePath: ${outputFilePath}`);
+    console.log(`[updateJobStatus: ${jobId}] Attempting to generate public URL for outputFilePath: ${outputFilePath}`);
     
     try {
+      // CORREÇÃO APLICADA: Destructuring correto e remoção do if (urlError)
       const { data: publicUrlData } = await supabaseAdmin
         .storage
         .from('results')
         .getPublicUrl(outputFilePath);
 
       if (publicUrlData?.publicUrl) {
-        console.log(`[updateJobStatus] Generated public URL for job ${jobId}: ${publicUrlData.publicUrl}`);
+        console.log(`[updateJobStatus: ${jobId}] Generated public URL: ${publicUrlData.publicUrl}`);
         updateData.output_url = publicUrlData.publicUrl;
       } else {
-        console.warn(`[updateJobStatus] getPublicUrl for ${outputFilePath} (job ${jobId}) did not return a publicUrl. Data: ${JSON.stringify(publicUrlData)}. Attempting fallback.`);
+        console.warn(`[updateJobStatus: ${jobId}] getPublicUrl for ${outputFilePath} did not return a publicUrl in data. Data: ${JSON.stringify(publicUrlData)}. Attempting fallback.`);
         const storageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
         if (storageUrl) {
           const fallbackUrl = `${storageUrl}/storage/v1/object/public/results/${outputFilePath}`;
-          console.warn(`[updateJobStatus] Using fallback URL construction for job ${jobId}: ${fallbackUrl}`);
+          console.warn(`[updateJobStatus: ${jobId}] Using fallback URL construction: ${fallbackUrl}`);
           updateData.output_url = fallbackUrl;
         } else {
-          console.error(`[updateJobStatus] Failed to generate URL for job ${jobId} - no storage URL available for fallback`);
+          console.error(`[updateJobStatus: ${jobId}] Failed to generate URL - no storage URL available for fallback`);
         }
       }
     } catch (urlException) {
-      console.error(`[updateJobStatus] Exception during public URL generation for ${outputFilePath} (job ${jobId}):`, urlException);
+      console.error(`[updateJobStatus: ${jobId}] Exception during public URL generation for ${outputFilePath}:`, urlException);
     }
   }
 
@@ -95,12 +96,12 @@ async function updateJobStatus(
   }
 
   if (status === 'completed' && !updateData.output_url) {
-    console.error(`[updateJobStatus] Warning: Job ${jobId} marked as completed but has NO output URL. Data:`, JSON.stringify(updateData));
+    console.error(`[updateJobStatus: ${jobId}] Warning: Job marked as completed but has NO output URL. Data:`, JSON.stringify(updateData));
   }
 
   // Converter status detalhados (failed_*) para 'error'
   if (status.startsWith('failed_')) {
-    console.log(`[updateJobStatus] Converting detailed status ${status} to 'error' for job ${jobId}`);
+    console.log(`[updateJobStatus: ${jobId}] Converting detailed status ${status} to 'error'.`);
     updateData.output_metadata = updateData.output_metadata || {};
     Object.assign(updateData.output_metadata, { originalStatus: status });
     updateData.status = 'error'; 
@@ -108,7 +109,7 @@ async function updateJobStatus(
     updateData.status = status; 
   }
 
-  console.log(`[updateJobStatus] Preparing to update job ${jobId}. Target Status: ${updateData.status}. Full update data:`, JSON.stringify(updateData, null, 2));
+  console.log(`[updateJobStatus: ${jobId}] Preparing to update job. Target Status: ${updateData.status}. Full update data:`, JSON.stringify(updateData, null, 2));
 
   try {
     const { error } = await supabaseAdmin
@@ -117,14 +118,14 @@ async function updateJobStatus(
       .eq('id', jobId);
 
     if (error) {
-      console.error(`[updateJobStatus] Error updating job ${jobId} in Supabase:`, error);
+      console.error(`[updateJobStatus: ${jobId}] Error updating job in Supabase:`, error);
       throw new Error(`Falha ao atualizar status no Supabase para job ${jobId}: ${error.message} (Code: ${error.code}, Details: ${error.details}, Hint: ${error.hint})`);
     } else {
-      console.log(`[updateJobStatus] Successfully updated job ${jobId} to status: ${updateData.status}`);
+      console.log(`[updateJobStatus: ${jobId}] Successfully updated job to status: ${updateData.status}`);
     }
   } catch (e) {
     const castError = e as Error;
-    console.error(`[updateJobStatus] CRITICAL EXCEPTION during Supabase update for job ${jobId}. Status being set: ${updateData.status}. Error: ${castError.message}`, {
+    console.error(`[updateJobStatus: ${jobId}] CRITICAL EXCEPTION during Supabase update. Status being set: ${updateData.status}. Error: ${castError.message}`, {
         errorObject: castError,
         stack: castError.stack,
         jobId: jobId,
@@ -137,13 +138,13 @@ async function updateJobStatus(
 /**
  * Busca o prompt para o estilo solicitado
  */
-async function getPromptFromDB(styleId: string): Promise<string> {
+async function getPromptFromDB(styleId: string, jobIdForLogging: string): Promise<string> {
   if (!supabaseAdmin) {
-    console.error(`[getPromptFromDB] CRITICAL: supabaseAdmin is not defined when trying to fetch prompt for style ${styleId}.`);
+    console.error(`[getPromptFromDB: ${jobIdForLogging}] CRITICAL: supabaseAdmin is not defined when trying to fetch prompt for style ${styleId}.`);
     return `Transform this image using the ${styleId} style. (Error: DB connection not available)`;
   }
   try {
-    console.log(`[getPromptFromDB] Querying style: ${styleId}`);
+    console.log(`[getPromptFromDB: ${jobIdForLogging}] Querying style: ${styleId}`);
     const { data: styleResult, error } = await supabaseAdmin
       .from('styles')
       .select('name, prompt_template')
@@ -152,18 +153,18 @@ async function getPromptFromDB(styleId: string): Promise<string> {
       .single();
     
     if (error) {
-      console.error(`[getPromptFromDB] Erro ao buscar estilo ${styleId}:`, error);
+      console.error(`[getPromptFromDB: ${jobIdForLogging}] Erro ao buscar estilo ${styleId}:`, error);
       return `Transform this image using the ${styleId} style. Apply artistic interpretation. (DB query error)`;
     }
     if (styleResult) {
-      console.log(`[getPromptFromDB] Found style: ${styleResult.name} for styleId ${styleId}`);
+      console.log(`[getPromptFromDB: ${jobIdForLogging}] Found style: ${styleResult.name} for styleId ${styleId}`);
       return styleResult.prompt_template || `Transform this image using the ${styleResult.name} style. Apply artistic interpretation.`;
     }
-    console.warn(`[getPromptFromDB] Style ${styleId} not found in DB. Using fallback prompt.`);
+    console.warn(`[getPromptFromDB: ${jobIdForLogging}] Style ${styleId} not found in DB. Using fallback prompt.`);
     return `Transform this image using the ${styleId} style. Apply artistic interpretation.`;
   } catch (error) {
     const castError = error as Error;
-    console.error(`[getPromptFromDB] Exception while fetching prompt for style ${styleId}: ${castError.message}`, { stack: castError.stack });
+    console.error(`[getPromptFromDB: ${jobIdForLogging}] Exception while fetching prompt for style ${styleId}: ${castError.message}`, { stack: castError.stack });
     return `Transform this image using the ${styleId} style. Apply artistic interpretation. (Exception during DB query)`;
   }
 }
@@ -187,24 +188,31 @@ async function processImage(jobId: string, jobData: JobData) {
         throw new Error("supabaseAdmin client is not available at the start of processImage.");
     }
     console.log(`[processImage: ${jobId}] Attempting Supabase connectivity test...`);
+    
+    // LOG ADICIONAL ANTES DA CHAMADA CRÍTICA
+    console.log(`[processImage: ${jobId}] IMMEDIATE-PRE-TEST: About to call supabaseAdmin.from('styles').select('id').limit(1)`);
+    
     const { data: testData, error: testError } = await supabaseAdmin.from('styles').select('id').limit(1);
+    
+    // LOG ADICIONAL DEPOIS DA CHAMADA CRÍTICA
+    console.log(`[processImage: ${jobId}] IMMEDIATE-POST-TEST: Call to supabaseAdmin.from('styles').select('id').limit(1) has returned/completed.`);
 
     if (testError) {
       console.error(`[processImage: ${jobId}] Supabase connectivity test FAILED:`, testError);
       errorMessage = `Supabase connectivity test failed: ${testError.message}`;
       finalStatus = 'failed_connectivity_test'; 
-      // Não sair imediatamente, deixar o finally block cuidar da atualização de status
-      throw new Error(errorMessage); // Lançar para ser pego pelo catch principal de processImage
+      throw new Error(errorMessage); 
     } else {
       console.log(`[processImage: ${jobId}] Supabase connectivity test SUCCEEDED. Found ${testData?.length || 0} records.`);
     }
   } catch (connectivityException) {
     const castError = connectivityException as Error;
+    // LOG ADICIONAL SE A CHAMADA CRÍTICA CAUSAR UMA EXCEÇÃO AQUI
+    console.error(`[processImage: ${jobId}] IMMEDIATE-EXCEPTION-TEST: Exception caught from Supabase connectivity test block. Error: ${castError.message}`);
     console.error(`[processImage: ${jobId}] CRITICAL EXCEPTION during Supabase connectivity test: ${castError.message}`, {
         errorObject: castError, stack: castError.stack });
     errorMessage = castError.message.includes("connectivity test failed") ? castError.message : `Critical exception during Supabase connectivity test: ${castError.message}`;
     finalStatus = castError.message.includes("connectivity test failed") ? 'failed_connectivity_test' : 'failed_connectivity_exception';
-    // Atualizar status e sair, pois sem Supabase não há como prosseguir
     try {
         await updateJobStatus(jobId, finalStatus, null, errorMessage, outputMetadata);
     } catch (updateErr) {
@@ -213,9 +221,10 @@ async function processImage(jobId: string, jobData: JobData) {
     return; 
   }
 
+  // O restante da lógica de processImage só será executado se o teste de conectividade passar.
   try {
     console.log(`[processImage: ${jobId}] Step 1: Attempting to ensure job status is 'processing'.`);
-    await updateJobStatus(jobId, 'processing'); // Garante que o status e `processing_started_at` estão corretos
+    await updateJobStatus(jobId, 'processing'); 
     console.log(`[processImage: ${jobId}] Job status confirmed/set to 'processing'.`);
 
     if (!jobData.input_file_path) {
@@ -234,14 +243,14 @@ async function processImage(jobId: string, jobData: JobData) {
     const imageInputBuffer = Buffer.from(await downloadData.arrayBuffer());
 
     console.log(`[processImage: ${jobId}] Step 4: Getting prompt for style: ${jobData.style_requested}`);
-    const promptText = await getPromptFromDB(jobData.style_requested);
+    const promptText = await getPromptFromDB(jobData.style_requested, jobId); // Passar jobId para logging
     console.log(`[processImage: ${jobId}] Prompt: "${promptText}"`);
     outputMetadata = { ...outputMetadata, promptUsed: promptText, aiModelUsed: 'dall-e-2' };
 
     const tempDir = os.tmpdir();
     const tempFileName = `input_${jobId}_${Date.now()}.png`;
     tempFilePath = path.join(tempDir, tempFileName);
-    fs.writeFileSync(tempFilePath, imageInputBuffer); // Buffer diretamente
+    fs.writeFileSync(tempFilePath, imageInputBuffer); 
     console.log(`[processImage: ${jobId}] Step 5: Saved temp file: ${tempFilePath}`);
 
     const formData = new FormData();
@@ -250,7 +259,7 @@ async function processImage(jobId: string, jobData: JobData) {
     formData.append('image', fs.createReadStream(tempFilePath));
     formData.append('n', '1');
     formData.append('size', '1024x1024');
-    formData.append('response_format', 'b64_json'); // Solicitar b64_json
+    formData.append('response_format', 'b64_json'); 
 
     console.log(`[processImage: ${jobId}] Step 6: Calling OpenAI API.`);
     const openaiResponse = await axios.post(
@@ -259,7 +268,7 @@ async function processImage(jobId: string, jobData: JobData) {
       { headers: { ...formData.getHeaders(), 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`}, timeout: 55000 }
     );
 
-    if (tempFilePath) { // Limpar arquivo temporário
+    if (tempFilePath) { 
       try { fs.unlinkSync(tempFilePath); console.log(`[processImage: ${jobId}] Deleted temp file: ${tempFilePath}`); tempFilePath = null; }
       catch (unlinkErr) { console.warn(`[processImage: ${jobId}] Could not delete temp file ${tempFilePath} immediately: ${(unlinkErr as Error).message}`); }
     }
@@ -272,7 +281,7 @@ async function processImage(jobId: string, jobData: JobData) {
     const resultItem = openaiResponse.data.data[0];
     const b64Image = resultItem.b64_json;
 
-    if (!b64Image) { // b64_json deve estar presente
+    if (!b64Image) { 
       console.error(`[processImage: ${jobId}] b64_json missing in OpenAI response:`, resultItem);
       throw new Error('b64_json ausente na resposta da OpenAI');
     }
@@ -302,7 +311,7 @@ async function processImage(jobId: string, jobData: JobData) {
   } catch (error) {
     const castError = error as Error; 
     errorMessage = castError.message;
-    console.error(`[processImage: ${jobId}] Error during processing: ${errorMessage}`, { errorObject: castError, stack: castError.stack });
+    console.error(`[processImage: ${jobId}] Error during processing (main try block): ${errorMessage}`, { errorObject: castError, stack: castError.stack });
 
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -313,9 +322,12 @@ async function processImage(jobId: string, jobData: JobData) {
     else if (errorMessage.includes('Falha ao fazer upload do resultado')) finalStatus = 'failed_upload';
     else if (errorMessage.includes('Caminho do arquivo de entrada ausente')) finalStatus = 'failed_input_path';
     else if (errorMessage.includes('OpenAI')) finalStatus = 'failed_api_logic';
-    else if (finalStatus !== 'failed_connectivity_test' && finalStatus !== 'failed_connectivity_exception') finalStatus = 'failed'; // Default se não for erro de conectividade já definido
+    // Não sobrescrever 'failed_connectivity_test' ou 'failed_connectivity_exception'
+    else if (finalStatus !== 'failed_connectivity_test' && finalStatus !== 'failed_connectivity_exception') {
+        finalStatus = 'failed'; 
+    }
   } finally {
-    if (tempFilePath) { // Limpeza final do arquivo temporário
+    if (tempFilePath) { 
       try { console.warn(`[processImage: ${jobId}] Temp file ${tempFilePath} still exists in finally. Cleaning up.`); fs.unlinkSync(tempFilePath); }
       catch (unlinkErr) { console.error(`[processImage: ${jobId}] Failed to clean up temp file ${tempFilePath} in finally: ${(unlinkErr as Error).message}`);}
     }
@@ -324,7 +336,7 @@ async function processImage(jobId: string, jobData: JobData) {
     if (finalStatus.startsWith('failed_')) {
       if (!outputMetadata) outputMetadata = {};
       outputMetadata.originalErrorType = finalStatus;
-      finalStatus = 'error'; // Normalizar para 'error' para o schema do DB
+      finalStatus = 'error'; 
       console.log(`[processImage: ${jobId}] Normalizing status to 'error'. Original: ${outputMetadata.originalErrorType}`);
     }
     
@@ -379,7 +391,7 @@ export default async function handler(
 
     if (jobError || !jobData) {
       console.error(`[Background API Handler] Job ${jobId} não encontrado ou erro ao buscar:`, jobError);
-      return res.status(200).json({ // Responder 200 OK para o chamador (process-image) saber que o request foi recebido.
+      return res.status(200).json({ 
         success: false, 
         message: `Job não encontrado ou erro ao buscar: ${jobError?.message || 'Nenhum dado retornado'}`
       });
@@ -398,20 +410,15 @@ export default async function handler(
       return res.status(200).json({ success: false, message: errorMsg });
     }
 
-    // MODIFICAÇÃO PRINCIPAL: Remover a verificação que causava a saída prematura se status === 'processing'
-    // A função processImage é responsável por lidar com o estado 'processing'.
-    if (jobData.status === 'completed' || jobData.status === 'error' /* || jobData.status === 'failed' */) {
+    if (jobData.status === 'completed' || jobData.status === 'error' ) {
         console.warn(`[Background API Handler] Job ${jobId} já está no estado terminal '${jobData.status}'. Não será reprocessado.`);
-        return res.status(200).json({ // Ainda 200 para o chamador, mas indicando que nada foi feito.
-            success: true, // Considerar se isto deve ser true ou false. True = pedido recebido, nada a fazer.
+        return res.status(200).json({ 
+            success: true, 
             message: `Job ${jobId} já está no estado '${jobData.status}'. Não foi reprocessado.`,
             jobId
         });
     }
     
-    // Se chegou aqui, o job está 'paid' ou 'processing' (ou outro estado inicial válido).
-    // O processador background DEVE tentar processá-lo.
-
     console.log(`[Background API Handler] Respondendo 202 Accepted para job ${jobId} e iniciando processamento real.`);
     res.status(202).json({
       success: true,
@@ -419,16 +426,11 @@ export default async function handler(
       jobId
     });
 
-    // Iniciar processamento em background APÓS responder. NÃO usar await aqui.
     processImage(jobId, jobData as JobData).catch(_error => {
       const castError = _error as Error;
       console.error(`[Background API Handler] ERRO NÃO CAPTURADO NO TOPO DO PROCESSAMENTO para job ${jobId}: ${castError.message}`, {
           errorObject: castError, stack: castError.stack, jobId: jobId
       });
-      // Tentativa de último recurso para atualizar o status, pode não funcionar dependendo do erro.
-      // updateJobStatus(jobId, 'failed', null, `Unhandled top-level error: ${castError.message}`.substring(0,500)).catch(finalErr => {
-      //   console.error(`[Background API Handler] DOUBLE FAULT: Could not even update job status to failed for ${jobId}`, finalErr);
-      // });
     });
 
   } catch (error) {
