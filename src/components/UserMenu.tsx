@@ -26,20 +26,18 @@ export const UserMenu: React.FC = () => {
   if (!userInfo) {
     return (
       <Button
-        variant="outline"
+        // variant="outline" // Removemos o variant="outline" para aplicar o nosso fundo
         onClick={signInWithGoogle}
-        disabled={isAuthLoading} // Desativa enquanto carrega
-        className="flex gap-2 items-center"
-        aria-label="Login com Google" // Adiciona aria-label
+        disabled={isAuthLoading}
+        className="flex gap-2 items-center bg-ghibli-wood text-ghibli-paper hover:bg-ghibli-wood/80 px-5 py-2 rounded-lg" // MODIFICADO: Estilos para fundo Ghibli escuro, texto claro, hover e padding/rounded
+        aria-label="Login" // Ajustado o aria-label
       >
-        {/* Mostra ícone de loading ou ícone de utilizador */}
         {isAuthLoading ? (
           <Loader2 className="h-5 w-5 animate-spin" />
         ) : (
-          <User className="h-5 w-5" />
+          <User className="h-5 w-5" /> // Mantém o ícone de utilizador
         )}
-        {/* Texto do botão (opcionalmente escondido em ecrãs pequenos) */}
-        <span className="hidden sm:inline">Login com Google</span>
+        <span className="hidden sm:inline">Login</span> {/* MODIFICADO: Texto alterado */}
       </Button>
     );
   }

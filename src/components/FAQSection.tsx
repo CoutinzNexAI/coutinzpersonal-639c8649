@@ -92,7 +92,7 @@ const contentVariants = {
 export const FAQSection: React.FC = () => {
   return (
     // Secção que envolve o FAQ
-    <section className="py-16 md:py-24 bg-ghibli-paper"> {/* Ajustado padding */}
+    <section id="faq" className="py-16 md:py-24 bg-ghibli-paper"> {/* ADICIONADO: id="faq" */}
       <div className="container mx-auto px-4 max-w-5xl"> {/* Aumentada largura máxima */}
         {/* Título da Secção FAQ */}
         <h2 className="section-title text-center mb-10 md:mb-16"> {/* Aumentada margem inferior */}

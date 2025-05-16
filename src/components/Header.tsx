@@ -18,7 +18,7 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { href: "#galeria", label: "Galeria", id: "galeria" },
   { href: "#como-funciona", label: "Como Funciona", id: "como-funciona" },
-  // { href: "#sobre", label: "Sobre", id: "sobre" }, // Descomentar se a secção existir
+  { href: "#faq", label: "FAQ", id: "faq" },
 ];
 
 const Header: React.FC = () => {
@@ -115,20 +115,20 @@ const Header: React.FC = () => {
 
   return (
     // Header fixo no topo
-    <header ref={headerRef} className="sticky top-0 z-50 w-full py-4 border-b border-ghibli-sand/30 bg-ghibli-paper/80 backdrop-blur-md">
-      <div className="container mx-auto flex items-center justify-between px-4 md:px-6">
-        {/* Logo com Link - Atualizado para usar onClick com o componente Link */}
+    <header ref={headerRef} className="sticky top-0 z-50 w-full pt-4">
+      <div className="container mx-auto flex items-center justify-between rounded-2xl border border-ghibli-sand/30 bg-ghibli-paper/80 backdrop-blur-md px-3 py-2 shadow-lg md:px-8"> {/* MODIFICADO: px-4 para mobile (ajusta se necessário, ex: px-2 ou px-3) */}
+        {/* Logo com Link */}
         <div className="flex items-center">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             onClick={handleLogoClick}
-            className="flex items-center group"
+            className="flex items-center group transition-all duration-300 ease-in-out hover:sepia"
             aria-label="Página Inicial"
           >
-            <div className="relative h-14 w-40">
-              <Image 
-                src="/PicTuzSemBack.png" 
-                alt="PicTuz Logo" 
+            <div className="relative h-12 w-36"> {/* Mantido o tamanho do logo que definimos */}
+              <Image
+                src="/PicTuzSemBack.png"
+                alt="PicTuz Logo"
                 fill
                 style={{ objectFit: "contain" }}
                 priority
@@ -136,70 +136,69 @@ const Header: React.FC = () => {
             </div>
           </Link>
         </div>
-
-        {/* Botão do Menu Mobile */}
-        <div className="md:hidden">
+  
+        {/* Navegação Desktop (visível em md e acima) */}
+        <nav className="hidden md:flex items-center space-x-6 lg:space-x-8"> {/* Ajustado space-x para desktop, podes usar valores diferentes para lg se quiseres mais espaço */}
+          {navLinks.map((link) => (
+            <a
+              key={link.id}
+              href={link.href}
+              className={cn(
+                "text-ghibli-wood hover:text-ghibli-moss transition-colors relative pb-1",
+                activeSection === link.id
+                  ? "font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-ghibli-moss"
+                  : ""
+              )}
+              aria-current={activeSection === link.id ? "page" : undefined}
+            >
+              {link.label}
+            </a>
+          ))}
+          {/* UserMenu para Desktop, vem depois dos links de navegação */}
+          <div className="ml-2 lg:ml-4"> {/* Pequena margem adicional antes do UserMenu no desktop, ajustável */}
+            <UserMenu />
+          </div>
+        </nav>
+  
+        {/* Botões para Mobile (Login + Menu Hambúrguer - visível abaixo de md) */}
+        <div className="md:hidden flex items-center space-x-2"> {/* Container para agrupar UserMenu e Botão Hambúrguer em mobile */}
+          <UserMenu /> {/* UserMenu (Botão Login) visível na barra do header em mobile */}
           <Button
             variant="ghost"
             size="icon"
             className="text-ghibli-wood hover:text-ghibli-moss hover:bg-ghibli-cream"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
-            aria-expanded={mobileMenuOpen} // Indica se o menu está expandido
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
         </div>
-
-        {/* Navegação Desktop */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {navLinks.map((link) => (
-            <a
-              key={link.id}
-              href={link.href}
-              className={cn(
-                "text-ghibli-wood hover:text-ghibli-moss transition-colors relative pb-1", // Adiciona pb-1 para espaço do sublinhado
-                // Estilo do link ativo (sublinhado)
-                activeSection === link.id
-                  ? "font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-ghibli-moss"
-                  : ""
-              )}
-              aria-current={activeSection === link.id ? "page" : undefined} // Acessibilidade
-            >
-              {link.label}
-            </a>
-          ))}
-          <UserMenu />
-        </nav>
       </div>
-
+  
       {/* Menu Mobile (Dropdown Animado) */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            ref={mobileMenuRef} // Atribui a ref ao elemento animado
+            ref={mobileMenuRef}
             className="md:hidden absolute top-full left-0 right-0 bg-ghibli-paper/95 backdrop-blur-md p-4 border-b border-ghibli-sand/30 z-40 shadow-lg"
             variants={mobileMenuVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            // TODO: Implementar focus trapping aqui se necessário
           >
             <nav className="flex flex-col space-y-4 py-2">
               {navLinks.map((link) => (
-                 <a
+                <a
                   key={link.id}
                   href={link.href}
-                  className="text-ghibli-wood hover:text-ghibli-moss transition-colors px-4 py-2 rounded hover:bg-ghibli-cream/50 block" // Usa block para ocupar largura
-                  onClick={closeMobileMenu} // Fecha menu ao clicar
-                 >
+                  className="text-ghibli-wood hover:text-ghibli-moss transition-colors px-4 py-2 rounded hover:bg-ghibli-cream/50 block"
+                  onClick={closeMobileMenu}
+                >
                   {link.label}
-                 </a>
+                </a>
               ))}
-              {/* UserMenu dentro do menu mobile */}
-              <div className="px-4 py-2 border-t border-ghibli-sand/20 mt-2 pt-4">
-                <UserMenu />
-              </div>
+              {/* UserMenu FOI REMOVIDO daqui, pois agora está na barra principal do header em mobile */}
             </nav>
           </motion.div>
         )}
