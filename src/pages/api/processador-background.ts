@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin'; 
 import { Buffer } from 'buffer';
-import axios, { AxiosError } from 'axios';
-import FormData from 'form-data';
+import axios from 'axios';
+import FormData from 'form-data'; // FormData é necessário para /images/edits
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { waitUntil } from '@vercel/functions'; // Importar waitUntil
+import { waitUntil } from '@vercel/functions'; 
 
 interface ErrorWithCause extends Error {
   cause?: unknown;
@@ -193,59 +193,48 @@ async function processImage(jobId: string, jobData: JobData) {
     console.log(`[processImage: ${jobId}] Getting prompt for style: ${jobData.style_requested}`);
     const promptText = await getPromptFromDB(jobData.style_requested, jobId);
     console.log(`[processImage: ${jobId}] Prompt: "${promptText}"`);
-    // CORREÇÃO: Usar gpt-image-1 nos metadados
-    outputMetadata = { promptUsed: promptText, aiModelUsed: 'gpt-image-1' }; 
+    outputMetadata = { promptUsed: promptText, aiModelUsed: 'gpt-image-1' }; // Modelo correto
 
     tempFilePath = path.join(os.tmpdir(), `input_${jobId}_${Date.now()}.png`);
     fs.writeFileSync(tempFilePath, imageInputBuffer); 
     console.log(`[processImage: ${jobId}] Temp file saved: ${tempFilePath}`);
 
-    // CORREÇÃO: Preparar dados para /v1/images/generations com gpt-image-1
-    // O endpoint /v1/images/generations espera um corpo JSON, não FormData, para gpt-image-1.
-    // E a imagem de entrada não é enviada para este endpoint; ele gera a partir do prompt.
-    // Se a intenção é EDITAR uma imagem existente, o endpoint /v1/images/edits e o modelo dall-e-2 seriam mais apropriados.
-    // Assumindo que a intenção é gerar uma nova imagem baseada no prompt e no estilo,
-    // e que a imagem de entrada original serve apenas de inspiração para o prompt, mas não é enviada diretamente.
-    // Se a imagem de entrada DEVE ser enviada para edição, o modelo e endpoint precisam ser revistos.
-    
-    // Para /v1/images/generations com gpt-image-1:
-    const générationsApiPayload = {
-      prompt: promptText, // O prompt já inclui o estilo
-      model: 'gpt-image-1',
-      n: 1,
-      size: '1024x1024', // Ajustar conforme suportado por gpt-image-1
-      // output_format: 'png', // gpt-image-1 sempre retorna b64_json, este é para o tipo de imagem em si
-    };
-    console.log(`[processImage: ${jobId}] OpenAI API Payload for generations:`, JSON.stringify(générationsApiPayload));
+    // CORREÇÃO: Usar FormData para /v1/images/edits
+    const formData = new FormData();
+    formData.append('model', 'gpt-image-1'); // Modelo correto
+    formData.append('prompt', promptText);
+    formData.append('image', fs.createReadStream(tempFilePath)); // Imagem de entrada
+    formData.append('n', 1); // OpenAI espera integer, não string "1"
+    formData.append('size', '1024x1024'); 
+    // O parâmetro 'response_format' não é suportado por gpt-image-1, ele sempre retorna b64_json.
 
+    console.log(`[processImage: ${jobId}] OpenAI API Payload for edits (FormData). Model: gpt-image-1`);
 
-    console.log(`[processImage: ${jobId}] Calling OpenAI API (generations)...`);
-    // CORREÇÃO: Usar o endpoint /v1/images/generations e enviar payload JSON
+    console.log(`[processImage: ${jobId}] Calling OpenAI API (edits)...`);
+    // CORREÇÃO: Usar o endpoint /v1/images/edits
     const openaiResponse = await axios.post(
-      'https://api.openai.com/v1/images/generations', 
-      générationsApiPayload, 
+      'https://api.openai.com/v1/images/edits', 
+      formData, 
       { 
         headers: { 
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json' // Importante para payload JSON
+          ...formData.getHeaders(), // Importante para FormData
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         }, 
         timeout: 55000 
       } 
     );
 
-    // Limpar o ficheiro temporário da imagem de *entrada*, já que não foi enviado para /generations
     if (tempFilePath) { 
       try { fs.unlinkSync(tempFilePath); console.log(`[processImage: ${jobId}] Temp input file deleted.`); tempFilePath = null; }
       catch (unlinkErr) { console.warn(`[processImage: ${jobId}] Failed to delete temp input file immediately: ${(unlinkErr as Error).message}`); }
     }
 
     console.log(`[processImage: ${jobId}] OpenAI response status: ${openaiResponse.status}.`);
-    // CORREÇÃO: gpt-image-1 sempre retorna b64_json, não há 'url'
     if (openaiResponse.status !== 200 || !openaiResponse.data?.data || openaiResponse.data.data.length === 0) {
       console.error(`[processImage: ${jobId}] Invalid OpenAI API response. Status: ${openaiResponse.status}. Data:`, openaiResponse.data);
       throw new Error(`Invalid OpenAI API response: Status ${openaiResponse.status}`);
     }
-    const b64Image = openaiResponse.data.data[0].b64_json; // gpt-image-1 retorna b64_json diretamente
+    const b64Image = openaiResponse.data.data[0].b64_json; 
     if (!b64Image) throw new Error('b64_json missing from OpenAI response');
     
     const outputImageBuffer = Buffer.from(b64Image, 'base64');
@@ -277,7 +266,7 @@ async function processImage(jobId: string, jobData: JobData) {
             code: error.code,
             status: error.response?.status,
             responseData: error.response?.data, 
-            requestData: error.config?.data, 
+            requestDataIsFormData: error.config?.data instanceof FormData, // Log se é FormData
             requestHeaders: error.config?.headers,
             stack: error.stack
         });
