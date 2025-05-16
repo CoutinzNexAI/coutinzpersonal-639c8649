@@ -114,6 +114,7 @@ export default async function handler(
       mode: 'payment',
       success_url: successUrl,
       cancel_url: cancelUrl,
+      allow_promotion_codes: true, // <--- ADICIONA ESTA LINHA
       metadata: {
         jobId: String(jobId), // Garante que é uma string
         style: String(style || 'default'), // Garante que é uma string
