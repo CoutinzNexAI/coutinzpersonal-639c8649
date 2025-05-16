@@ -8,7 +8,7 @@ import path from 'path';
 import os from 'os';
 
 // Timeout para a Vercel (máximo de 60s no plano hobby)
-export const config = { maxDuration: 58 };
+export const config = { maxDuration: 59 };
 
 // Tipos
 type JobData = {
@@ -35,11 +35,8 @@ async function updateJobStatus(
   errorMessage: string | null = null,
   metadata: Record<string, unknown> | null = null
 ) {
-  // DEBUGGING: Verificar se supabaseAdmin está definido no início da função
   if (!supabaseAdmin) {
     console.error(`[updateJobStatus] CRITICAL: supabaseAdmin is not defined or null for job ${jobId} at the beginning of updateJobStatus.`);
-    // Se supabaseAdmin não estiver definido, a função irá falhar na próxima chamada.
-    // Lançar um erro aqui pode ser uma boa ideia para parar o fluxo mais cedo.
     throw new Error(`[updateJobStatus] supabaseAdmin is not available for job ${jobId}`);
   } else {
     console.log(`[updateJobStatus: ${jobId}] supabaseAdmin client appears to be available.`);
@@ -47,20 +44,16 @@ async function updateJobStatus(
 
   const updateData: Record<string, unknown> = { status };
 
-  // Campos de timestamp
   if (status === 'processing') {
     updateData.processing_started_at = new Date().toISOString();
   } else if (status === 'completed' || status === 'failed' || status === 'error' || status.startsWith('failed_')) {
     updateData.completed_at = new Date().toISOString();
   }
 
-  // Caminho e URL de saída
   if (outputFilePath) {
     updateData.output_file_path = outputFilePath;
     console.log(`[updateJobStatus: ${jobId}] Attempting to generate public URL for outputFilePath: ${outputFilePath}`);
-    
     try {
-      // CORREÇÃO APLICADA: Destructuring correto e remoção do if (urlError)
       const { data: publicUrlData } = await supabaseAdmin
         .storage
         .from('results')
@@ -85,21 +78,16 @@ async function updateJobStatus(
     }
   }
 
-  // Mensagem de erro
   if (errorMessage) {
-    updateData.error_message = errorMessage.substring(0, 500); // Limitar tamanho
+    updateData.error_message = errorMessage.substring(0, 500);
   }
-
-  // Metadados
   if (metadata) {
     updateData.output_metadata = metadata;
   }
-
   if (status === 'completed' && !updateData.output_url) {
     console.error(`[updateJobStatus: ${jobId}] Warning: Job marked as completed but has NO output URL. Data:`, JSON.stringify(updateData));
   }
 
-  // Converter status detalhados (failed_*) para 'error'
   if (status.startsWith('failed_')) {
     console.log(`[updateJobStatus: ${jobId}] Converting detailed status ${status} to 'error'.`);
     updateData.output_metadata = updateData.output_metadata || {};
@@ -126,18 +114,12 @@ async function updateJobStatus(
   } catch (e) {
     const castError = e as Error;
     console.error(`[updateJobStatus: ${jobId}] CRITICAL EXCEPTION during Supabase update. Status being set: ${updateData.status}. Error: ${castError.message}`, {
-        errorObject: castError,
-        stack: castError.stack,
-        jobId: jobId,
-        updatePayload: updateData
+        errorObject: castError, stack: castError.stack, jobId: jobId, updatePayload: updateData
     });
-    throw e; // Re-lançar para a função chamadora
+    throw e;
   }
 }
 
-/**
- * Busca o prompt para o estilo solicitado
- */
 async function getPromptFromDB(styleId: string, jobIdForLogging: string): Promise<string> {
   if (!supabaseAdmin) {
     console.error(`[getPromptFromDB: ${jobIdForLogging}] CRITICAL: supabaseAdmin is not defined when trying to fetch prompt for style ${styleId}.`);
@@ -169,9 +151,6 @@ async function getPromptFromDB(styleId: string, jobIdForLogging: string): Promis
   }
 }
 
-/**
- * Processa a imagem - função principal
- */
 async function processImage(jobId: string, jobData: JobData) {
   let finalStatus = 'failed'; 
   let errorMessage: string | null = null;
@@ -181,20 +160,35 @@ async function processImage(jobId: string, jobData: JobData) {
 
   console.log(`[processImage: ${jobId}] Starting full processing. Style: ${jobData.style_requested}`);
 
-  // DEBUGGING: Teste de conectividade com Supabase
   try {
     if (!supabaseAdmin) {
         console.error(`[processImage: ${jobId}] PRE-CHECK FAIL: supabaseAdmin is not defined.`);
         throw new Error("supabaseAdmin client is not available at the start of processImage.");
     }
+    // DEEPER-DIVE: Log supabaseAdmin properties (be careful with sensitive data if any)
+    console.log(`[processImage: ${jobId}] DEEPER-DIVE: supabaseAdmin object type: ${typeof supabaseAdmin}`);
+    if (supabaseAdmin && typeof supabaseAdmin === 'object') {
+        console.log(`[processImage: ${jobId}] DEEPER-DIVE: supabaseAdmin keys: ${Object.keys(supabaseAdmin).join(', ')}`);
+        // Avoid logging the whole object if it might contain sensitive details like the full URL or service key.
+        // console.log(`[processImage: ${jobId}] DEEPER-DIVE: supabaseAdmin.supabaseUrl (if exists): ${('supabaseUrl' in supabaseAdmin ? (supabaseAdmin as any).supabaseUrl : 'N/A')}`);
+    }
+
+
     console.log(`[processImage: ${jobId}] Attempting Supabase connectivity test...`);
     
-    // LOG ADICIONAL ANTES DA CHAMADA CRÍTICA
     console.log(`[processImage: ${jobId}] IMMEDIATE-PRE-TEST: About to call supabaseAdmin.from('styles').select('id').limit(1)`);
     
-    const { data: testData, error: testError } = await supabaseAdmin.from('styles').select('id').limit(1);
+    // DEEPER-DIVE: Break down the Supabase call
+    console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 1: Calling supabaseAdmin.from('styles')`);
+    const queryBuilder = supabaseAdmin.from('styles');
+    console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 2: queryBuilder type: ${typeof queryBuilder}. Calling .select('id')`);
+    const selectBuilder = queryBuilder.select('id');
+    console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 3: selectBuilder type: ${typeof selectBuilder}. Calling .limit(1)`);
+    const limitedQueryBuilder = selectBuilder.limit(1);
+    console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 4: limitedQueryBuilder type: ${typeof limitedQueryBuilder}. About to await the query.`);
+
+    const { data: testData, error: testError } = await limitedQueryBuilder;
     
-    // LOG ADICIONAL DEPOIS DA CHAMADA CRÍTICA
     console.log(`[processImage: ${jobId}] IMMEDIATE-POST-TEST: Call to supabaseAdmin.from('styles').select('id').limit(1) has returned/completed.`);
 
     if (testError) {
@@ -207,7 +201,6 @@ async function processImage(jobId: string, jobData: JobData) {
     }
   } catch (connectivityException) {
     const castError = connectivityException as Error;
-    // LOG ADICIONAL SE A CHAMADA CRÍTICA CAUSAR UMA EXCEÇÃO AQUI
     console.error(`[processImage: ${jobId}] IMMEDIATE-EXCEPTION-TEST: Exception caught from Supabase connectivity test block. Error: ${castError.message}`);
     console.error(`[processImage: ${jobId}] CRITICAL EXCEPTION during Supabase connectivity test: ${castError.message}`, {
         errorObject: castError, stack: castError.stack });
@@ -221,7 +214,6 @@ async function processImage(jobId: string, jobData: JobData) {
     return; 
   }
 
-  // O restante da lógica de processImage só será executado se o teste de conectividade passar.
   try {
     console.log(`[processImage: ${jobId}] Step 1: Attempting to ensure job status is 'processing'.`);
     await updateJobStatus(jobId, 'processing'); 
@@ -243,7 +235,7 @@ async function processImage(jobId: string, jobData: JobData) {
     const imageInputBuffer = Buffer.from(await downloadData.arrayBuffer());
 
     console.log(`[processImage: ${jobId}] Step 4: Getting prompt for style: ${jobData.style_requested}`);
-    const promptText = await getPromptFromDB(jobData.style_requested, jobId); // Passar jobId para logging
+    const promptText = await getPromptFromDB(jobData.style_requested, jobId);
     console.log(`[processImage: ${jobId}] Prompt: "${promptText}"`);
     outputMetadata = { ...outputMetadata, promptUsed: promptText, aiModelUsed: 'dall-e-2' };
 
@@ -322,7 +314,6 @@ async function processImage(jobId: string, jobData: JobData) {
     else if (errorMessage.includes('Falha ao fazer upload do resultado')) finalStatus = 'failed_upload';
     else if (errorMessage.includes('Caminho do arquivo de entrada ausente')) finalStatus = 'failed_input_path';
     else if (errorMessage.includes('OpenAI')) finalStatus = 'failed_api_logic';
-    // Não sobrescrever 'failed_connectivity_test' ou 'failed_connectivity_exception'
     else if (finalStatus !== 'failed_connectivity_test' && finalStatus !== 'failed_connectivity_exception') {
         finalStatus = 'failed'; 
     }
