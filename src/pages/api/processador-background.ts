@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin'; 
 import { Buffer } from 'buffer';
-import FormData from 'form-data';
 import axios from 'axios';
+import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -11,7 +11,7 @@ interface ErrorWithCause extends Error {
   cause?: unknown;
 }
 
-// Global Node.js error handlers (mantidos por precaução)
+// Global Node.js error handlers
 try {
     process.on('uncaughtException', (error, origin) => {
         console.error(`[GLOBAL HANDLER] Uncaught Exception at: ${origin}. Error: ${error.message}`, {
@@ -300,6 +300,9 @@ export default async function handler(
   }
   console.log(`[Background API Handler] Request for job: ${jobId}`);
 
+  // DEBUGGING: Keep-alive timer
+  let keepAliveInterval: NodeJS.Timeout | null = null;
+
   try {
     console.log(`[Background API Handler] Fetching job details: ${jobId}`);
     const { data: jobData, error: jobError } = await supabaseAdmin
@@ -327,16 +330,44 @@ export default async function handler(
     console.log(`[Background API Handler] Responding 202 for job ${jobId}, starting background process.`);
     res.status(202).json({ success: true, message: 'Background processing scheduled', jobId });
 
-    processImage(jobId, jobData as JobData).catch(_error => {
+    // Start keep-alive timer
+    console.log(`[Background API Handler: ${jobId}] Starting keep-alive timer.`);
+    keepAliveInterval = setInterval(() => {
+      console.log(`[Background API Handler: ${jobId}] Keep-alive tick...`);
+    }, 10000); // Tick every 10 seconds
+
+    // Wrap processImage in a new promise to ensure finally block with clearInterval runs
+    new Promise<void>((resolve, reject) => {
+        processImage(jobId, jobData as JobData)
+            .then(resolve) // Resolve the outer promise when processImage is successful
+            .catch(processError => {
+                // Erros dentro de processImage já são logados e tratados lá (incluindo updateJobStatus)
+                // Este catch é para erros inesperados na própria chamada ou estrutura de processImage
+                console.error(`[Background API Handler: ${jobId}] Error directly from processImage promise:`, processError);
+                reject(processError); // Rejeitar para que o .catch() abaixo possa logar
+            });
+    })
+    .catch(_error => {
       const castError = _error as Error;
-      console.error(`[Background API Handler] UNHANDLED ERROR at top of processImage call for ${jobId}: ${castError.message}`, {
+      console.error(`[Background API Handler: ${jobId}] UNHANDLED ERROR at top of processImage call: ${castError.message}`, {
           errorObject: castError, stack: castError.stack
       });
+    })
+    .finally(() => {
+        if (keepAliveInterval) {
+            console.log(`[Background API Handler: ${jobId}] Clearing keep-alive timer.`);
+            clearInterval(keepAliveInterval);
+            keepAliveInterval = null;
+        }
     });
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown handler error';
     console.error(`[Background API Handler] GENERAL error for job ${jobId}: ${errorMessage}`, { errorObject: error, stack: (error as Error).stack });
+    if (keepAliveInterval) { // Certificar-se de limpar o timer em caso de erro no handler
+        console.log(`[Background API Handler: ${jobId}] Clearing keep-alive timer due to handler error.`);
+        clearInterval(keepAliveInterval);
+    }
     if (!res.writableEnded) {
         return res.status(500).json({ success: false, message: `Server error: ${errorMessage}` });
     }
