@@ -104,7 +104,7 @@ export default async function handler(
 
     // Criar sessão de checkout
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'paypal'], // Ajuste conforme os métodos de pagamento ativos na tua conta Stripe
+      payment_method_types: ['card', 'apple_pay'] as Stripe.Checkout.SessionCreateParams.PaymentMethodType[], // Ajuste conforme os métodos de pagamento ativos na tua conta Stripe
       line_items: [
         {
           price: PRICE_ID, // Usa o PRICE_ID do teu ambiente
