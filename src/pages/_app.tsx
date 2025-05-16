@@ -4,6 +4,7 @@ import '@/index.css'; // Importa o index.css que está em src/
 // --- FIM DA CORREÇÃO ---
 import type { AppProps } from 'next/app';
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Analytics } from '@vercel/analytics/react'; // Importa o componente Analytics
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/providers/AuthProvider';
@@ -34,6 +35,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
               <TransformationsModal />
               <AccountSettingsModal />
+              <Analytics /> {/* Adiciona o componente Analytics aqui */}
 
             </AccountSettingsModalProvider>
           </TransformationsModalProvider>
