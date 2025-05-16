@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin'; 
 import { Buffer } from 'buffer';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
@@ -111,7 +111,6 @@ async function updateJobStatus(
     const { error } = await supabaseAdmin.from('transformations').update(updateData).eq('id', jobId);
     if (error) {
       console.error(`[updateJobStatus: ${jobId}] Supabase Error updating job:`, error);
-      // Logar o objeto de erro completo do Supabase para mais detalhes
       console.error(`[updateJobStatus: ${jobId}] Full Supabase error object:`, JSON.stringify(error, null, 2));
       throw new Error(`Falha ao atualizar status (Supabase): ${error.message}`);
     } else {
@@ -194,37 +193,59 @@ async function processImage(jobId: string, jobData: JobData) {
     console.log(`[processImage: ${jobId}] Getting prompt for style: ${jobData.style_requested}`);
     const promptText = await getPromptFromDB(jobData.style_requested, jobId);
     console.log(`[processImage: ${jobId}] Prompt: "${promptText}"`);
-    outputMetadata = { promptUsed: promptText, aiModelUsed: 'dall-e-2' }; 
+    // CORREÇÃO: Usar gpt-image-1 nos metadados
+    outputMetadata = { promptUsed: promptText, aiModelUsed: 'gpt-image-1' }; 
 
     tempFilePath = path.join(os.tmpdir(), `input_${jobId}_${Date.now()}.png`);
     fs.writeFileSync(tempFilePath, imageInputBuffer); 
     console.log(`[processImage: ${jobId}] Temp file saved: ${tempFilePath}`);
 
-    const formData = new FormData();
-    formData.append('model', 'dall-e-2'); 
-    formData.append('prompt', promptText);
-    formData.append('image', fs.createReadStream(tempFilePath));
-    formData.append('n', '1');
-    formData.append('size', '1024x1024'); 
-    formData.append('response_format', 'b64_json'); 
+    // CORREÇÃO: Preparar dados para /v1/images/generations com gpt-image-1
+    // O endpoint /v1/images/generations espera um corpo JSON, não FormData, para gpt-image-1.
+    // E a imagem de entrada não é enviada para este endpoint; ele gera a partir do prompt.
+    // Se a intenção é EDITAR uma imagem existente, o endpoint /v1/images/edits e o modelo dall-e-2 seriam mais apropriados.
+    // Assumindo que a intenção é gerar uma nova imagem baseada no prompt e no estilo,
+    // e que a imagem de entrada original serve apenas de inspiração para o prompt, mas não é enviada diretamente.
+    // Se a imagem de entrada DEVE ser enviada para edição, o modelo e endpoint precisam ser revistos.
+    
+    // Para /v1/images/generations com gpt-image-1:
+    const générationsApiPayload = {
+      prompt: promptText, // O prompt já inclui o estilo
+      model: 'gpt-image-1',
+      n: 1,
+      size: '1024x1024', // Ajustar conforme suportado por gpt-image-1
+      // output_format: 'png', // gpt-image-1 sempre retorna b64_json, este é para o tipo de imagem em si
+    };
+    console.log(`[processImage: ${jobId}] OpenAI API Payload for generations:`, JSON.stringify(générationsApiPayload));
 
-    console.log(`[processImage: ${jobId}] Calling OpenAI API...`);
+
+    console.log(`[processImage: ${jobId}] Calling OpenAI API (generations)...`);
+    // CORREÇÃO: Usar o endpoint /v1/images/generations e enviar payload JSON
     const openaiResponse = await axios.post(
-      'https://api.openai.com/v1/images/edits', formData, 
-      { headers: { ...formData.getHeaders(), 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`}, timeout: 55000 } 
+      'https://api.openai.com/v1/images/generations', 
+      générationsApiPayload, 
+      { 
+        headers: { 
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json' // Importante para payload JSON
+        }, 
+        timeout: 55000 
+      } 
     );
 
+    // Limpar o ficheiro temporário da imagem de *entrada*, já que não foi enviado para /generations
     if (tempFilePath) { 
-      try { fs.unlinkSync(tempFilePath); console.log(`[processImage: ${jobId}] Temp file deleted.`); tempFilePath = null; }
-      catch (unlinkErr) { console.warn(`[processImage: ${jobId}] Failed to delete temp file immediately: ${(unlinkErr as Error).message}`); }
+      try { fs.unlinkSync(tempFilePath); console.log(`[processImage: ${jobId}] Temp input file deleted.`); tempFilePath = null; }
+      catch (unlinkErr) { console.warn(`[processImage: ${jobId}] Failed to delete temp input file immediately: ${(unlinkErr as Error).message}`); }
     }
 
     console.log(`[processImage: ${jobId}] OpenAI response status: ${openaiResponse.status}.`);
+    // CORREÇÃO: gpt-image-1 sempre retorna b64_json, não há 'url'
     if (openaiResponse.status !== 200 || !openaiResponse.data?.data || openaiResponse.data.data.length === 0) {
       console.error(`[processImage: ${jobId}] Invalid OpenAI API response. Status: ${openaiResponse.status}. Data:`, openaiResponse.data);
       throw new Error(`Invalid OpenAI API response: Status ${openaiResponse.status}`);
     }
-    const b64Image = openaiResponse.data.data[0].b64_json;
+    const b64Image = openaiResponse.data.data[0].b64_json; // gpt-image-1 retorna b64_json diretamente
     if (!b64Image) throw new Error('b64_json missing from OpenAI response');
     
     const outputImageBuffer = Buffer.from(b64Image, 'base64');
@@ -250,14 +271,13 @@ async function processImage(jobId: string, jobData: JobData) {
   } catch (error) {
     const castError = error as Error; 
     errorMessage = castError.message;
-    // Log detalhado do erro Axios, incluindo a resposta da OpenAI
     if (axios.isAxiosError(error)) {
         console.error(`[processImage: ${jobId}] Axios ERROR: ${errorMessage}`, {
             message: error.message,
             code: error.code,
             status: error.response?.status,
-            responseData: error.response?.data, // <<-- LOG ADICIONAL AQUI
-            requestData: error.config?.data, // Cuidado se for muito grande ou sensível
+            responseData: error.response?.data, 
+            requestData: error.config?.data, 
             requestHeaders: error.config?.headers,
             stack: error.stack
         });
