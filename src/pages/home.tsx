@@ -46,7 +46,7 @@ const Index = () => {
 
       </main> {/* Fim do conteúdo principal */}
 
-      {/* Renderiza o rodapé */}
+      {/* Renderiza o rodpé */}
       <Footer />
     </div> // Fim do container principal
   );
