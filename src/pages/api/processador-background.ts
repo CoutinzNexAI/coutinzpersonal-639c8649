@@ -7,6 +7,40 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+// Define a custom error type that includes the 'cause' property
+interface ErrorWithCause extends Error {
+  cause?: unknown;
+}
+
+// DEBUGGING: Global Node.js error handlers
+// Estes devem ser definidos o mais cedo possível.
+try {
+    process.on('uncaughtException', (error, origin) => {
+        console.error(`[GLOBAL HANDLER] Uncaught Exception at: ${origin}. Error: ${error.message}`, {
+            name: error.name,
+            stack: error.stack,
+            cause: (error as ErrorWithCause).cause, // Node 16.9.0+
+        });
+        // Considerar se deve terminar o processo aqui, mas em serverless pode ser gerido pela Vercel.
+        // process.exit(1); 
+    });
+    console.log('[GLOBAL HANDLER] "uncaughtException" handler registered.');
+
+    process.on('unhandledRejection', (reason, promise) => {
+        const reasonError = reason instanceof Error ? reason : new Error(String(reason));
+        console.error(`[GLOBAL HANDLER] Unhandled Rejection at: Promise ${String(promise)}. Reason: ${reasonError.message}`, {
+            name: reasonError.name,
+            stack: reasonError.stack,
+            cause: (reasonError as ErrorWithCause).cause,
+        });
+    });
+    console.log('[GLOBAL HANDLER] "unhandledRejection" handler registered.');
+
+} catch (e) {
+    console.error('[GLOBAL HANDLER] Failed to register global error handlers:', e);
+}
+
+
 // Timeout para a Vercel (máximo de 60s no plano hobby)
 export const config = { maxDuration: 59 };
 
@@ -185,13 +219,12 @@ async function processImage(jobId: string, jobData: JobData) {
     try {
         console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 5: Entering specific try block for await limitedQueryBuilder`);
         ({ data: testData, error: testError } = await limitedQueryBuilder);
-        console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 6: await limitedQueryBuilder has completed. testError: ${JSON.stringify(testError)}, testData: ${JSON.stringify(testData)}`);
+        console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 6: await limitedQueryBuilder has completed. testError: ${testError ? JSON.stringify(testError) : 'null'}, testData: ${testData ? JSON.stringify(testData) : 'null'}`);
     } catch (specificAwaitError) {
         const castSpecificError = specificAwaitError as Error;
         console.error(`[processImage: ${jobId}] DEEPER-DIVE STEP 5.CATCH: Specific catch for await limitedQueryBuilder. Error: ${castSpecificError.message}`, {
             errorObject: castSpecificError, stack: castSpecificError.stack
         });
-        // Re-throw to be caught by the outer catch block for consistent error handling
         throw specificAwaitError;
     }
     
@@ -211,7 +244,7 @@ async function processImage(jobId: string, jobData: JobData) {
     console.error(`[processImage: ${jobId}] CRITICAL EXCEPTION during Supabase connectivity test: ${castError.message}`, {
         errorObject: castError, stack: castError.stack });
     errorMessage = castError.message.includes("connectivity test failed") 
-                   || castError.message.includes("Specific catch for await limitedQueryBuilder") // Include errors from specific catch
+                   || castError.message.includes("Specific catch for await limitedQueryBuilder") 
                    ? castError.message 
                    : `Critical exception during Supabase connectivity test: ${castError.message}`;
     finalStatus = castError.message.includes("connectivity test failed") ? 'failed_connectivity_test' : 'failed_connectivity_exception';
@@ -355,6 +388,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
+  // Este log confirma que o módulo foi carregado e os handlers globais (se não deram erro) foram registados.
+  console.log('[Background API Handler] Handler module loaded.'); 
+
   if (!supabaseAdmin) {
     console.error('[Background API Handler] CRITICAL: supabaseAdmin is not defined or null at handler start.');
   } else {
