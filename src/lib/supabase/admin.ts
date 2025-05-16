@@ -34,7 +34,7 @@ console.log('[lib/supabase/admin] Supabase admin client initialized with custom 
 
 // Pequeno teste de exportação para garantir que o módulo está a funcionar
 if (supabaseAdmin) {
-  console.log('[lib/supabase/admin] supabaseAdmin object exported successfully.');
+  console.log('[lib/supabase/admin] supabaseAdmin object exported successfully.dd');
 } else {
   console.error('[lib/supabase/admin] CRITICAL: supabaseAdmin object is null or undefined after initialization!');
 }
