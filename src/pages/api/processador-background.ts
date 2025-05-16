@@ -94,7 +94,6 @@ async function updateJobStatus(
         .getPublicUrl(outputFilePath);
 
       if (publicUrlData?.publicUrl) {
-        console.log(`[updateJobStatus: ${jobId}] Generated public URL: ${publicUrlData.publicUrl}`);
         updateData.output_url = publicUrlData.publicUrl;
       } else {
         console.warn(`[updateJobStatus: ${jobId}] getPublicUrl for ${outputFilePath} did not return a publicUrl in data. Data: ${JSON.stringify(publicUrlData)}. Attempting fallback.`);
