@@ -165,20 +165,14 @@ async function processImage(jobId: string, jobData: JobData) {
         console.error(`[processImage: ${jobId}] PRE-CHECK FAIL: supabaseAdmin is not defined.`);
         throw new Error("supabaseAdmin client is not available at the start of processImage.");
     }
-    // DEEPER-DIVE: Log supabaseAdmin properties (be careful with sensitive data if any)
     console.log(`[processImage: ${jobId}] DEEPER-DIVE: supabaseAdmin object type: ${typeof supabaseAdmin}`);
     if (supabaseAdmin && typeof supabaseAdmin === 'object') {
         console.log(`[processImage: ${jobId}] DEEPER-DIVE: supabaseAdmin keys: ${Object.keys(supabaseAdmin).join(', ')}`);
-        // Avoid logging the whole object if it might contain sensitive details like the full URL or service key.
-        // console.log(`[processImage: ${jobId}] DEEPER-DIVE: supabaseAdmin.supabaseUrl (if exists): ${('supabaseUrl' in supabaseAdmin ? (supabaseAdmin as any).supabaseUrl : 'N/A')}`);
     }
 
-
     console.log(`[processImage: ${jobId}] Attempting Supabase connectivity test...`);
-    
     console.log(`[processImage: ${jobId}] IMMEDIATE-PRE-TEST: About to call supabaseAdmin.from('styles').select('id').limit(1)`);
     
-    // DEEPER-DIVE: Break down the Supabase call
     console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 1: Calling supabaseAdmin.from('styles')`);
     const queryBuilder = supabaseAdmin.from('styles');
     console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 2: queryBuilder type: ${typeof queryBuilder}. Calling .select('id')`);
@@ -187,7 +181,19 @@ async function processImage(jobId: string, jobData: JobData) {
     const limitedQueryBuilder = selectBuilder.limit(1);
     console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 4: limitedQueryBuilder type: ${typeof limitedQueryBuilder}. About to await the query.`);
 
-    const { data: testData, error: testError } = await limitedQueryBuilder;
+    let testData, testError;
+    try {
+        console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 5: Entering specific try block for await limitedQueryBuilder`);
+        ({ data: testData, error: testError } = await limitedQueryBuilder);
+        console.log(`[processImage: ${jobId}] DEEPER-DIVE STEP 6: await limitedQueryBuilder has completed. testError: ${JSON.stringify(testError)}, testData: ${JSON.stringify(testData)}`);
+    } catch (specificAwaitError) {
+        const castSpecificError = specificAwaitError as Error;
+        console.error(`[processImage: ${jobId}] DEEPER-DIVE STEP 5.CATCH: Specific catch for await limitedQueryBuilder. Error: ${castSpecificError.message}`, {
+            errorObject: castSpecificError, stack: castSpecificError.stack
+        });
+        // Re-throw to be caught by the outer catch block for consistent error handling
+        throw specificAwaitError;
+    }
     
     console.log(`[processImage: ${jobId}] IMMEDIATE-POST-TEST: Call to supabaseAdmin.from('styles').select('id').limit(1) has returned/completed.`);
 
@@ -204,7 +210,10 @@ async function processImage(jobId: string, jobData: JobData) {
     console.error(`[processImage: ${jobId}] IMMEDIATE-EXCEPTION-TEST: Exception caught from Supabase connectivity test block. Error: ${castError.message}`);
     console.error(`[processImage: ${jobId}] CRITICAL EXCEPTION during Supabase connectivity test: ${castError.message}`, {
         errorObject: castError, stack: castError.stack });
-    errorMessage = castError.message.includes("connectivity test failed") ? castError.message : `Critical exception during Supabase connectivity test: ${castError.message}`;
+    errorMessage = castError.message.includes("connectivity test failed") 
+                   || castError.message.includes("Specific catch for await limitedQueryBuilder") // Include errors from specific catch
+                   ? castError.message 
+                   : `Critical exception during Supabase connectivity test: ${castError.message}`;
     finalStatus = castError.message.includes("connectivity test failed") ? 'failed_connectivity_test' : 'failed_connectivity_exception';
     try {
         await updateJobStatus(jobId, finalStatus, null, errorMessage, outputMetadata);
