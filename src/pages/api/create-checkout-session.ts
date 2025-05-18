@@ -127,7 +127,7 @@ export default async function handler(
 
     // Retornar ID da sessão e URL para redirecionamento
     if (!session.id || !session.url) {
-      console.error('❌ Stripe session ID ou URL não encontrados após a criação.');
+      console.error('❌ Stripe session ID ou URL não encotrados após a criação.');
       throw new Error("Stripe session ID ou URL não encontrados após a criação.");
     }
     
