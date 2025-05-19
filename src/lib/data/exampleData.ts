@@ -26,7 +26,7 @@ export interface StyleExample {
       examples: [
         { before: "/wbgnormal.jpg", after: "/wbgsimpson.png" },
         { before: "/ronaldonormal.jpg", after: "/ronaldosimpson.png" },
-        { before: "/profjamnormal.jpg", after: "/profsimpson.png" }
+        { before: "/profjamnormal.jpg", after: "/profsimpson.png" },
       ]
     },
     {
@@ -36,7 +36,8 @@ export interface StyleExample {
       examples: [
         { before: "/tonymickaelcarreiranormal.jpg", after: "/tonymickaelghibli.png" },
         { before: "/gyokerespotenormal.jpeg", after: "/gyopoteghibli.png" },
-        { before: "/casamentonormal.jpg", after: "/casalghibli.png" }
+        { before: "/casamentonormal.jpg", after: "/casalghibli.png" },
+        { before: "/caogatonormal.jpg", after: "/caogatoghibli.png" }
       ]
     },
     {
@@ -44,9 +45,10 @@ export interface StyleExample {
       name: "Azulejo Português",
       description: "Transforme suas fotos no estilo tradicional dos azulejos portugueses, com padrões azuis e brancos.",
       examples: [
-        { before: "/pastoralentejonormal.png", after: "/pastoralentejoazulejo.png" },
+        { before: "/camoesnormal.jpg", after: "/camoesazulejo.png" },
+        { before: "/saojoaoportonormal.jpg", after: "/saojoaoportoazulejo.png" },
         { before: "/andreventuranormal.png", after: "/andreventuraazulejo.png" },
-        { before: "/avonetonormal.jpg", after: "/avonetoazulejo.png" }
+        { before: "/pastoralentejonormal.png", after: "/pastoralentejoazulejo.png" }
       ]
     },
     {
@@ -54,8 +56,9 @@ export interface StyleExample {
       name: "Estilo LEGO",
       description: "Transforme suas fotos em peças LEGO, com o visual de blocos característico.",
       examples: [
-        { before: "/wbgnormal.jpg", after: "/wbglego.png" },
-        { before: "/wbgnormal.jpg", after: "/wbglego2.png" } // Nota: imagem 'before' repetida, pode ser intencional
+        { before: "/camoesnormal.jpg", after: "/camoeslego.png" },
+        { before: "/marcelonormal.jpg", after: "/MarceloLego.png" }, // Nota: imagem 'before' repetida, pode ser intencional
+        { before: "/yamalnormal.webp", after: "/yamallego.png" }
       ]
     },
     {
@@ -64,7 +67,8 @@ export interface StyleExample {
       description: "Dê às suas fotos um visual metálico, com tons escuros e acabamento metalizado.",
       examples: [
         { before: "/wbgnormal.jpg", after: "/wbgmetal.png" },
-        { before: "/montenegronormal.jpg", after: "/montenegrometal.png" }
+        { before: "/ronaldoeuro.webp", after: "/ronaldometal.png" },
+        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeirametal.png" }
       ]
     },
     {
@@ -73,6 +77,11 @@ export interface StyleExample {
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.",
       examples: [
         { before: "/wbgnormal.jpg", after: "/wbgcartoon.png" },
+        { before: "/ronaldoeuro.webp", after: "/ronaldocartoon.png" },
+        { before: "/pastoralentejonormal.png", after: "/pastorcartoon.png" },
+        { before: "/marcelonormal.jpg", after: "/marcelocartoon.png" },
+        { before: "/camoesnormal.jpg", after: "/camoescartoon.png" },
+        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiracartoon.png" }
       ]
     },
     {
@@ -80,8 +89,19 @@ export interface StyleExample {
       name: "Bandas de Desenho", // Considerar "Banda Desenhada" ou "Estilo BD"
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.", // Descrição igual à de "Cartoon", pode querer diferenciar
       examples: [
-        { before: "/wbgnormal.jpg", after: "/wbgbandadesenhada.png" }
+        { before: "/profjamnormal.jpg", after: "/profbd.png" },
+        { before: "/hermannormal.jpeg", after: "/hermanbd.png" },
+        { before: "/casamentonormal.jpg", after: "/casalbd.png" }
       ]
+    },
+
+    {
+      id: "minecraft",
+      name: "Minecraft",
+      description: "Transforme suas fotos em desenhos animados coloridos e estilizados.",
+      examples: [
+        { before: "/wbgnormal.jpg", after: "/minecraft.png" }
+      ],
     }
   ];
   

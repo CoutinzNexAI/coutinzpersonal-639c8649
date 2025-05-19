@@ -80,7 +80,7 @@ const GhibliHero = () => {
       setTimeout(() => {
         interactiveCardRef.current?.scrollIntoView({
           behavior: 'smooth',
-          block: 'start'
+          block: 'center'
         });
       }, 100); // Pequeno delay para garantir que a UI atualizou
     }
