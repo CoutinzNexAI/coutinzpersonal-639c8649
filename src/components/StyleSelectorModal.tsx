@@ -1,6 +1,6 @@
 // src/components/StyleSelectorModal.tsx
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Loader2, Search, X, Grid, List, Info, ArrowUpCircle, Sparkles, ChevronDown, ImageOff } from "lucide-react";
+import { Loader2, Search, X, Grid, List, ArrowUpCircle, Sparkles, ChevronDown, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from 'next/image';
 import {
@@ -53,20 +53,6 @@ interface StyleSelectorModalProps {
 
 const PLACEHOLDER_IMAGE = "https://placehold.co/400x300/E9E0D2/A08C7D?text=Estilo+Exemplo"; 
 
-const cardVariants = { // For the list/grid of selectable styles
-  hidden: { opacity: 0, scale: 0.95, y: 10 },
-  visible: (i: number) => ({
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.04,
-      duration: 0.3,
-      ease: "easeOut"
-    }
-  })
-};
-
 const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
   isOpen,
   onOpenChange,
@@ -83,16 +69,28 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMobileStyleSheetOpen, setIsMobileStyleSheetOpen] = useState(false);
-  const [currentDisplaySyleId, setCurrentDisplayStyleId] = useState<string | null>(null);
+  const [currentDisplayStyleId, setCurrentDisplayStyleId] = useState<string | null>(null);
+
+  const filteredStyles = useMemo(() => {
+    return styles
+      .filter(style => style.is_active !== false) 
+      .filter(style => {
+        const matchesSearch = style.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                              (style.description || "").toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesPremium = showPremiumOnly ? style.is_limited_edition : true;
+        return matchesSearch && matchesPremium;
+      })
+      .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
+  }, [styles, searchQuery, showPremiumOnly]);
 
   useEffect(() => {
     if (isOpen) {
-      const initialStyleId = selectedStyleId && filteredStyles.find(s => s.id === selectedStyleId)
+      const initialStyleId = selectedStyleId && styles.find(s => s.id === selectedStyleId)
                              ? selectedStyleId
-                             : (filteredStyles.length > 0 ? filteredStyles[0].id : null);
+                             : (styles.length > 0 ? styles[0].id : null);
       setCurrentDisplayStyleId(initialStyleId);
     }
-  }, [isOpen, selectedStyleId, styles]); // Ensure styles is a dependency if filteredStyles depends on it for initial load
+  }, [isOpen, selectedStyleId, styles]);
 
   const handleImageError = (styleId: string) => {
     setImageErrors(prev => ({ ...prev, [styleId]: true }));
@@ -108,32 +106,20 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
     setIsMobileStyleSheetOpen(false); 
   };
 
-  const filteredStyles = useMemo(() => {
-    return styles
-      .filter(style => style.is_active !== false) 
-      .filter(style => {
-        const matchesSearch = style.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                              (style.description || "").toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesPremium = showPremiumOnly ? style.is_limited_edition : true;
-        return matchesSearch && matchesPremium;
-      })
-      .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
-  }, [styles, searchQuery, showPremiumOnly]);
-
   useEffect(() => {
     if (isOpen) { // Only adjust if the modal is open
-      if (currentDisplaySyleId && !filteredStyles.find(s => s.id === currentDisplaySyleId)) {
+      if (currentDisplayStyleId && !filteredStyles.find(s => s.id === currentDisplayStyleId)) {
         setCurrentDisplayStyleId(filteredStyles.length > 0 ? filteredStyles[0].id : null);
-      } else if (!currentDisplaySyleId && filteredStyles.length > 0) {
+      } else if (!currentDisplayStyleId && filteredStyles.length > 0) {
         setCurrentDisplayStyleId(filteredStyles[0].id);
       }
     }
-  }, [filteredStyles, currentDisplaySyleId, isOpen]);
+  }, [filteredStyles, currentDisplayStyleId, isOpen]);
 
 
   const currentSelectedStyleData = useMemo(() => {
-    return filteredStyles.find(s => s.id === currentDisplaySyleId);
-  }, [filteredStyles, currentDisplaySyleId]);
+    return filteredStyles.find(s => s.id === currentDisplayStyleId);
+  }, [filteredStyles, currentDisplayStyleId]);
 
   const scrollToTop = () => {
     contentAreaRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
@@ -150,7 +136,7 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
       currentRef?.addEventListener('scroll', handleScroll);
     }
     return () => currentRef?.removeEventListener('scroll', handleScroll);
-  }, [isOpen, currentDisplaySyleId]); 
+  }, [isOpen]); // Removed currentDisplayStyleId as it's not used inside the effect
 
   useEffect(() => {
     if (!isOpen) {
@@ -178,10 +164,10 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
           {filteredStyles.map(style => (
             <Button
               key={style.id}
-              variant={currentDisplaySyleId === style.id ? "default" : "ghost"}
+              variant={currentDisplayStyleId === style.id ? "default" : "ghost"}
               className={cn(
                 "w-full justify-start p-3 h-auto text-left text-base",
-                currentDisplaySyleId === style.id 
+                currentDisplayStyleId === style.id 
                   ? "bg-ghibli-moss text-white" 
                   : "text-ghibli-wood hover:bg-ghibli-cream/70"
               )}
@@ -287,8 +273,8 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
               {filteredStyles.map((style) => (
                 <Button
                   key={style.id}
-                  variant={currentDisplaySyleId === style.id ? "default" : "ghost"}
-                  className={cn( "w-full justify-start p-2.5 h-auto text-left", currentDisplaySyleId === style.id ? "bg-ghibli-moss text-white font-medium" : "text-ghibli-wood hover:bg-ghibli-cream/70" )}
+                  variant={currentDisplayStyleId === style.id ? "default" : "ghost"}
+                  className={cn( "w-full justify-start p-2.5 h-auto text-left", currentDisplayStyleId === style.id ? "bg-ghibli-moss text-white font-medium" : "text-ghibli-wood hover:bg-ghibli-cream/70" )}
                   onClick={() => setCurrentDisplayStyleId(style.id)}
                 >
                   <div className="relative w-8 h-8 rounded-sm overflow-hidden shrink-0 mr-2 border border-ghibli-stone/10">

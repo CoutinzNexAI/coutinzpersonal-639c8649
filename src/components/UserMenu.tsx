@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import { User, LogOut, Images, Settings, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth"; // Caminho correto após limpeza
 import { useTransformationsModal } from '@/hooks';
 import { useAccountSettingsModal } from '@/hooks';
+import { motion, AnimatePresence } from "framer-motion";
 
 // Exporta o componente React (pode ser export default se preferir)
 export const UserMenu: React.FC = () => {
@@ -21,41 +22,68 @@ export const UserMenu: React.FC = () => {
   const { userInfo, isLoading: isAuthLoading, signInWithGoogle, signOut } = useAuth();
   const { openTransformationsModal } = useTransformationsModal();
   const { openAccountSettingsModal } = useAccountSettingsModal();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Estado para menu aberto/fechado (para animações)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // ---- Estado Não Autenticado: Botão de Login ----
   if (!userInfo) {
     return (
-      <Button
-        // variant="outline" // Removemos o variant="outline" para aplicar o nosso fundo
-        onClick={signInWithGoogle}
-        disabled={isAuthLoading}
-        className="flex gap-2 items-center bg-ghibli-wood text-ghibli-paper hover:bg-ghibli-wood/80 px-5 py-2 rounded-lg" // MODIFICADO: Estilos para fundo Ghibli escuro, texto claro, hover e padding/rounded
-        aria-label="Login" // Ajustado o aria-label
+      <motion.div 
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
       >
-        {isAuthLoading ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
-        ) : (
-          <User className="h-5 w-5" /> // Mantém o ícone de utilizador
-        )}
-        <span className="hidden sm:inline">Login</span> {/* MODIFICADO: Texto alterado */}
-      </Button>
+        <Button
+          onClick={signInWithGoogle}
+          disabled={isAuthLoading}
+          className="flex gap-2 items-center bg-gradient-to-r from-ghibli-wood to-ghibli-wood/90 text-ghibli-paper hover:bg-ghibli-wood/80 hover:shadow-md px-5 py-2 rounded-lg transition-all duration-300"
+          aria-label="Fazer login"
+        >
+          {isAuthLoading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="hidden sm:inline">Aguarde...</span>
+            </>
+          ) : (
+            <>
+              <User className="h-5 w-5" />
+              <span className="hidden sm:inline">Entrar</span>
+            </>
+          )}
+        </Button>
+      </motion.div>
     );
   }
 
   // ---- Estado Autenticado: Menu Dropdown ----
 
+  // Função para logout com feedback
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   // Função para lidar com cliques nos itens do menu
   const handleMenuItemClick = (action: 'account' | 'transformations' | 'logout') => {
-    console.log(`[UserMenu] Action: ${action}`); // Log para debugging
+    console.log(`[UserMenu] Action: ${action}`);
     switch (action) {
       case 'account':
         openAccountSettingsModal();
+        setIsMenuOpen(false);
         break;
       case 'transformations':
         openTransformationsModal();
+        setIsMenuOpen(false);
         break;
       case 'logout':
-        signOut();
+        handleLogout();
+        setIsMenuOpen(false);
         break;
     }
   };
@@ -86,52 +114,122 @@ export const UserMenu: React.FC = () => {
   // Calcula as iniciais
   const initials = getInitials(userInfo.full_name, userInfo.email);
 
-  // Renderiza o menu dropdown
+  // Renderiza o menu dropdown melhorado
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
       <DropdownMenuTrigger asChild>
-        {/* Botão que ativa o menu, estilizado como um círculo para o avatar */}
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0" aria-label="Abrir menu do utilizador">
-          <Avatar className="h-9 w-9"> {/* Avatar ligeiramente menor */}
-            <AvatarImage
-              src={userInfo.avatar_url || undefined} // Passa undefined se não houver URL
-              alt={userInfo.full_name || 'Avatar do usuário'}
-              referrerPolicy="no-referrer" // Evita enviar informação de referência
-            />
-            {/* Fallback com as iniciais calculadas */}
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+        <Button 
+          variant="ghost" 
+          className="relative h-11 w-11 rounded-full p-0 overflow-hidden border-2 border-transparent hover:border-ghibli-moss/20 transition-all duration-300 focus-visible:ring-ghibli-moss/30" 
+          aria-label="Abrir menu do usuário"
+        >
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Avatar className="h-10 w-10 bg-ghibli-cream">
+              <AvatarImage
+                src={userInfo.avatar_url || undefined}
+                alt={userInfo.full_name || 'Avatar do usuário'}
+                referrerPolicy="no-referrer"
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-ghibli-moss/20 text-ghibli-wood font-semibold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            {isMenuOpen && (
+              <motion.div 
+                className="absolute inset-0 bg-black/5 rounded-full"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              />
+            )}
+          </motion.div>
         </Button>
       </DropdownMenuTrigger>
-      {/* Conteúdo do menu dropdown */}
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        {/* Cabeçalho do menu com nome e email */}
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none truncate" title={userInfo.full_name || 'Usuário'}>
-              {userInfo.full_name || 'Usuário'}
-            </p>
-            <p className="text-xs leading-none text-muted-foreground truncate" title={userInfo.email}>
-              {userInfo.email}
-            </p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {/* Itens de ação do menu */}
-        <DropdownMenuItem onClick={() => handleMenuItemClick('account')}>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Minha Conta</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleMenuItemClick('transformations')}>
-          <Images className="mr-2 h-4 w-4" />
-          <span>Fotos Transformadas</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => handleMenuItemClick('logout')}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Logout</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
+      
+      <AnimatePresence>
+        {isMenuOpen && (
+          <DropdownMenuContent 
+            className="w-60 p-1.5 bg-white/95 backdrop-blur-sm border border-ghibli-stone/20 shadow-xl rounded-xl overflow-hidden" 
+            align="end" 
+            forceMount
+            asChild
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+              {/* Cabeçalho com nome e email */}
+              <DropdownMenuLabel className="font-normal p-3 border-b border-ghibli-stone/10">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-9 w-9 border border-ghibli-stone/10">
+                    <AvatarImage
+                      src={userInfo.avatar_url || undefined}
+                      alt={userInfo.full_name || 'Avatar do usuário'}
+                    />
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <p className="text-sm font-medium text-ghibli-wood leading-tight truncate" title={userInfo.full_name || 'Usuário'}>
+                      {userInfo.full_name || 'Usuário'}
+                    </p>
+                    <p className="text-xs text-ghibli-earth/70 truncate" title={userInfo.email}>
+                      {userInfo.email}
+                    </p>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+              
+              {/* Itens de ação do menu */}
+              <div className="py-1">
+                <DropdownMenuItem 
+                  onClick={() => handleMenuItemClick('account')}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-sm cursor-pointer rounded-lg hover:bg-ghibli-cream/30 focus:bg-ghibli-cream/30 transition-colors"
+                >
+                  <Settings className="h-4.5 w-4.5 text-ghibli-moss" />
+                  <span>Minha Conta</span>
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem 
+                  onClick={() => handleMenuItemClick('transformations')}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-sm cursor-pointer rounded-lg hover:bg-ghibli-cream/30 focus:bg-ghibli-cream/30 transition-colors"
+                >
+                  <Images className="h-4.5 w-4.5 text-ghibli-moss" />
+                  <span>Fotos Transformadas</span>
+                </DropdownMenuItem>
+              </div>
+              
+              <DropdownMenuSeparator className="my-1 bg-ghibli-stone/10" />
+              
+              <div className="p-1.5">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start px-3 py-2.5 text-sm text-red-600 rounded-lg hover:bg-red-50 hover:text-red-700 focus:bg-red-50 transition-colors"
+                  onClick={() => handleMenuItemClick('logout')}
+                  disabled={isLoggingOut}
+                >
+                  {isLoggingOut ? (
+                    <>
+                      <Loader2 className="mr-2.5 h-4.5 w-4.5 animate-spin" />
+                      <span>Saindo...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogOut className="mr-2.5 h-4.5 w-4.5" />
+                      <span>Sair da Conta</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          </DropdownMenuContent>
+        )}
+      </AnimatePresence>
     </DropdownMenu>
   );
 };
