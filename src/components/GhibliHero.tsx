@@ -16,8 +16,8 @@ const titleContainerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2, // Atraso entre a animação de cada palavra
-      delayChildren: 0.3,   // Atraso antes de começar a animar as palavras
+      staggerChildren: 0.6, // Atraso entre a animação de cada palavra
+      delayChildren: 0.7,   // Atraso antes de começar a animar as palavras
     },
   },
 };
@@ -74,6 +74,16 @@ const GhibliHero = () => {
     } else if (imageProcessingProps.activeStep !==1 ) {
         imageProcessingProps.setActiveStep(1);
     }
+    
+    // Scroll suave até o componente TransformationStudio em dispositivos móveis
+    if (interactiveCardRef.current) {
+      setTimeout(() => {
+        interactiveCardRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 100); // Pequeno delay para garantir que a UI atualizou
+    }
   };
 
   const handleOpenExamples = () => {
@@ -89,7 +99,7 @@ const GhibliHero = () => {
 
 
   return (
-    <section className="relative pt-4 md:pt-6pb-16 md:pb-24 overflow-hidden">
+    <section className="relative pt-2 md:pt-4 pb-16 md:pb-24 overflow-hidden">
       {/* Elementos Decorativos Flutuantes */}
       <div className="leaf-decoration top-20 left-10 text-3xl">🍃</div>
       <div className="leaf-decoration bottom-28 right-16 text-2xl">🍂</div>
@@ -147,7 +157,7 @@ const GhibliHero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: titleParts.length * 0.1 + 0.5 }} 
-            className="w-full lg:w-5/12 xl:w-4/12 mb-10 lg:mb-0 flex flex-col items-center lg:items-start"
+            className="w-full lg:w-5/12 xl:w-4/12 mb-10 lg:mb-0 flex flex-col items-center lg:items-start order-2 lg:order-1"
           >
             {/* Subtítulo estilizado com cards animados */}
             <div className="mb-10 w-full">
@@ -272,7 +282,7 @@ const GhibliHero = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: titleParts.length * 0.1 + 0.7 }} 
             ref={interactiveCardRef} 
-            className="w-full md:w-10/12 lg:w-7/12 xl:w-7/12"
+            className="w-full md:w-10/12 lg:w-7/12 xl:w-7/12 order-1 lg:order-2"
           >
             <div className="ghibli-card p-0 h-auto min-h-[22rem] md:min-h-[28rem] flex flex-col items-center justify-center overflow-hidden">
               <TransformationStudio
