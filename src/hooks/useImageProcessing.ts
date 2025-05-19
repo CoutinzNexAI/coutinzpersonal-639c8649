@@ -46,6 +46,8 @@ const getStripe = () => {
     return stripePromise;
 };
 
+export type UseImageProcessingResult = ReturnType<typeof useImageProcessing>;
+
 export function useImageProcessing() {
   const { userInfo, isLoading: isAuthLoading } = useAuth();
   const [uploadedImage, setUploadedImage] = useState<UploadedFile | null>(null);
@@ -539,7 +541,7 @@ export function useImageProcessing() {
     uploadedImage, isStyleModalOpen, selectedStyle, processingState, transformedImage,
     activeStep, isLoading, errorMessage, currentJobId,
     availableStyles, stylesLoading, stylesError,
-    setIsStyleModalOpen,
+    setIsStyleModalOpen, setActiveStep,
     handleFileChange, openStyleSelector, handleStyleSelect,
     handlePaymentClick: initiatePayment,
     handleReset, handleNewImage, handleDownload
