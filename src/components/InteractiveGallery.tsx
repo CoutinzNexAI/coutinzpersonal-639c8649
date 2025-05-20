@@ -12,39 +12,46 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: 1,
-    title: "Camo",
-    style: "Camo",
+    title: "Lego",
+    style: "Veja a transformação e o detalhe do lego",
     before: "barbarabandeiranormal.webp",
     after: "barbarabandeiralego.png"
   },
   {
     id: 2,
     title: "Minecraft",
-    style: "Minecraft",
+    style: "Estilo Minecraft para voltar aos tempos de 2011",
     before: "yamalnormal.webp",
     after: "yamalminecraft.png"
   },
   {
     id: 3,
     title: "Ghibli Style",
-    style: "Transformação São Joao",
+    style: "Transformação no estilo popular de Ghibli",
     before: "saojoaoportonormal.jpg",
     after: "saojoaoportoghibli.png"
   },
   {
     id: 4,
-    title: "Azulejo Português",
-    style: "Aquarela",
-    before: "pastoralentejonormal.png",
-    after: "pastoralentejoazulejo.png"
+    title: "Simpson",
+    style: "Desta vez a Barbara transformou-se numa Simpson!",
+    before: "barbarabandeiranormal.webp",
+    after: "barbarabandeirasimpson.png"
+  },
+  {
+    id: 5,
+    title: "Cartoon Americano",
+    style: "Estilo inspirado nos cartoons americanos da TV",
+    before: "yamalnormal.webp",
+    after: "yamalcartoon.png"
   },
   {
     id: 6,
-    title: "Simpson",
-    style: "Simpson",
-    before: "barbarabandeiranormal.webp",
-    after: "barbarabandeirasimpson.png"
-  }
+    title: "Azulejo Português",
+    style: "Estilo inspirado nos portugueses!",
+    before: "saojoaoportonormal.jpg",
+    after: "saojoaoportoazulejo.png"
+  },
 ];
 
 const itemsPerPage = 3; // Itens por página para desktop

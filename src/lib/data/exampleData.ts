@@ -78,12 +78,12 @@ export interface StyleExample {
       name: "Cartoon",
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.",
       examples: [
+        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiracartoon.png" },
         { before: "/wbgnormal.jpg", after: "/wbgcartoon.png" },
         { before: "/ronaldoeuro.webp", after: "/ronaldocartoon.png" },
         { before: "/pastoralentejonormal.png", after: "/pastorcartoon.png" },
         { before: "/marcelonormal.jpg", after: "/marcelocartoon.png" },
         { before: "/camoesnormal.jpg", after: "/camoescartoon.png" },
-        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiracartoon.png" }
       ]
     },
     {
@@ -102,8 +102,9 @@ export interface StyleExample {
       name: "Minecraft",
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.",
       examples: [
-        { before: "/wbgnormal.jpg", after: "/minecraft.png" },
-        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiraminecraft.png" }
+        { before: "/yamallewa.jpg", after: "/yamallewamine.png" },
+        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiraminecraft.png" },
+        { before: "/wbgnormal.jpg", after: "/wbgminevddg.png" }
       ],
     }
   ];
