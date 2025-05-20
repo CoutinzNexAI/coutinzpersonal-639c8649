@@ -104,10 +104,10 @@ const AccountSettingsModal: React.FC = () => {
               <DialogHeader className="px-6 pt-6 pb-4 text-left border-b border-ghibli-stone/20 relative">
                 <div className="flex items-center">
                   <Sparkles className="h-6 w-6 text-amber-500 mr-2.5" />
-                  <DialogTitle className="text-2xl font-ghibli text-ghibli-wood">Minha Conta Mágica</DialogTitle>
+                  <DialogTitle className="text-2xl font-ghibli text-ghibli-wood">Minha Conta</DialogTitle>
                 </div>
                 <DialogDescription className="text-ghibli-earth/90 mt-1 text-sm">
-                  Aqui estão os detalhes encantados da sua jornada.
+                  Aqui estão os detalhes da sua jornada.
                 </DialogDescription>
                 <DialogClose className="absolute right-4 top-4 rounded-full p-1.5 hover:bg-ghibli-stone/20 transition-colors data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
                   <X className="h-5 w-5 text-ghibli-wood/80" />
@@ -120,17 +120,17 @@ const AccountSettingsModal: React.FC = () => {
                   <div className="space-y-4">
                     <InfoRow 
                       icon={UserCircle} 
-                      label="Nome de Herói" 
+                      label="Nome"  
                       value={userInfo.full_name || 'Ainda por revelar'} 
                     />
                     <InfoRow 
                       icon={Mail} 
-                      label="Pergaminho Eletrónico" 
+                      label="Email" 
                       value={userInfo.email || 'Secreto'} 
                     />
                     <InfoRow 
                       icon={Calendar} 
-                      label="Início da Aventura" 
+                      label="Data de registo" 
                       value={
                         isLoadingDate ? (
                           <Loader2 className="h-4 w-4 animate-spin text-ghibli-moss inline-block" />

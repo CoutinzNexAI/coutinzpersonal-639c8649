@@ -1,6 +1,6 @@
 // src/components/StyleSelectorModal.tsx
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Loader2, Search, X, Grid, List, ArrowUpCircle, Sparkles, ChevronDown, ImageOff } from "lucide-react";
+import { Loader2, Search, X, ArrowUpCircle, Sparkles, ChevronDown, ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from 'next/image';
 import {
@@ -23,12 +23,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export interface Style {
   id: string;
@@ -66,10 +60,10 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [showPremiumOnly, setShowPremiumOnly] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMobileStyleSheetOpen, setIsMobileStyleSheetOpen] = useState(false);
   const [currentDisplayStyleId, setCurrentDisplayStyleId] = useState<string | null>(null);
+  const [mobileSelectedStyle, setMobileSelectedStyle] = useState<Style | null>(null);
 
   const filteredStyles = useMemo(() => {
     return styles
@@ -103,7 +97,7 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
 
   const handleMobileStyleSelect = (style: Style) => {
     setCurrentDisplayStyleId(style.id); 
-    setIsMobileStyleSheetOpen(false); 
+    setMobileSelectedStyle(style);
   };
 
   useEffect(() => {
@@ -116,6 +110,11 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
     }
   }, [filteredStyles, currentDisplayStyleId, isOpen]);
 
+  useEffect(() => {
+    if (!isMobileStyleSheetOpen) {
+      setMobileSelectedStyle(null);
+    }
+  }, [isMobileStyleSheetOpen]);
 
   const currentSelectedStyleData = useMemo(() => {
     return filteredStyles.find(s => s.id === currentDisplayStyleId);
@@ -190,13 +189,14 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
             <Button 
               className="w-full ghibli-button" 
               onClick={() => {
-                if (currentSelectedStyleData) {
-                  handleDirectStyleSelect(currentSelectedStyleData);
+                const styleToConfirm = mobileSelectedStyle || currentSelectedStyleData;
+                if (styleToConfirm) {
+                  handleDirectStyleSelect(styleToConfirm);
                 }
               }}
-              disabled={!currentSelectedStyleData} // Desabilita se nenhum estilo estiver para ser confirmado
+              disabled={!(mobileSelectedStyle || currentSelectedStyleData)}
             >
-              {currentSelectedStyleData ? `Confirmar: ${currentSelectedStyleData.name}` : "Nenhum Estilo Selecionado"}
+              {(mobileSelectedStyle || currentSelectedStyleData) ? `Confirmar: ${(mobileSelectedStyle || currentSelectedStyleData)?.name}` : "Nenhum Estilo Selecionado"}
             </Button>
           </SheetClose>
         </SheetFooter>
@@ -232,33 +232,6 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
                     aria-label="Limpar busca"
                   > <X className="w-4 h-4" /> </button>
                 )}
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <Button
-                  variant={showPremiumOnly ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowPremiumOnly(!showPremiumOnly)}
-                  className={cn( "h-10 text-sm transition-all duration-300", showPremiumOnly ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-amber-600 hover:opacity-90 shadow-md" : "bg-white/70 border-ghibli-stone/40 text-ghibli-wood hover:bg-ghibli-cream/70 hover:border-ghibli-moss" )}
-                >
-                  <Sparkles className={cn("w-4 h-4 mr-2", showPremiumOnly ? "text-white" : "text-amber-500")} />
-                  {showPremiumOnly ? "Mostrar Todos" : "Só Premium"}
-                </Button>
-                <div className="hidden md:flex items-center border border-ghibli-stone/40 rounded-lg overflow-hidden h-10 bg-white/70">
-                  <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button onClick={() => setViewMode('grid')} className={cn( "h-full px-2.5 flex items-center justify-center transition-colors", viewMode === 'grid' ? "bg-ghibli-moss/80 text-white" : "text-ghibli-earth hover:bg-ghibli-cream/70" )} aria-label="Visualização em grelha"> <Grid className="w-4 h-4" /> </button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-ghibli-wood text-white border-none text-xs"><p>Grelha</p></TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button onClick={() => setViewMode('list')} className={cn( "h-full px-2.5 flex items-center justify-center transition-colors", viewMode === 'list' ? "bg-ghibli-moss/80 text-white" : "text-ghibli-earth hover:bg-ghibli-cream/70" )} aria-label="Visualização em lista"> <List className="w-4 h-4" /> </button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-ghibli-wood text-white border-none text-xs"><p>Lista</p></TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
               </div>
             </div>
           )}
@@ -311,15 +284,10 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
                   <div className="mb-5">
                     <h2 className="text-2xl sm:text-3xl font-ghibli text-ghibli-wood mb-1.5">{currentSelectedStyleData.name}</h2>
                     <p className="text-sm sm:text-base text-ghibli-earth/90">{currentSelectedStyleData.description || "Descubra a magia deste estilo!"}</p>
-                    {currentSelectedStyleData.is_limited_edition && (
-                      <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-xs font-semibold text-white shadow">
-                        <Sparkles className="w-3.5 h-3.5" /> Edição Premium
-                      </div>
-                    )}
                   </div>
                   
                   {/* Área para mostrar o example_image_url do estilo selecionado */}
-                  <div className="mb-6 rounded-lg overflow-hidden shadow-lg border border-ghibli-stone/10 relative aspect-video bg-ghibli-stone/5">
+                  <div className="mb-6 rounded-lg overflow-hidden shadow-lg border border-ghibli-stone/10 relative aspect-square bg-ghibli-stone/5">
                     {currentSelectedStyleData.example_image_url ? (
                       <Image
                         src={imageErrors[`details-${currentSelectedStyleData.id}`] ? PLACEHOLDER_IMAGE : currentSelectedStyleData.example_image_url}
@@ -339,9 +307,9 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
                   </div>
 
                   {/* Botão de Seleção Principal */}
-                  <div className={cn("md:mt-6", currentSelectedStyleData.example_image_url ? "mt-6" : "mt-2")}>
+                  <div className={cn("md:mt-6 flex justify-center w-full", currentSelectedStyleData.example_image_url ? "mt-6" : "mt-2")}>
                     <Button 
-                        className="w-full max-w-md mx-auto ghibli-button text-base p-3"
+                        className="w-full max-w-md ghibli-button text-base p-3 mx-auto"
                         onClick={() => handleDirectStyleSelect(currentSelectedStyleData)}
                         disabled={selectedStyleId === currentSelectedStyleData.id} // Desabilita se já for o estilo selecionado globalmente
                     >

@@ -29,10 +29,24 @@ const GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: 4,
-    title: "Arquitetura moderna",
+    title: "Estilo Ghibli",
     style: "Neo-Futurista",
-    before: "gyokerespotenormal.jpeg",
-    after: "gyopoteghibli.png"
+    before: "saojoaoportonormal.jpg",
+    after: "saojoaoportoghibli.png"
+  },
+  {
+    id: 5,
+    title: "Minecraft",
+    style: "Minecraft",
+    before: "yamalnormal.webp",
+    after: "yamalminecraft.png"
+  },
+  {
+    id: 6,
+    title: "Simpson",
+    style: "Simpson",
+    before: "barbarabandeiranormal.webp",
+    after: "barbarabandeirasimpson.png"
   }
 ];
 
