@@ -154,14 +154,14 @@ const ImageCompareModal: React.FC<ImageCompareModalProps> = ({
                 <ReactCompareSliderImage
                   src={currentItem.before}
                   alt="Imagem original"
-                  className="w-full"
+                  className="w-full h-full object-cover"
                 />
               }
               itemTwo={
                 <ReactCompareSliderImage
                   src={currentItem.after}
                   alt="Imagem transformada"
-                  className="w-full"
+                  className="w-full h-full object-cover"
                 />
               }
               handle={

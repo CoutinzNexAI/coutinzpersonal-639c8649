@@ -64,6 +64,7 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
   const [isMobileStyleSheetOpen, setIsMobileStyleSheetOpen] = useState(false);
   const [currentDisplayStyleId, setCurrentDisplayStyleId] = useState<string | null>(null);
   const [mobileSelectedStyle, setMobileSelectedStyle] = useState<Style | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const filteredStyles = useMemo(() => {
     return styles
@@ -144,50 +145,62 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
     }
   }, [isOpen]);
 
+  // Foco automático no input de busca ao abrir
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 200);
+    }
+  }, [isOpen]);
+
   const MobileStyleSelectorSheet: React.FC = () => (
     <Sheet open={isMobileStyleSheetOpen} onOpenChange={setIsMobileStyleSheetOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" className="w-full mb-4 md:hidden flex justify-between items-center text-lg p-6 bg-white/80 border-ghibli-stone/50">
-          <span>{currentSelectedStyleData?.name || "Selecionar Estilo"}</span>
+        <Button variant="outline" className="w-full mb-4 md:hidden flex justify-between items-center text-lg p-4 bg-white/80 border-ghibli-stone/50 min-h-[56px]">
+          <span className="flex items-center gap-2">
+            {currentSelectedStyleData?.example_image_url && (
+              <Image src={currentSelectedStyleData.example_image_url} alt={currentSelectedStyleData.name} width={32} height={32} className="rounded-md border border-ghibli-stone/10" />
+            )}
+            {currentSelectedStyleData?.name || "Selecionar Estilo"}
+          </span>
           <ChevronDown className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="bottom" className="h-[75vh] flex flex-col bg-ghibli-cream p-0">
-        <SheetHeader className="p-4 border-b border-ghibli-stone/20">
+      <SheetContent side="bottom" className="h-[90vh] flex flex-col bg-ghibli-cream p-0 rounded-t-2xl shadow-2xl">
+        <SheetHeader className="p-4 border-b border-ghibli-stone/20 sticky top-0 bg-ghibli-cream/95 z-20">
           <SheetTitle className="text-ghibli-wood font-ghibli">Escolha um Estilo</SheetTitle>
-          <SheetDescription className="text-ghibli-earth text-sm">
-            Navegue e selecione o estilo para a sua transformação.
-          </SheetDescription>
+          <SheetDescription className="text-ghibli-earth text-sm">Navegue e selecione o estilo para a sua transformação.</SheetDescription>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        <div className="flex-1 overflow-y-auto p-2 space-y-1 relative">
           {filteredStyles.map(style => (
             <Button
               key={style.id}
               variant={currentDisplayStyleId === style.id ? "default" : "ghost"}
               className={cn(
-                "w-full justify-start p-3 h-auto text-left text-base",
-                currentDisplayStyleId === style.id 
-                  ? "bg-ghibli-moss text-white" 
-                  : "text-ghibli-wood hover:bg-ghibli-cream/70"
+                "w-full justify-start p-2 h-[56px] text-left text-base flex items-center gap-2",
+                currentDisplayStyleId === style.id ? "bg-ghibli-moss text-white" : "text-ghibli-wood hover:bg-ghibli-cream/70"
               )}
               onClick={() => handleMobileStyleSelect(style)}
             >
-              <div className="relative w-10 h-10 rounded-md overflow-hidden shrink-0 mr-3 border border-ghibli-stone/10">
+              <div className="relative w-8 h-8 rounded-md overflow-hidden shrink-0 border border-ghibli-stone/10">
                 <Image
                   src={imageErrors[style.id] ? PLACEHOLDER_IMAGE : (style.example_image_url || PLACEHOLDER_IMAGE)}
-                  alt={style.name} fill style={{objectFit: "cover"}} 
+                  alt={style.name}
+                  fill
+                  style={{objectFit: "cover"}}
                   onError={() => handleImageError(style.id)}
+                  loading="lazy"
                 />
               </div>
-              <span>{style.name}</span>
+              <span className="truncate flex-1">{style.name}</span>
               {style.is_limited_edition && <Sparkles className="w-4 h-4 ml-auto text-amber-500" />}
+              {currentDisplayStyleId === style.id && <span className="ml-2 text-xs font-bold">Selecionado</span>}
             </Button>
           ))}
         </div>
-        <SheetFooter className="p-4 border-t border-ghibli-stone/20">
+        <SheetFooter className="p-3 border-t border-ghibli-stone/20 sticky bottom-0 bg-ghibli-cream/95 z-30">
           <SheetClose asChild>
             <Button 
-              className="w-full ghibli-button" 
+              className="w-full ghibli-button text-base flex items-center justify-center gap-2"
               onClick={() => {
                 const styleToConfirm = mobileSelectedStyle || currentSelectedStyleData;
                 if (styleToConfirm) {
@@ -196,7 +209,13 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
               }}
               disabled={!(mobileSelectedStyle || currentSelectedStyleData)}
             >
-              {(mobileSelectedStyle || currentSelectedStyleData) ? `Confirmar: ${(mobileSelectedStyle || currentSelectedStyleData)?.name}` : "Nenhum Estilo Selecionado"}
+              {(mobileSelectedStyle || currentSelectedStyleData) && (
+                <>
+                  <span>Confirmar:</span>
+                  <span className="font-bold">{(mobileSelectedStyle || currentSelectedStyleData)?.name}</span>
+                </>
+              )}
+              {!(mobileSelectedStyle || currentSelectedStyleData) && "Nenhum Estilo Selecionado"}
             </Button>
           </SheetClose>
         </SheetFooter>
@@ -220,6 +239,7 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
               <div className="relative flex-grow w-full sm:w-auto">
                 <Search className="w-4 h-4 absolute left-3.5 top-1/2 transform -translate-y-1/2 text-ghibli-earth/70" />
                 <Input
+                  ref={inputRef}
                   placeholder="Buscar por nome ou descrição..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
