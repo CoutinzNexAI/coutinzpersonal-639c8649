@@ -1,8 +1,9 @@
 // src/components/Footer.tsx
 import React from 'react';
-import { Github, Twitter, Instagram, Leaf } from 'lucide-react'; // Importa ícones
+import { Github, Twitter, Instagram } from 'lucide-react'; // Importa ícones
 import { motion } from 'framer-motion'; // Para animações subtis
 import Link from 'next/link'; // Importa o componente Link do Next.js
+import Image from 'next/image'; // Importa o componente Image do Next.js
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -30,10 +31,15 @@ const Footer = () => {
           {/* Nome/Logo */}
           <div className="mb-6">
              {/* Link na Logo para a página inicial */}
-            <Link href="/" legacyBehavior>
-              <a className="text-2xl font-ghibli font-bold text-ghibli-wood flex items-center gap-2 hover:text-ghibli-moss transition-colors">
-                <Leaf className="h-6 w-6 text-ghibli-moss inline-block" /> {/* Ícone de folha */}
-                PicTuz {/* Nome Atualizado */}
+             <Link href="/" legacyBehavior>
+              <a className="inline-block hover:opacity-80 transition-opacity"> {/* Ajuste o estilo do link conforme necessário */}
+                <Image
+                  src="/pictuzlogooficial.png" // Caminho a partir da pasta 'public'
+                  alt="PicTuz Logo"
+                  width={100}  // Defina a largura desejada para o seu logo
+                  height={30} // Defina a altura desejada para o seu logo
+                  style={{ objectFit: "contain" }}
+                />
               </a>
             </Link>
           </div>

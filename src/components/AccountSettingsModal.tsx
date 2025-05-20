@@ -94,10 +94,7 @@ const AccountSettingsModal: React.FC = () => {
     <Dialog open={isAccountModalOpen} onOpenChange={closeAccountSettingsModal}>
       <AnimatePresence>
         {isAccountModalOpen && (
-          <DialogContent 
-            className="sm:max-w-md p-0 rounded-xl bg-ghibli-cream shadow-2xl border-2 border-ghibli-stone/30 overflow-hidden"
-            asChild
-          >
+          <DialogContent className="sm:max-w-md p-0 rounded-xl bg-ghibli-cream shadow-2xl border-2 border-ghibli-stone/30 overflow-hidden">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
