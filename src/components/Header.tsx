@@ -127,7 +127,7 @@ const Header: React.FC = () => {
           >
             <div className="relative h-12 w-36"> {/* Mantido o tamanho do logo que definimos */}
               <Image
-                src="/PicTuzSemBack.png"
+                src="/pictuzlogooficial.png"
                 alt="PicTuz Logo"
                 fill
                 style={{ objectFit: "contain" }}

@@ -27,6 +27,7 @@ export interface StyleExample {
         { before: "/wbgnormal.jpg", after: "/wbgsimpson.png" },
         { before: "/ronaldonormal.jpg", after: "/ronaldosimpson.png" },
         { before: "/profjamnormal.jpg", after: "/profsimpson.png" },
+        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeirasimpson.png" },
       ]
     },
     {
@@ -37,7 +38,8 @@ export interface StyleExample {
         { before: "/tonymickaelcarreiranormal.jpg", after: "/tonymickaelghibli.png" },
         { before: "/gyokerespotenormal.jpeg", after: "/gyopoteghibli.png" },
         { before: "/casamentonormal.jpg", after: "/casalghibli.png" },
-        { before: "/caogatonormal.jpg", after: "/caogatoghibli.png" }
+        { before: "/caogatonormal.jpg", after: "/caogatoghibli.png" },
+        { before: "/saojoaoportonormal.jpg", after: "/saojoaoportoghibli.png" }
       ]
     },
     {
@@ -100,7 +102,8 @@ export interface StyleExample {
       name: "Minecraft",
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.",
       examples: [
-        { before: "/wbgnormal.jpg", after: "/minecraft.png" }
+        { before: "/wbgnormal.jpg", after: "/minecraft.png" },
+        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiraminecraft.png" }
       ],
     }
   ];
