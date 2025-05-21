@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import Image from 'next/image'; // Assumindo que está a usar Next.js
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Loader2, AlertTriangle, Download, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button'; // Caminho para o seu componente Button
-import { toast } from '@/components/ui/sonner'; // Caminho para o seu componente toast (sonner)
-import { useAuth } from '@/hooks/useAuth'; // Caminho para o seu hook de autenticação
-import { supabase } from '@/lib/supabase/client'; // Caminho para o seu cliente Supabase
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase/client';
 
 // Estados possíveis desta página
 type SuccessProcessingState =
@@ -36,6 +38,7 @@ const POLLING_INTERVAL_MS = 3000; // 3 segundos
 const MAX_POLL_ATTEMPTS = 120;    // 120 tentativas (6 minutos)
 
 const SuccessPage = (): JSX.Element => {
+  const router = useRouter();
   const { userInfo, isLoading: isAuthLoading } = useAuth();
 
   const [pageState, setPageState] = useState<SuccessProcessingState>('initializing');
@@ -70,11 +73,9 @@ const SuccessPage = (): JSX.Element => {
   // Navega para a página inicial
   const navigateToHome = useCallback(() => {
     stopPollingAndCleanup('error'); // Considera um erro se o utilizador sair antes de completar
-    // Verifica se já estamos na página inicial antes de redirecionar
-    if (window.location.pathname !== '/') {
-      window.location.href = '/';
-    }
-  }, [stopPollingAndCleanup]);
+    // Usa router.push em vez de window.location.href para navegação client-side
+    router.push('/');
+  }, [stopPollingAndCleanup, router]);
 
   // Handler para download da imagem
   const handleDownload = useCallback(() => {
@@ -202,7 +203,8 @@ const SuccessPage = (): JSX.Element => {
     
     console.log(`[Polling #${currentPollCount}/${MAX_POLL_ATTEMPTS}] Checking API status for job ${jobIdToCheck}... Current PageState: ${pageState}`);
     if (pageState === 'polling_status' || pageState === 'processing') { // Só atualiza mensagem se estiver nestes estados
-      setLoadingMessage('A verificar o progresso da sua arte...');
+      // Mantendo uma mensagem mais estável e mágica conforme solicitado
+      setLoadingMessage('A sua magia está a ser preparada...');
     }
     
     try {
@@ -288,21 +290,21 @@ const SuccessPage = (): JSX.Element => {
         if (pageState !== 'processing' && pageState !== 'verifying_payment') { // Evita voltar de verifying_payment
           setPageState('processing'); // Ou um estado visual específico para 'pending_payment'
         }
-        setLoadingMessage('Aguardando confirmação de pagamento...');
+        setLoadingMessage('A sua magia está a aguardar confirmação de pagamento...');
         // O polling continua
       } else if (['processing', 'processing_queued', 'paid', 'pending'].includes(data.status || '')) {
         // Se o estado não mudou para 'processing', atualize.
         if (pageState !== 'processing') {
           setPageState('processing');
         }
-        setLoadingMessage('Processando sua imagem...');
+        setLoadingMessage('A sua magia está a ser preparada...');
         // O polling continua
       } else { // Status desconhecido ou inesperado
         console.warn(`[Polling #${currentPollCount}] Unexpected status for ${jobIdToCheck}: ${data.status}. Assuming still processing.`);
         if (pageState !== 'processing') { // Garante que está em estado de processamento visualmente
           setPageState('processing');
         }
-        setLoadingMessage('Aguardando estado final...');
+        setLoadingMessage('A sua magia está a ser preparada...');
         // O polling continua
       }
     } catch (error) { // Erros de rede ou fetch
@@ -465,162 +467,190 @@ const SuccessPage = (): JSX.Element => {
       case 'polling_status': 
       case 'processing':
         return (
-          <>
-            <div className="bg-primary/10 rounded-full p-3 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center"
+          >
+            <div className="relative bg-ghibli-paper rounded-full p-3 w-24 h-24 flex items-center justify-center mx-auto mb-6">
+              <motion.div
+                className="absolute inset-0 rounded-full bg-ghibli-moss/20"
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  opacity: [0.4, 0.7, 0.4] 
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              <Loader2 className="h-12 w-12 text-ghibli-moss animate-spin" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">
+            <h1 className="text-3xl font-ghibli font-bold text-ghibli-wood mb-3">
               { pageState === 'awaiting_auth' ? 'Autenticando...' :
                 pageState === 'verifying_payment' ? 'Verificando Pagamento...' :
-                pageState === 'processing' ? 'Processando Imagem...' :
-                pageState === 'polling_status' ? 'A verificar estado...' : 
+                pageState === 'processing' ? 'Criando a sua obra de arte...' :
+                pageState === 'polling_status' ? 'Criando a sua obra de arte...' : 
                 'Aguarde...' // Para initializing
               }
             </h1>
-            <p className="text-muted-foreground mb-4 text-center">
-              {loadingMessage} <br />
-              {(pageState === 'processing' || pageState === 'polling_status') && '(Pode fechar esta página e ver o resultado no menu "Fotos Transformadas" se estiver logado)'}
+            <p className="text-ghibli-earth mb-4 text-center text-lg">
+              {loadingMessage} 
             </p>
-            {/* Botão para verificação manual */}
-            {(pageState === 'processing' || pageState === 'polling_status') && pollCountRef.current >= 3 && jobId && (
-              <div className="mt-4">
-                <Button 
-                  variant="outline" 
-                  className="mx-auto block" 
-                  onClick={async () => {
-                    toast.info("A verificar diretamente no servidor...");
-                    if (!jobId) {
-                      toast.error("Informações incompletas para verificação");
-                      return;
-                    }
-                    try {
-                      // Tenta primeiro com checkDirectlyInSupabase se tiver userInfo
-                      if (userInfo?.id) {
-                        const found = await checkDirectlyInSupabase(jobId, userInfo.id);
-                        if (found) return; // Se encontrado, já atualizou o estado e parou o polling
-                      }
-                      // Se não encontrou ou não tem userInfo, força uma chamada à API via checkJobStatus
-                      console.log("[SuccessPage ManualCheck] Forcing API check via checkJobStatus...");
-                      await checkJobStatus(jobId); // checkJobStatus é robusto e lida com a resposta
-                      // Se não encontrou, e checkJobStatus não mudou o estado para completed/error,
-                      // pode ser que ainda esteja processando ou houve um erro que não parou o polling.
-                      if ((pageState as SuccessProcessingState) !== 'completed' && (pageState as SuccessProcessingState) !== 'error') {
-                        toast.warning("Imagem ainda não disponível após verificação manual.");
-                      }
-                    } catch (e) {
-                      console.error('[SuccessPage ManualCheck] Exception:', e);
-                      toast.error("Erro ao verificar imagem");
-                    }
-                  }}
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" /> 
-                  Verificar Manualmente
-                </Button>
-              </div>
-            )}
-            {jobId && <p className="text-xs text-gray-400 mt-4">Job ID: {jobId}</p>}
-          </>
+            <p className="text-ghibli-earth/70 text-sm mb-4">
+              {(pageState === 'processing' || pageState === 'polling_status') && 'Pode fechar esta página e ver o resultado no menu "Fotos Transformadas" se estiver logado'}
+            </p>
+          </motion.div>
         );
       case 'completed':
         if (!completedJobData) return null; // Segurança
         return (
-          <div className="w-full flex flex-col items-center">
-            <div className="bg-green-100 rounded-full p-3 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <Check className="h-8 w-8 text-green-600" />
-            </div>
-            <h1 className="text-2xl font-bold mb-4 text-center">Transformação Concluída!</h1>
-            <div className="w-full max-w-md aspect-square rounded-lg overflow-hidden border mb-6 bg-gray-100 relative">
-              {/* Imagem de preload escondida para tentar carregar na cache do browser */}
-              <div className="hidden">
-                <Image 
-                  src={completedJobData.outputUrl} 
-                  alt="Preload" 
-                  width={1}
-                  height={1}
-                  onLoad={() => console.log("[Success Page Image] Preloaded successfully")}
-                  onError={() => console.error("[Success Page Image] Preload failed")}
-                  unoptimized
-                />
-              </div>
-              <Image
-                src={completedJobData.outputUrl}
-                alt="Imagem Transformada"
-                fill // Usa fill para preencher o container
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Ajuste conforme necessário
-                style={{ objectFit: 'contain' }} // 'contain' para garantir que a imagem inteira seja visível
-                priority // Importante para LCP (Largest Contentful Paint)
-                unoptimized={true} // Se as URLs são de Supabase Storage ou similar e não otimizadas pelo Next/Image
-                onError={(e) => {
-                  console.error('[Success Page Image] Image loading error:', e);
-                  console.error('[Success Page Image] Failed URL:', completedJobData.outputUrl);
-                  // Tenta mostrar o placeholder
-                  const target = e.currentTarget;
-                  target.style.display = 'none'; // Esconde a imagem quebrada
-                  const placeholder = target.nextElementSibling as HTMLElement; // Apanha o div de erro
-                  if(placeholder && placeholder.classList.contains('image-error-placeholder')) {
-                     placeholder.style.display = 'flex'; // Mostra o placeholder
-                  }
-                }}
-              />
-              {/* Placeholder para erro de imagem */}
-              <div 
-                className="image-error-placeholder absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-xs text-red-500 p-2" 
-                style={{display: 'none'}} // Inicialmente escondido
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="w-full flex flex-col items-center"
+            >
+              <motion.div 
+                className="bg-ghibli-moss/20 rounded-full p-4 w-24 h-24 flex items-center justify-center mx-auto mb-6"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.3, type: "spring" }}
               >
-                <AlertTriangle className="h-6 w-6 mx-auto mb-1"/> Erro ao<br/>carregar<br/>imagem
-              </div>
-            </div>
-            <div className="flex gap-4 w-full max-w-md">
-              <Button onClick={handleDownload} variant="outline" className="flex-1">
-                <Download className="mr-2 h-4 w-4" /> Baixar
-              </Button>
-              <Button onClick={navigateToHome} className="flex-1 ghibli-button"> {/* Adicione a sua classe de estilo Ghibli */}
-                <RefreshCw className="mr-2 h-4 w-4" /> Nova Imagem
-              </Button>
-            </div>
-          </div>
+                <Check className="h-12 w-12 text-ghibli-moss" />
+              </motion.div>
+              
+              <motion.h1 
+                className="text-3xl font-ghibli font-bold text-ghibli-wood mb-6 text-center"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                Transformação Concluída!
+              </motion.h1>
+              
+              <motion.div 
+                className="w-full max-w-md aspect-square rounded-xl overflow-hidden border-4 border-ghibli-paper shadow-lg mb-8 bg-gray-100 relative"
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5, type: "spring" }}
+              >
+                {/* Imagem de preload escondida para tentar carregar na cache do browser */}
+                <div className="hidden">
+                  <Image 
+                    src={completedJobData.outputUrl} 
+                    alt="Preload" 
+                    width={1}
+                    height={1}
+                    onLoad={() => console.log("[Success Page Image] Preloaded successfully")}
+                    onError={() => console.error("[Success Page Image] Preload failed")}
+                    unoptimized
+                  />
+                </div>
+                <Image
+                  src={completedJobData.outputUrl}
+                  alt="Imagem Transformada"
+                  fill // Usa fill para preencher o container
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Ajuste conforme necessário
+                  style={{ objectFit: 'contain' }} // 'contain' para garantir que a imagem inteira seja visível
+                  priority // Importante para LCP (Largest Contentful Paint)
+                  unoptimized={true} // Se as URLs são de Supabase Storage ou similar e não otimizadas pelo Next/Image
+                  onError={(e) => {
+                    console.error('[Success Page Image] Image loading error:', e);
+                    console.error('[Success Page Image] Failed URL:', completedJobData.outputUrl);
+                    // Tenta mostrar o placeholder
+                    const target = e.currentTarget;
+                    target.style.display = 'none'; // Esconde a imagem quebrada
+                    const placeholder = target.nextElementSibling as HTMLElement; // Apanha o div de erro
+                    if(placeholder && placeholder.classList.contains('image-error-placeholder')) {
+                       placeholder.style.display = 'flex'; // Mostra o placeholder
+                    }
+                  }}
+                />
+                {/* Placeholder para erro de imagem */}
+                <div 
+                  className="image-error-placeholder absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-xs text-ghibli-wood p-2" 
+                  style={{display: 'none'}} // Inicialmente escondido
+                >
+                  <AlertTriangle className="h-6 w-6 mx-auto mb-1 text-ghibli-wood"/> Erro ao<br/>carregar<br/>imagem
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                className="flex gap-4 w-full max-w-md"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.7 }}
+              >
+                <Button 
+                  onClick={handleDownload} 
+                  variant="outline" 
+                  className="flex-1 bg-ghibli-paper text-ghibli-wood border-ghibli-moss hover:bg-ghibli-moss/10 transition-all"
+                >
+                  <Download className="mr-2 h-4 w-4" /> Baixar
+                </Button>
+                <Button 
+                  onClick={navigateToHome} 
+                  className="flex-1 bg-ghibli-moss text-ghibli-paper hover:bg-ghibli-moss/90 transition-all shadow-md"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" /> Nova Imagem
+                </Button>
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>
         );
       case 'auth_failed': 
       case 'error':
         return (
-          <>
-            <div className="bg-destructive/10 rounded-full p-3 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="h-8 w-8 text-destructive" />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center"
+          >
+            <div className="bg-ghibli-paper rounded-full p-4 w-24 h-24 flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="h-12 w-12 text-ghibli-wood" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">
+            <h1 className="text-3xl font-ghibli font-bold text-ghibli-wood mb-3">
               {pageState === 'auth_failed' ? 'Autenticação Falhou' : 'Ops! Algo deu errado'}
             </h1>
-            <p className="text-muted-foreground mb-4 text-center">
+            <p className="text-ghibli-earth mb-6 text-center text-lg">
               {errorMessage || (pageState === 'auth_failed' ? 'Não foi possível verificar a sua sessão. Por favor, tente fazer login novamente ou recarregue a página.' : 'Ocorreu um erro inesperado.')}
             </p>
-            <Button onClick={navigateToHome} variant="outline" className="w-full max-w-xs mx-auto">
+            <Button 
+              onClick={navigateToHome} 
+              className="bg-ghibli-paper text-ghibli-wood border-ghibli-wood hover:bg-ghibli-wood/10 transition-all w-full max-w-xs mx-auto"
+            >
               Voltar para o Início
             </Button>
-            {jobId && pageState !== 'auth_failed' && <p className="text-xs text-gray-400 mt-4">Job ID: {jobId}</p>}
-          </>
+          </motion.div>
         );
       default: // Estado inesperado
         // Para garantir que algo é renderizado em caso de estado desconhecido
         console.warn(`[SuccessPage Render] Unexpected page state: ${pageState}`);
         return (
-          <>
-            <div className="bg-primary/10 rounded-full p-3 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+          <div className="text-center">
+            <div className="bg-ghibli-paper rounded-full p-3 w-24 h-24 flex items-center justify-center mx-auto mb-6">
+              <Loader2 className="h-12 w-12 text-ghibli-moss animate-spin" />
             </div>
-            <h1 className="text-2xl font-bold mb-2">Aguarde...</h1>
-            <p className="text-muted-foreground mb-4 text-center">{loadingMessage || 'A processar o seu pedido.'}</p>
-          </>
+            <h1 className="text-3xl font-ghibli font-bold text-ghibli-wood mb-3">Aguarde...</h1>
+            <p className="text-ghibli-earth mb-4 text-center text-lg">{loadingMessage || 'A processar o seu pedido.'}</p>
+          </div>
         );
     }
   };
 
   return (
-    <div className="min-h-screen bg-ghibli-cream flex flex-col items-center justify-center p-4 text-ghibli-charcoal"> {/* Use as suas classes de tema Ghibli */}
-      <div className="max-w-lg w-full bg-ghibli-paper rounded-lg shadow-xl p-6 sm:p-8"> {/* Use as suas classes de tema Ghibli */}
-        <div className="text-center">
-          {renderContent()}
-        </div>
-      </div>
+    <div className="min-h-screen bg-ghibli-cream flex flex-col items-center justify-center p-4 text-ghibli-charcoal">
+      <motion.div 
+        className="max-w-lg w-full bg-ghibli-paper rounded-2xl shadow-xl p-8 sm:p-10"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {renderContent()}
+      </motion.div>
     </div>
   );
 };

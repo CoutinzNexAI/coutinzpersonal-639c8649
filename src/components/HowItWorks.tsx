@@ -1,105 +1,124 @@
-import React from 'react';
+// src/components/HowItWorks.tsx
+import React from 'react'; // Adicionado useRef
 import { Upload, Brush, Sun } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion } from 'framer-motion'; // Import framer-motion
+import { motion } from 'framer-motion';
+
+// Variantes para a animação do container da grelha (stagger)
+const gridContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.25, // Ligeiro aumento para mais espaçamento na animação
+    },
+  },
+};
+
+// Variantes para a animação de cada cartão individual
+const cardVariants = {
+  hidden: { y: 40, opacity: 0, scale: 0.95 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 80,
+      damping: 12,
+    },
+  },
+};
+
+// Variantes para a animação das linhas conectoras
+const lineVariants = {
+  hidden: { scaleX: 0, opacity: 0 },
+  visible: {
+    scaleX: 1,
+    opacity: 1, // Linhas um pouco mais visíveis
+    transition: {
+      duration: 0.6,
+      ease: [0.25, 0.1, 0.25, 1], // Easing mais suave
+      delay: 0.7, // Atraso ajustado para aparecer após os 3 cards (0.25 * 3 = 0.75)
+    },
+  },
+};
 
 const HowItWorks = () => {
-
-  // Variantes para a animação do container da grelha (stagger)
-  const gridContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2, // Atraso entre a animação de cada filho (cartão)
-      },
-    },
+  // Função para fazer scroll suave para a secção hero
+  const handleStep1Click = () => {
+    const heroSection = document.getElementById('hero-interactive-area'); // ID que será adicionado ao GhibliHero
+    if (heroSection) {
+      heroSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
-
-  // Variantes para a animação de cada cartão individual
-  const cardVariants = {
-    hidden: { y: 30, opacity: 0 }, // Começa 30px abaixo e invisível
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: 'spring', // Efeito elástico
-        stiffness: 100,
-        damping: 10,
-      },
-    },
-  };
-
-  // Variantes para a animação das linhas conectoras
-  const lineVariants = {
-    hidden: { scaleX: 0, opacity: 0 },
-    visible: {
-      scaleX: 1,
-      opacity: 0.5, // Meia opacidade para ser subtil
-      transition: {
-        duration: 0.5,
-        ease: "easeInOut",
-        // Atraso para as linhas aparecerem depois dos cartões
-        delay: 0.6, // (0.2 stagger * 3 cards = 0.6) - Ajustar se necessário
-      },
-    },
-  };
-
 
   return (
-    <section id="como-funciona" className="py-16 md:py-24 overflow-hidden"> {/* Added overflow-hidden */}
+    <section id="como-funciona" className="py-16 md:py-24 bg-ghibli-cream/20 overflow-hidden">
       <div className="container mx-auto px-4">
-        <h2 className="section-title text-center">Como Funciona</h2>
-        <p className="section-subtitle text-center text-ghibli-earth">
-          Transforme suas fotos em apenas três passos simples
-        </p>
-
-        {/* Container da Grelha com animação */}
         <motion.div
-          className="relative grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-12 md:gap-y-8 mt-12" // Added gap-y-12 for mobile
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+        >
+            <h2 className="section-title text-center font-ghibli text-ghibli-wood">Como Funciona a Magia</h2>
+            <p className="section-subtitle text-center text-ghibli-earth mb-6">
+              Transforme as suas fotos em apenas três passos simples e encantados.
+            </p>
+            <div className="flex justify-center mb-12 md:mb-16">
+                <motion.div 
+                className="h-1.5 w-24 bg-ghibli-moss/60 rounded-full"
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.9, delay: 0.4, ease: [0.25, 1, 0.5, 1] }}
+                />
+            </div>
+        </motion.div>
+
+        <motion.div
+          className="relative grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-12 md:gap-y-10 mt-12"
           variants={gridContainerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }} // Anima quando 10% visível
+          viewport={{ once: true, amount: 0.2 }}
         >
           {/* --- Linhas Conectoras (Apenas em MD+) --- */}
-          {/* Linha entre Cartão 1 e 2 */}
           <motion.div
-             className="absolute top-1/2 left-1/3 w-1/3 h-0.5 bg-ghibli-sand origin-left hidden md:block" // Escondido em mobile
-             style={{ transform: 'translateY(-50%) translateX(-50%)' }} // Ajusta posicionamento
-             variants={lineVariants}
-             initial="hidden"
-             whileInView="visible"
-             viewport={{ once: true, amount: 0.1 }}
-          />
-           {/* Linha entre Cartão 2 e 3 */}
-           <motion.div
-             className="absolute top-1/2 left-2/3 w-1/3 h-0.5 bg-ghibli-sand origin-left hidden md:block" // Escondido em mobile
-             style={{ transform: 'translateY(-50%) translateX(-50%)' }} // Ajusta posicionamento
-             variants={lineVariants}
-             initial="hidden"
-             whileInView="visible"
-             viewport={{ once: true, amount: 0.1 }}
-          />
+            className="absolute top-1/2 left-0 w-full h-0.5 hidden md:block" // Para o posicionamento das linhas
+            style={{ transform: 'translateY(-50%)', zIndex: 0 }} // Centraliza verticalmente
+          >
+            <motion.div
+              className="absolute left-[calc(16.66%-1px)] w-[calc(33.33%+2px)] h-full bg-ghibli-sand/70 origin-left" // Ajustado para o gap
+              variants={lineVariants}
+            />
+            <motion.div
+              className="absolute left-[calc(50%-1px)] w-[calc(33.33%+2px)] h-full bg-ghibli-sand/70 origin-left" // Ajustado para o gap
+              variants={lineVariants}
+            />
+          </motion.div>
           {/* --- Fim Linhas Conectoras --- */}
-
 
           {/* Passo 1: Upload */}
           <motion.div
-            className="relative z-10 group" // Adiciona group e z-index para ficar sobre as linhas
+            className="relative z-10 group cursor-pointer" // Adicionado cursor-pointer
             variants={cardVariants}
-            whileHover={{ y: -8 }} // Efeito lift no hover
-            transition={{ type: 'spring', stiffness: 300 }}
+            whileHover={{ y: -10, transition: { type: 'spring', stiffness: 300, duration: 0.2 } }}
+            onClick={handleStep1Click} // Adicionado onClick
+            title="Clique para ir para a área de transformação"
           >
-            <Card className="ghibli-card h-full border-ghibli-sand/30 overflow-hidden transition-shadow duration-300 group-hover:shadow-lg"> {/* Garante altura igual e sombra no hover */}
-              <CardContent className="p-8 flex flex-col items-center">
-                {/* Ícone com animação de escala no hover do cartão */}
-                <div className="w-16 h-16 rounded-full bg-ghibli-sky flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110">
-                  <Upload className="h-8 w-8 text-ghibli-sky-deep" />
-                </div>
-                <h3 className="text-xl font-ghibli text-ghibli-wood mb-2">1. Faça Upload</h3>
-                <p className="text-ghibli-earth text-center">
-                  Selecione uma foto do seu dispositivo ou arraste-a para a área indicada
+            <Card className="ghibli-card h-full border-2 border-ghibli-sand/40 bg-white/70 backdrop-blur-sm overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:border-ghibli-sky/50">
+              <CardContent className="p-6 md:p-8 flex flex-col items-center text-center">
+                <motion.div 
+                  className="w-20 h-20 rounded-full bg-ghibli-sky/20 flex items-center justify-center mb-6 border-2 border-ghibli-sky/30 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-sky/30 group-hover:border-ghibli-sky/50"
+                  whileHover={{boxShadow: "0 0 15px rgba(135, 206, 235, 0.7)"}} // Brilho no ícone
+                >
+                  <Upload className="h-10 w-10 text-ghibli-sky-deep" />
+                </motion.div>
+                <h3 className="text-xl lg:text-2xl font-ghibli text-ghibli-wood mb-3">1. Faça Upload</h3>
+                <p className="text-ghibli-earth text-sm md:text-base leading-relaxed">
+                  Selecione uma foto do seu dispositivo ou arraste-a para a área indicada.
                 </p>
               </CardContent>
             </Card>
@@ -109,18 +128,19 @@ const HowItWorks = () => {
           <motion.div
             className="relative z-10 group"
             variants={cardVariants}
-            whileHover={{ y: -8 }}
-            transition={{ type: 'spring', stiffness: 300 }}
+            whileHover={{ y: -10, transition: { type: 'spring', stiffness: 300, duration: 0.2 } }}
           >
-            <Card className="ghibli-card h-full border-ghibli-sand/30 overflow-hidden transition-shadow duration-300 group-hover:shadow-lg">
-              <CardContent className="p-8 flex flex-col items-center">
-                 {/* Ícone com animação de escala no hover do cartão */}
-                 <div className="w-16 h-16 rounded-full bg-ghibli-sand flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110">
-                  <Brush className="h-8 w-8 text-ghibli-earth" />
-                </div>
-                <h3 className="text-xl font-ghibli text-ghibli-wood mb-2">2. Escolha o Estilo</h3>
-                <p className="text-ghibli-earth text-center">
-                  Selecione entre os vários estilos artísticos inspirados no universo Ghibli
+            <Card className="ghibli-card h-full border-2 border-ghibli-sand/40 bg-white/70 backdrop-blur-sm overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:border-ghibli-moss/50">
+              <CardContent className="p-6 md:p-8 flex flex-col items-center text-center">
+                <motion.div 
+                  className="w-20 h-20 rounded-full bg-ghibli-sand/40 flex items-center justify-center mb-6 border-2 border-ghibli-sand/60 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-sand/60 group-hover:border-ghibli-sand"
+                  whileHover={{boxShadow: "0 0 15px rgba(210, 180, 140, 0.7)"}} // Brilho no ícone
+                >
+                  <Brush className="h-10 w-10 text-ghibli-earth-dark" />
+                </motion.div>
+                <h3 className="text-xl lg:text-2xl font-ghibli text-ghibli-wood mb-3">2. Escolha o Estilo</h3>
+                <p className="text-ghibli-earth text-sm md:text-base leading-relaxed">
+                  Navegue pela nossa galeria mágica e selecione o seu estilo artístico favorito.
                 </p>
               </CardContent>
             </Card>
@@ -130,23 +150,23 @@ const HowItWorks = () => {
           <motion.div
             className="relative z-10 group"
             variants={cardVariants}
-            whileHover={{ y: -8 }}
-            transition={{ type: 'spring', stiffness: 300 }}
+            whileHover={{ y: -10, transition: { type: 'spring', stiffness: 300, duration: 0.2 } }}
           >
-            <Card className="ghibli-card h-full border-ghibli-sand/30 overflow-hidden transition-shadow duration-300 group-hover:shadow-lg">
-              <CardContent className="p-8 flex flex-col items-center">
-                 {/* Ícone com animação de escala no hover do cartão */}
-                 <div className="w-16 h-16 rounded-full bg-ghibli-sunflower/30 flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110">
-                  <Sun className="h-8 w-8 text-ghibli-sunflower" />
-                </div>
-                <h3 className="text-xl font-ghibli text-ghibli-wood mb-2">3. Transforme</h3>
-                <p className="text-ghibli-earth text-center">
-                  Veja sua foto ser magicamente transformada e baixe o resultado
+            <Card className="ghibli-card h-full border-2 border-ghibli-sand/40 bg-white/70 backdrop-blur-sm overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:border-ghibli-sunflower/70">
+              <CardContent className="p-6 md:p-8 flex flex-col items-center text-center">
+                <motion.div 
+                  className="w-20 h-20 rounded-full bg-ghibli-sunflower/20 flex items-center justify-center mb-6 border-2 border-ghibli-sunflower/40 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-sunflower/40 group-hover:border-ghibli-sunflower/60"
+                  whileHover={{boxShadow: "0 0 15px rgba(255, 223, 100, 0.8)"}} // Brilho no ícone
+                >
+                  <Sun className="h-10 w-10 text-ghibli-sunflower-dark" />
+                </motion.div>
+                <h3 className="text-xl lg:text-2xl font-ghibli text-ghibli-wood mb-3">3. Receba a Magia</h3>
+                <p className="text-ghibli-earth text-sm md:text-base leading-relaxed">
+                  Veja a sua foto ser transformada e descarregue a sua nova obra de arte!
                 </p>
               </CardContent>
             </Card>
           </motion.div>
-
         </motion.div>
       </div>
     </section>

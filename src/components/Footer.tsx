@@ -20,7 +20,7 @@ const Footer = () => {
   const socialLinks = [
     { name: "GitHub", href: "#", icon: Github },
     { name: "Twitter", href: "#", icon: Twitter },
-    { name: "Instagram", href: "#", icon: Instagram },
+    { name: "Instagram", href: "https://www.instagram.com/pictuz.ai", icon: Instagram },
   ];
 
   return (

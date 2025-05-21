@@ -52,7 +52,6 @@ const TransformationsModal: React.FC = () => {
   const fetchTransformations = useCallback(async (page: number, isPageChange: boolean = false) => {
     if (isAuthLoading || !userInfo) return;
 
-    console.log(`[TransformationsModal] Fetching page: ${page}`);
     setError(null);
     if (isPageChange) {
         setIsFetchingPage(true); // Ativa loading específico da página
@@ -80,8 +79,6 @@ const TransformationsModal: React.FC = () => {
 
       if (dbError) throw dbError;
 
-      console.log('[TransformationsModal] Fetched data:', data, 'Total count:', count);
-
       // Mapeia os dados para incluir o estado de erro da imagem
       const itemsWithState = (data || []).map(item => ({
           ...(item as unknown as FetchedTransformation), // Garante o tipo base
@@ -106,23 +103,19 @@ const TransformationsModal: React.FC = () => {
   // Efeito para buscar dados
   useEffect(() => {
     // Log para debugging do estado atual ao entrar neste useEffect
-    console.log('[TransformationsModal useEffect main]', { isOpen, userId: userInfo?.id, isAuthLoading, currentPage });
 
     if (isOpen && userInfo && !isAuthLoading) { // Adiciona !isAuthLoading aqui
       // Quando o modal está aberto, temos um utilizador, e o carregamento da autenticação terminou,
       // fazemos o fetch inicial para a página atual (que é 0 se o modal acabou de abrir/resetar).
-      console.log('[TransformationsModal useEffect main] Condições satisfeitas, chamando fetchTransformations.');
       fetchTransformations(currentPage, false); // Fetch inicial
     } else if (!isOpen || !userInfo) {
       // Limpa os dados e reseta a página se o modal estiver fechado ou não houver utilizador
-      console.log('[TransformationsModal useEffect main] Modal fechado ou sem utilizador, limpando estado.');
       setGridItems([]);
       setTotalCount(0);
       setCurrentPage(0); // Garante que currentPage é resetado
       setError(null);
     } else {
       // Caso onde isOpen=true, userInfo=true, mas isAuthLoading=true
-      console.log('[TransformationsModal useEffect main] Aguardando autenticação (isAuthLoading ainda é true).');
     }
   }, [isOpen, userInfo, isAuthLoading, fetchTransformations, currentPage]); // Adicionado isAuthLoading e fetchTransformations
 
@@ -131,7 +124,6 @@ const TransformationsModal: React.FC = () => {
     // Este useEffect é para quando o utilizador clica nos botões de paginação.
     // A condição !isAuthLoading também é importante aqui.
     if (isOpen && userInfo && !isAuthLoading) {
-      console.log(`[TransformationsModal useEffect currentPage] Mudança de página para: ${currentPage}, chamando fetchTransformations.`);
       fetchTransformations(currentPage, true); // O true indica que é uma mudança de página
     }
   // Adiciona fetchTransformations, isOpen, userInfo, isAuthLoading para robustez,

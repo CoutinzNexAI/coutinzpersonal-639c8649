@@ -282,6 +282,7 @@ const GhibliHero = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: titleParts.length * 0.1 + 0.7 }} 
             ref={interactiveCardRef} 
+            id="hero-interactive-area"
             className="w-full md:w-10/12 lg:w-7/12 xl:w-7/12 order-1 lg:order-2"
           >
             <div className="ghibli-card p-0 h-auto min-h-[22rem] md:min-h-[28rem] flex flex-col items-center justify-center overflow-hidden">
