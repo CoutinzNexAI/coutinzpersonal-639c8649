@@ -257,7 +257,7 @@ async function processImage(jobId: string, jobData: JobData) {
                 ...formData.getHeaders(),
                 'Authorization': `Bearer ${openaiApiKey}`
             },
-            timeout: 55000
+            timeout: 58000
         };
 
         const openaiResponse = await axios.post('https://api.openai.com/v1/images/edits', formData, requestConfig);

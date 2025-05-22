@@ -17,7 +17,6 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 const queryClient = new QueryClient();
-console.log("[_app.tsx] Ficheiro _app.tsx carregado");
 
 // Google Analytics page view tracking
 const pageView = (url: string) => {
@@ -39,7 +38,6 @@ declare global {
 }
 
 function MyApp({ Component, pageProps }: AppProps) {
-  console.log("[_app.tsx] Rendering MyApp component...");
   const router = useRouter();
 
   // Track page views on route change

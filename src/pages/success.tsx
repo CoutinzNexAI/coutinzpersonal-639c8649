@@ -290,14 +290,14 @@ const SuccessPage = (): JSX.Element => {
         if (pageState !== 'processing' && pageState !== 'verifying_payment') { // Evita voltar de verifying_payment
           setPageState('processing'); // Ou um estado visual específico para 'pending_payment'
         }
-        setLoadingMessage('A sua magia está a aguardar confirmação de pagamento...');
+        setLoadingMessage('A sua foto está a aguardar confirmação de pagamento...');
         // O polling continua
       } else if (['processing', 'processing_queued', 'paid', 'pending'].includes(data.status || '')) {
         // Se o estado não mudou para 'processing', atualize.
         if (pageState !== 'processing') {
           setPageState('processing');
         }
-        setLoadingMessage('A sua magia está a ser preparada...');
+        setLoadingMessage('A sua foto está a ser preparada...');
         // O polling continua
       } else { // Status desconhecido ou inesperado
         console.warn(`[Polling #${currentPollCount}] Unexpected status for ${jobIdToCheck}: ${data.status}. Assuming still processing.`);

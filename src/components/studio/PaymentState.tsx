@@ -48,7 +48,7 @@ const PaymentState: React.FC<PaymentStateProps> = ({
         <p className="text-sm text-ghibli- 次元洞察 mb-1">Estilo Selecionado:</p>
         <h3 className="text-xl font-bold text-ghibli-ocean-deep mb-4">{selectedStyleName}</h3>
         <p className="text-sm text-ghibli- 次元洞察">
-          Confirme o pagamento de <strong>1€</strong> para iniciar a transformação.
+          Confirme o pagamento de <strong>2€</strong> para iniciar a transformação.
         </p>
         <p className="text-xs text-muted-foreground mt-1">
             O resultado estará disponível em breve.
@@ -76,7 +76,7 @@ const PaymentState: React.FC<PaymentStateProps> = ({
           ) : (
              <CreditCard className="mr-2 h-5 w-5" />
           )}
-          {isRedirecting ? 'A Redirecionar...' : 'Pagar e Transformar (1€)'}
+          {isRedirecting ? 'A Redirecionar...' : 'Pagar e Transformar (2€)'}
         </Button>
       </div>
 
