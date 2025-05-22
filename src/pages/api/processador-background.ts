@@ -266,8 +266,7 @@ async function processImage(jobId: string, jobData: JobData) {
             code: error.code,
             status: error.response?.status,
             responseData: error.response?.data, 
-            requestDataIsFormData: error.config?.data instanceof FormData, // Log se é FormData
-            requestHeaders: error.config?.headers,
+            requestDataIsFormData: error.config?.data instanceof FormData,
             stack: error.stack
         });
         finalStatus = error.config?.url?.includes('openai.com') ? 'failed_api' : 'failed_network_other';

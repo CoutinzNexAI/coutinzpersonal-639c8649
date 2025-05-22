@@ -71,13 +71,10 @@ export function useImageProcessing() {
 
   // --- Fetch styles (runs once on mount) ---
   useEffect(() => {
-    console.log('[Effect fetchStyles] Effect triggered.');
     const fetchStyles = async () => {
       if (availableStyles.length > 0 && !stylesLoading) {
-        console.log(`[Effect fetchStyles] Skipping fetch. Reason: Styles already loaded (length: ${availableStyles.length})`);
         return;
       }
-      console.log('[Effect fetchStyles] Fetching styles from Supabase...');
       setStylesLoading(true);
       setStylesError(null);
       try {
@@ -109,7 +106,6 @@ export function useImageProcessing() {
     // Se o ID do utilizador mudou (e não é a primeira vez que userInfo é definido)
     // ou se o utilizador fez logout (currentUserId é null e prevUserId existia)
     if (prevUserId.current !== undefined && prevUserId.current !== currentUserId) {
-        console.log('[Effect User Change] User changed or logged out. Resetting all states.');
         setUploadedImage(null);
         setSelectedStyle(null);
         setProcessingState('idle');
@@ -137,11 +133,9 @@ export function useImageProcessing() {
   useEffect(() => {
     // Só executa após a tentativa de buscar estilos e se a carga inicial não foi feita
     if (initialLoadAttempted.current || stylesLoading) {
-        console.log('[Effect localStorage Load] Skipping: Initial load already attempted or styles are loading.');
         return;
     }
     initialLoadAttempted.current = true;
-    console.log('--- [Effect localStorage Load] Attempting to load selected style from localStorage ---');
     
     try {
         const savedState = localStorage.getItem('studioState');
@@ -157,7 +151,6 @@ export function useImageProcessing() {
                     // permite que o utilizador continue de onde parou se só selecionou um estilo.
                     // Se uma imagem já estiver carregada (improvável com o reset no user change),
                     // o fluxo normal do handleFileChange / handleStyleSelect deve ocorrer.
-                    console.log('[Effect localStorage Load] Restored selected style:', style.name);
                 } else {
                     localStorage.removeItem('studioState'); // Limpa se o estilo não existe mais
                 }
@@ -181,20 +174,17 @@ export function useImageProcessing() {
   // --- Save state to localStorage (Simplified: only selectedStyleId) ---
   useEffect(() => {
     if (!initialLoadAttempted.current) {
-        console.log('[Effect localStorage Save] Skipping save: Initial load not complete.');
         return;
     }
     try {
         // Guarda apenas o selectedStyleId. currentJobId não é mais guardado aqui.
         const stateToSave = { selectedStyleId: selectedStyle?.id || null };
         localStorage.setItem('studioState', JSON.stringify(stateToSave));
-        console.log('[Effect localStorage Save] Saved Style State:', stateToSave);
 
         // Remove currentJobId do localStorage se ele existir, pois não o queremos persistir aqui.
         // A página de sucesso pode gerir o seu próprio jobId no localStorage se necessário.
         if (localStorage.getItem('currentJobId')) {
             localStorage.removeItem('currentJobId');
-            console.log('[Effect localStorage Save] Ensured currentJobId is removed from localStorage by GhibliHero hook.');
         }
 
     } catch (error) {
@@ -375,14 +365,12 @@ export function useImageProcessing() {
     localStorage.removeItem('studioState'); // Limpa apenas o estilo guardado
     localStorage.removeItem('currentJobId'); // Garante que o job ID é limpo
     if (pollingIntervalRef.current) {
-        console.log('[resetAllLocalStates] Clearing polling interval.');
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
     }
   }, [setErrorMessage, setIsLoading, setProcessingState, setSelectedStyle, setTransformedImage, setCurrentJobId]); // Removido setActiveStep
 
   const handleFileChange = useCallback((file: UploadedFile | null) => {
-    console.log('[handleFileChange] File changed:', file ? file.file.name : 'null');
     // Se um novo ficheiro é carregado, ou o ficheiro é removido, reseta tudo.
     resetAllLocalStates(); // Chama a função de reset completo
     if (file) {
@@ -513,12 +501,10 @@ export function useImageProcessing() {
   }, [uploadedImage, selectedStyle, userInfo, isAuthLoading, setErrorMessage, setIsLoading, setProcessingState, setCurrentJobId]);
 
   const handleNewImage = useCallback(() => {
-    console.log('[handleNewImage] Calling full reset.');
     resetAllLocalStates();
   }, [resetAllLocalStates]);
 
   const handleReset = useCallback(() => {
-    console.log('[handleReset] Calling full reset (handleNewImage).');
     handleNewImage(); // handleNewImage já faz o reset completo
   }, [handleNewImage]);
 

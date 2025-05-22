@@ -25,7 +25,8 @@ const FILE_SIGNATURES: { [key: string]: (string | undefined)[] } = {
 };
 
 // Função para ler os primeiros bytes de um ficheiro como string hexadecimal
-const getFileHeaderHex = (file: File, bytesToRead: number = 8): Promise<string> => {
+// Função para ler os primeiros bytes de um ficheiro como string hexadecimal
+const getFileHeaderHex = (file: File, bytesToRead: number = 12): Promise<string> => { // Alterado aqui: bytesToRead default é 12
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -40,21 +41,32 @@ const getFileHeaderHex = (file: File, bytesToRead: number = 8): Promise<string> 
       }
     };
     reader.onerror = () => reject(new Error('Erro ao ler o ficheiro.'));
-    reader.readAsArrayBuffer(file.slice(0, bytesToRead));
+    reader.readAsArrayBuffer(file.slice(0, bytesToRead)); // slice(0, bytesToRead) é importante
   });
 };
 
+// Função para validar a assinatura do ficheiro
 // Função para validar a assinatura do ficheiro
 const isValidFileSignature = (headerHex: string, mimeType: string): boolean => {
   const signatures = FILE_SIGNATURES[mimeType];
   if (!signatures) return false; // Tipo MIME não suportado para verificação de assinatura
 
-  // Para WEBP, precisamos verificar a assinatura 'RIFF' no início e 'WEBP' no offset 8
+  // Para WEBP, precisamos verificar a assinatura 'RIFF' no início e 'WEBP' no offset 8 do ficheiro
   if (mimeType === 'image/webp') {
-    return headerHex.startsWith(signatures[0]!) && headerHex.substring(8, 16) === signatures[4];
+    // Se headerHex tem 24 caracteres (12 bytes), 'WEBP' (signatures[4]) estará entre o caractere 16 e 24.
+    // 'RIFF' (signatures[0]) estará no início.
+    if (headerHex.length < 24) { // Garante que temos bytes suficientes para a verificação completa do WebP
+        console.warn(`[isValidFileSignature] HeaderHex muito curto para WebP: ${headerHex.length} caracteres`);
+        return false;
+    }
+    return headerHex.startsWith(signatures[0]!) &&      // Verifica 'RIFF' (bytes 0-3)
+           headerHex.substring(16, 24) === signatures[4]; // Verifica 'WEBP' (bytes 8-11)
   }
 
-  // Para outros tipos, basta verificar se o cabeçalho começa com alguma das assinaturas
+  // Para outros tipos (JPG, PNG), as suas assinaturas estão nos primeiros bytes.
+  // Certifique-se que headerHex é longo o suficiente para a assinatura mais longa aqui.
+  // Ex: PNG '89504e47' tem 8 caracteres hex (4 bytes). JPG 'ffd8ff' tem 6 (3 bytes).
+  // Como estamos a ler 12 bytes (24 caracteres hex), temos mais do que suficiente.
   return signatures.some(signature => signature && headerHex.startsWith(signature));
 };
 
