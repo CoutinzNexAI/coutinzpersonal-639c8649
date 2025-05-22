@@ -50,17 +50,30 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
         <DialogHeader className="text-center pt-8 sm:pt-10 px-6">
           <DialogTitle className="text-2xl sm:text-3xl font-ghibli flex items-center justify-center mb-3 text-ghibli-wood">
             <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 mr-2 text-amber-500" />
-            {/* Sugestão de Título 1: */}
             Entre no PicTuz
-            {/* Sugestão de Título 2: Otimize a Sua Experiência */}
-            {/* Sugestão de Título 3: Guarde o Seu Progresso Artístico */}
           </DialogTitle>
-          <DialogDescription className="text-ghibli-slate text-sm sm:text-base px-2 sm:px-4">
-            {/* Sugestão de Descrição 1: */}
-            Liga-te à tua conta para não perderes nada do que crias
-            {/* Sugestão de Descrição 2: Faça login para desbloquear todas as funcionalidades e manter as suas obras de arte seguras. */}
-            {/* Sugestão de Descrição 3: Ao autenticar-se, garantimos o acesso contínuo às suas criações e futuras vantagens. */}
-          </DialogDescription>
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ 
+              opacity: 1, 
+              y: 0,
+              transition: { duration: 0.6, delay: 0.3 }
+            }}
+            className="relative"
+          >
+            <DialogDescription className="text-ghibli-slate text-base sm:text-lg px-2 sm:px-4 font-medium">
+              Liga-te à tua conta para não perderes nenhuma foto que criaste!
+            </DialogDescription>
+            <motion.div 
+              className="h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent w-3/4 mx-auto mt-2"
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ 
+                scaleX: 1, 
+                opacity: 1,
+                transition: { duration: 0.8, delay: 0.6 }
+              }}
+            />
+          </motion.div>
         </DialogHeader>
 
         <div className="py-6 sm:py-8 px-6 sm:px-10">

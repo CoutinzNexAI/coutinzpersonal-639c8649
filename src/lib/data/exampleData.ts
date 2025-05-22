@@ -44,7 +44,7 @@ export interface StyleExample {
     },
     {
       id: "azulejo",
-      name: "Azulejo Português",
+      name: "Estilo Azulejo Português",
       description: "Transforme suas fotos no estilo tradicional dos azulejos portugueses, com padrões azuis e brancos.",
       examples: [
         { before: "/camoesnormal.jpg", after: "/camoesazulejo.png" },
@@ -65,7 +65,7 @@ export interface StyleExample {
     },
     {
       id: "metal",
-      name: "Estilo Metal",
+      name: "Estilo 3D Metal",
       description: "Dê às suas fotos um visual metálico, com tons escuros e acabamento metalizado.",
       examples: [
         { before: "/wbgnormal.jpg", after: "/wbgmetal.png" },
@@ -75,7 +75,7 @@ export interface StyleExample {
     },
     {
       id: "cartoon",
-      name: "Cartoon",
+      name: "Estilo Cartoon",
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.",
       examples: [
         { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiracartoon.png" },
@@ -88,7 +88,7 @@ export interface StyleExample {
     },
     {
       id: "bandadesenhada",
-      name: "Bandas de Desenho", // Considerar "Banda Desenhada" ou "Estilo BD"
+      name: "Estilo Super-Herói", // Considerar "Banda Desenhada" ou "Estilo BD"
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.", // Descrição igual à de "Cartoon", pode querer diferenciar
       examples: [
         { before: "/profjamnormal.jpg", after: "/profbd.png" },
@@ -99,7 +99,7 @@ export interface StyleExample {
 
     {
       id: "minecraft",
-      name: "Minecraft",
+      name: "Estilo Minecraft",
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.",
       examples: [
         { before: "/yamallewa.jpg", after: "/yamallewamine.png" },

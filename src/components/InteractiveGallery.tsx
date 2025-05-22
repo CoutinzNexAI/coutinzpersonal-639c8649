@@ -26,7 +26,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: 3,
-    title: "Ghibli Style",
+    title: "Ghibli",
     style: "Transformação no estilo popular de Ghibli",
     before: "saojoaoportonormal.jpg",
     after: "saojoaoportoghibli.png"
@@ -40,7 +40,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: 5,
-    title: "Cartoon Americano",
+    title: "Cartoon",
     style: "Estilo inspirado nos cartoons americanos da TV",
     before: "yamalnormal.webp",
     after: "yamalcartoon.png"
