@@ -194,7 +194,7 @@ const SuccessPage = (): JSX.Element => {
       
       // Mensagem de timeout do polling do frontend
       handleErrorState(
-        `A sua transformação está a demorar mais que o normal (${MAX_POLL_ATTEMPTS} tentativas). Por favor, verifique o estado em 'Minhas Fotos' dentro de alguns minutos.`,
+        `A sua transformação está a demorar mais que o normal. Por favor, verifique o estado em 'Minhas Fotos' dentro de alguns minutos.`,
         "Processamento demorado."
       );
       return;

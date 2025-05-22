@@ -1,23 +1,26 @@
 // src/components/GhibliHero.tsx
+// src/components/GhibliHero.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Images } from 'lucide-react'; // Apenas Images é necessário aqui para o botão "Veja Exemplos"
-import { useImageProcessing, UseImageProcessingResult } from '@/hooks/useImageProcessing'; // Hook principal e tipo
+import { Images } from 'lucide-react';
+import { useImageProcessing, UseImageProcessingResult } from '@/hooks/useImageProcessing';
 import { motion, Variants } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth'; // <<< NOVO: Importar useAuth
+import { toast } from '@/components/ui/sonner'; // <<< NOVO: Para feedback de autenticação
 
-// --- IMPORTA OS COMPONENTES REATORIZADOS ---
-import { StyleExamplesModal } from './gallery/StyleExamplsModal';
-import { TransformationStudio } from './TransformationStudio'; // Novo componente para o estúdio
-import StyleSelectorModal from './StyleSelectorModal'; // Modal de seleção de estilo principal
+import { StyleExamplesModal } from './gallery/StyleExamplsModal'; // Mantido
+import { TransformationStudio } from './TransformationStudio';
+import StyleSelectorModal from './StyleSelectorModal';
+import LoginPromptModal from './LoginPromptModal'; // <<< NOVO: Importar o modal de login
 
-// --- Variantes de Animação para o Título ---
+// --- Variantes de Animação para o Título (mantidas como no original) ---
 const titleContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.6, // Atraso entre a animação de cada palavra
-      delayChildren: 0.7,   // Atraso antes de começar a animar as palavras
+      staggerChildren: 0.6,
+      delayChildren: 0.7,
     },
   },
 };
@@ -37,27 +40,31 @@ const titleWordVariants: Variants = {
   },
 };
 
-// --- Componente GhibliHero Principal (Agora mais um orquestrador) ---
 const GhibliHero = () => {
-  // --- Hook Principal ---
   const imageProcessingProps = useImageProcessing();
   const {
     isStyleModalOpen,
     selectedStyle,
-    processingState, 
-    currentJobId,    
+    processingState,
+    currentJobId,
     setIsStyleModalOpen,
-    handleNewImage,  
+    handleNewImage,
     availableStyles,
     stylesLoading,
     stylesError,
   } = imageProcessingProps;
+
+  // --- NOVO: Estados para o fluxo de login ---
+  const { userInfo, isLoading: isAuthLoading, signInWithGoogle } = useAuth();
+  const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false);
+  const [isSubmittingLogin, setIsSubmittingLogin] = useState(false); // Para feedback no botão do modal
 
   const [showStepZeroInStudio, setShowStepZeroInStudio] = useState(true);
   const [isExamplesOpen, setIsExamplesOpen] = useState(false);
   const interactiveCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Lógica existente para currentJobId (mantida)
     if (currentJobId && !['idle', 'uploading_image', 'creating_job'].includes(processingState)) {
       if (['processing', 'polling_status', 'completed', 'error'].includes(processingState) && !selectedStyle) {
         // console.log('[GhibliHero Effect] Job ID found, but waiting for selectedStyle to load.');
@@ -67,40 +74,68 @@ const GhibliHero = () => {
     }
   }, [currentJobId, processingState, selectedStyle]);
 
+  // --- NOVO: Lógica modificada para handleTriggerStudio ---
   const handleTriggerStudio = () => {
-    setShowStepZeroInStudio(false);
-    if (imageProcessingProps.activeStep !== 1 && processingState === 'idle') {
-        handleNewImage(); 
-    } else if (imageProcessingProps.activeStep !==1 ) {
-        imageProcessingProps.setActiveStep(1);
+    if (isAuthLoading) {
+      toast.info("A verificar autenticação...", { duration: 2000 });
+      return;
     }
-    
-    // Scroll suave até o componente TransformationStudio em dispositivos móveis
-    if (interactiveCardRef.current) {
-      setTimeout(() => {
-        interactiveCardRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }, 100); // Pequeno delay para garantir que a UI atualizou
+
+    if (userInfo) {
+      // Utilizador está logado, prossegue para o estúdio
+      setShowStepZeroInStudio(false);
+      if (imageProcessingProps.activeStep !== 1 && processingState === 'idle') {
+        handleNewImage();
+      } else if (imageProcessingProps.activeStep !== 1) {
+        imageProcessingProps.setActiveStep(1);
+      }
+
+      if (interactiveCardRef.current) {
+        setTimeout(() => {
+          interactiveCardRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }, 100);
+      }
+    } else {
+      // Utilizador não está logado, abre o pop-up de login
+      setIsLoginPromptOpen(true);
     }
   };
+
+  // --- NOVO: Função para ser chamada pelo LoginPromptModal ---
+  const handleLoginRequestFromModal = async () => {
+    setIsSubmittingLogin(true);
+    try {
+      await signInWithGoogle();
+      // O AuthProvider tratará da atualização do userInfo.
+      // O modal será fechado pelo onOpenChange ou o utilizador será redirecionado pelo OAuth.
+      // Não é preciso fechar o modal aqui explicitamente se o fluxo OAuth redirecionar.
+      // Se o OAuth não redirecionar (ex: popup), então setIsLoginPromptOpen(false) seria útil aqui.
+      // Por agora, vamos assumir que o fluxo OAuth trata do fecho/redirecionamento.
+    } finally {
+      setIsSubmittingLogin(false);
+      // Considerar fechar o modal aqui se o login falhar e o fluxo OAuth não redirecionar
+      // setIsLoginPromptOpen(false);
+    }
+  };
+
 
   const handleOpenExamples = () => {
     setIsExamplesOpen(true);
   };
 
   const resetStudioToStepZero = () => {
-    handleNewImage(); 
-    setShowStepZeroInStudio(true); 
+    handleNewImage();
+    setShowStepZeroInStudio(true);
   };
 
   const titleParts = "Transforme as suas Fotos em Obras de Arte!".split(/(Fotos em Obras)/g);
 
-
   return (
     <section className="relative pt-2 md:pt-4 pb-16 md:pb-24 overflow-hidden">
-      {/* Elementos Decorativos Flutuantes */}
+      {/* Elementos Decorativos Flutuantes (mantidos) */}
       <div className="leaf-decoration top-20 left-10 text-3xl">🍃</div>
       <div className="leaf-decoration bottom-28 right-16 text-2xl">🍂</div>
       <div className="star-decoration top-40 right-28 text-xl">✨</div>
@@ -111,38 +146,37 @@ const GhibliHero = () => {
           variants={titleContainerVariants}
           initial="hidden"
           animate="visible"
-          // Aumentada a margem inferior para empurrar o conteúdo abaixo
-          className="text-4xl md:text-5xl lg:text-6xl font-ghibli font-bold text-ghibli-wood leading-tight mb-12 md:mb-20 text-center" 
-          style={{ textShadow: "0 0 5px transparent" }} 
-          whileInView={{ 
+          className="text-4xl md:text-5xl lg:text-6xl font-ghibli font-bold text-ghibli-wood leading-tight mb-12 md:mb-20 text-center"
+          style={{ textShadow: "0 0 5px transparent" }}
+          whileInView={{
             textShadow: [
-                "0 0 5px rgba(255, 223, 186, 0)", 
-                "0 0 15px rgba(236, 153, 75, 0.7)", 
-                "0 0 25px rgba(236, 153, 75, 0.5)",
-                "0 0 15px rgba(236, 153, 75, 0.7)",
-                "0 0 5px rgba(255, 223, 186, 0)"
+              "0 0 5px rgba(255, 223, 186, 0)",
+              "0 0 15px rgba(236, 153, 75, 0.7)",
+              "0 0 25px rgba(236, 153, 75, 0.5)",
+              "0 0 15px rgba(236, 153, 75, 0.7)",
+              "0 0 5px rgba(255, 223, 186, 0)"
             ],
-            transition: { 
-                duration: 2.5, 
-                repeat: Infinity, 
-                ease: "easeInOut",
-                delay: titleParts.length * 0.2 + 0.5 
+            transition: {
+              duration: 2.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: titleParts.length * 0.2 + 0.5
             }
           }}
-          viewport={{ once: true, amount: 0.8 }} 
+          viewport={{ once: true, amount: 0.8 }}
         >
           {titleParts.map((part, index) => (
             <motion.span key={index} variants={titleWordVariants} className="inline-block">
               {part.split("").map((char, charIndex) => (
-                <motion.span 
-                  key={charIndex} 
+                <motion.span
+                  key={charIndex}
                   className="inline-block"
                   initial={{ opacity: 0, y: -10, filter: "blur(3px)" }}
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  transition={{ 
-                    duration: 0.3, 
+                  transition={{
+                    duration: 0.3,
                     ease: "easeOut",
-                    delay: index * 0.15 + charIndex * 0.03 + Math.random() * 0.1 
+                    delay: index * 0.15 + charIndex * 0.03 + Math.random() * 0.1
                   }}
                 >
                   {char === " " ? "\u00A0" : char}
@@ -153,15 +187,15 @@ const GhibliHero = () => {
         </motion.h1>
 
         <div className="relative z-10 flex flex-col lg:flex-row items-center lg:items-start lg:justify-center gap-8 xl:gap-12">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: titleParts.length * 0.1 + 0.5 }} 
+            transition={{ duration: 0.7, ease: "easeOut", delay: titleParts.length * 0.1 + 0.5 }}
             className="w-full lg:w-5/12 xl:w-4/12 mb-10 lg:mb-0 flex flex-col items-center lg:items-start order-2 lg:order-1"
           >
-            {/* Subtítulo estilizado com cards animados */}
+            {/* Subtítulo estilizado com cards animados (mantido) */}
             <div className="mb-10 w-full">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: titleParts.length * 0.1 + 0.7 }}
@@ -175,7 +209,7 @@ const GhibliHero = () => {
                 </div>
               </motion.div>
               
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: titleParts.length * 0.1 + 0.9 }}
@@ -189,7 +223,7 @@ const GhibliHero = () => {
                 </div>
               </motion.div>
               
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: titleParts.length * 0.1 + 1.1 }}
@@ -204,30 +238,30 @@ const GhibliHero = () => {
               </motion.div>
             </div>
 
-            {/* Botões com design aprimorado */}
+            {/* Botões com design aprimorado (mantidos) */}
             <div className="flex flex-col space-y-4 justify-center lg:justify-start w-full">
-              <motion.div 
+              <motion.div
                 className="w-full relative group"
-                whileHover={{ 
-                  scale: 1.03, 
+                whileHover={{
+                  scale: 1.03,
                   transition: { duration: 0.2 }
-                }} 
+                }}
                 whileTap={{ scale: 0.98 }}
-                animate={{ 
+                animate={{
                   y: [0, -4, 0],
                   transition: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: titleParts.length * 0.1 + 1.3}
                 }}
               >
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-200 to-yellow-300 rounded-lg blur opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
                 <Button
-                  variant="ghost" 
+                  variant="ghost"
                   className="relative w-full text-lg px-8 py-3.5 bg-gradient-to-br from-amber-50 to-yellow-50 text-ghibli-wood font-medium inline-flex items-center justify-center
-                           rounded-lg border-2 border-amber-100 hover:border-amber-200 transition-all duration-300
-                           shadow-md hover:shadow-lg"
-                  onClick={handleTriggerStudio}
+                                  rounded-lg border-2 border-amber-100 hover:border-amber-200 transition-all duration-300
+                                  shadow-md hover:shadow-lg"
+                  onClick={handleTriggerStudio} // <<< Ação principal aqui
                 >
-                  <motion.span 
-                    animate={{ rotate: [0, -1, 1, -1, 0] }} 
+                  <motion.span
+                    animate={{ rotate: [0, -1, 1, -1, 0] }}
                     transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
                     className="mr-2"
                   >
@@ -237,22 +271,22 @@ const GhibliHero = () => {
                 </Button>
               </motion.div>
               
-              <motion.div 
+              <motion.div
                 className="w-full"
-                whileHover={{ 
+                whileHover={{
                   scale: 1.03,
                   transition: { duration: 0.2 }
-                }} 
+                }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Button
                   variant="outline"
-                  className="w-full text-lg px-6 py-3.5 text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss 
-                           hover:border-ghibli-moss inline-flex items-center justify-center transition-all duration-300
-                           rounded-lg shadow-sm hover:shadow-md"
+                  className="w-full text-lg px-6 py-3.5 text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
+                                  hover:border-ghibli-moss inline-flex items-center justify-center transition-all duration-300
+                                  rounded-lg shadow-sm hover:shadow-md"
                   onClick={handleOpenExamples}
                 >
-                  <motion.span 
+                  <motion.span
                     whileHover={{ rotate: [0, -10, 10, 0], transition: {duration: 0.4}}}
                     className="bg-ghibli-moss/10 p-1.5 rounded-full mr-2"
                   >
@@ -263,8 +297,8 @@ const GhibliHero = () => {
               </motion.div>
             </div>
 
-            {/* Selo de confiança */}
-            <motion.div 
+            {/* Selo de confiança (mantido) */}
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: titleParts.length * 0.1 + 1.5, duration: 0.7 }}
@@ -273,15 +307,15 @@ const GhibliHero = () => {
               <div className="px-4 py-2 bg-white/50 backdrop-blur-sm rounded-full border border-amber-100 inline-flex items-center">
                 <span className="text-amber-600 mr-2">⭐</span>
                 <p className="text-sm text-ghibli-earth font-medium">Já transformámos +100 fotos</p>
-          </div>
+              </div>
             </motion.div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: titleParts.length * 0.1 + 0.7 }} 
-            ref={interactiveCardRef} 
+            transition={{ duration: 0.7, ease: "easeOut", delay: titleParts.length * 0.1 + 0.7 }}
+            ref={interactiveCardRef}
             id="hero-interactive-area"
             className="w-full md:w-10/12 lg:w-7/12 xl:w-7/12 order-1 lg:order-2"
           >
@@ -289,7 +323,7 @@ const GhibliHero = () => {
               <TransformationStudio
                 {...(imageProcessingProps as Omit<UseImageProcessingResult, 'handleNewImage' | 'currentJobId' | 'setIsStyleModalOpen' | 'isStyleModalOpen'>)}
                 showStepZeroContent={showStepZeroInStudio}
-                onStartClickForCarousel={handleTriggerStudio}
+                onStartClickForCarousel={handleTriggerStudio} // <<< Ação do carrossel também aqui
                 onResetToStepZero={resetStudioToStepZero}
               />
             </div>
@@ -312,8 +346,17 @@ const GhibliHero = () => {
         onOpenChange={setIsExamplesOpen}
         onStartTransformationClick={() => {
           setIsExamplesOpen(false);
-          handleTriggerStudio();
+          handleTriggerStudio(); // <<< Ação do modal de exemplos também aqui
         }}
+      />
+
+      {/* --- NOVO: Renderização do LoginPromptModal --- */}
+      <LoginPromptModal
+        isOpen={isLoginPromptOpen}
+        onOpenChange={setIsLoginPromptOpen}
+        onLogin={handleLoginRequestFromModal}
+        isLoggingIn={isSubmittingLogin}
+        // A prop onContinueWithoutLogin foi removida conforme o plano
       />
     </section>
   );
