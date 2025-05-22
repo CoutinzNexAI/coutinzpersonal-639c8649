@@ -14,8 +14,8 @@ type SuccessProcessingState =
   | 'awaiting_auth'
   | 'auth_failed'
   | 'verifying_payment'
-  | 'polling_status' // Estado onde o polling está ativamente a ser preparado/executado
-  | 'processing'     // Estado visual enquanto o backend processa (polling continua)
+  | 'polling_status' 
+  | 'processing'     
   | 'completed'
   | 'error';
 
@@ -24,7 +24,9 @@ type StatusResponse = {
   status?: string;
   output_url?: string | null;
   error_message?: string | null;
-  message?: string; // Mensagem genérica da API
+  message?: string; 
+  // Se o backend (get-transformation-status) puder popular isto, seria útil:
+  // output_metadata?: { originalDetailedErrorStatus?: string }; 
 };
 
 // Dados do job concluído
@@ -35,7 +37,7 @@ type CompletedJobData = {
 
 // Constantes para polling
 const POLLING_INTERVAL_MS = 3000; // 3 segundos
-const MAX_POLL_ATTEMPTS = 120;    // 120 tentativas (6 minutos)
+const MAX_POLL_ATTEMPTS = 40;     // 40 tentativas * 3s = 120s = 2 minutos
 
 const SuccessPage = (): JSX.Element => {
   const router = useRouter();
@@ -49,41 +51,36 @@ const SuccessPage = (): JSX.Element => {
 
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollCountRef = useRef<number>(0);
-  const hasVerifiedPayment = useRef<boolean>(false); // Para garantir que a verificação de pagamento só ocorre uma vez
+  const hasVerifiedPayment = useRef<boolean>(false);
 
-  // Função para parar o polling e limpar o localStorage
   const stopPollingAndCleanup = useCallback((finalState: 'completed' | 'error') => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
       console.log(`[SuccessPage Cleanup] Polling STOPPED. Final state: ${finalState}, JobID: ${jobId}`);
     }
-    // Limpa o localStorage apenas se o job foi concluído com sucesso ou deu erro definitivo.
     if (finalState === 'completed' || finalState === 'error') {
       try {
         console.log('[SuccessPage Cleanup] Removing localStorage items for completed/failed job...');
         localStorage.removeItem('currentJobId');
-        localStorage.removeItem('studioState'); // Limpa também o estado do estúdio relacionado
+        localStorage.removeItem('studioState');
       } catch (e) {
         console.error('[SuccessPage Cleanup] Error removing localStorage items:', e);
       }
     }
-  }, [jobId]); // Adicionado jobId para o log, caso seja útil
+  }, [jobId]);
 
-  // Navega para a página inicial
   const navigateToHome = useCallback(() => {
-    stopPollingAndCleanup('error'); // Considera um erro se o utilizador sair antes de completar
-    // Usa router.push em vez de window.location.href para navegação client-side
+    stopPollingAndCleanup('error'); 
     router.push('/');
   }, [stopPollingAndCleanup, router]);
 
-  // Handler para download da imagem
   const handleDownload = useCallback(() => {
     if (!completedJobData?.outputUrl) return;
     toast.info("Preparando download...");
     fetch(completedJobData.outputUrl, {
       method: 'GET',
-      mode: 'cors', // Tenta com CORS
+      mode: 'cors', 
       cache: 'no-cache',
     })
     .then(response => {
@@ -103,11 +100,10 @@ const SuccessPage = (): JSX.Element => {
     })
     .catch(error => {
       console.error("[Download Error - Fetch Attempt]", error);
-      // Fallback para download direto se o fetch falhar (ex: CORS)
       const link = document.createElement('a');
-      link.href = completedJobData.outputUrl; // URL direta
+      link.href = completedJobData.outputUrl; 
       link.download = `transformacao-${completedJobData.jobId?.slice(0, 8) || Date.now()}.png`;
-      link.target = "_blank"; // Ajuda em alguns browsers
+      link.target = "_blank"; 
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -115,19 +111,18 @@ const SuccessPage = (): JSX.Element => {
     });
   }, [completedJobData]);
 
-  // Função para verificar diretamente no Supabase Storage
-  const checkDirectlyInSupabase = useCallback(async (jobIdToCheck: string, userId?: string) => {
+  const checkDirectlyInSupabase = useCallback(async (jobIdToCheck: string, userIdToCheck?: string) => {
     console.log(`[SuccessPage DirectCheck] Attempting direct Supabase check for job ${jobIdToCheck}`);
     try {
-      const effectiveUserId = userId || userInfo?.id;
+      const effectiveUserId = userIdToCheck || userInfo?.id;
       if (!effectiveUserId) {
         console.warn('[SuccessPage DirectCheck] No user ID available for direct Supabase check');
         return false;
       }
       const { data: results, error } = await supabase
         .storage
-        .from('results') // Nome do seu bucket de resultados
-        .list(`public/${effectiveUserId}/${jobIdToCheck}`, { // Caminho correto
+        .from('results')
+        .list(`public/${effectiveUserId}/${jobIdToCheck}`, {
           limit: 1,
           sortBy: { column: 'name', order: 'desc' },
         });
@@ -140,7 +135,7 @@ const SuccessPage = (): JSX.Element => {
       if (results && results.length > 0) {
         const fileName = results[0].name;
         console.log(`[SuccessPage DirectCheck] Found file in Supabase: ${fileName}`);
-        const { data: urlData } = supabase // Removido await desnecessário aqui
+        const { data: urlData } = supabase
           .storage
           .from('results')
           .getPublicUrl(`public/${effectiveUserId}/${jobIdToCheck}/${fileName}`);
@@ -148,12 +143,11 @@ const SuccessPage = (): JSX.Element => {
         if (urlData?.publicUrl) {
           console.log(`[SuccessPage DirectCheck] Generated public URL: ${urlData.publicUrl}`);
           setCompletedJobData({ outputUrl: urlData.publicUrl, jobId: jobIdToCheck });
-          // Apenas atualiza o estado se ainda não estiver 'completed' para evitar loops
           if (pageState !== 'completed') {
             setPageState('completed');
           }
           toast.success("Imagem encontrada no sistema (verificação direta)!");
-          stopPollingAndCleanup('completed'); // Para o polling aqui
+          stopPollingAndCleanup('completed');
           return true;
         }
       }
@@ -162,14 +156,22 @@ const SuccessPage = (): JSX.Element => {
       console.error('[SuccessPage DirectCheck] Exception during Supabase check:', e);
       return false;
     }
-  }, [userInfo, stopPollingAndCleanup, pageState]); // pageState adicionado para evitar setPageState desnecessário
+  }, [userInfo, stopPollingAndCleanup, pageState]);
 
-  // Função para verificar o estado do job
+  const handleErrorState = useCallback((userMessage: string, toastMessage?: string, isCritical: boolean = true) => {
+    if (pageState !== 'error') { // Evita redefinir se já estiver em erro por outro motivo
+        setErrorMessage(userMessage);
+        setPageState('error');
+    }
+    toast.error("Falha na Transformação", { description: toastMessage || userMessage });
+    if (isCritical) { // Só para o polling se for um erro que impede continuação
+        stopPollingAndCleanup('error');
+    }
+  }, [stopPollingAndCleanup, pageState]);
+
+
   const checkJobStatus = useCallback(async (jobIdToCheck: string) => {
-    // Não faz polling se já tivermos um resultado ou erro terminal
     if (completedJobData || pageState === 'error' || pageState === 'completed') {
-      console.log(`[Polling Aborted] Job already completed or in error state. State: ${pageState}, JobID: ${jobIdToCheck}`);
-      // Garante que o polling é parado se por alguma razão ainda estiver ativo
       if (pageState === 'completed' || pageState === 'error') {
         stopPollingAndCleanup(pageState);
       }
@@ -179,44 +181,40 @@ const SuccessPage = (): JSX.Element => {
     pollCountRef.current += 1;
     const currentPollCount = pollCountRef.current;
 
-    // Tenta verificação direta no Supabase a cada X tentativas (exceto na primeira)
     if (currentPollCount % 3 === 0 && currentPollCount > 1) {
       console.log(`[Polling #${currentPollCount}] Attempting direct check in Supabase for job ${jobIdToCheck}...`);
-      const found = await checkDirectlyInSupabase(jobIdToCheck);
-      if (found) return; // Se encontrado, checkDirectlyInSupabase já parou o polling
+      const found = await checkDirectlyInSupabase(jobIdToCheck, userInfo?.id); // Passa userInfo.id
+      if (found) return;
     }
 
-    // Verifica o limite máximo de tentativas
     if (currentPollCount > MAX_POLL_ATTEMPTS) {
       console.error(`[Polling #${currentPollCount}] Max poll attempts reached for ${jobIdToCheck}.`);
-      const found = await checkDirectlyInSupabase(jobIdToCheck); // Última tentativa direta
+      const found = await checkDirectlyInSupabase(jobIdToCheck, userInfo?.id);
       if (found) return;
       
-      // Type assertion to fix narrowing issue
-      if ((pageState as SuccessProcessingState) !== 'error') {
-        setErrorMessage(`Não foi possível obter o estado final após ${MAX_POLL_ATTEMPTS} tentativas. Tente verificar na página de "Minhas Fotos" mais tarde.`);
-        setPageState('error');
-      }
-      stopPollingAndCleanup('error'); // Para o polling
+      // Mensagem de timeout do polling do frontend
+      handleErrorState(
+        `A sua transformação está a demorar mais que o normal (${MAX_POLL_ATTEMPTS} tentativas). Por favor, verifique o estado em 'Minhas Fotos' dentro de alguns minutos.`,
+        "Processamento demorado."
+      );
       return;
     }
     
     console.log(`[Polling #${currentPollCount}/${MAX_POLL_ATTEMPTS}] Checking API status for job ${jobIdToCheck}... Current PageState: ${pageState}`);
-    if (pageState === 'polling_status' || pageState === 'processing') { // Só atualiza mensagem se estiver nestes estados
-      // Mantendo uma mensagem mais estável e mágica conforme solicitado
+    if (pageState === 'polling_status' || pageState === 'processing') {
       setLoadingMessage('A sua imagem está a ser preparada...');
     }
     
     try {
       let apiUrl = `/api/get-transformation-status?jobId=${jobIdToCheck}`;
-      if (userInfo?.id) { // Adiciona userId se disponível
+      if (userInfo?.id) { 
         apiUrl += `&userId=${userInfo.id}`;
       }
       
       console.log(`[Polling #${currentPollCount}] Calling API: ${apiUrl}`);
       const response = await fetch(apiUrl, {
         headers: {
-          'x-from-success-page': 'true', // Header para lógica de fallback na API
+          'x-from-success-page': 'true', 
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
@@ -230,99 +228,78 @@ const SuccessPage = (): JSX.Element => {
           console.log(`[Polling #${currentPollCount}] API Response for ${jobIdToCheck}:`, JSON.stringify(data));
         } catch (e) { 
           console.error(`[Polling #${currentPollCount}] Failed to parse JSON response for job ${jobIdToCheck}`, e);
-          // Não para o polling aqui, apenas loga e continua, pode ser erro temporário.
-          // A próxima tentativa pode funcionar, ou MAX_POLL_ATTEMPTS será atingido.
-          return; 
+          return; // Continua polling, pode ser erro temporário
         }
-      } else if (!response.ok) { // Se não for JSON e não estiver OK
+      } else if (!response.ok) {
         console.error(`[Polling #${currentPollCount}] API Error for ${jobIdToCheck}: Status ${response.status}, Content-Type: ${response.headers.get("content-type")}`);
-        // Não para o polling aqui, apenas loga e continua.
-        return;
+        return; // Continua polling
       }
 
-      // Se a resposta não foi OK (mesmo que seja JSON com erro)
       if (!response.ok) {
         const apiErrorMsg = data.message || `Erro API (${response.status})`;
         console.error(`[Polling #${currentPollCount}] API error for job ${jobIdToCheck}: Status ${response.status}, Message: ${apiErrorMsg}`);
-        
-        const found = await checkDirectlyInSupabase(jobIdToCheck); // Tenta verificação direta
+        const found = await checkDirectlyInSupabase(jobIdToCheck, userInfo?.id);
         if (found) return;
-        
-        // Para o polling se o erro for de autenticação/autorização ou não encontrado, ou após muitas tentativas
-        if (response.status === 401 || response.status === 403 || response.status === 404 || currentPollCount > 20) {
-          if ((pageState as SuccessProcessingState) !== 'error') {
-            setErrorMessage(apiErrorMsg);
-            setPageState('error');
-          }
-          stopPollingAndCleanup('error');
+        if (response.status === 401 || response.status === 403 || response.status === 404 || currentPollCount > (MAX_POLL_ATTEMPTS - 5)) { // Para mais cedo em erros críticos
+          handleErrorState(apiErrorMsg);
         }
-        return; // Continua polling para outros erros temporários se não atingiu o limite de 20
+        return; 
       }
 
       console.log(`[Polling #${currentPollCount}] Received API status for ${jobIdToCheck}: ${data.status}, URL: ${data.output_url || 'none'}`);
+      
+      // Lógica de tradução de erros do backend
+      if (data.status === 'error' || data.status?.startsWith('failed')) {
+          const backendErrorMessage = data.error_message || 'Ocorreu uma falha desconhecida.';
+          let userFriendlyMessage = "Ops! Algo deu errado. Tente novamente ou contacte o suporte.";
 
-      // Lógica para tratar o status recebido
-      if (data.output_url && data.output_url.startsWith('http')) { // Prioriza a URL de output
+          if (backendErrorMessage.includes("Ficheiro inválido após pagamento")) {
+              userFriendlyMessage = backendErrorMessage; // Mensagem já é específica
+          } else if (backendErrorMessage.toLowerCase().includes("openai api error: request failed with status code 400")) {
+              userFriendlyMessage = "Houve um problema ao comunicar com o nosso serviço de IA (erro 400). Se o problema persistir, contacte o suporte.";
+          } else if (backendErrorMessage.toLowerCase().includes("openai api error: timeout") || backendErrorMessage.toLowerCase().includes("openai api error")) {
+              userFriendlyMessage = "Os nossos servidores de IA estão com muito tráfego ou a sua imagem demorou demasiado a processar. Por favor, verifique a sua galeria em 'Minha Conta' dentro de alguns minutos.";
+          } else {
+             userFriendlyMessage = "Ocorreu um problema durante a transformação. Por favor, verifique o estado em 'Minha Conta' ou contacte o suporte se o erro persistir.";
+          }
+          handleErrorState(userFriendlyMessage);
+      
+      } else if (data.output_url && data.output_url.startsWith('http')) { 
         console.log(`[Polling #${currentPollCount}] Output URL found for ${jobIdToCheck}, treating as completed.`);
         setCompletedJobData({ outputUrl: data.output_url, jobId: jobIdToCheck });
         if ((pageState as SuccessProcessingState) !== 'completed') setPageState('completed');
         toast.success("Transformação concluída!");
-        stopPollingAndCleanup('completed'); // Para o polling
-        return; // Sai da função checkJobStatus
-      }
-      
-      if ((data.status === 'completed' || data.status?.startsWith('completed')) && data.output_url) {
+        stopPollingAndCleanup('completed');
+        return; 
+      } else if (data.status === 'completed' && data.output_url) { // Redundante se o de cima apanhar, mas seguro
         console.log(`[Polling #${currentPollCount}] Job ${jobIdToCheck} completed with output URL.`);
         setCompletedJobData({ outputUrl: data.output_url, jobId: jobIdToCheck });
         if ((pageState as SuccessProcessingState) !== 'completed') setPageState('completed');
         toast.success("Transformação concluída!");
-        stopPollingAndCleanup('completed'); // Para o polling
-      } else if (data.status?.startsWith('failed') || data.status === 'error') {
-        console.error(`[Polling #${currentPollCount}] Job ${jobIdToCheck} failed. Reason: ${data.error_message}`);
-        if ((pageState as SuccessProcessingState) !== 'error') {
-          setErrorMessage(data.error_message || 'A transformação falhou.');
-          setPageState('error');
-        }
-        toast.error("Falha na Transformação", { description: data.error_message || 'Erro.' });
-        stopPollingAndCleanup('error'); // Para o polling
-      } else if (data.status === 'pending_payment') {
-        // Se o estado não mudou para 'processing', atualize.
-        if (pageState !== 'processing' && pageState !== 'verifying_payment') { // Evita voltar de verifying_payment
-          setPageState('processing'); // Ou um estado visual específico para 'pending_payment'
-        }
-        setLoadingMessage('A sua foto está a aguardar confirmação de pagamento...');
-        // O polling continua
-      } else if (['processing', 'processing_queued', 'paid', 'pending'].includes(data.status || '')) {
-        // Se o estado não mudou para 'processing', atualize.
+        stopPollingAndCleanup('completed');
+      } else if (['processing', 'processing_queued', 'paid', 'pending_payment', 'pending'].includes(data.status || '')) {
         if (pageState !== 'processing') {
           setPageState('processing');
         }
         setLoadingMessage('A sua foto está a ser preparada...');
-        // O polling continua
-      } else { // Status desconhecido ou inesperado
+      } else { 
         console.warn(`[Polling #${currentPollCount}] Unexpected status for ${jobIdToCheck}: ${data.status}. Assuming still processing.`);
-        if (pageState !== 'processing') { // Garante que está em estado de processamento visualmente
+        if (pageState !== 'processing') { 
           setPageState('processing');
         }
         setLoadingMessage('A sua magia está a ser preparada...');
-        // O polling continua
       }
-    } catch (error) { // Erros de rede ou fetch
+    } catch (error) { 
       const catchErrorMsg = error instanceof Error ? error.message : "Erro de comunicação desconhecido.";
       console.error(`[Polling #${currentPollCount}] Network/Fetch error for ${jobIdToCheck}:`, catchErrorMsg);
-      
-      const found = await checkDirectlyInSupabase(jobIdToCheck); // Tenta verificação direta em erro de rede
-      if (found) return; // Se encontrado, para o polling
-      // Não para o polling aqui em erros de rede, permite que continue até MAX_POLL_ATTEMPTS
-      // ou até que um erro persistente seja tratado pelo limiar de X tentativas.
+      const found = await checkDirectlyInSupabase(jobIdToCheck, userInfo?.id);
+      if (found) return; 
     }
-  }, [userInfo, pageState, completedJobData, stopPollingAndCleanup, checkDirectlyInSupabase]); // Adicionado pageState e completedJobData
+  }, [userInfo, pageState, completedJobData, stopPollingAndCleanup, checkDirectlyInSupabase, handleErrorState]); 
 
-  // Efeito Principal para controlar o fluxo da página e o polling
   useEffect(() => {
     console.log(`[SuccessPage Effect] State: ${pageState}, JobID: ${jobId}, AuthLoading: ${isAuthLoading}, User: ${!!userInfo}, PollingActive: ${!!pollingIntervalRef.current}, Completed: ${!!completedJobData}, Error: ${!!errorMessage}`);
 
-    // --- Lógica de Inicialização ---
     if (pageState === 'initializing') {
       console.log("[SuccessPage Init] Initializing: Getting Job ID.");
       setLoadingMessage('A obter detalhes da transformação...');
@@ -334,29 +311,27 @@ const SuccessPage = (): JSX.Element => {
         console.log(`[SuccessPage Init] JobID from localStorage: ${jobIdFromStorage}, from URL: ${jobIdFromUrl}`);
       } catch (e) { console.error("[SuccessPage Init] Error reading localStorage for JobID:", e); }
       
-      const finalJobId = jobIdFromStorage || jobIdFromUrl;
+      const finalJobId = jobIdFromUrl || jobIdFromStorage; // Prioriza URL se ambos existirem
       if (finalJobId) {
         setJobId(finalJobId);
         console.log(`[SuccessPage Init] JobID set: ${finalJobId}. Transitioning to awaiting_auth.`);
         setPageState('awaiting_auth'); 
       } else {
         console.error("[SuccessPage Init] CRITICAL: No JobID found in URL or localStorage.");
-        if ((pageState as SuccessProcessingState) !== 'error') { // Evita setar estado se já for erro
-          setErrorMessage("Informação da transformação não encontrada. Verifique o URL ou tente aceder a partir do seu histórico de transformações.");
-          setPageState('error');
-        }
-        stopPollingAndCleanup('error'); // Garante limpeza se der erro aqui
+        handleErrorState(
+            "Informação da transformação não encontrada. Verifique o URL ou tente aceder a partir do seu histórico de transformações.",
+            "ID da transformação não encontrado."
+        );
       }
-      return; // Sai do useEffect após inicialização
+      return; 
     }
 
-    // --- Lógica de Autenticação ---
     if (pageState === 'awaiting_auth') {
       console.log("[SuccessPage AuthCheck] In awaiting_auth state.");
       if (isAuthLoading) {
         console.log("[SuccessPage AuthCheck] Authentication is loading...");
         setLoadingMessage('A verificar sessão...');
-        return; // Ainda a carregar, espera pela próxima execução do efeito
+        return; 
       }
       console.log("[SuccessPage AuthCheck] Authentication loading complete. UserInfo present:", !!userInfo);
       const params = new URLSearchParams(window.location.search);
@@ -369,14 +344,13 @@ const SuccessPage = (): JSX.Element => {
         console.log("[SuccessPage AuthCheck] No SessionID in URL or payment already verified. Transitioning to polling_status.");
         setPageState('polling_status'); 
       }
-      return; // Sai do useEffect
+      return; 
     }
     
-    // --- Lógica de Verificação de Pagamento ---
     if (pageState === 'verifying_payment' && jobId && !hasVerifiedPayment.current) {
       console.log(`[SuccessPage PaymentVerify] Verifying payment for job: ${jobId}`);
       setLoadingMessage('A confirmar pagamento...');
-      hasVerifiedPayment.current = true; // Marca para não repetir
+      hasVerifiedPayment.current = true; 
       
       const params = new URLSearchParams(window.location.search);
       const sessionIdFromUrl = params.get('session_id');
@@ -384,7 +358,7 @@ const SuccessPage = (): JSX.Element => {
       if (!sessionIdFromUrl) {
         console.warn("[SuccessPage Payment] No session_id in URL, skipping payment verification, proceeding to poll.");
         setPageState('polling_status');
-        return; // Sai do useEffect
+        return; 
       }
 
       const verifyPayment = async () => {
@@ -394,35 +368,30 @@ const SuccessPage = (): JSX.Element => {
             const errorData = await response.json().catch(() => ({ message: 'Falha ao verificar pagamento (resposta não JSON)' }));
             throw new Error(errorData.message || 'Falha ao verificar pagamento'); 
           }
-          await response.json(); // Não precisamos do resultado, apenas que foi OK
+          await response.json(); 
           toast.success('Pagamento confirmado!');
-          setPageState('polling_status'); // Transita para iniciar o polling
+          setPageState('polling_status'); 
         } catch (error) {
           console.error('[SuccessPage Payment] Error verifying payment:', error);
-          if ((pageState as SuccessProcessingState) !== 'error') { // Evita setar estado se já for erro
-            setErrorMessage(error instanceof Error ? error.message : 'Erro desconhecido na verificação do pagamento.');
-            setPageState('error'); 
-          }
-          stopPollingAndCleanup('error'); // Para tudo em caso de erro de pagamento
+          handleErrorState(
+            error instanceof Error ? error.message : 'Erro desconhecido na verificação do pagamento.',
+            "Erro na verificação do pagamento."
+          );
         }
       };
       verifyPayment();
-      return; // Importante para não continuar a executar o useEffect nesta renderização
+      return; 
     }
 
-    // --- Lógica Centralizada para Iniciar/Gerir o Polling ---
     if (jobId && (pageState === 'polling_status' || pageState === 'processing')) {
-      // Só inicia/continua o polling se a autenticação estiver resolvida E
-      // se o job ainda não estiver completo OU com erro definitivo.
       if (!isAuthLoading && !completedJobData && !errorMessage) {
-        if (!pollingIntervalRef.current) { // Só cria um novo intervalo se não existir um
+        if (!pollingIntervalRef.current) { 
           console.log(`[SuccessPage PollingManager] Starting/Restarting polling interval for JobID: ${jobId}, Current State: ${pageState}`);
-          pollCountRef.current = 0; // Reseta o contador ao (re)iniciar o polling
-          checkJobStatus(jobId);    // Faz a primeira chamada imediatamente
+          pollCountRef.current = 0; 
+          checkJobStatus(jobId);   
           
           pollingIntervalRef.current = setInterval(() => {
-            // A função checkJobStatus é responsável por parar o polling quando apropriado
-            if (jobId) { // Segurança extra
+            if (jobId) { 
               checkJobStatus(jobId);
             }
           }, POLLING_INTERVAL_MS);
@@ -431,25 +400,20 @@ const SuccessPage = (): JSX.Element => {
         }
       } else if (isAuthLoading) {
         console.log(`[SuccessPage PollingManager] Auth is loading, polling paused for JobID: ${jobId}`);
-        if (pageState === 'polling_status' || pageState === 'processing') { // Só mostra mensagem se estiver nestes estados
+        if (pageState === 'polling_status' || pageState === 'processing') { 
           setLoadingMessage('A verificar sessão antes de continuar...');
         }
       } else if (completedJobData || errorMessage) {
-        // Se já completou ou deu erro, e por alguma razão o polling ainda está ativo, limpa.
         if (pollingIntervalRef.current) {
           console.log(`[SuccessPage PollingManager] Job is ${completedJobData ? 'completed' : 'in error'}. Ensuring polling is stopped.`);
           stopPollingAndCleanup(completedJobData ? 'completed' : 'error');
         }
       }
     } else if (pollingIntervalRef.current && (pageState === 'completed' || pageState === 'error' || pageState === 'auth_failed')) {
-      // Se o estado mudou para um estado final e o polling ainda está ativo, limpa-o.
-      // Esta é uma salvaguarda, pois checkJobStatus já deve ter chamado stopPollingAndCleanup.
       console.log(`[SuccessPage PollingManager] Job is ${pageState}. Ensuring polling is stopped for JobID: ${jobId}`);
       stopPollingAndCleanup(pageState === 'completed' ? 'completed' : 'error');
     }
     
-    // Função de limpeza do useEffect:
-    // Limpa o intervalo se o componente for desmontado ou se as dependências críticas (jobId) mudarem.
     return () => {
       if (pollingIntervalRef.current) {
         console.log('[SuccessPage Effect Cleanup] Clearing polling interval due to unmount or critical dependency change (e.g., jobId).');
@@ -457,7 +421,7 @@ const SuccessPage = (): JSX.Element => {
         pollingIntervalRef.current = null;
       }
     };
-  }, [pageState, jobId, isAuthLoading, userInfo, completedJobData, errorMessage, stopPollingAndCleanup, checkJobStatus]);
+  }, [pageState, jobId, isAuthLoading, userInfo, completedJobData, errorMessage, stopPollingAndCleanup, checkJobStatus, handleErrorState]);
 
   const renderContent = () => {
     switch (pageState) {
@@ -504,7 +468,7 @@ const SuccessPage = (): JSX.Element => {
           </motion.div>
         );
       case 'completed':
-        if (!completedJobData) return null; // Segurança
+        if (!completedJobData) return null; 
         return (
           <AnimatePresence>
             <motion.div
@@ -537,7 +501,6 @@ const SuccessPage = (): JSX.Element => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5, type: "spring" }}
               >
-                {/* Imagem de preload escondida para tentar carregar na cache do browser */}
                 <div className="hidden">
                   <Image 
                     src={completedJobData.outputUrl} 
@@ -552,27 +515,25 @@ const SuccessPage = (): JSX.Element => {
                 <Image
                   src={completedJobData.outputUrl}
                   alt="Imagem Transformada"
-                  fill // Usa fill para preencher o container
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Ajuste conforme necessário
-                  style={{ objectFit: 'contain' }} // 'contain' para garantir que a imagem inteira seja visível
-                  priority // Importante para LCP (Largest Contentful Paint)
-                  unoptimized={true} // Se as URLs são de Supabase Storage ou similar e não otimizadas pelo Next/Image
+                  fill 
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" 
+                  style={{ objectFit: 'contain' }} 
+                  priority 
+                  unoptimized={true} 
                   onError={(e) => {
                     console.error('[Success Page Image] Image loading error:', e);
                     console.error('[Success Page Image] Failed URL:', completedJobData.outputUrl);
-                    // Tenta mostrar o placeholder
                     const target = e.currentTarget;
-                    target.style.display = 'none'; // Esconde a imagem quebrada
-                    const placeholder = target.nextElementSibling as HTMLElement; // Apanha o div de erro
+                    target.style.display = 'none'; 
+                    const placeholder = target.nextElementSibling as HTMLElement; 
                     if(placeholder && placeholder.classList.contains('image-error-placeholder')) {
-                       placeholder.style.display = 'flex'; // Mostra o placeholder
+                        placeholder.style.display = 'flex'; 
                     }
                   }}
                 />
-                {/* Placeholder para erro de imagem */}
                 <div 
                   className="image-error-placeholder absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-xs text-ghibli-wood p-2" 
-                  style={{display: 'none'}} // Inicialmente escondido
+                  style={{display: 'none'}} 
                 >
                   <AlertTriangle className="h-6 w-6 mx-auto mb-1 text-ghibli-wood"/> Erro ao<br/>carregar<br/>imagem
                 </div>
@@ -626,8 +587,7 @@ const SuccessPage = (): JSX.Element => {
             </Button>
           </motion.div>
         );
-      default: // Estado inesperado
-        // Para garantir que algo é renderizado em caso de estado desconhecido
+      default: 
         console.warn(`[SuccessPage Render] Unexpected page state: ${pageState}`);
         return (
           <div className="text-center">

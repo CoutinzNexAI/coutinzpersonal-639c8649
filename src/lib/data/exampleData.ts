@@ -104,7 +104,7 @@ export interface StyleExample {
       examples: [
         { before: "/yamallewa.jpg", after: "/yamallewamine.png" },
         { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiraminecraft.png" },
-        { before: "/wbgnormal.jpg", after: "/wbgminevddg.png" }
+        { before: "/wbgnormal.jpg", after: "/wbgminevdd.png" }
       ],
     }
   ];
