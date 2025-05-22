@@ -1,5 +1,4 @@
 // --- CORREÇÃO DO IMPORT CSS ---
-// import '@/styles/globals.css'; // Ficheiro não existe
 import '@/index.css'; // Importa o index.css que está em src/
 // --- FIM DA CORREÇÃO ---
 import type { AppProps } from 'next/app';

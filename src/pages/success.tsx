@@ -204,7 +204,7 @@ const SuccessPage = (): JSX.Element => {
     console.log(`[Polling #${currentPollCount}/${MAX_POLL_ATTEMPTS}] Checking API status for job ${jobIdToCheck}... Current PageState: ${pageState}`);
     if (pageState === 'polling_status' || pageState === 'processing') { // Só atualiza mensagem se estiver nestes estados
       // Mantendo uma mensagem mais estável e mágica conforme solicitado
-      setLoadingMessage('A sua magia está a ser preparada...');
+      setLoadingMessage('A sua imagem está a ser preparada...');
     }
     
     try {
@@ -499,7 +499,7 @@ const SuccessPage = (): JSX.Element => {
               {loadingMessage} 
             </p>
             <p className="text-ghibli-earth/70 text-sm mb-4">
-              {(pageState === 'processing' || pageState === 'polling_status') && 'Pode fechar esta página e ver o resultado no menu "Fotos Transformadas" se estiver logado'}
+              {(pageState === 'processing' || pageState === 'polling_status') && 'Pode fechar esta página e ver o resultado no menu "Fotos Transformadas" se estiver na sua conta'}
             </p>
           </motion.div>
         );

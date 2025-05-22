@@ -18,20 +18,20 @@ interface CarouselExample {
 const examples: CarouselExample[] = [
     {
       id: 1,
-      beforeSrc: '/avonetonormal.jpg',
-      afterSrc: '/avonetoazulejo.png',
+      beforeSrc: '/saojoaoportonormal.jpg',
+      afterSrc: '/saojoaoportoghibli.png',
       alt: 'Experimente o nosso estilo Azulejo Portugues!',
     },
     {
       id: 2,
-      beforeSrc: '/casamentonormal.jpg',
-      afterSrc: '/casalghibli.png',
+      beforeSrc: '/camoesnormal.jpg',
+      afterSrc: '/camoeslego.png',
       alt: 'Exemplo 2: Paisagem transformada em estilo Ghibli',
     },
     {
       id: 3,
-      beforeSrc: '/profjamnormal.jpg',
-      afterSrc: '/profsimpson.png',
+      beforeSrc: '/wbgnormal.jpg',
+      afterSrc: '/wbgazulejo.png',
       alt: 'Exemplo 3: Animal transformado em estilo Ghibli',
     },
 ];
