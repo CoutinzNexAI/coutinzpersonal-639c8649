@@ -256,7 +256,7 @@ const SuccessPage = (): JSX.Element => {
           if (backendErrorMessage.includes("Ficheiro inválido após pagamento")) {
               userFriendlyMessage = backendErrorMessage; // Mensagem já é específica
           } else if (backendErrorMessage.toLowerCase().includes("openai api error: request failed with status code 400")) {
-              userFriendlyMessage = "Houve um problema ao comunicar com o nosso serviço de IA (erro 400). Se o problema persistir, contacte o suporte.";
+              userFriendlyMessage = "Houve um problema ao comunicar com o nosso serviço de IA. Verifique dentro de momentos o menu 'Minha Conta' para ver a transformação foi concluída, senão vamos proceder ao reembolso.";
           } else if (backendErrorMessage.toLowerCase().includes("openai api error: timeout") || backendErrorMessage.toLowerCase().includes("openai api error")) {
               userFriendlyMessage = "Os nossos servidores de IA estão com muito tráfego ou a sua imagem demorou demasiado a processar. Por favor, verifique a sua galeria em 'Minha Conta' dentro de alguns minutos.";
           } else {
