@@ -211,10 +211,10 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
             <h3 className="text-xl font-ghibli text-ghibli-wood mb-2 text-center text-destructive">Erro</h3>
             <Step3Preview imageUrl={uploadedImage?.preview} styleName={selectedStyle?.name} />
-            <p className="text-ghibli-earth text-center text-sm mb-4 text-destructive">{errorMessage || "Ocorreu um erro."}</p>
             <div className="w-full flex-grow">
               <ErrorState
                 uploadedImageUrl={uploadedImage?.preview || ''}
+                errorMessage={errorMessage}
                 onReset={onResetToStepZero} // Volta ao início (carrossel)
               />
             </div>

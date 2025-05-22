@@ -4,44 +4,50 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 
 interface ErrorStateProps {
-  uploadedImageUrl: string;
+  uploadedImageUrl: string | null; // Pode ser null se o erro ocorrer antes do upload da imagem
+  errorMessage: string | null;    // Nova prop para a mensagem de erro específica
   onReset: () => void;
 }
 
-const ErrorState: React.FC<ErrorStateProps> = ({ uploadedImageUrl, onReset }) => {
+const ErrorState: React.FC<ErrorStateProps> = ({ uploadedImageUrl, errorMessage, onReset }) => {
+  const displayErrorMessage = errorMessage || "Não foi possível processar sua imagem. Por favor tente novamente.";
+
   return (
     <div className="relative w-full h-full">
       {uploadedImageUrl && (
         <div className="absolute inset-0">
           <Image 
             src={uploadedImageUrl}
-            alt="Imagem original" 
+            alt="Imagem original com erro" 
             fill
             style={{ objectFit: "cover", opacity: 0.3, filter: "blur(4px)" }}
-            priority={false}
+            priority={false} // Pode ser true se for LCP, mas geralmente não para um estado de erro com overlay
           />
         </div>
       )}
       
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center bg-background/80 backdrop-blur-sm p-6 rounded-xl w-4/5 max-w-xs">
-          <div className="flex items-center justify-center mb-3">
+        <div className="text-center bg-background/80 backdrop-blur-sm p-6 sm:p-8 rounded-xl w-11/12 sm:w-4/5 max-w-md shadow-lg">
+          <div className="flex items-center justify-center mb-4">
             <div className="rounded-full bg-destructive/10 p-3">
-              <AlertTriangle className="h-6 w-6 text-destructive" />
+              <AlertTriangle className="h-8 w-8 sm:h-10 sm:w-10 text-destructive" />
             </div>
           </div>
           
-          <p className="font-medium text-lg mb-2">Ocorreu um erro</p>
-          <p className="text-sm text-muted-foreground mb-4">
-            Não foi possível processar sua imagem. Por favor tente novamente.
+          <p className="font-semibold text-lg sm:text-xl mb-2 text-foreground">
+            Ops! Algo correu mal.
+          </p>
+          <p className="text-sm sm:text-base text-muted-foreground mb-6 px-2">
+            {displayErrorMessage}
           </p>
           
           <Button 
             onClick={onReset}
-            variant="outline"
-            className="w-full"
+            variant="destructive" // Ou 'outline' ou 'default' dependendo do design system
+            className="w-full py-3 text-base"
+            aria-label="Tentar Novamente com Outra Imagem"
           >
-            Tentar Novamente
+            Tentar Novamente com Outra Imagem
           </Button>
         </div>
       </div>

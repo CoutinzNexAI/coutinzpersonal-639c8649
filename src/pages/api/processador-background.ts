@@ -13,7 +13,12 @@ const MAX_SERVER_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25MB (limite da OpenAI)
 const CLIENT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB (para a mensagem de reembolso)
 const ALLOWED_SERVER_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const SERVER_FILE_SIGNATURES: { [key: string]: { sig: string, offset?: number }[] } = {
-    'image/jpeg': [{ sig: 'ffd8ff' }], // Precisa de mais variações para JPG/JPEG (e.g. ffd8ffe0, ffd8ffe1)
+    'image/jpeg': [
+  { sig: 'ffd8ffe0' },
+  { sig: 'ffd8ffe1' },
+  { sig: 'ffd8ffe2' },
+  { sig: 'ffd8ffe8' }
+],
     'image/png': [{ sig: '89504e47' }],
     'image/webp': [{ sig: '52494646', offset: 0 }, { sig: '57454250', offset: 8 }], // RIFF at 0, WEBP at 8
 };
