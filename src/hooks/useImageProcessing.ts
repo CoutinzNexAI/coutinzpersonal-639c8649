@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from '@/components/ui/sonner';
 import { loadStripe, Stripe } from '@stripe/stripe-js';
-import { UploadedFile } from './useImageUpload'; // Assume que este ficheiro existe em src/hooks/
+import { UploadedFile } from './useImageUpload';
 import { Style } from '@/components/StyleSelectorModal';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,8 +12,8 @@ type ProcessingState =
   | 'uploading_image'
   | 'awaiting_payment'
   | 'redirecting_to_payment'
-  | 'polling_status'
-  | 'processing'
+  | 'polling_status' // Job created, polling before processing starts on backend
+  | 'processing'     // Backend confirmed processing
   | 'completed'
   | 'error';
 
@@ -22,6 +22,7 @@ type StatusResponse = {
   output_url?: string | null;
   error_message?: string | null;
   message?: string; // For general API errors
+  // Consider adding: output_metadata?: { originalDetailedErrorStatus?: string };
 };
 
 type TransformationInsert = {
@@ -31,7 +32,6 @@ type TransformationInsert = {
   input_file_path: string;
 };
 
-// --- getStripe function ---
 let stripePromise: Promise<Stripe | null>;
 const getStripe = () => {
     const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -56,7 +56,7 @@ export function useImageProcessing() {
   const [processingState, setProcessingState] = useState<ProcessingState>('idle');
   const [transformedImage, setTransformedImage] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // General loading for UI, distinct from processingState
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
 
@@ -69,7 +69,6 @@ export function useImageProcessing() {
   const prevUserId = useRef<string | undefined | null>(null);
 
 
-  // --- Fetch styles (runs once on mount) ---
   useEffect(() => {
     const fetchStyles = async () => {
       if (availableStyles.length > 0 && !stylesLoading) {
@@ -100,11 +99,8 @@ export function useImageProcessing() {
   }, []);
 
 
-  // --- Reset state when user changes ---
   useEffect(() => {
     const currentUserId = userInfo?.id;
-    // Se o ID do utilizador mudou (e não é a primeira vez que userInfo é definido)
-    // ou se o utilizador fez logout (currentUserId é null e prevUserId existia)
     if (prevUserId.current !== undefined && prevUserId.current !== currentUserId) {
         setUploadedImage(null);
         setSelectedStyle(null);
@@ -115,23 +111,17 @@ export function useImageProcessing() {
         setActiveStep(1);
         setIsLoading(false);
         localStorage.removeItem('studioState');
-        localStorage.removeItem('currentJobId'); // Garante que o job ID também é limpo
+        localStorage.removeItem('currentJobId');
         if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
         }
-        // Força o GhibliHero a recarregar o estado inicial, se necessário,
-        // limpando qualquer estado persistido que possa causar problemas.
-        // A flag initialLoadAttempted pode precisar ser resetada se a lógica de carga do localStorage for complexa.
-        // Para este caso, o reset acima deve ser suficiente.
     }
-    prevUserId.current = currentUserId; // Atualiza o ID do utilizador anterior
-  }, [userInfo?.id]); // Observa o ID do utilizador
+    prevUserId.current = currentUserId;
+  }, [userInfo?.id]);
 
 
-  // --- Load state from localStorage ON MOUNT (Simplified: only selectedStyleId) ---
   useEffect(() => {
-    // Só executa após a tentativa de buscar estilos e se a carga inicial não foi feita
     if (initialLoadAttempted.current || stylesLoading) {
         return;
     }
@@ -147,57 +137,41 @@ export function useImageProcessing() {
                 const style = availableStyles.find(s => s.id === restoredStyleId);
                 if (style) {
                     setSelectedStyle(style);
-                    // Não muda o activeStep ou processingState aqui,
-                    // permite que o utilizador continue de onde parou se só selecionou um estilo.
-                    // Se uma imagem já estiver carregada (improvável com o reset no user change),
-                    // o fluxo normal do handleFileChange / handleStyleSelect deve ocorrer.
                 } else {
-                    localStorage.removeItem('studioState'); // Limpa se o estilo não existe mais
+                    localStorage.removeItem('studioState');
                 }
             }
         }
-        // Garante que o estado inicial é 'idle' e passo 1 se nada for restaurado que justifique outro estado.
-        // O reset no user change já deve tratar disto, mas como uma segurança adicional:
-        if (!currentJobId) { // Se não há job ID (que não é mais restaurado aqui)
+        if (!currentJobId) {
             setProcessingState('idle');
             setActiveStep(1);
             setIsLoading(false);
         }
-
     } catch (error) {
         console.error("❌ Erro ao carregar estado do localStorage:", error);
-        localStorage.removeItem('studioState'); // Limpa em caso de erro
+        localStorage.removeItem('studioState');
     }
-  }, [availableStyles, stylesLoading, currentJobId]); // Depende de availableStyles, stylesLoading e currentJobId
+  }, [availableStyles, stylesLoading, currentJobId]);
 
 
-  // --- Save state to localStorage (Simplified: only selectedStyleId) ---
   useEffect(() => {
     if (!initialLoadAttempted.current) {
         return;
     }
     try {
-        // Guarda apenas o selectedStyleId. currentJobId não é mais guardado aqui.
         const stateToSave = { selectedStyleId: selectedStyle?.id || null };
         localStorage.setItem('studioState', JSON.stringify(stateToSave));
-
-        // Remove currentJobId do localStorage se ele existir, pois não o queremos persistir aqui.
-        // A página de sucesso pode gerir o seu próprio jobId no localStorage se necessário.
-        if (localStorage.getItem('currentJobId')) {
-            localStorage.removeItem('currentJobId');
-        }
-
+        // currentJobId is saved by initiatePayment and cleared by success.tsx or resetAllLocalStates
     } catch (error) {
         console.error("❌ Erro ao salvar estado no localStorage:", error);
     }
-  }, [selectedStyle, currentJobId]); // Adicionado currentJobId como dependência
+  }, [selectedStyle]);
 
 
-  // --- Polling Effect (Mantido como na versão anterior robusta) ---
   useEffect(() => {
     const POLLING_INTERVAL_MS = 5000;
     let pollCount = 0;
-    const MAX_POLL_ATTEMPTS = 72; // Aprox. 6 minutos
+    const MAX_POLL_ATTEMPTS = 27; // Aprox. 2.5 minutes
 
     const checkStatus = async () => {
       if (!currentJobId) {
@@ -214,17 +188,16 @@ export function useImageProcessing() {
         setProcessingState('error');
         setActiveStep(3);
         toast.error("Autenticação Necessária", { description: "Faça login para ver o progresso." });
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null;
-        }
+        if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
         setIsLoading(false);
         return;
       }
-      if (isAuthLoading) return;
+      if (isAuthLoading) return; // Aguarda a autenticação carregar
 
       pollCount++;
-      setIsLoading(true);
+      setIsLoading(true); // Indica que uma verificação está em curso
+
       try {
         const response = await fetch(`/api/get-transformation-status?jobId=${currentJobId}`);
         
@@ -232,86 +205,84 @@ export function useImageProcessing() {
         if (response.headers.get("content-type")?.includes("application/json")) {
             try {
                 data = await response.json();
-            } catch {
-                // Handle cases where JSON parsing fails for a non-OK response
+            } catch (jsonError) { // jsonError é usado aqui
+                console.warn('[useImageProcessing] Failed to parse JSON response from get-transformation-status:', jsonError);
                 const errorMsg = `Falha ao processar resposta do servidor (status: ${response.status})`;
                 setErrorMessage(errorMsg);
                 toast.error("Erro de Comunicação", { description: errorMsg });
-                setProcessingState('error');
-                setActiveStep(3);
-                if (pollingIntervalRef.current) {
-                    clearInterval(pollingIntervalRef.current);
-                    pollingIntervalRef.current = null;
-                }
-                setIsLoading(false);
+                setProcessingState('error'); setActiveStep(3);
+                if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null; setIsLoading(false);
                 return;
             }
         }
 
         if (!response.ok) {
-          // More robust handling for any non-OK response
           const errorMsg = data.message || `Erro ao buscar status (${response.status})`;
           setErrorMessage(errorMsg);
           toast.error("Erro de Polling", { description: errorMsg });
-          setProcessingState('error'); 
-          setActiveStep(3);
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-          }
-          setIsLoading(false);
+          setProcessingState('error'); setActiveStep(3);
+          if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null; setIsLoading(false);
           return;
         }
+        
+        if (data.status === 'error' || data.status?.startsWith('failed')) {
+            const backendErrorMessage = data.error_message || 'Ocorreu uma falha desconhecida durante a transformação.';
+            let userFriendlyMessage = "Ops! Algo deu errado durante a transformação. Tente novamente ou contacte o suporte.";
 
-        if (data.status === 'completed' && data.output_url) {
-          setTransformedImage(data.output_url); setProcessingState('completed'); setActiveStep(3);
+            if (backendErrorMessage.includes("Ficheiro inválido após pagamento")) {
+                userFriendlyMessage = backendErrorMessage;
+            } else if (backendErrorMessage.includes("OpenAI API Error: timeout") || backendErrorMessage.includes("OpenAI API Error")) {
+                userFriendlyMessage = "Os nossos servidores de IA estão com muito tráfego ou a sua imagem demorou demasiado a processar. Por favor, verifique a sua galeria em 'Minha Conta' dentro de alguns minutos.";
+            } else if (currentJobId) { 
+                userFriendlyMessage = "Ocorreu um problema durante a transformação. Por favor, verifique o estado em 'Minha Conta' ou contacte o suporte se o erro persistir.";
+            }
+
+            setErrorMessage(userFriendlyMessage);
+            setProcessingState('error');
+            setActiveStep(3);
+            toast.error("Falha na Transformação", { description: userFriendlyMessage });
+            if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null; setIsLoading(false);
+
+        } else if (data.status === 'completed' && data.output_url) {
+          setTransformedImage(data.output_url);
+          setProcessingState('completed');
+          setActiveStep(3);
           toast.success("Transformação concluída!");
           if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
           pollingIntervalRef.current = null; setIsLoading(false);
-        } else if (data.status?.startsWith('failed')) {
-          setErrorMessage(data.error_message || 'A transformação falhou.');
-          setProcessingState('error'); setActiveStep(3);
-          toast.error("Falha na Transformação", { description: data.error_message || 'Ocorreu um erro inesperado.' });
-          if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null; setIsLoading(false);
         } else if (['processing', 'processing_queued', 'paid', 'pending_payment'].includes(data.status || '')) {
-          if (processingState !== 'processing') {
-             setProcessingState('processing'); setActiveStep(3);
+          if (processingState !== 'processing') { 
+            setProcessingState('processing'); 
+            setActiveStep(3); 
           }
-          setIsLoading(true);
-        } else {
-          // Handle unknown status as an error to stop polling
-          const unknownStatusMsg = `Status desconhecido recebido da API: ${data.status || 'vazio'}`;
+          setIsLoading(true); 
+        } else if (data.status && data.status !== 'idle' && data.status !== 'awaiting_payment') { 
+          const unknownStatusMsg = `Status inesperado recebido: ${data.status || 'vazio'}. A verificar novamente.`;
           console.warn(`[Polling] ${unknownStatusMsg}`);
-          setErrorMessage(unknownStatusMsg);
-          setProcessingState('error');
-          setActiveStep(3);
-          toast.error("Erro Inesperado no Status", { description: unknownStatusMsg });
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-          }
-          setIsLoading(false);
+           if(processingState !== 'processing') setIsLoading(true);
         }
-      } catch (error) {
-        const catchErrorMsg = error instanceof Error ? error.message : "Erro de comunicação desconhecido.";
-        setErrorMessage(catchErrorMsg);
-        toast.error("Erro de Rede", { description: "Verifique sua conexão e tente novamente."});
-        // Don't set processingState to 'error' here directly unless it's a network error that should stop polling.
-        // The finally block or next poll attempt might recover or hit max attempts.
-        // However, for a client-side catch (e.g. fetch throws), it's safer to stop.
+      } catch (error) { 
+        console.error("❌ Network error during status check:", error);
+        const userFriendlyNetworkError = currentJobId
+            ? "Houve um problema de comunicação ao verificar o estado. Por favor, verifique sua conexão e 'Minha Conta' em breve."
+            : "Erro de rede. Verifique sua conexão e tente novamente.";
+
+        setErrorMessage(userFriendlyNetworkError);
+        toast.error("Erro de Rede", { description: userFriendlyNetworkError }); // Usar a mensagem amigável
         setProcessingState('error'); 
         setActiveStep(3);
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null;
-        }
-        setIsLoading(false);
+        if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null; setIsLoading(false);
       } finally {
-        if (pollCount >= MAX_POLL_ATTEMPTS && (processingState === 'polling_status' || processingState === 'processing')) {
-            setErrorMessage("O servidor demorou demasiado para responder. Tente mais tarde.");
+        if (pollCount >= MAX_POLL_ATTEMPTS && 
+            (processingState === 'polling_status' || processingState === 'processing')) {
+            const timeoutUserMsg = "A sua transformação está a demorar mais que o normal. Por favor, verifique o estado em 'Minha Conta' dentro de alguns minutos.";
+            setErrorMessage(timeoutUserMsg);
             setProcessingState('error'); setActiveStep(3);
-            toast.error("Timeout", { description: "O processamento demorou mais que o esperado."});
+            toast.error("Processamento Demorado", { description: timeoutUserMsg });
             if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null; setIsLoading(false);
         }
@@ -319,13 +290,13 @@ export function useImageProcessing() {
     };
 
     if (currentJobId && (processingState === 'polling_status' || processingState === 'processing') && !isAuthLoading) {
-      if (userInfo?.id) { // Changed to userInfo?.id
+      if (userInfo?.id) {
         if (!pollingIntervalRef.current) {
-            pollCount = 0;
-            checkStatus();
-            pollingIntervalRef.current = setInterval(checkStatus, POLLING_INTERVAL_MS);
+          pollCount = 0; 
+          checkStatus(); 
+          pollingIntervalRef.current = setInterval(checkStatus, POLLING_INTERVAL_MS);
         }
-      } else if (processingState === 'polling_status' || processingState === 'processing') { // Ensure this check is only if polling was active
+      } else if (processingState === 'polling_status' || processingState === 'processing') {
         setErrorMessage("Autenticação perdida durante o polling. Faça login.");
         setProcessingState('error'); setActiveStep(3);
         toast.error("Sessão Perdida", { description: "Faça login para continuar monitorando." });
@@ -342,16 +313,16 @@ export function useImageProcessing() {
           setIsLoading(false);
       }
     }
+    
     return () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
     };
-  }, [currentJobId, processingState, userInfo, userInfo?.id, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage]); // Added userInfo
+  }, [currentJobId, processingState, userInfo, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage]);
 
 
-  // --- Handlers ---
   const resetAllLocalStates = useCallback(() => {
     setUploadedImage(null);
     setSelectedStyle(null);
@@ -361,23 +332,23 @@ export function useImageProcessing() {
     setCurrentJobId(null);
     setActiveStep(1);
     setIsLoading(false);
-    // Limpa o localStorage para um novo fluxo
-    localStorage.removeItem('studioState'); // Limpa apenas o estilo guardado
-    localStorage.removeItem('currentJobId'); // Garante que o job ID é limpo
+    localStorage.removeItem('studioState');
+    localStorage.removeItem('currentJobId');
     if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
     }
-  }, [setErrorMessage, setIsLoading, setProcessingState, setSelectedStyle, setTransformedImage, setCurrentJobId]); // Removido setActiveStep
+  }, [setActiveStep /* Adicionado setActiveStep se ele realmente é alterado aqui, caso contrário pode ser omitido se sempre for para 1 */]);
 
   const handleFileChange = useCallback((file: UploadedFile | null) => {
-    // Se um novo ficheiro é carregado, ou o ficheiro é removido, reseta tudo.
-    resetAllLocalStates(); // Chama a função de reset completo
+    resetAllLocalStates();
     if (file) {
         setUploadedImage(file);
-        setActiveStep(2); // Avança para a seleção de estilo se um ficheiro for carregado
+        setActiveStep(2);
+    } else {
+        setActiveStep(1);
     }
-  }, [resetAllLocalStates, setActiveStep, setUploadedImage]);
+  }, [resetAllLocalStates, setActiveStep]); 
 
   const openStyleSelector = useCallback(() => {
     if (uploadedImage) {
@@ -391,10 +362,9 @@ export function useImageProcessing() {
     setSelectedStyle(style);
     setActiveStep(3); 
     setIsStyleModalOpen(false);
-    setErrorMessage(null);
-    // If we have an uploaded image and now a style, we are ready for payment step.
+    setErrorMessage(null); 
     if (uploadedImage) {
-      setProcessingState('awaiting_payment'); // Set state to show payment UI
+      setProcessingState('awaiting_payment');
     }
     toast.success(`Estilo "${style.name}" selecionado!`);
   }, [uploadedImage, setActiveStep, setProcessingState, setSelectedStyle, setIsStyleModalOpen, setErrorMessage]);
@@ -407,22 +377,20 @@ export function useImageProcessing() {
     if (isAuthLoading) {
       toast.info("Aguarde", { description: "A verificar autenticação..." }); return;
     }
-    if (!userInfo) {
+    if (!userInfo?.id || !userInfo?.email) { 
       toast.error("Autenticação Necessária", { description: "Por favor, faça login para continuar." }); return;
     }
 
     setIsLoading(true);
-    setProcessingState('uploading_image');
+    setProcessingState('uploading_image'); 
     setErrorMessage(null);
-    // setCurrentJobId(null); // Já deve estar null devido ao handleFileChange ou reset no user change
-    // localStorage.removeItem('currentJobId'); // Já deve estar limpo
 
     let tempUploadedFilePath: string | null = null;
     let tempNewJobId: string | null = null;
 
     try {
       const file = uploadedImage.file;
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop() || 'tmp';
       const filePath = `public/${userInfo.id}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -441,7 +409,7 @@ export function useImageProcessing() {
       const { data: jobData, error: jobError } = await supabase
         .from('transformations').insert(transformationData).select('id').single();
       if (jobError || !jobData?.id) {
-        if (tempUploadedFilePath) {
+        if (tempUploadedFilePath) { 
           supabase.storage.from('images').remove([tempUploadedFilePath])
             .catch(delErr => console.error(`Failed to delete orphaned image ${tempUploadedFilePath}:`, delErr));
         }
@@ -449,12 +417,10 @@ export function useImageProcessing() {
       }
       tempNewJobId = jobData.id;
       
-      // Guarda no localStorage ANTES de definir o estado React e redirecionar
-      localStorage.setItem('currentJobId', tempNewJobId); // A página success.tsx vai precisar disto
+      localStorage.setItem('currentJobId', tempNewJobId);
       localStorage.setItem('studioState', JSON.stringify({ selectedStyleId: selectedStyle.id }));
 
-      setCurrentJobId(tempNewJobId);
-      setProcessingState('awaiting_payment');
+      setCurrentJobId(tempNewJobId); 
 
       const checkoutResponse = await fetch('/api/create-checkout-session', { 
         method: 'POST', headers: { 'Content-Type': 'application/json' }, 
@@ -468,7 +434,7 @@ export function useImageProcessing() {
       const { sessionId } = await checkoutResponse.json();
       if (!sessionId) throw new Error("ID de sessão Stripe não recebido.");
       
-      setProcessingState('redirecting_to_payment');
+      setProcessingState('redirecting_to_payment'); 
 
       const stripe = await getStripe();
       if (!stripe) throw new Error("Stripe.js não carregado.");
@@ -480,10 +446,11 @@ export function useImageProcessing() {
       const errorMsg = error instanceof Error ? error.message : 'Falha ao iniciar o processo.';
       setErrorMessage(errorMsg);
       toast.error("Erro no Processo", { description: errorMsg });
-      setProcessingState('error');
+      setProcessingState('error'); 
+      setActiveStep(3); 
       
       localStorage.removeItem('currentJobId'); 
-      setCurrentJobId(null);
+      setCurrentJobId(null); 
 
       if (tempNewJobId) {
         try { 
@@ -491,21 +458,29 @@ export function useImageProcessing() {
           if (errorMsg.toLowerCase().includes('upload')) failureStatus = 'failed_upload';
           else if (errorMsg.toLowerCase().includes('checkout') || errorMsg.toLowerCase().includes('stripe')) failureStatus = 'failed_checkout_redirect';
           else if (errorMsg.toLowerCase().includes('job') || errorMsg.toLowerCase().includes('registo')) failureStatus = 'failed_db_update';
-          await supabase.from('transformations').update({ status: failureStatus, error_message: errorMsg }).eq('id', tempNewJobId);
+          
+          await supabase.from('transformations')
+            .update({ status: failureStatus, error_message: errorMsg.substring(0,500) }) 
+            .eq('id', tempNewJobId);
         } catch (updateDbError) { 
           console.error("Failed to update job status in DB after error:", updateDbError); 
         }
       }
-      setIsLoading(false);
+    } finally {
+        if (processingState !== 'redirecting_to_payment' && processingState !== 'completed' && processingState !== 'error') {
+            setIsLoading(false); // Ensure loading is stopped if not redirecting or in a final state
+        } else if (processingState === 'error' || processingState === 'completed'){
+            setIsLoading(false); // Also stop loading if it's an error or completed state
+        }
     }
-  }, [uploadedImage, selectedStyle, userInfo, isAuthLoading, setErrorMessage, setIsLoading, setProcessingState, setCurrentJobId]);
+  }, [uploadedImage, selectedStyle, userInfo, isAuthLoading, setActiveStep, processingState /* Adicionado processingState */]);
 
   const handleNewImage = useCallback(() => {
     resetAllLocalStates();
   }, [resetAllLocalStates]);
 
   const handleReset = useCallback(() => {
-    handleNewImage(); // handleNewImage já faz o reset completo
+    handleNewImage();
   }, [handleNewImage]);
 
   const handleDownload = useCallback(() => {
@@ -527,7 +502,7 @@ export function useImageProcessing() {
     uploadedImage, isStyleModalOpen, selectedStyle, processingState, transformedImage,
     activeStep, isLoading, errorMessage, currentJobId,
     availableStyles, stylesLoading, stylesError,
-    setIsStyleModalOpen, setActiveStep,
+    setIsStyleModalOpen, setActiveStep, 
     handleFileChange, openStyleSelector, handleStyleSelect,
     handlePaymentClick: initiatePayment,
     handleReset, handleNewImage, handleDownload

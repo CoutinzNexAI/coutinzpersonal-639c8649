@@ -8,9 +8,9 @@ import Link from 'next/link'; // Para links internos
 const PoliticaPrivacidadePage: React.FC = () => {
   // --- PREENCHE ESTES DADOS ---
   const nomeEmpresaOuSeuNome = "PicTuz Team"; // Substitui pelo nome correto
-  const urlSite = "https://doingthingsbig.net/en/"; // Confirma se este é o URL final
+  const urlSite = "https://pictuz.com"; // Confirma se este é o URL final
   const emailContacto = "pictuzinfo@gmail.com"; // Substitui pelo teu email de suporte
-  const dataAtualizacao = "14 de Maio de 2025"; // Atualiza a data
+  const dataAtualizacao = "22 de Maio de 2025"; // Atualiza a data
   const urlTermosServicos = "/termos-servicos"; // Link para a página de Termos
 
   return (
@@ -39,9 +39,6 @@ const PoliticaPrivacidadePage: React.FC = () => {
           <p className="mb-6 text-ghibli-earth">
             Ao utilizar o Serviço, concorda com a recolha e utilização de informações de acordo com esta política. Esta Política de Privacidade deve ser lida em conjunto com os nossos <Link href={urlTermosServicos} legacyBehavior><a className="text-ghibli-sky hover:underline">Termos de Serviço</a></Link>.
           </p>
-          <p className="mb-8 text-ghibli-earth italic text-sm">
-            **Nota Importante:** Esta política é fornecida para fins informativos. Recomendamos vivamente a consulta de um profissional legal para garantir a total conformidade com o Regulamento Geral sobre a Proteção de Dados (RGPD) e outras leis aplicáveis.
-          </p>
 
           {/* Secções da Política */}
           <section className="mb-8">
@@ -58,10 +55,10 @@ const PoliticaPrivacidadePage: React.FC = () => {
                 <strong>Dados de Pagamento:</strong> Quando efetua um pagamento por uma Transformação, a transação é processada pelo nosso parceiro Stripe. Não recolhemos nem armazenamos os detalhes completos do seu cartão de crédito. O Stripe recolhe as informações necessárias para processar o pagamento de acordo com a sua própria política de privacidade. Poderemos armazenar um identificador da transação ou o ID de cliente Stripe associado à sua conta para fins de gestão e suporte.
               </li>
               <li>
-                <strong>Dados de Utilização (Potencial):</strong> Poderemos recolher informações sobre como o Serviço é acedido e utilizado (por exemplo, tipos de estilos mais usados, frequência de utilização, dados de erro anónimos). Estes dados são geralmente agregados e anonimizados para nos ajudar a melhorar o Serviço. *(Nota: Se usares ferramentas de análise como Google Analytics ou Vercel Analytics, deves detalhar aqui).*
+                <strong>Dados de Utilização (Potencial):</strong> Poderemos recolher informações sobre como o Serviço é acedido e utilizado
               </li>
                <li>
-                <strong>Cookies e Tecnologias Semelhantes:</strong> Poderemos usar cookies essenciais (por exemplo, para manter a sua sessão de login via Supabase Auth) e outras tecnologias. Consulte a nossa secção sobre Cookies abaixo. *(Nota: Se usares cookies não essenciais, como os de análise ou marketing, precisas de um banner de consentimento de cookies e detalhar aqui).*
+                <strong>Cookies e Tecnologias Semelhantes:</strong> Poderemos usar cookies essenciais
                </li>
             </ul>
           </section>
@@ -149,14 +146,14 @@ const PoliticaPrivacidadePage: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">8. Cookies</h2>
             <p className="text-ghibli-earth">
-              Utilizamos cookies essenciais para o funcionamento do Serviço, como os necessários para manter a sua sessão de autenticação (geridos pelo Supabase Auth). Não utilizamos cookies de rastreamento ou publicidade de terceiros sem o seu consentimento explícito. *(Nota: Ajustar esta secção se usar cookies de análise ou outros não essenciais. Nesse caso, precisa de um banner de consentimento e uma política de cookies mais detalhada).*
+              Utilizamos cookies essenciais para o funcionamento do Serviço, como os necessários para manter a sua sessão de autenticação (geridos pelo Supabase Auth). Não utilizamos cookies de rastreamento ou publicidade de terceiros sem o seu consentimento explícito.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">9. Privacidade Infantil</h2>
             <p className="text-ghibli-earth">
-              O nosso Serviço não se destina a menores de 18 anos ("Crianças"). Não recolhemos intencionalmente informações de identificação pessoal de menores de 18 anos. Se for pai/mãe ou tutor e tiver conhecimento de que a sua Criança nos forneceu Dados Pessoais, por favor contacte-nos. Se tomarmos conhecimento de que recolhemos Dados Pessoais de crianças sem verificação do consentimento parental, tomaremos medidas para remover essas informações dos nossos servidores. *(Nota: Verificar a idade mínima aplicável em Portugal/UE).*
+              O nosso Serviço não se destina a menores de 18 anos ("Crianças"). Não recolhemos intencionalmente informações de identificação pessoal de menores de 18 anos. Se for pai/mãe ou tutor e tiver conhecimento de que a sua Criança nos forneceu Dados Pessoais, por favor contacte-nos. Se tomarmos conhecimento de que recolhemos Dados Pessoais de crianças sem verificação do consentimento parental, tomaremos medidas para remover essas informações dos nossos servidores. 
             </p>
           </section>
 
