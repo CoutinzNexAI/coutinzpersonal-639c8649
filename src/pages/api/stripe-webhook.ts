@@ -60,24 +60,20 @@ export default async function handler(
      if (!internalSecret) missing.push('INTERNAL_API_SECRET');
      return res.status(500).json({ message: `Server configuration incomplete: Missing ${missing.join(', ')}` });
   }
-  console.log('[Webhook] Required environment variables verified.');
 
   // --- Step 4: Construct Stripe Event ---
   let event: Stripe.Event;
   try {
-    console.log('[Webhook] Initializing Stripe client...');
     const stripe = new Stripe(stripeSecretKey, {
       typescript: true,
       apiVersion: '2025-04-30.basil', // Or your preferred version
     });
 
-    console.log('[Webhook] Attempting to construct Stripe event...');
     event = stripe.webhooks.constructEvent(
       rawBody.toString(),
       signature,
       webhookSecret
     );
-    console.log(`[Webhook] Successfully constructed event. ID: ${event.id}, Type: ${event.type}`);
 
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -87,7 +83,6 @@ export default async function handler(
 
   // --- Step 5: Process the event ---
   if (event.type === 'checkout.session.completed') {
-    console.log(`[Webhook] Processing checkout.session.completed event: ${event.id}`);
     const session = event.data.object as Stripe.Checkout.Session;
 
     const jobId = session.metadata?.jobId;
@@ -95,14 +90,12 @@ export default async function handler(
       console.error(`❌ [Webhook] No jobId found in session metadata for session: ${session.id}`);
       return res.status(200).json({ received: true, message: "Missing jobId in metadata" }); // Acknowledge, but don't proceed
     }
-    console.log(`[Webhook] Found jobId: ${jobId} in metadata for session: ${session.id}`);
 
     if (session.payment_status === 'paid') {
       console.log(`✅ [Webhook] Payment successful for job: ${jobId}, session: ${session.id}, payment_intent: ${session.payment_intent}`);
 
       try {
         // --- Step 5a: Update Supabase ---
-        console.log(`[Webhook] Attempting to update job status to 'paid' for job: ${jobId}`);
         // CORRECTION: Removed 'updated_at' field as it doesn't exist in the schema
         const { error: updateError } = await supabaseAdmin
           .from('transformations')
@@ -118,13 +111,11 @@ export default async function handler(
           // Return 500 to potentially make Stripe retry if DB update fails
           return res.status(500).json({ message: 'Failed to update job status', error: updateError.message });
         }
-        console.log(`✅ [Webhook] Successfully updated job status to 'paid' for job: ${jobId}`);
 
         // --- Step 5b: Trigger Image Processing ---
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.headers.origin || 'https://www.pictuz.com/';
         const processImageUrl = `${baseUrl}/api/process-image`;
 
-        console.log(`[Webhook] Attempting to trigger image processing for job ${jobId} via POST to: ${processImageUrl}`);
         // Intentionally NOT awaiting fetch - run in background
         fetch(processImageUrl, {
           method: 'POST',
@@ -151,7 +142,6 @@ export default async function handler(
           // await updateJobStatus(jobId, 'payment_ok_trigger_failed', `Webhook network error triggering processing: ${fetchErrorMessage}`);
         });
 
-        console.log(`[Webhook] Fetch call initiated for job: ${jobId}. Webhook handler responding 200 OK.`);
         // Respond 200 OK immediately to Stripe, even if fetch fails later
         return res.status(200).json({ received: true, message: 'Payment confirmed, processing triggered.' });
 
