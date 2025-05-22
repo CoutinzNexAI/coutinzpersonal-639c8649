@@ -63,7 +63,6 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMobileStyleSheetOpen, setIsMobileStyleSheetOpen] = useState(false);
   const [currentDisplayStyleId, setCurrentDisplayStyleId] = useState<string | null>(null);
-  const [mobileSelectedStyle, setMobileSelectedStyle] = useState<Style | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const filteredStyles = useMemo(() => {
@@ -96,11 +95,6 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
     onOpenChange(false); 
   };
 
-  const handleMobileStyleSelect = (style: Style) => {
-    setCurrentDisplayStyleId(style.id); 
-    setMobileSelectedStyle(style);
-  };
-
   useEffect(() => {
     if (isOpen) { // Only adjust if the modal is open
       if (currentDisplayStyleId && !filteredStyles.find(s => s.id === currentDisplayStyleId)) {
@@ -111,11 +105,7 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
     }
   }, [filteredStyles, currentDisplayStyleId, isOpen]);
 
-  useEffect(() => {
-    if (!isMobileStyleSheetOpen) {
-      setMobileSelectedStyle(null);
-    }
-  }, [isMobileStyleSheetOpen]);
+
 
   const currentSelectedStyleData = useMemo(() => {
     return filteredStyles.find(s => s.id === currentDisplayStyleId);
@@ -179,7 +169,12 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
                 "w-full justify-start p-2 h-[56px] text-left text-base flex items-center gap-2",
                 currentDisplayStyleId === style.id ? "bg-ghibli-moss text-white" : "text-ghibli-wood hover:bg-ghibli-cream/70"
               )}
-              onClick={() => handleMobileStyleSelect(style)}
+              onClick={() => {
+                // Seleção imediata e fechamento da Sheet
+                onStyleSelect(style);
+                setCurrentDisplayStyleId(style.id);
+                setIsMobileStyleSheetOpen(false);
+              }}
             >
               <div className="relative w-8 h-8 rounded-md overflow-hidden shrink-0 border border-ghibli-stone/10">
                 <Image
@@ -200,22 +195,10 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
         <SheetFooter className="p-3 border-t border-ghibli-stone/20 sticky bottom-0 bg-ghibli-cream/95 z-30">
           <SheetClose asChild>
             <Button 
-              className="w-full ghibli-button text-base flex items-center justify-center gap-2"
-              onClick={() => {
-                const styleToConfirm = mobileSelectedStyle || currentSelectedStyleData;
-                if (styleToConfirm) {
-                  handleDirectStyleSelect(styleToConfirm);
-                }
-              }}
-              disabled={!(mobileSelectedStyle || currentSelectedStyleData)}
+              className="w-full bg-ghibli-stone/20 hover:bg-ghibli-stone/30 text-ghibli-wood text-base"
+              onClick={() => {}}
             >
-              {(mobileSelectedStyle || currentSelectedStyleData) && (
-                <>
-                  <span>Confirmar:</span>
-                  <span className="font-bold">{(mobileSelectedStyle || currentSelectedStyleData)?.name}</span>
-                </>
-              )}
-              {!(mobileSelectedStyle || currentSelectedStyleData) && "Nenhum Estilo Selecionado"}
+              Fechar
             </Button>
           </SheetClose>
         </SheetFooter>
@@ -301,13 +284,13 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
                   initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }}
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                 >
-                  <div className="mb-5">
+                  <div className="mb-5 text-center">
                     <h2 className="text-2xl sm:text-3xl font-ghibli text-ghibli-wood mb-1.5">{currentSelectedStyleData.name}</h2>
                     <p className="text-sm sm:text-base text-ghibli-earth/90">{currentSelectedStyleData.description || "Descubra a magia deste estilo!"}</p>
                   </div>
                   
                   {/* Área para mostrar o example_image_url do estilo selecionado */}
-                  <div className="mb-6 rounded-lg overflow-hidden shadow-lg border border-ghibli-stone/10 relative aspect-square bg-ghibli-stone/5">
+                  <div className="mb-6 rounded-lg overflow-hidden shadow-lg border border-ghibli-stone/10 relative aspect-square max-w-md mx-auto bg-ghibli-stone/5">
                     {currentSelectedStyleData.example_image_url ? (
                       <Image
                         src={imageErrors[`details-${currentSelectedStyleData.id}`] ? PLACEHOLDER_IMAGE : currentSelectedStyleData.example_image_url}

@@ -1,179 +1,173 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Upload, X, Image as ImageIcon, Check, AlertTriangle } from "lucide-react"; // Renomeado Image para ImageIcon
+import { Upload, X, Image as ImageIcon, Check, AlertTriangle, Loader2 } from "lucide-react"; // Adicionado Loader2
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Image from 'next/image';
-import { useImageUpload, UploadedFile } from '@/hooks/useImageUpload'; // Assume que este hook existe e funciona
+import { useImageUpload, UploadedFile, MAX_FILE_SIZE } from '@/hooks/useImageUpload';
 
 interface ImageUploadProps {
-  // Callback para notificar o componente pai (GhibliHero) sobre a mudança de ficheiro
   onFileChange?: (file: UploadedFile | null) => void;
-  // Permite passar classes adicionais para o container principal
   className?: string;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ onFileChange, className }) => {
-  // Usa o hook customizado para toda a lógica de upload
   const {
-    uploadedFile,    // O ficheiro carregado (ou null)
-    uploadError,     // Mensagem de erro (ou null)
-    isDragging,      // Estado para indicar se um ficheiro está a ser arrastado sobre a área
-    handleFileChange,// Handler para o input de ficheiro (seleção manual)
-    handleDragOver,  // Handler para drag over
-    handleDragLeave, // Handler para drag leave
-    handleDrop,      // Handler para drop
-    handleRemoveFile,// Handler para remover o ficheiro selecionado
+    uploadedFile,
+    uploadError,
+    isDragging,
+    isVerifying, // Novo estado do hook
+    handleFileChange,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleRemoveFile,
   } = useImageUpload();
 
-  // Ref para o input de ficheiro escondido
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewError, setPreviewError] = useState(false);
 
-  // Função para formatar o tamanho do ficheiro
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' bytes';
     else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     else return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  // Efeito para chamar onFileChange sempre que uploadedFile mudar
   useEffect(() => {
-    // Notifica o componente pai se a prop onFileChange foi passada
     if (onFileChange) {
       onFileChange(uploadedFile);
     }
-    // A dependência é uploadedFile e onFileChange
+    // Resetar o erro de preview se o ficheiro mudar
+    if (uploadedFile) {
+        setPreviewError(false);
+    }
   }, [uploadedFile, onFileChange]);
 
-  // Função para abrir o seletor de ficheiros ao clicar na área
   const handleUploadClick = () => {
-    if (fileInputRef.current) {
+    if (fileInputRef.current && !isVerifying) { // Não permite clique se estiver a verificar
       fileInputRef.current.click();
     }
   };
-
-  // Função para lidar com erro ao carregar a preview da imagem
-  const handlePreviewError = () => {
-    // Update preview error state
+  
+  const handleLocalPreviewError = () => {
     setPreviewError(true);
-    console.error("Erro ao carregar preview da imagem");
+    console.error("Erro ao carregar pré-visualização da imagem no componente.");
   };
 
-  // State to track preview image error
-  const [previewError, setPreviewError] = useState(false);
-
   return (
-    // Container principal com altura total
     <div className={cn("w-full h-full", className)}>
-      {/* Input de ficheiro escondido */}
       <input
         ref={fileInputRef}
         type="file"
-        accept=".jpg,.jpeg,.png,.webp" // Formatos aceites
-        onChange={handleFileChange}    // Chama o handler do hook
+        accept=".jpg,.jpeg,.png,.webp"
+        onChange={handleFileChange}
         className="hidden"
-        aria-hidden="true" // Esconde do leitor de ecrã
+        aria-hidden="true"
+        disabled={isVerifying} // Desabilita o input durante a verificação
       />
 
-      {/* --- Estado SEM Ficheiro Carregado --- */}
-      {!uploadedFile ? (
-        // Área de Drag & Drop / Clique com altura total e acessibilidade
+      {/* Estado de Verificação */}
+      {isVerifying ? (
+        <div className={cn(
+            "border-2 border-dashed rounded-2xl transition-all duration-200 p-8 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm h-full text-ghibli-wood",
+            className
+        )}>
+          <Loader2 className="h-10 w-10 animate-spin text-ghibli-moss mb-4" />
+          <p className="text-lg font-medium text-center">A verificar ficheiro...</p>
+          <p className="text-sm text-ghibli-earth text-center">Por favor, aguarde um momento.</p>
+        </div>
+      ) : !uploadedFile ? (
+        // Estado SEM Ficheiro Carregado (ou após erro/remoção)
         <div
           className={cn(
-            "border-2 border-dashed rounded-2xl transition-all duration-200 p-8 flex flex-col items-center justify-center cursor-pointer bg-white/50 backdrop-blur-sm h-full", // Garante altura total
-            isDragging ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50", // Feedback visual drag/hover
-            className // Permite classes externas
+            "border-2 border-dashed rounded-2xl transition-all duration-200 p-8 flex flex-col items-center justify-center cursor-pointer bg-white/50 backdrop-blur-sm h-full",
+            isDragging ? "border-ghibli-moss bg-ghibli-sky/10" : "border-ghibli-stone/40 hover:border-ghibli-moss/70",
+            uploadError && "border-destructive bg-destructive/5", // Estilo de erro
+            className
           )}
-          onClick={handleUploadClick} // Abre seletor de ficheiro
-          onDragOver={handleDragOver}  // Handlers de drag & drop
+          onClick={handleUploadClick}
+          onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          role="button" // Semântica de botão
-          tabIndex={0} // Permite foco via teclado
-          aria-label="Área para carregar imagem. Clique ou arraste um ficheiro." // Descrição acessível
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleUploadClick(); } }} // Ativa com Enter/Espaço
+          role="button"
+          tabIndex={0}
+          aria-label="Área para carregar imagem. Clique ou arraste um ficheiro."
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleUploadClick(); } }}
         >
-          {/* Ícone de Upload */}
-          <div className="mb-4 rounded-full bg-primary/10 p-4">
-            <Upload className="h-8 w-8 text-primary" />
+          <div className={cn(
+            "mb-3 sm:mb-4 rounded-full p-3 sm:p-4 transition-colors",
+            uploadError ? "bg-destructive/10" : "bg-ghibli-sky/10"
+          )}>
+            <Upload className={cn("h-7 w-7 sm:h-8 sm:h-8", uploadError ? "text-destructive" : "text-ghibli-sky")} />
           </div>
-
-          {/* Textos */}
-          <p className="text-lg font-medium text-center mb-2">
-            Arraste e solte sua foto aqui
+          <p className="text-md sm:text-lg font-medium text-center mb-1 sm:mb-2 text-ghibli-wood">
+            Arraste e solte a sua foto aqui
           </p>
-          <p className="text-muted-foreground text-center mb-4">
-            ou clique para selecionar um arquivo
+          <p className="text-ghibli-earth text-center mb-3 sm:mb-4 text-sm sm:text-base">
+            ou clique para selecionar um ficheiro
           </p>
-          <p className="text-xs text-muted-foreground text-center">
-            Formatos: JPG, PNG, WEBP (máx. 10MB) {/* Confirma se o limite é este */}
+          <p className="text-xs text-ghibli-stone/80 text-center">
+            Formatos: JPG, PNG, WEBP (máx. {formatFileSize(MAX_FILE_SIZE)})
           </p>
-
-          {/* Mensagem de Erro de Validação (do hook) */}
           {uploadError && (
-            <div className="mt-4 p-2 bg-destructive/10 text-destructive rounded-md text-sm flex items-center text-center w-full justify-center">
-              <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
+            <div className="mt-3 p-2 bg-destructive/10 text-destructive rounded-md text-xs sm:text-sm flex items-center text-center w-full max-w-xs justify-center">
+              <AlertTriangle className="h-4 w-4 mr-1.5 flex-shrink-0" />
               <span>{uploadError}</span>
             </div>
           )}
         </div>
       ) : (
-        // --- Estado COM Ficheiro Carregado ---
-        <div className="relative rounded-2xl overflow-hidden border border-border bg-white/70 backdrop-blur-sm shadow-lg h-full flex flex-col"> {/* Garante altura e layout coluna */}
-          {/* Botões de Ação (Trocar / Remover) */}
-          <div className="absolute top-3 right-3 z-10 flex gap-2">
-            {/* Botão Trocar Imagem */}
+        // Estado COM Ficheiro Carregado
+        <div className="relative rounded-2xl overflow-hidden border border-ghibli-sand/50 bg-ghibli-cream/50 backdrop-blur-sm shadow-lg h-full flex flex-col">
+          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex gap-1.5 sm:gap-2">
             <Button
               size="icon"
               variant="outline"
-              className="bg-white/80 backdrop-blur-sm h-9 w-9 rounded-full hover:bg-white"
-              onClick={handleUploadClick} // Reutiliza a função para abrir o seletor
-              aria-label="Trocar imagem" // Label acessível
+              className="bg-white/80 backdrop-blur-sm h-8 w-8 sm:h-9 sm:w-9 rounded-full hover:bg-white shadow-sm"
+              onClick={handleUploadClick}
+              aria-label="Trocar imagem"
+              disabled={isVerifying}
             >
-              <ImageIcon className="h-4 w-4" /> {/* Usando ImageIcon */}
+              <ImageIcon className="h-4 w-4" />
             </Button>
-            {/* Botão Remover Imagem */}
             <Button
               size="icon"
               variant="outline"
-              className="bg-white/80 backdrop-blur-sm h-9 w-9 rounded-full hover:bg-destructive/10 hover:text-destructive"
-              onClick={handleRemoveFile} // Chama handler do hook
-              aria-label="Remover imagem" // Label acessível
+              className="bg-white/80 backdrop-blur-sm h-8 w-8 sm:h-9 sm:w-9 rounded-full hover:bg-destructive/10 hover:text-destructive shadow-sm"
+              onClick={handleRemoveFile}
+              aria-label="Remover imagem"
+              disabled={isVerifying}
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
 
-          {/* Pré-visualização da Imagem (ocupa espaço restante) */}
-          <div className="relative aspect-video w-full overflow-hidden flex-grow bg-muted/30"> {/* Adicionado flex-grow e fundo */}
+          <div className="relative aspect-video w-full overflow-hidden flex-grow bg-slate-100">
             {previewError ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-destructive/80">
-                <AlertTriangle className="h-8 w-8 mb-2" />
-                <p className="text-sm text-center">Não foi possível carregar a pré-visualização</p>
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-destructive/90 bg-destructive/5">
+                <AlertTriangle className="h-7 w-7 sm:h-8 sm:h-8 mb-2" />
+                <p className="text-xs sm:text-sm text-center">Não foi possível carregar a pré-visualização.</p>
               </div>
             ) : (
               <Image
-                src={uploadedFile.preview} // URL de pré-visualização gerada pelo hook
-                alt="Pré-visualização da imagem selecionada"
+                src={uploadedFile.preview}
+                alt="Pré-visualização da imagem carregada"
                 fill
-                style={{ objectFit: "cover" }}
-                onError={handlePreviewError} // Handler para erro ao carregar preview
+                style={{ objectFit: "contain" }} // 'contain' para ver a imagem toda
+                onError={handleLocalPreviewError}
+                sizes="(max-width: 640px) 100vw, 50vw" // Ajuste conforme o layout
               />
             )}
           </div>
 
-          {/* Informação do Ficheiro (rodapé) */}
-          <div className="p-3 bg-white/80 backdrop-blur-sm border-t border-border/50 flex-shrink-0"> {/* Evita que encolha */}
+          <div className="p-2.5 sm:p-3 bg-white/70 backdrop-blur-sm border-t border-ghibli-sand/30 flex-shrink-0">
             <div className="flex items-center gap-2">
-              {/* Ícone de Check */}
-              <div className="rounded-full bg-primary/10 p-1 flex-shrink-0">
-                <Check className="h-4 w-4 text-primary" />
+              <div className="rounded-full bg-ghibli-moss/10 p-1 flex-shrink-0">
+                <Check className="h-3.5 w-3.5 sm:h-4 sm:h-4 text-ghibli-moss" />
               </div>
-              {/* Nome do Ficheiro (truncado) */}
-              <div className="text-sm font-medium truncate flex-grow min-w-0" title={uploadedFile.file.name}> {/* Adicionado min-w-0 */}
+              <div className="text-xs sm:text-sm font-medium truncate flex-grow min-w-0 text-ghibli-wood" title={uploadedFile.file.name}>
                 {uploadedFile.file.name}
               </div>
-              {/* Tamanho do Ficheiro */}
-              <div className="text-xs text-muted-foreground flex-shrink-0">
+              <div className="text-[10px] sm:text-xs text-ghibli-earth flex-shrink-0">
                 {formatFileSize(uploadedFile.file.size)}
               </div>
             </div>

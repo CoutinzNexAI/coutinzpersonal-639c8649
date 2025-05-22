@@ -1,226 +1,288 @@
-// src/components/hero/Step0Carousel.tsx (ou onde o criaste)
-import React, { useState, useEffect } from 'react';
+// src/components/gallery/Step0Carousel.tsx
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image'; // Usar o componente Image do Next.js
-import { Button } from '@/components/ui/button'; // Importa o botão Shadcn
-import { cn } from '@/lib/utils'; // Utilitário para classes condicionais
-import { Sparkles, Wand2 } from 'lucide-react'; // Ícones para efeito visual
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Sparkles, Wand2, Lightbulb } from 'lucide-react';
 
-// Define a estrutura dos dados para cada exemplo no carrossel
 interface CarouselExample {
   id: number;
-  beforeSrc: string; // Caminho relativo à pasta /public para a imagem "antes"
-  afterSrc: string;  // Caminho relativo à pasta /public para a imagem "depois"
-  alt: string;       // Texto alternativo descritivo
+  beforeSrc: string;
+  afterSrc: string;
+  altBefore: string; // Texto alternativo mais específico
+  altAfter: string;  // Texto alternativo mais específico
+  ariaLabel: string; // Para o slide como um todo
 }
 
-// --- DADOS DOS EXEMPLOS (Mantidos do Utilizador) ---
-const examples: CarouselExample[] = [
-    {
-      id: 1,
-      beforeSrc: '/saojoaoportonormal.jpg',
-      afterSrc: '/saojoaoportoghibli.png',
-      alt: 'Experimente o nosso estilo Azulejo Portugues!',
-    },
-    {
-      id: 2,
-      beforeSrc: '/camoesnormal.jpg',
-      afterSrc: '/camoeslego.png',
-      alt: 'Exemplo 2: Paisagem transformada em estilo Ghibli',
-    },
-    {
-      id: 3,
-      beforeSrc: '/wbgnormal.jpg',
-      afterSrc: '/wbgazulejo.png',
-      alt: 'Exemplo 3: Animal transformado em estilo Ghibli',
-    },
+const EXAMPLES_DATA: CarouselExample[] = [
+  {
+    id: 1,
+    beforeSrc: '/saojoaoportonormal.jpg',
+    afterSrc: '/saojoaoportoghibli.png',
+    altBefore: 'Fotografia original de uma celebração de São João no Porto',
+    altAfter: 'Fotografia de São João no Porto transformada para o estilo Ghibli',
+    ariaLabel: 'Exemplo de transformação: São João no Porto para estilo Ghibli',
+  },
+  {
+    id: 2,
+    beforeSrc: '/camoesnormal.jpg',
+    afterSrc: '/camoeslego.png',
+    altBefore: 'Estátua original de Luís de Camões',
+    altAfter: 'Estátua de Luís de Camões transformada em estilo Lego',
+    ariaLabel: 'Exemplo de transformação: Estátua de Camões para estilo Lego',
+  },
+  {
+    id: 3,
+    beforeSrc: '/wbgnormal.jpg', // Supondo que WBG é uma paisagem ou objeto
+    afterSrc: '/wbgazulejo.png',
+    altBefore: 'Imagem original de uma paisagem urbana com grafitti',
+    altAfter: 'Paisagem urbana com grafitti transformada para o estilo Azulejo Português',
+    ariaLabel: 'Exemplo de transformação: Paisagem urbana para estilo Azulejo Português',
+  },
 ];
 
-// Intervalo de tempo (em milissegundos) para a mudança automática de slides
-const SLIDE_INTERVAL = 5000; // 5 segundos
+const TIPS: string[] = [
+  "Utilize fotos com boa iluminação para melhores resultados",
+  "Fundos com muitas pessoas podem piorar o resultado",
+  "Experimente diferentes estilos para descobrir o seu favorito!"
+];
 
-// Propriedades que o componente Step0Carousel recebe
+const SLIDE_INTERVAL = 5500; // 5.5 segundos
+
+// Helper function para obter o src da imagem
+const getImageSrcModal = (path: string | undefined | null): string => {
+  if (!path) return 'https://placehold.co/300x300/EEE/31343C?text=Indisponível'; 
+  return path.startsWith('http') || path.startsWith('/') ? path : `/${path}`;
+};
+
 interface Step0CarouselProps {
-  onStartClick: () => void; // Função a ser chamada quando o botão principal é clicado
+  onStartClick: () => void;
 }
 
-// --- COMPONENTE PRINCIPAL ---
 export const Step0Carousel: React.FC<Step0CarouselProps> = ({ onStartClick }) => {
-  // Estado para controlar o índice do slide atualmente visível
   const [currentIndex, setCurrentIndex] = useState(0);
-  // Estado para controlar a direção da animação de slide
-  const [direction, setDirection] = useState(0); // 0: initial, 1: next, -1: prev
+  const [direction, setDirection] = useState(0);
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [liveRegionText, setLiveRegionText] = useState("");
 
-  // Função para avançar para o próximo slide
-  const goToNext = () => {
+  const goToNextSlide = useCallback(() => {
     setDirection(1);
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % examples.length);
-  };
+    setCurrentIndex((prevIndex) => {
+      const next = (prevIndex + 1) % EXAMPLES_DATA.length;
+      setLiveRegionText(EXAMPLES_DATA[next]?.ariaLabel || `Exemplo ${next + 1}`);
+      return next;
+    });
+  }, []);
 
-  // Função para ir para um slide específico (usada pelos pontos)
+  const goToPreviousSlide = useCallback(() => {
+    setDirection(-1);
+    setCurrentIndex((prevIndex) => {
+      const prev = (prevIndex - 1 + EXAMPLES_DATA.length) % EXAMPLES_DATA.length;
+      setLiveRegionText(EXAMPLES_DATA[prev]?.ariaLabel || `Exemplo ${prev + 1}`);
+      return prev;
+    });
+  }, []);
+  
   const goToIndex = (index: number) => {
-    // Determina a direção com base no índice atual vs o clicado
     setDirection(index > currentIndex ? 1 : (index < currentIndex ? -1 : 0));
     setCurrentIndex(index);
+    setLiveRegionText(EXAMPLES_DATA[index]?.ariaLabel || `Exemplo ${index + 1}`);
   };
 
-
-  // Efeito para avançar automaticamente os slides
   useEffect(() => {
-    if (examples.length <= 1) return; // Não inicia se só houver 1 exemplo
-    const intervalId = setInterval(goToNext, SLIDE_INTERVAL); // Usa goToNext para definir direção
-    return () => clearInterval(intervalId); // Limpeza
-  }, []); // Executa apenas na montagem
+    if (EXAMPLES_DATA.length <= 1) return;
+    const intervalId = setInterval(goToNextSlide, SLIDE_INTERVAL);
+    return () => clearInterval(intervalId);
+  }, [goToNextSlide]);
 
-  // Obtém os dados do exemplo atual
-  const currentExample = examples[currentIndex];
+  useEffect(() => {
+    if (TIPS.length <= 1) return;
+    const tipIntervalId = setInterval(() => {
+      setCurrentTipIndex((prev) => (prev + 1) % TIPS.length);
+    }, SLIDE_INTERVAL + 1000); // Muda a dica um pouco depois do slide
+    return () => clearInterval(tipIntervalId);
+  }, []);
+  
+  // Efeito para navegação por teclado
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') {
+        goToNextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        goToPreviousSlide();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [goToNextSlide, goToPreviousSlide]);
 
-  // Placeholder para erro de imagem
-  const placeholderSrc = 'https://placehold.co/300x300/EEE/31343C?text=Imagem+Indisponivel';
 
-  // Função para lidar com erros ao carregar imagens
+  const currentExample = EXAMPLES_DATA[currentIndex];
+  const placeholderSrc = 'https://placehold.co/300x300/EEE/31343C?text=Indisponível';
+
   const handleImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
     event.currentTarget.src = placeholderSrc;
-    event.currentTarget.classList.add('image-error-placeholder'); // Adiciona classe para possível estilo
+    event.currentTarget.srcset = ""; // Limpa o srcset também
+    // Adicionar classes para estilização de erro se necessário
   };
 
-  // --- Variantes de Animação (Slide + Fade) ---
   const slideVariants = {
-    hidden: (direction: number) => ({
-      x: direction > 0 ? '100%' : '-100%', // Começa fora da tela (direita ou esquerda)
+    hidden: (customDirection: number) => ({
+      x: customDirection > 0 ? '100%' : '-100%',
       opacity: 0,
+      scale: 0.95,
     }),
     visible: {
-      x: '0%', // Move para a posição central
+      x: '0%',
       opacity: 1,
-      transition: { type: 'spring', stiffness: 80, damping: 20 }, // Transição suave tipo mola
+      scale: 1,
+      transition: { type: 'spring', stiffness: 70, damping: 20 },
     },
-    exit: (direction: number) => ({
-      x: direction < 0 ? '100%' : '-100%', // Sai para o lado oposto
+    exit: (customDirection: number) => ({
+      x: customDirection < 0 ? '100%' : '-100%',
       opacity: 0,
-      transition: { duration: 0.3 }, // Saída mais rápida e simples
+      scale: 0.95,
+      transition: { duration: 0.3, ease: "easeIn" },
     }),
   };
 
+  if (!currentExample) {
+    // Fallback se EXAMPLES_DATA estiver vazio ou currentIndex for inválido
+    return (
+        <div className="flex flex-col items-center justify-center gap-4 w-full max-w-md mx-auto p-4 h-96 bg-ghibli-cream/50 rounded-lg">
+            <Wand2 className="w-12 h-12 text-ghibli-moss" />
+            <p className="text-ghibli-wood text-center">A carregar exemplos mágicos...</p>
+        </div>
+    );
+  }
 
   return (
-    // Container principal do carrossel
-    <div className="flex flex-col items-center gap-4 w-full max-w-md mx-auto p-4">
-
-      {/* --- TÍTULO CHAMATIVO ACIMA DO CARROSSEL --- */}
+    <div className="flex flex-col items-center gap-4 w-full max-w-sm sm:max-w-md mx-auto p-3 sm:p-4">
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-        className="flex items-center gap-2 mb-2 text-center" // Adiciona margem inferior
+        transition={{ delay: 0.1, duration: 0.4 }}
+        className="flex items-center gap-2 text-center"
       >
-        <Wand2 className="w-6 h-6 text-ghibli-sky" strokeWidth={1.5} /> {/* Ícone */}
-        <h4 className="text-lg font-ghibli font-semibold text-ghibli-wood tracking-wide">
-          Veja a Magia Acontecer! {/* Texto do título */}
+        <Wand2 className="w-5 h-5 sm:w-6 sm:h-6 text-ghibli-sky" strokeWidth={1.5} />
+        <h4 className="text-md sm:text-lg font-ghibli font-semibold text-ghibli-wood tracking-wide">
+          Veja a Magia Acontecer!
         </h4>
-        <Sparkles className="w-7 h-7 text-amber-400" strokeWidth={1.5}/> {/* Outro ícone (opcional) */}
+        <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-amber-400 opacity-90" strokeWidth={1.5} />
       </motion.div>
 
-      {/* Container do slide com estilo melhorado e overflow hidden */}
       <div className={cn(
-          "relative w-full h-56 sm:h-64 overflow-hidden rounded-lg",
-          "bg-ghibli-cream border border-ghibli-stone/20", // Fundo e borda temáticos
-          "shadow-lg shadow-ghibli-wood/20", // Sombra mais pronunciada
-          "ring-1 ring-ghibli-sky/30 ring-offset-2 ring-offset-ghibli-cream" // Efeito de brilho/borda sutil
-          )}>
-        {/* AnimatePresence gere a animação de entrada/saída dos slides */}
-        <AnimatePresence initial={false} custom={direction}>
-          {/* motion.div representa cada slide individual */}
+        "relative w-full overflow-hidden rounded-xl", // Borda arredondada no container principal
+        "bg-ghibli-cream/80 border-2 border-ghibli-sand/50",
+        "shadow-xl shadow-ghibli-wood/25 aspect-[4/3] sm:aspect-[16/9] md:aspect-[4/3]", // Proporção do container do slide
+        "max-h-[280px] sm:max-h-[320px] md:max-h-[300px]" // Altura máxima responsiva
+      )}>
+        <AnimatePresence initial={false} custom={direction} mode="popLayout">
           <motion.div
-            key={currentIndex} // Chave dinâmica é ESSENCIAL para AnimatePresence detetar a mudança
-            custom={direction} // Passa a direção para as variantes de animação
-            variants={slideVariants} // Aplica as variantes de slide+fade
+            key={currentIndex}
+            custom={direction}
+            variants={slideVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="absolute inset-0 flex items-center justify-center gap-2 p-1" // Layout do slide
+            className="absolute inset-0 flex items-center justify-center gap-1 sm:gap-2 p-1 sm:p-1.5"
+            aria-roledescription="slide"
+            aria-label={currentExample.ariaLabel}
           >
-            {/* Imagem "Antes" */}
-            <div className="w-1/2 h-full relative group"> {/* group para hover no label */}
+            {/* Imagem "Antes" - Quadrada */}
+            <div className="relative w-1/2 h-full aspect-square group flex items-center justify-center overflow-hidden rounded-lg bg-black/5">
               <Image
-                src={currentExample.beforeSrc}
-                alt={`Antes - ${currentExample.alt}`}
-                layout="fill" // Preenche o container
-                objectFit="contain" // Mostra imagem inteira
-                className="rounded-md"
-                priority={currentIndex === 0} // Prioriza o carregamento da primeira imagem
-                onError={handleImageError} // Tratamento de erro
-                unoptimized={currentExample.beforeSrc.startsWith('https://placehold.co')} // Não otimiza placeholders
+                src={getImageSrcModal(currentExample.beforeSrc)}
+                alt={currentExample.altBefore}
+                fill
+                style={{ objectFit: "contain" }} // 'contain' para ver a imagem toda dentro do quadrado
+                className="transition-transform duration-300 group-hover:scale-105"
+                priority={currentIndex === 0}
+                onError={handleImageError}
+                sizes="(max-width: 640px) 40vw, 200px" // Ajustar sizes
+                unoptimized={currentExample.beforeSrc.startsWith('https://placehold.co')}
               />
-              {/* Label "Antes" (visível no hover em desktop) */}
-              <span className="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white text-xs px-1.5 py-0.5 rounded transition-opacity duration-300 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
-                Antes
+              <span className="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white text-[10px] sm:text-xs px-1 py-0.5 rounded-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                Original
               </span>
             </div>
 
-            {/* Imagem "Depois" */}
-            <div className="w-1/2 h-full relative group"> {/* group para hover no label */}
+            {/* Imagem "Depois" - Quadrada */}
+            <div className="relative w-1/2 h-full aspect-square group flex items-center justify-center overflow-hidden rounded-lg bg-black/5">
               <Image
-                src={currentExample.afterSrc}
-                alt={`Depois - ${currentExample.alt}`}
-                layout="fill"
-                objectFit="contain"
-                className="rounded-md"
-                priority={currentIndex === 0} // Prioriza o carregamento da primeira imagem
-                onError={handleImageError} // Tratamento de erro
-                unoptimized={currentExample.afterSrc.startsWith('https://placehold.co')} // Não otimiza placeholders
+                src={getImageSrcModal(currentExample.afterSrc)}
+                alt={currentExample.altAfter}
+                fill
+                style={{ objectFit: "contain" }}
+                className="transition-transform duration-300 group-hover:scale-105"
+                priority={currentIndex === 0}
+                onError={handleImageError}
+                sizes="(max-width: 640px) 40vw, 200px" // Ajustar sizes
+                unoptimized={currentExample.afterSrc.startsWith('https://placehold.co')}
               />
-              {/* Label "Depois" (visível no hover em desktop) */}
-              <span className="absolute bottom-1 right-1 bg-ghibli-sky bg-opacity-80 text-white text-xs px-1.5 py-0.5 rounded transition-opacity duration-300 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
-                Depois
+              <span className="absolute bottom-1 right-1 bg-ghibli-sky bg-opacity-80 text-white text-[10px] sm:text-xs px-1 py-0.5 rounded-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                Transformada
               </span>
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
+      
+      {/* Elemento para anunciar mudanças de slide a leitores de ecrã */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {liveRegionText}
+      </div>
 
-      {/* Indicadores de Navegação (Pontos) */}
-      {/* Só mostra se houver mais de um exemplo */}
-      {examples.length > 1 && (
-        <div className="flex justify-center gap-2 mt-2">
-          {examples.map((_, index) => (
+      {EXAMPLES_DATA.length > 1 && (
+        <div className="flex justify-center gap-1.5 sm:gap-2 mt-1 sm:mt-2">
+          {EXAMPLES_DATA.map((_, index) => (
             <button
               key={index}
-              onClick={() => goToIndex(index)} // Permite clicar para navegar
-              // Estilo dos pontos, com destaque para o ativo
+              onClick={() => goToIndex(index)}
               className={cn(
-                'w-2.5 h-2.5 rounded-full transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-ghibli-moss', // Estilo base e de foco
+                'w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-ghibli-moss',
                 currentIndex === index
-                  ? 'bg-ghibli-moss scale-110' // Ponto ativo maior e com cor
-                  : 'bg-ghibli-stone/40 hover:bg-ghibli-stone/60' // Ponto inativo e hover
+                  ? 'bg-ghibli-moss scale-125'
+                  : 'bg-ghibli-stone/50 hover:bg-ghibli-stone/70'
               )}
-              aria-label={`Ver exemplo ${index + 1}`} // Acessibilidade
+              aria-label={`Ver exemplo ${index + 1} de ${EXAMPLES_DATA.length}`}
+              aria-current={currentIndex === index ? "true" : "false"}
             />
           ))}
         </div>
       )}
 
-      {/* Botão Principal com Animação de Pulso */}
       <motion.div
-         // Animação de pulso suave para chamar a atenção
-         animate={{ scale: [1, 1.03, 1] }}
-         transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-         className="w-full max-w-xs mt-4" // Container para a animação
+        animate={{ scale: [1, 1.025, 1] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        className="w-full max-w-[280px] sm:max-w-xs mt-3 sm:mt-4"
       >
         <Button
-          onClick={onStartClick} // Chama a função para avançar
+          onClick={onStartClick}
           size="lg"
-          className="w-full ghibli-button" // Aplica o estilo temático do botão
+          className="w-full ghibli-button shadow-lg hover:shadow-xl transition-shadow" // Adicionado estilo ghibli-button se existir
+          aria-label="Experimentar com a sua própria fotografia"
         >
           Experimente com a Sua Foto!
         </Button>
       </motion.div>
 
-      {/* Adicionar junto aos controles de upload, por exemplo: */}
-      <div className="mt-2 text-xs text-ghibli-earth/80 flex items-center">
-        <span className="text-ghibli-sky mr-1">💡</span>
-        <span>Dica: Fotos com boa luz funcionam melhor</span>
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentTipIndex}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.4, ease:"easeInOut" }}
+          className="mt-2 text-xs sm:text-sm text-ghibli-earth/90 flex items-center text-center px-2"
+        >
+          <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ghibli-sky mr-1.5 flex-shrink-0" />
+          <span>{TIPS[currentTipIndex]}</span>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };
+
+export default Step0Carousel;

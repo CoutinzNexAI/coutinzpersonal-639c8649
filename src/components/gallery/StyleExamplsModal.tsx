@@ -1,8 +1,8 @@
 // src/components/gallery/StyleExamplesModal.tsx
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Wand } from 'lucide-react';
+import { Wand, X, ChevronLeft, ChevronRight, ArrowRight, ImageOff } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,15 +11,28 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from '@/lib/utils';
-import { STYLE_EXAMPLES_DATA } from '@/lib/data/exampleData'; // Importa os dados e a interface
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { STYLE_EXAMPLES_DATA } from '@/lib/data/exampleData'; // Corrigido conforme a tua indicação
+
+// Helper function para obter o src da imagem
+const getImageSrc = (path: string | undefined | null): string => {
+  if (!path) return 'https://placehold.co/300x300/EEE/31343C?text=Indisponível'; // Reduzido placeholder
+  return path.startsWith('http') || path.startsWith('/') ? path : `/${path}`;
+};
 
 interface StyleExamplesModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onStartTransformationClick?: () => void; // Callback para o botão "Comece agora"
+  onStartTransformationClick?: (styleId: string) => void;
 }
 
 export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
@@ -27,179 +40,323 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
   onOpenChange,
   onStartTransformationClick,
 }) => {
-  const [selectedExampleStyleId, setSelectedExampleStyleId] = useState<string>(STYLE_EXAMPLES_DATA[0]?.id || '');
-  const [isStyleSheetOpen, setIsStyleSheetOpen] = useState(false);
-  const currentSelectedStyleData = STYLE_EXAMPLES_DATA.find(s => s.id === selectedExampleStyleId);
+  const [selectedStyleId, setSelectedStyleId] = useState<string>(STYLE_EXAMPLES_DATA[0]?.id || '');
+  const [currentPage, setCurrentPage] = useState(0);
+  const [swipeDirection, setSwipeDirection] = useState(0);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const modalTitleId = "style-examples-modal-title";
+  const modalDescriptionId = "style-examples-modal-description";
 
-  // Sheet/modal para seleção de estilo
-  const StyleSelectorSheet = (
-    <Sheet open={isStyleSheetOpen} onOpenChange={setIsStyleSheetOpen}>
-      <SheetTrigger asChild>
-        <Button variant="outline" className="w-full mb-4 flex justify-between items-center text-lg p-4 bg-white/80 border-ghibli-stone/50 min-h-[56px]">
-          <span>{currentSelectedStyleData?.name || "Selecionar Estilo"}</span>
-          <svg className="h-5 w-5 ml-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="max-h-[70vh] overflow-y-auto bg-ghibli-cream p-0 rounded-t-2xl shadow-2xl">
-        <SheetHeader className="p-4 border-b border-ghibli-stone/20 sticky top-0 bg-ghibli-cream/95 z-20">
-          <SheetTitle className="text-ghibli-wood font-ghibli">Escolha um Estilo</SheetTitle>
-        </SheetHeader>
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 relative">
-          {STYLE_EXAMPLES_DATA.map(style => (
-            <SheetClose asChild key={style.id}>
-              <Button
-                variant={selectedExampleStyleId === style.id ? "default" : "ghost"}
-                className={cn(
-                  "w-full justify-start p-2 h-[56px] text-left text-base flex items-center gap-2",
-                  selectedExampleStyleId === style.id ? "bg-ghibli-moss text-white" : "text-ghibli-wood hover:bg-ghibli-cream/70"
-                )}
-                onClick={() => setSelectedExampleStyleId(style.id)}
-              >
-                <span className="truncate flex-1">{style.name}</span>
-                {selectedExampleStyleId === style.id && <span className="ml-2 text-xs font-bold">Selecionado</span>}
-              </Button>
-            </SheetClose>
-          ))}
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
+  const currentStyleData = useMemo(() => {
+    return STYLE_EXAMPLES_DATA.find(s => s.id === selectedStyleId);
+  }, [selectedStyleId]);
+
+  const [itemsPerPage, setItemsPerPage] = useState(2); 
+  useEffect(() => {
+    const updateItemsPerPage = () => {
+      if (window.innerWidth < 768) { 
+        setItemsPerPage(1);
+      } else { 
+        setItemsPerPage(2);
+      }
+    };
+    updateItemsPerPage();
+    window.addEventListener('resize', updateItemsPerPage);
+    return () => window.removeEventListener('resize', updateItemsPerPage);
+  }, []);
+
+  const examplesToShow = useMemo(() => {
+    return currentStyleData?.examples || [];
+  }, [currentStyleData]);
+
+  const totalExamplePages = Math.ceil(examplesToShow.length / itemsPerPage);
+
+  const currentPagedExamples = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage;
+    return examplesToShow.slice(startIndex, startIndex + itemsPerPage);
+  }, [examplesToShow, currentPage, itemsPerPage]);
+
+  const handleStyleChange = (styleId: string) => {
+    setSelectedStyleId(styleId);
+    setCurrentPage(0);
+    setSwipeDirection(0);
+  };
+
+  const changeExamplePage = useCallback((direction: number) => {
+    setSwipeDirection(direction);
+    setCurrentPage((prev) => {
+      const newPage = prev + direction;
+      if (newPage < 0) return totalExamplePages > 0 ? totalExamplePages - 1 : 0;
+      if (newPage >= totalExamplePages) return 0;
+      return newPage;
+    });
+  }, [totalExamplePages]);
+
+  useEffect(() => {
+    if (isOpen && closeButtonRef.current) {
+      setTimeout(() => closeButtonRef.current?.focus(), 100);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen || totalExamplePages <= 1) return;
+      if (e.key === 'ArrowRight') {
+        changeExamplePage(1);
+      } else if (e.key === 'ArrowLeft') {
+        changeExamplePage(-1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, changeExamplePage, totalExamplePages]);
+
+  const pageVariants = {
+    hidden: (direction: number) => ({
+      opacity: 0,
+      x: direction > 0 ? 30 : -30, // Reduzido o deslocamento X
+      scale: 0.97,
+    }),
+    visible: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: { type: 'spring', stiffness: 120, damping: 22, duration: 0.3 } // Ajuste na animação
+    },
+    exit: (direction: number) => ({
+      opacity: 0,
+      x: direction < 0 ? 30 : -30,
+      scale: 0.97,
+      transition: { duration: 0.15, ease: "easeIn" } // Saída mais rápida
+    })
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[85vw] xl:max-w-[75vw] p-0 max-h-[85vh] overflow-hidden flex flex-col bg-white rounded-xl shadow-2xl">
-        <DialogHeader className="p-6 border-b sticky top-0 bg-white z-10">
-          <DialogTitle className="text-3xl font-ghibli text-ghibli-wood">
-            ✨ Galeria de Transformações Mágicas
+      <DialogContent 
+        className="sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[75vw] xl:max-w-[65vw] p-0 max-h-[90vh] overflow-hidden flex flex-col bg-ghibli-cream rounded-xl shadow-2xl"
+        aria-labelledby={modalTitleId}
+        aria-describedby={modalDescriptionId}
+      >
+        <DialogHeader className="p-4 sm:p-6 border-b border-ghibli-sand/30 sticky top-0 bg-ghibli-cream/95 backdrop-blur-sm z-20">
+          <DialogTitle id={modalTitleId} className="text-2xl sm:text-3xl font-ghibli text-ghibli-wood">
+            ✨ Galeria de Estilos Mágicos
           </DialogTitle>
-          <p className="text-ghibli-earth mt-2">
-            Explore as possibilidades e descubra qual estilo combina com a sua foto
-          </p>
-          <DialogClose className="absolute right-4 top-4" />
+          {/* Descrição do modal ainda presente para acessibilidade, mas a descrição do estilo foi removida abaixo */}
+          <DialogDescription id={modalDescriptionId} className="sr-only"> 
+            Explore os exemplos dos diferentes estilos de transformação de imagem.
+          </DialogDescription>
+          <DialogClose ref={closeButtonRef} className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-full p-1.5 hover:bg-ghibli-sand/50 focus-visible:ring-ghibli-moss" aria-label="Fechar galeria de estilos">
+            <X className="h-5 w-5 sm:h-6 sm:w-6 text-ghibli-stone" />
+          </DialogClose>
         </DialogHeader>
 
-        {/* Botão de seleção de estilo no topo (desktop e mobile) */}
-        <div className="px-4 pt-4">{StyleSelectorSheet}</div>
+        <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-ghibli-sand/20 flex justify-center">
+          <Select value={selectedStyleId} onValueChange={handleStyleChange}>
+            <SelectTrigger className="w-full max-w-xs sm:max-w-sm md:max-w-md text-base min-h-[48px] bg-white border-ghibli-stone/40 focus:ring-ghibli-moss text-ghibli-wood" aria-label="Selecionar um estilo para ver exemplos">
+              <SelectValue placeholder="Selecione um estilo..." />
+            </SelectTrigger>
+            <SelectContent className="bg-ghibli-cream border-ghibli-sand shadow-lg">
+              {STYLE_EXAMPLES_DATA.map(style => (
+                <SelectItem 
+                  key={style.id} 
+                  value={style.id}
+                  className="text-base p-3 hover:bg-ghibli-sand/50 focus:bg-ghibli-sand/70 text-ghibli-wood cursor-pointer"
+                >
+                  {style.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        {/* Área de Exemplos */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {currentSelectedStyleData && (
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6"> {/* Reduzido padding geral */}
+          {currentStyleData ? (
             <AnimatePresence mode="wait">
               <motion.div
-                key={currentSelectedStyleData.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
+                key={currentStyleData.id}
+                initial={{ opacity: 0 }} // Animação mais simples para a mudança de estilo
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
               >
-                <div className="mb-6">
-                  <h3 className="font-ghibli text-ghibli-wood text-2xl mb-2">
-                    {currentSelectedStyleData.name}
-                  </h3>
-                  <p className="text-ghibli-earth text-lg mb-6">
-                    {currentSelectedStyleData.description}
-                  </p>
+                {/* Nome do Estilo (mantido, mas descrição removida) */}
+                <div className="mb-3 sm:mb-4 text-center">
+                  <motion.h3 
+                    key={`title-${currentStyleData.id}`}
+                    initial={{ opacity: 0, y:10 }} animate={{ opacity:1, y:0}} transition={{delay:0.05, duration:0.25}}
+                    className="font-ghibli text-ghibli-wood text-xl sm:text-2xl"
+                  >
+                    {currentStyleData.name}
+                  </motion.h3>
+                  {/* A DESCRIÇÃO DO ESTILO FOI REMOVIDA DAQUI */}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {currentSelectedStyleData.examples.map((example, index) => (
-                    <div key={index} className="mb-4">
-                      <div className="rounded-xl overflow-hidden">
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          {/* Imagem Original */}
-                          <div className="flex-1 relative group overflow-hidden">
-                            <div className="absolute top-2 left-2 z-10 bg-black/30 text-white text-xs px-2 py-1 rounded-full opacity-70">Original</div>
-                            <motion.div
-                              whileHover={{ scale: 1.05 }}
-                              className="w-full h-full rounded-lg overflow-hidden shadow-md"
-                            >
-                              <div className="relative w-full aspect-square">
-                                <Image
-                                  src={example.before}
-                                  alt={`Imagem original para ${currentSelectedStyleData.name} - Exemplo ${index + 1}`}
-                                  fill
-                                  style={{ objectFit: "cover" }}
-                                  className="transition-all duration-300"
-                                  loading="lazy"
-                                />
-                              </div>
-                            </motion.div>
-                          </div>
-
-                          {/* Seta de transformação para telas maiores */}
-                          <div className="hidden sm:flex items-center justify-center">
-                            <div className="text-ghibli-moss/70">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-                            </div>
-                          </div>
-
-                          {/* Imagem Transformada */}
-                          <div className="flex-1 relative group overflow-hidden">
-                            <div className="absolute top-2 right-2 z-10 bg-black/30 text-white text-xs px-2 py-1 rounded-full opacity-70">Transformada</div>
-                            <motion.div
-                              whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}
-                              className="w-full h-full rounded-lg overflow-hidden shadow-lg relative"
-                            >
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
-                              <div className="relative w-full aspect-square">
-                                <Image
-                                  src={example.after}
-                                  alt={`Imagem transformada para ${currentSelectedStyleData.name} - Exemplo ${index + 1}`}
-                                  fill
-                                  style={{ objectFit: "cover" }}
-                                  className="transition-all duration-300"
-                                  loading="lazy"
-                                />
-                              </div>
-                              <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                                <motion.div
-                                  initial={{ y: 10, opacity: 0 }}
-                                  animate={{ y: 0, opacity: 1 }}
-                                  transition={{ delay: 0.1 }}
-                                  className="text-white text-xs text-center"
-                                >
-                                </motion.div>
-                              </div>
-                            </motion.div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {onStartTransformationClick && (
-                  <div className="mt-8 p-6 bg-ghibli-cream/20 rounded-xl border border-ghibli-cream/40">
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                      <div>
-                        <h3 className="font-ghibli text-ghibli-wood text-xl">
-                          Experimente este estilo agora
-                        </h3>
-                        <p className="text-ghibli-earth">
-                          Transforme suas próprias fotos com um clique
-                        </p>
-                      </div>
-
+                {examplesToShow.length > 0 ? (
+                  <div className="relative">
+                    {totalExamplePages > 1 && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => changeExamplePage(-1)}
+                          className="absolute left-[-8px] sm:left-[-12px] md:left-[-18px] top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white border-ghibli-sand/60 text-ghibli-wood rounded-full p-1.5 sm:p-2 shadow-lg hover:shadow-xl transition-all"
+                          aria-label="Exemplos anteriores"
+                        >
+                          <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => changeExamplePage(1)}
+                          className="absolute right-[-8px] sm:right-[-12px] md:right-[-18px] top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white border-ghibli-sand/60 text-ghibli-wood rounded-full p-1.5 sm:p-2 shadow-lg hover:shadow-xl transition-all"
+                          aria-label="Próximos exemplos"
+                        >
+                          <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                        </Button>
+                      </>
+                    )}
+                    <AnimatePresence initial={false} custom={swipeDirection} mode="popLayout">
                       <motion.div
+                        key={currentStyleData.id + currentPage}
+                        custom={swipeDirection}
+                        variants={pageVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className={cn(
+                            "grid gap-3 sm:gap-4 md:gap-6", 
+                            itemsPerPage === 1 && "grid-cols-1",
+                            itemsPerPage === 2 && "grid-cols-1 sm:grid-cols-2", 
+                        )}
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={0.1}
+                        onDragEnd={(_e, i) => {
+                            const offset = i.offset.x;
+                            const velocity = i.velocity.x;
+                            if (offset < -40 || velocity < -250) { changeExamplePage(1); } 
+                            else if (offset > 40 || velocity > 250) { changeExamplePage(-1); }
+                        }}
+                      >
+                        {currentPagedExamples.map((example, index) => (
+                          <motion.div 
+                            key={`${currentStyleData.id}-example-${example.before}-${index}`}
+                            className="bg-white/50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-md hover:shadow-lg border border-ghibli-sand/30 flex flex-col items-center transition-shadow duration-300"
+                            initial={{ opacity: 0, scale: 0.97 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                            whileHover={{ y: -3, boxShadow: "0px 8px 20px -4px rgba(76, 89, 67, 0.12), 0px 6px 8px -5px rgba(76, 89, 67, 0.08)"}}
+                          >
+                            {/* Em mobile (itemsPerPage === 1), as imagens ficam lado a lado */}
+                            {/* Em desktop (itemsPerPage === 2), mantém a estrutura de coluna */}
+                            <div className={cn(
+                                "flex items-center justify-around w-full gap-1 sm:gap-2",
+                                itemsPerPage === 1 ? "flex-row" : "flex-col sm:flex-row" // Lado a lado em mobile se for 1 item por página
+                            )}>
+                              {/* Container da Imagem Original */}
+                              <div className={cn(
+                                "relative aspect-square group overflow-hidden rounded-md bg-slate-100/80",
+                                itemsPerPage === 1 ? "w-1/2" : "w-full sm:w-1/2" // Ajusta largura para mobile
+                              )}>
+                                <Image
+                                  src={getImageSrc(example.before)}
+                                  alt={`Original - ${currentStyleData.name} Exemplo ${index + 1}`}
+                                  fill
+                                  style={{ objectFit: "contain" }}
+                                  className="transition-transform duration-300 group-hover:scale-105"
+                                  sizes={itemsPerPage === 1 ? "40vw" : "(max-width: 767px) 80vw, 35vw"} // Tamanhos menores para mobile
+                                  loading="lazy"
+                                  onError={(e) => { (e.target as HTMLImageElement).src = getImageSrc(null); }}
+                                />
+                                {/* Legenda removida para mobile, opcional para desktop */}
+                                <span className="hidden sm:block absolute top-1 left-1 bg-black/40 text-white text-[9px] px-1 py-0.5 rounded-sm">Original</span>
+                              </div>
+
+                              {/* Seta de transformação */}
+                              <div className="text-ghibli-moss shrink-0"> {/* shrink-0 para não esmagar a seta */}
+                                <ArrowRight className={cn("w-3 h-3 sm:w-4 sm:h-4", itemsPerPage === 1 ? "rotate-0" : "transform sm:rotate-0 rotate-90 my-1 sm:my-0")} />
+                              </div>
+                              
+                              {/* Container da Imagem Transformada */}
+                              <div className={cn(
+                                "relative aspect-square group overflow-hidden rounded-md bg-slate-100/80",
+                                itemsPerPage === 1 ? "w-1/2" : "w-full sm:w-1/2" // Ajusta largura para mobile
+                              )}>
+                                <Image
+                                  src={getImageSrc(example.after)}
+                                  alt={`Transformada - ${currentStyleData.name} Exemplo ${index + 1}`}
+                                  fill
+                                  style={{ objectFit: "contain" }}
+                                  className="transition-transform duration-300 group-hover:scale-105"
+                                  sizes={itemsPerPage === 1 ? "40vw" : "(max-width: 767px) 80vw, 35vw"} // Tamanhos menores para mobile
+                                  loading="lazy"
+                                  onError={(e) => { (e.target as HTMLImageElement).src = getImageSrc(null); }}
+                                />
+                                <span className="hidden sm:block absolute top-1 left-1 bg-ghibli-sky/70 text-white text-[9px] px-1 py-0.5 rounded-sm">Transformada</span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    </AnimatePresence>
+                    {totalExamplePages > 1 && (
+                      <div className="mt-3 sm:mt-4 flex justify-center items-center gap-1.5 sm:gap-2">
+                        {Array.from({ length: totalExamplePages }).map((_, idx) => (
+                          <button
+                            key={`dot-${idx}`}
+                            onClick={() => {
+                              setSwipeDirection(idx > currentPage ? 1 : (idx < currentPage ? -1 : 0));
+                              setCurrentPage(idx);
+                            }}
+                            className={cn(
+                              "w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-300 ease-in-out focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-ghibli-moss",
+                              currentPage === idx ? "bg-ghibli-moss scale-125 shadow-sm" : "bg-ghibli-stone/40 hover:bg-ghibli-stone/60"
+                            )}
+                            aria-label={`Ir para página de exemplos ${idx + 1}`}
+                            aria-current={currentPage === idx}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-ghibli-earth flex flex-col items-center min-h-[200px] justify-center">
+                    <ImageOff className="w-12 h-12 text-ghibli-stone/70 mb-3" />
+                    Ainda não existem exemplos para este estilo.
+                  </div>
+                )}
+                
+                {onStartTransformationClick && examplesToShow.length > 0 && currentStyleData && (
+                  <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-ghibli-sand/30 text-center">
+                     <motion.div
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.98 }}
+                        className="inline-block"
                       >
                         <Button
-                          className="ghibli-button"
+                          className="ghibli-button px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base" // Ajuste no padding e texto
                           onClick={() => {
-                            onOpenChange(false); // Fecha o modal atual
-                            onStartTransformationClick(); // Chama o callback para iniciar a transformação
+                            if (currentStyleData) {
+                                onOpenChange(false); 
+                                onStartTransformationClick(currentStyleData.id); 
+                            }
                           }}
+                          aria-label={`Começar transformação com o estilo ${currentStyleData.name}`}
                         >
-                          <Wand className="mr-2 h-5 w-5" />
-                          Comece agora
+                          <Wand className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:h-5" />
+                          Experimente o Estilo {currentStyleData.name}
                         </Button>
                       </motion.div>
-                    </div>
                   </div>
                 )}
               </motion.div>
             </AnimatePresence>
+          ) : (
+             <div className="text-center py-12 text-ghibli-earth flex flex-col items-center min-h-[200px] justify-center">
+                <ImageOff className="w-16 h-16 text-ghibli-stone/60 mb-4" />
+                <p className="text-lg">Selecione um estilo para ver os exemplos.</p>
+            </div>
           )}
         </div>
       </DialogContent>

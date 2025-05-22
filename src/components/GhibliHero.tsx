@@ -272,7 +272,7 @@ const GhibliHero = () => {
             >
               <div className="px-4 py-2 bg-white/50 backdrop-blur-sm rounded-full border border-amber-100 inline-flex items-center">
                 <span className="text-amber-600 mr-2">⭐</span>
-                <p className="text-sm text-ghibli-earth font-medium">Já transformámos +5000 fotos</p>
+                <p className="text-sm text-ghibli-earth font-medium">Já transformámos +100 fotos</p>
           </div>
             </motion.div>
           </motion.div>
