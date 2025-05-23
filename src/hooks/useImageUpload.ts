@@ -11,20 +11,6 @@ export interface UploadedFile {
 export const ALLOWED_FILE_TYPES_MIME = ['image/jpeg', 'image/png', 'image/webp'];
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-// Assinaturas de ficheiro (Magic Numbers)
-const FILE_SIGNATURES: { [key: string]: (string | undefined)[] } = {
-  'image/jpeg': ['ffd8ff'], // JPG
-  'image/png': ['89504e47'], // PNG
-  'image/webp': [
-    '52494646', // RIFF
-    undefined, // qualquer coisa
-    undefined, // qualquer coisa
-    undefined, // qualquer coisa
-    '57454250', // WEBP
-  ],
-};
-
-// Função para ler os primeiros bytes de um ficheiro como string hexadecimal
 // Função para ler os primeiros bytes de um ficheiro como string hexadecimal
 const getFileHeaderHex = (file: File, bytesToRead: number = 12): Promise<string> => { // Alterado aqui: bytesToRead default é 12
   return new Promise((resolve, reject) => {
@@ -45,29 +31,49 @@ const getFileHeaderHex = (file: File, bytesToRead: number = 12): Promise<string>
   });
 };
 
-// Função para validar a assinatura do ficheiro
-// Função para validar a assinatura do ficheiro
-const isValidFileSignature = (headerHex: string, mimeType: string): boolean => {
-  const signatures = FILE_SIGNATURES[mimeType];
-  if (!signatures) return false; // Tipo MIME não suportado para verificação de assinatura
-
-  // Para WEBP, precisamos verificar a assinatura 'RIFF' no início e 'WEBP' no offset 8 do ficheiro
-  if (mimeType === 'image/webp') {
-    // Se headerHex tem 24 caracteres (12 bytes), 'WEBP' (signatures[4]) estará entre o caractere 16 e 24.
-    // 'RIFF' (signatures[0]) estará no início.
-    if (headerHex.length < 24) { // Garante que temos bytes suficientes para a verificação completa do WebP
-        console.warn(`[isValidFileSignature] HeaderHex muito curto para WebP: ${headerHex.length} caracteres`);
-        return false;
-    }
-    return headerHex.startsWith(signatures[0]!) &&      // Verifica 'RIFF' (bytes 0-3)
-           headerHex.substring(16, 24) === signatures[4]; // Verifica 'WEBP' (bytes 8-11)
+// Função para detectar tipo de imagem pelo conteúdo (header)
+const detectImageTypeFromHeader = (headerHex: string): string | null => {
+  // JPEG: ffd8ff
+  if (headerHex.startsWith('ffd8ff')) {
+    return 'image/jpeg';
   }
+  
+  // PNG: 89504e47
+  if (headerHex.startsWith('89504e47')) {
+    return 'image/png';
+  }
+  
+  // WebP: RIFF no início (52494646) + WEBP no offset 8 (57454250)
+  if (headerHex.startsWith('52494646') && headerHex.length >= 24) {
+    const webpSignature = headerHex.substring(16, 24); // bytes 8-11
+    if (webpSignature === '57454250') {
+      return 'image/webp';
+    }
+  }
+  
+  return null;
+};
 
-  // Para outros tipos (JPG, PNG), as suas assinaturas estão nos primeiros bytes.
-  // Certifique-se que headerHex é longo o suficiente para a assinatura mais longa aqui.
-  // Ex: PNG '89504e47' tem 8 caracteres hex (4 bytes). JPG 'ffd8ff' tem 6 (3 bytes).
-  // Como estamos a ler 12 bytes (24 caracteres hex), temos mais do que suficiente.
-  return signatures.some(signature => signature && headerHex.startsWith(signature));
+// Função para validar a assinatura do ficheiro (ATUALIZADA - mais permissiva)
+const isValidFileSignature = (headerHex: string, browserMimeType: string): boolean => {
+  // Detecta o tipo real pelo conteúdo do ficheiro
+  const actualImageType = detectImageTypeFromHeader(headerHex);
+  
+  if (!actualImageType) {
+    console.warn(`[isValidFileSignature] Nenhum tipo de imagem válido detectado. Header: ${headerHex.substring(0, 16)}`);
+    return false;
+  }
+  
+  // Verifica se o tipo detectado é permitido
+  if (!ALLOWED_FILE_TYPES_MIME.includes(actualImageType)) {
+    console.warn(`[isValidFileSignature] Tipo detectado não permitido: ${actualImageType}`);
+    return false;
+  }
+  
+  // ✅ NOVA ABORDAGEM: Aceita se o conteúdo é uma imagem válida
+  // Não importa se a extensão não coincide com o MIME type do browser
+  console.log(`[isValidFileSignature] ✅ Imagem válida detectada: ${actualImageType} (browser MIME: ${browserMimeType})`);
+  return true;
 };
 
 

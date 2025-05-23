@@ -1,15 +1,19 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from '@/components/ui/sonner';
 import { loadStripe, Stripe } from '@stripe/stripe-js';
+import { useRouter } from 'next/router';
 import { UploadedFile } from './useImageUpload';
 import { Style } from '@/components/StyleSelectorModal';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { usePicCoins } from '@/hooks/usePicCoins';
 
 type ProcessingState =
   | 'idle'
   | 'creating_job'
   | 'uploading_image'
+  | 'checking_balance'
+  | 'spending_coins'
   | 'awaiting_payment'
   | 'redirecting_to_payment'
   | 'polling_status' // Job created, polling before processing starts on backend
@@ -50,6 +54,8 @@ export type UseImageProcessingResult = ReturnType<typeof useImageProcessing>;
 
 export function useImageProcessing() {
   const { userInfo, isLoading: isAuthLoading } = useAuth();
+  const { balance, spendCoins, refetchBalance } = usePicCoins();
+  const router = useRouter();
   const [uploadedImage, setUploadedImage] = useState<UploadedFile | null>(null);
   const [isStyleModalOpen, setIsStyleModalOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<Style | null>(null);
@@ -382,65 +388,91 @@ export function useImageProcessing() {
     }
 
     setIsLoading(true);
-    setProcessingState('uploading_image'); 
+    setProcessingState('checking_balance'); 
     setErrorMessage(null);
 
     let tempUploadedFilePath: string | null = null;
     let tempNewJobId: string | null = null;
 
     try {
-      const file = uploadedImage.file;
-      const fileExt = file.name.split('.').pop() || 'tmp';
-      const filePath = `public/${userInfo.id}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+      // First, check if user has enough PicCoins
+      await refetchBalance(); // Ensure we have the latest balance
       
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(filePath, file, { cacheControl: '3600', upsert: false });
-      if (uploadError) throw new Error(uploadError.message || "Falha ao fazer upload da imagem.");
-      if (!uploadData?.path) throw new Error("Falha ao obter o caminho da imagem após upload.");
-      tempUploadedFilePath = uploadData.path;
-      
-      setProcessingState('creating_job');
-
-      const transformationData: TransformationInsert = { 
-        user_id: userInfo.id, style_requested: selectedStyle.id, 
-        status: 'pending_payment', input_file_path: tempUploadedFilePath
-      };
-      const { data: jobData, error: jobError } = await supabase
-        .from('transformations').insert(transformationData).select('id').single();
-      if (jobError || !jobData?.id) {
-        if (tempUploadedFilePath) { 
-          supabase.storage.from('images').remove([tempUploadedFilePath])
-            .catch(delErr => console.error(`Failed to delete orphaned image ${tempUploadedFilePath}:`, delErr));
+      if (balance >= 1) {
+        // User has enough PicCoins - proceed with PicCoin payment
+        toast.info("💰 Usando PicCoins", { description: "A processar com o seu saldo de PicCoins..." });
+        
+        // Upload the image
+        setProcessingState('uploading_image');
+        const file = uploadedImage.file;
+        const fileExt = file.name.split('.').pop() || 'tmp';
+        const filePath = `public/${userInfo.id}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('images')
+          .upload(filePath, file, { cacheControl: '3600', upsert: false });
+        if (uploadError) throw new Error(uploadError.message || "Falha ao fazer upload da imagem.");
+        if (!uploadData?.path) throw new Error("Falha ao obter o caminho da imagem após upload.");
+        tempUploadedFilePath = uploadData.path;
+        
+        // Create transformation record
+        setProcessingState('creating_job');
+        const transformationData: TransformationInsert = { 
+          user_id: userInfo.id, style_requested: selectedStyle.id, 
+          status: 'pending_payment', input_file_path: tempUploadedFilePath
+        };
+        const { data: jobData, error: jobError } = await supabase
+          .from('transformations').insert(transformationData).select('id').single();
+        if (jobError || !jobData?.id) {
+          if (tempUploadedFilePath) { 
+            supabase.storage.from('images').remove([tempUploadedFilePath])
+              .catch(delErr => console.error(`Failed to delete orphaned image ${tempUploadedFilePath}:`, delErr));
+          }
+          throw new Error(jobError?.message || "Falha ao criar o registo da transformação.");
         }
-        throw new Error(jobError?.message || "Falha ao criar o registo da transformação.");
+        tempNewJobId = jobData.id;
+        
+        // Spend PicCoins
+        setProcessingState('spending_coins');
+        await spendCoins(1, tempNewJobId);
+        
+        // Update transformation status to paid
+        const { error: updateError } = await supabase
+          .from('transformations')
+          .update({ status: 'paid' })
+          .eq('id', tempNewJobId);
+        
+        if (updateError) {
+          throw new Error("Falha ao atualizar estado da transformação após pagamento.");
+        }
+        
+        // Save state and set as current job for polling
+        localStorage.setItem('currentJobId', tempNewJobId);
+        localStorage.setItem('studioState', JSON.stringify({ selectedStyleId: selectedStyle.id }));
+        setCurrentJobId(tempNewJobId);
+        
+        // Start processing immediately
+        setProcessingState('polling_status');
+        toast.success("✨ PicCoin gasto com sucesso!", { 
+          description: "A transformação está a começar..." 
+        });
+        
+      } else {
+        // User doesn't have enough PicCoins - redirect to pricing page
+        toast.warning("💰 Saldo insuficiente", { 
+          description: `Precisas de 1 PicCoin (tens ${balance}). Redirecionando para comprar...` 
+        });
+        
+        // Reset states before redirect
+        setProcessingState('idle');
+        setIsLoading(false);
+        
+        // Redirect to pricing page after a short delay
+        setTimeout(() => {
+          router.push('/pricing?from=studio');
+        }, 2000);
+        return;
       }
-      tempNewJobId = jobData.id;
-      
-      localStorage.setItem('currentJobId', tempNewJobId);
-      localStorage.setItem('studioState', JSON.stringify({ selectedStyleId: selectedStyle.id }));
-
-      setCurrentJobId(tempNewJobId); 
-
-      const checkoutResponse = await fetch('/api/create-checkout-session', { 
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ jobId: tempNewJobId, userEmail: userInfo.email }), 
-      });
-      if (!checkoutResponse.ok) { 
-        let errData = { message: `API Error (${checkoutResponse.status}) ao criar sessão.` }; 
-        try { errData = await checkoutResponse.json(); } catch { /* ignore */ } 
-        throw new Error(errData.message); 
-      }
-      const { sessionId } = await checkoutResponse.json();
-      if (!sessionId) throw new Error("ID de sessão Stripe não recebido.");
-      
-      setProcessingState('redirecting_to_payment'); 
-
-      const stripe = await getStripe();
-      if (!stripe) throw new Error("Stripe.js não carregado.");
-      
-      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
-      if (stripeError) throw new Error(stripeError.message || "Falha ao redirecionar para Stripe.");
 
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Falha ao iniciar o processo.';
@@ -458,6 +490,7 @@ export function useImageProcessing() {
           if (errorMsg.toLowerCase().includes('upload')) failureStatus = 'failed_upload';
           else if (errorMsg.toLowerCase().includes('checkout') || errorMsg.toLowerCase().includes('stripe')) failureStatus = 'failed_checkout_redirect';
           else if (errorMsg.toLowerCase().includes('job') || errorMsg.toLowerCase().includes('registo')) failureStatus = 'failed_db_update';
+          else if (errorMsg.toLowerCase().includes('piccoins') || errorMsg.toLowerCase().includes('saldo')) failureStatus = 'failed_payment';
           
           await supabase.from('transformations')
             .update({ status: failureStatus, error_message: errorMsg.substring(0,500) }) 
@@ -467,13 +500,13 @@ export function useImageProcessing() {
         }
       }
     } finally {
-        if (processingState !== 'redirecting_to_payment' && processingState !== 'completed' && processingState !== 'error') {
-            setIsLoading(false); // Ensure loading is stopped if not redirecting or in a final state
+        if (processingState !== 'redirecting_to_payment' && processingState !== 'completed' && processingState !== 'error' && processingState !== 'polling_status') {
+            setIsLoading(false);
         } else if (processingState === 'error' || processingState === 'completed'){
-            setIsLoading(false); // Also stop loading if it's an error or completed state
+            setIsLoading(false);
         }
     }
-  }, [uploadedImage, selectedStyle, userInfo, isAuthLoading, setActiveStep, processingState /* Adicionado processingState */]);
+  }, [uploadedImage, selectedStyle, userInfo, isAuthLoading, balance, spendCoins, refetchBalance, setActiveStep, processingState, router]);
 
   const handleNewImage = useCallback(() => {
     resetAllLocalStates();

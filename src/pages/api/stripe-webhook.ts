@@ -85,77 +85,121 @@ export default async function handler(
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
+    // Check if this is a transformation payment or PicCoin purchase
     const jobId = session.metadata?.jobId;
-    if (!jobId) {
-      console.error(`❌ [Webhook] No jobId found in session metadata for session: ${session.id}`);
-      return res.status(200).json({ received: true, message: "Missing jobId in metadata" }); // Acknowledge, but don't proceed
-    }
+    const packageId = session.metadata?.packageId;
+    const userId = session.metadata?.userId;
 
-    if (session.payment_status === 'paid') {
-      console.log(`✅ [Webhook] Payment successful for job: ${jobId}, session: ${session.id}, payment_intent: ${session.payment_intent}`);
+    if (jobId) {
+      // Handle transformation payment
+      if (session.payment_status === 'paid') {
+        console.log(`✅ [Webhook] Payment successful for job: ${jobId}, session: ${session.id}, payment_intent: ${session.payment_intent}`);
 
-      try {
-        // --- Step 5a: Update Supabase ---
-        // CORRECTION: Removed 'updated_at' field as it doesn't exist in the schema
-        const { error: updateError } = await supabaseAdmin
-          .from('transformations')
-          .update({
-            status: 'paid',
-            stripe_charge_id: session.payment_intent as string
-            // updated_at: new Date().toISOString() // REMOVED THIS LINE
+        try {
+          // --- Step 5a: Update Supabase ---
+          const { error: updateError } = await supabaseAdmin
+            .from('transformations')
+            .update({
+              status: 'paid',
+              stripe_charge_id: session.payment_intent as string
+            })
+            .eq('id', jobId);
+
+          if (updateError) {
+            console.error(`❌ [Webhook] Failed to update job status to 'paid' for job ${jobId}: ${updateError.message}`);
+            return res.status(500).json({ message: 'Failed to update job status', error: updateError.message });
+          }
+
+          // --- Step 5b: Trigger Image Processing ---
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.headers.origin || 'https://www.pictuz.com/';
+          const processImageUrl = `${baseUrl}/api/process-image`;
+
+          // Intentionally NOT awaiting fetch - run in background
+          fetch(processImageUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Internal-Secret': internalSecret
+            },
+            body: JSON.stringify({ jobId })
           })
-          .eq('id', jobId);
+          .then(async (response) => {
+              const responseBody = await response.text();
+              if (!response.ok) {
+                  console.error(`❌ [Webhook] Failed fetch to trigger image processing for job ${jobId}. Status: ${response.status}. Response: ${responseBody}`);
+              } else {
+                  console.log(`✅ [Webhook] Successfully triggered image processing for job ${jobId}. Response Status: ${response.status}. Response: ${responseBody}`);
+              }
+          })
+          .catch(error => {
+            const fetchErrorMessage = error instanceof Error ? error.message : 'Unknown fetch error';
+            console.error(`❌ [Webhook] Network error during fetch to trigger image processing for job ${jobId}: ${fetchErrorMessage}`);
+          });
 
-        if (updateError) {
-          console.error(`❌ [Webhook] Failed to update job status to 'paid' for job ${jobId}: ${updateError.message}`);
-          // Return 500 to potentially make Stripe retry if DB update fails
-          return res.status(500).json({ message: 'Failed to update job status', error: updateError.message });
+          return res.status(200).json({ received: true, message: 'Payment confirmed, processing triggered.' });
+
+        } catch (dbError) {
+          const errorMessage = dbError instanceof Error ? dbError.message : 'Unknown error during DB update';
+          console.error(`❌ [Webhook] Error during Supabase update for job ${jobId}: ${errorMessage}`);
+          return res.status(500).json({ message: 'Server error during database update', error: errorMessage });
         }
 
-        // --- Step 5b: Trigger Image Processing ---
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.headers.origin || 'https://www.pictuz.com/';
-        const processImageUrl = `${baseUrl}/api/process-image`;
+      } else {
+        console.warn(`[Webhook] Payment not completed for job: ${jobId}, session: ${session.id}, status: ${session.payment_status}`);
+        return res.status(200).json({ received: true, message: `Payment status was ${session.payment_status}` });
+      }
 
-        // Intentionally NOT awaiting fetch - run in background
-        fetch(processImageUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Internal-Secret': internalSecret // Already verified it exists
-          },
-          body: JSON.stringify({ jobId })
-        })
-        .then(async (response) => {
-            const responseBody = await response.text(); // Read body safely
-            if (!response.ok) {
-                console.error(`❌ [Webhook] Failed fetch to trigger image processing for job ${jobId}. Status: ${response.status}. Response: ${responseBody}`);
-                // Consider updating job status to indicate trigger failure
-                // await updateJobStatus(jobId, 'payment_ok_trigger_failed', `Webhook failed to trigger processing: ${response.status} - ${responseBody}`);
-            } else {
-                console.log(`✅ [Webhook] Successfully triggered image processing for job ${jobId}. Response Status: ${response.status}. Response: ${responseBody}`);
-            }
-        })
-        .catch(error => {
-          const fetchErrorMessage = error instanceof Error ? error.message : 'Unknown fetch error';
-          console.error(`❌ [Webhook] Network error during fetch to trigger image processing for job ${jobId}: ${fetchErrorMessage}`);
-          // Consider updating job status to indicate trigger failure
-          // await updateJobStatus(jobId, 'payment_ok_trigger_failed', `Webhook network error triggering processing: ${fetchErrorMessage}`);
-        });
+    } else if (packageId && userId) {
+      // Handle PicCoin purchase
+      if (session.payment_status === 'paid') {
+        console.log(`✅ [Webhook] PicCoin purchase successful for user: ${userId}, package: ${packageId}, session: ${session.id}`);
 
-        // Respond 200 OK immediately to Stripe, even if fetch fails later
-        return res.status(200).json({ received: true, message: 'Payment confirmed, processing triggered.' });
+        try {
+          // Define package configurations
+          const packages: Record<string, { coins: number; price: number }> = {
+            starter: { coins: 1, price: 2 },
+            popular: { coins: 3, price: 5 },
+            premium: { coins: 7, price: 10 },
+            mega: { coins: 15, price: 20 },
+            ultimate: { coins: 50, price: 50 }
+          };
 
-      } catch (dbError) { // Catch errors specifically during the DB update
-        const errorMessage = dbError instanceof Error ? dbError.message : 'Unknown error during DB update';
-        console.error(`❌ [Webhook] Error during Supabase update for job ${jobId}: ${errorMessage}`);
-        // Return 500 because the critical DB step failed
-        return res.status(500).json({ message: 'Server error during database update', error: errorMessage });
+          const packageInfo = packages[packageId];
+          if (!packageInfo) {
+            console.error(`❌ [Webhook] Unknown package ID: ${packageId}`);
+            return res.status(400).json({ message: 'Unknown package ID' });
+          }
+
+          // Use the earn_piccoins RPC function for atomic transaction
+          const { error: earnError } = await supabaseAdmin.rpc('earn_piccoins', {
+            p_user_id: userId,
+            p_amount: packageInfo.coins,
+            p_description: `Compra de pacote ${packageId.toUpperCase()} - ${packageInfo.coins} PicCoins`,
+            p_transaction_id: session.id
+          });
+
+          if (earnError) {
+            console.error(`❌ [Webhook] Failed to add PicCoins for user ${userId}: ${earnError.message}`);
+            return res.status(500).json({ message: 'Failed to add PicCoins', error: earnError.message });
+          }
+
+          console.log(`✅ [Webhook] Successfully added ${packageInfo.coins} PicCoins to user ${userId}`);
+          return res.status(200).json({ received: true, message: 'PicCoins added successfully.' });
+
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error during PicCoin purchase';
+          console.error(`❌ [Webhook] Error during PicCoin purchase for user ${userId}: ${errorMessage}`);
+          return res.status(500).json({ message: 'Server error during PicCoin purchase', error: errorMessage });
+        }
+
+      } else {
+        console.warn(`[Webhook] PicCoin purchase payment not completed for user: ${userId}, session: ${session.id}, status: ${session.payment_status}`);
+        return res.status(200).json({ received: true, message: `Payment status was ${session.payment_status}` });
       }
 
     } else {
-      console.warn(`[Webhook] Payment not completed for job: ${jobId}, session: ${session.id}, status: ${session.payment_status}`);
-      // Optionally update status to failed_payment here if needed
-      return res.status(200).json({ received: true, message: `Payment status was ${session.payment_status}` });
+      console.error(`❌ [Webhook] No valid metadata found in session: ${session.id}. Expected jobId or (packageId + userId)`);
+      return res.status(200).json({ received: true, message: "Invalid or missing metadata" });
     }
 
   } else {

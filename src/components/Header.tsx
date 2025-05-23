@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'; // Importa framer-motio
 import { Button } from "@/components/ui/button";
 import { Menu, X} from "lucide-react";
 import UserMenu from "./UserMenu";
+import { PicCoinBalance } from './PicCoinBalance'; // Import PicCoin balance
 import { cn } from '@/lib/utils'; // Importa cn
 import { useRouter } from 'next/router';
 
@@ -19,6 +20,7 @@ const navLinks: NavLink[] = [
   { href: "#galeria", label: "Galeria", id: "galeria" },
   { href: "#como-funciona", label: "Como Funciona", id: "como-funciona" },
   { href: "#faq", label: "FAQ", id: "faq" },
+  { href: "/pricing", label: "Preço", id: "pricing" },
 ];
 
 const Header: React.FC = () => {
@@ -139,29 +141,48 @@ const Header: React.FC = () => {
   
         {/* Navegação Desktop (visível em md e acima) */}
         <nav className="hidden md:flex items-center space-x-6 lg:space-x-8"> {/* Ajustado space-x para desktop, podes usar valores diferentes para lg se quiseres mais espaço */}
-          {navLinks.map((link) => (
-            <a
-              key={link.id}
-              href={link.href}
-              className={cn(
-                "text-ghibli-wood hover:text-ghibli-moss transition-colors relative pb-1",
-                activeSection === link.id
-                  ? "font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-ghibli-moss"
-                  : ""
-              )}
-              aria-current={activeSection === link.id ? "page" : undefined}
-            >
-              {link.label}
-            </a>
-          ))}
-          {/* UserMenu para Desktop, vem depois dos links de navegação */}
-          <div className="ml-2 lg:ml-4"> {/* Pequena margem adicional antes do UserMenu no desktop, ajustável */}
+          {navLinks.map((link) => {
+            // Check if it's an external route (starts with /)
+            const isExternalRoute = link.href.startsWith('/');
+            
+            if (isExternalRoute) {
+              return (
+                <Link
+                  key={link.id}
+                  href={link.href}
+                  className="text-ghibli-wood hover:text-ghibli-moss transition-colors"
+                >
+                  {link.label}
+                </Link>
+              );
+            }
+            
+            return (
+              <a
+                key={link.id}
+                href={link.href}
+                className={cn(
+                  "text-ghibli-wood hover:text-ghibli-moss transition-colors relative pb-1",
+                  activeSection === link.id
+                    ? "font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-ghibli-moss"
+                    : ""
+                )}
+                aria-current={activeSection === link.id ? "page" : undefined}
+              >
+                {link.label}
+              </a>
+            );
+          })}
+          {/* PicCoinBalance and UserMenu para Desktop */}
+          <div className="flex items-center gap-3 ml-2 lg:ml-4">
+            <PicCoinBalance />
             <UserMenu />
           </div>
         </nav>
   
         {/* Botões para Mobile (Login + Menu Hambúrguer - visível abaixo de md) */}
         <div className="md:hidden flex items-center space-x-2"> {/* Container para agrupar UserMenu e Botão Hambúrguer em mobile */}
+          <PicCoinBalance />
           <UserMenu /> {/* UserMenu (Botão Login) visível na barra do header em mobile */}
           <Button
             variant="ghost"
@@ -188,16 +209,34 @@ const Header: React.FC = () => {
             exit="exit"
           >
             <nav className="flex flex-col space-y-4 py-2">
-              {navLinks.map((link) => (
-                <a
-                  key={link.id}
-                  href={link.href}
-                  className="text-ghibli-wood hover:text-ghibli-moss transition-colors px-4 py-2 rounded hover:bg-ghibli-cream/50 block"
-                  onClick={closeMobileMenu}
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) => {
+                // Check if it's an external route (starts with /)
+                const isExternalRoute = link.href.startsWith('/');
+                
+                if (isExternalRoute) {
+                  return (
+                    <Link
+                      key={link.id}
+                      href={link.href}
+                      className="text-ghibli-wood hover:text-ghibli-moss transition-colors px-4 py-2 rounded hover:bg-ghibli-cream/50 block"
+                      onClick={closeMobileMenu}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                }
+                
+                return (
+                  <a
+                    key={link.id}
+                    href={link.href}
+                    className="text-ghibli-wood hover:text-ghibli-moss transition-colors px-4 py-2 rounded hover:bg-ghibli-cream/50 block"
+                    onClick={closeMobileMenu}
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
               {/* UserMenu FOI REMOVIDO daqui, pois agora está na barra principal do header em mobile */}
             </nav>
           </motion.div>

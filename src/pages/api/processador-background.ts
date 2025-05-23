@@ -12,14 +12,6 @@ import { waitUntil } from '@vercel/functions';
 const MAX_SERVER_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25MB (limite da OpenAI)
 const CLIENT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB (para a mensagem de reembolso)
 const ALLOWED_SERVER_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const SERVER_FILE_SIGNATURES: { [key: string]: { sig: string, offset?: number }[] } = {
-    'image/jpeg': [
-        { sig: 'ffd8ff' }, // Liberal - aceita qualquer JPEG válido (como frontend)
-    ],
-    'image/png': [{ sig: '89504e47' }],
-    'image/webp': [{ sig: '52494646', offset: 0 }, { sig: '57454250', offset: 8 }], // RIFF at 0, WEBP at 8
-};
-const MIN_BYTES_TO_READ_FOR_SIG_VALIDATION = 12; // Suficiente para WebP
 
 // Custom Error class that includes a status
 class CustomErrorWithStatus extends Error {
@@ -66,38 +58,49 @@ type ResponseData = {
     jobId?: string;
 }
 
-// Função para ler header de um Buffer
-async function getBufferHeaderHex(buffer: Buffer, bytesToRead: number = MIN_BYTES_TO_READ_FOR_SIG_VALIDATION): Promise<string> {
-    if (buffer.length < bytesToRead) {
-        bytesToRead = buffer.length;
+// Função para detectar tipo de imagem pelo conteúdo (header) - mais permissiva
+function detectImageTypeFromBuffer(buffer: Buffer): string | null {
+    const headerHex = buffer.toString('hex', 0, Math.min(12, buffer.length));
+    
+    // JPEG: ffd8ff
+    if (headerHex.startsWith('ffd8ff')) {
+        return 'image/jpeg';
     }
-    const headerBytes = buffer.subarray(0, bytesToRead);
-    return headerBytes.toString('hex');
+    
+    // PNG: 89504e47
+    if (headerHex.startsWith('89504e47')) {
+        return 'image/png';
+    }
+    
+    // WebP: RIFF no início (52494646) + WEBP no offset 8 (57454250)
+    if (headerHex.startsWith('52494646') && buffer.length >= 12) {
+        const webpSignature = buffer.toString('hex', 8, 12); // bytes 8-11
+        if (webpSignature === '57454250') {
+            return 'image/webp';
+        }
+    }
+    
+    return null;
 }
 
-// Função para validar o tipo de conteúdo do Buffer
+// Função para validar o tipo de conteúdo do Buffer (ATUALIZADA)
 async function validateBufferContentType(buffer: Buffer): Promise<string | null> {
-    const headerHex = await getBufferHeaderHex(buffer);
-
-    for (const [mimeType, signatures] of Object.entries(SERVER_FILE_SIGNATURES)) {
-        let matchesAllSignatures = true;
-        for (const sigInfo of signatures) {
-            const offsetBytes = sigInfo.offset || 0;
-            if (offsetBytes * 2 + sigInfo.sig.length > headerHex.length) {
-                 matchesAllSignatures = false; // Não temos bytes suficientes para esta assinatura específica
-                 break;
-            }
-            const partToCompare = headerHex.substring(offsetBytes * 2, offsetBytes * 2 + sigInfo.sig.length);
-            if (partToCompare.toLowerCase() !== sigInfo.sig.toLowerCase()) {
-                matchesAllSignatures = false;
-                break;
-            }
-        }
-        if (matchesAllSignatures) {
-            return mimeType; // Retorna o primeiro tipo MIME que corresponde
-        }
+    const detectedType = detectImageTypeFromBuffer(buffer);
+    
+    if (!detectedType) {
+        const headerHex = buffer.toString('hex', 0, Math.min(12, buffer.length));
+        console.log(`[validateBufferContentType] ❌ Tipo de imagem não reconhecido. Header: ${headerHex}, size: ${buffer.length} bytes`);
+        return null;
     }
-    return null; // Nenhum tipo conhecido correspondeu
+    
+    // Verifica se é um tipo permitido
+    if (!ALLOWED_SERVER_MIME_TYPES.includes(detectedType)) {
+        console.log(`[validateBufferContentType] ❌ Tipo detectado não permitido: ${detectedType}`);
+        return null;
+    }
+    
+    console.log(`[validateBufferContentType] ✅ Imagem válida detectada: ${detectedType}, size: ${buffer.length} bytes`);
+    return detectedType;
 }
 
 

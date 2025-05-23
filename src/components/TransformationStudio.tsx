@@ -161,7 +161,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
         </div>
       );
     case 3: // Pagamento / Processamento / Resultado
-      if (['awaiting_payment', 'creating_job', 'uploading_image', 'redirecting_to_payment'].includes(processingState)) {
+      if (['awaiting_payment', 'creating_job', 'uploading_image', 'redirecting_to_payment', 'checking_balance', 'spending_coins'].includes(processingState)) {
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
             <div className="w-full flex-grow relative">
@@ -170,6 +170,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
                 onPaymentClick={initiatePayment} // Esta função vem das props
                 isRedirecting={isLoading}
                 errorMessage={errorMessage}
+                processingState={processingState}
               />
             </div>
             <Button variant="link" onClick={() => setActiveStep(2)} className="mt-2 text-ghibli-moss">Escolher outro estilo</Button>
