@@ -3,7 +3,8 @@ import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@s
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   console.log('[Balance API] 🚀 Handler started');
-  
+  console.log('[Balance API] RAW COOKIE HEADER FROM REQUEST:', req.headers.cookie); // <<< ADICIONA ESTE LOG
+
   if (req.method !== 'GET') {
     console.log('[Balance API] ❌ Method not allowed:', req.method);
     return res.status(405).json({ message: 'Method Not Allowed' });
