@@ -1,6 +1,20 @@
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+// Função auxiliar para fazer o parse manual de um cookie específico
+function getManuallyParsedCookie(cookieString: string, cookieName: string): string | undefined {
+  if (!cookieString) return undefined;
+  const cookies = cookieString.split(';');
+  for (const cookie of cookies) {
+    const parts = cookie.split('=');
+    const name = parts[0]?.trim();
+    if (name === cookieName) {
+      return parts.slice(1).join('='); // Lida com valores de cookie que podem ter '='
+    }
+  }
+  return undefined;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method Not Allowed' });
@@ -13,8 +27,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       {
         cookies: {
           get: (name: string) => {
-            const cookies = parseCookieHeader(req.headers.cookie ?? '');
-            return cookies[name];
+            const cookieStrToParse = req.headers.cookie ?? '';
+            const parsedCookiesObjectOriginal = parseCookieHeader(cookieStrToParse);
+            const originalValue = parsedCookiesObjectOriginal[name];
+            
+            // Se for um cookie de autenticação do Supabase e o parse original falhou, tentar parse manual
+            if (name.startsWith('sb-') && name.includes('-auth-token') && originalValue === undefined) {
+              return getManuallyParsedCookie(cookieStrToParse, name);
+            }
+            
+            return originalValue;
           },
           set: (name: string, value: string, options) => {
             const cookie = serializeCookieHeader(name, value, options);
@@ -33,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Unauthorized', detail: authError?.message });
     }
 
     const { data, error } = await supabase

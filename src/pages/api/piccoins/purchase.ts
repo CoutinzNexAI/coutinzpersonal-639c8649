@@ -7,6 +7,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-04-30.basil',
 });
 
+// Função auxiliar para fazer o parse manual de um cookie específico
+function getManuallyParsedCookie(cookieString: string, cookieName: string): string | undefined {
+  if (!cookieString) return undefined;
+  const cookies = cookieString.split(';');
+  for (const cookie of cookies) {
+    const parts = cookie.split('=');
+    const name = parts[0]?.trim();
+    if (name === cookieName) {
+      return parts.slice(1).join('='); // Lida com valores de cookie que podem ter '='
+    }
+  }
+  return undefined;
+}
+
 const PICCOIN_PACKAGES = {
   starter: { coins: 1, price: 200, name: 'STARTER' }, // 2€
   popular: { coins: 3, price: 500, name: 'POPULAR' }, // 5€
@@ -21,15 +35,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // 1. Validate authentication
+    // 1. Validate authentication with robust cookie parsing
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           get: (name: string) => {
-            const cookies = parseCookieHeader(req.headers.cookie ?? '');
-            return cookies[name];
+            const cookieStrToParse = req.headers.cookie ?? '';
+            const parsedCookiesObjectOriginal = parseCookieHeader(cookieStrToParse);
+            const originalValue = parsedCookiesObjectOriginal[name];
+            
+            // Se for um cookie de autenticação do Supabase e o parse original falhou, tentar parse manual
+            if (name.startsWith('sb-') && name.includes('-auth-token') && originalValue === undefined) {
+              return getManuallyParsedCookie(cookieStrToParse, name);
+            }
+            
+            return originalValue;
           },
           set: (name: string, value: string, options) => {
             const cookie = serializeCookieHeader(name, value, options);
@@ -48,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Unauthorized', detail: authError?.message });
     }
 
     // 2. Only packageId comes from body (userId is from auth)
