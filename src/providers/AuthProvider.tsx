@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserInfo(userData); // Atualiza UI com dados básicos primeiro
 
       // Check if this is a new user by checking if they exist in database
-      const { data: existingUser, error: checkError } = await supabase
+      const { error: checkError } = await supabase
         .from('users')
         .select('id, created_at')
         .eq('id', userData.id)
