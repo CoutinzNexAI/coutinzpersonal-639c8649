@@ -11,9 +11,9 @@ const Footer = () => {
   // Itens de navegação do rodapé - hrefs ATUALIZADOS
   const footerLinks = [
     { name: "Termos de Serviço", href: "/termos-servicos" },
-    { name: "Política de Privacidade", href: "/politica-privacidade" }, // <-- HREF ATUALIZADO
-    { name: "Sobre", href: "#" }, // Mantém # ou define o link correto (ex: /sobre)
-    { name: "Contato", href: "#" }, // Mantém # ou define o link correto (ex: /contato)
+    { name: "Política de Privacidade", href: "/politica-privacidade" },
+    { name: "Sobre", href: "/sobre" },
+    { name: "Contato", href: "mailto:pictuzinfo@gmail.com?subject=Contato PicTuz - Suporte&body=Olá,%0D%0A%0D%0AEu gostaria de entrar em contato sobre..." },
   ];
 
   // Ícones de redes sociais (placeholder) - Adiciona os teus links reais
@@ -47,17 +47,29 @@ const Footer = () => {
           {/* Links de Navegação */}
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 mb-8" aria-label="Footer navigation">
             {footerLinks.map((link) => (
-              // Envolve cada link com o componente Link do Next.js
-              <Link key={link.name} href={link.href} legacyBehavior passHref>
+              // Verifica se é um link de email para abrir adequadamente
+              link.href.startsWith('mailto:') ? (
                 <motion.a
-                  // href é herdado de passHref
+                  key={link.name}
+                  href={link.href}
                   className="text-sm text-ghibli-earth hover:text-ghibli-moss transition-colors"
-                  whileHover={{ scale: 1.05 }} // Efeito de escala no hover
+                  whileHover={{ scale: 1.05 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 10 }}
                 >
                   {link.name}
                 </motion.a>
-              </Link>
+              ) : (
+                // Para links internos usa o componente Link do Next.js
+                <Link key={link.name} href={link.href} legacyBehavior passHref>
+                  <motion.a
+                    className="text-sm text-ghibli-earth hover:text-ghibli-moss transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                  >
+                    {link.name}
+                  </motion.a>
+                </Link>
+              )
             ))}
           </nav>
 

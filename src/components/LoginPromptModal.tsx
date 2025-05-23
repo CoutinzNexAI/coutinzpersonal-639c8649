@@ -84,11 +84,6 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
               { icon: History, text: "Consulte o seu histórico de transformações a qualquer momento e em qualquer dispositivo.", color: "text-ghibli-sky" },
               { icon: UserPlus, text: "Receba acesso prioritário a novos estilos e funcionalidades exclusivas.", color: "text-ghibli-sunflower" }
               
-              /* Alternativas para os itens:
-              { icon: Save, text: "Salvaguarda Segura: As suas obras de arte são armazenadas de forma segura na sua conta.", color: "text-ghibli-moss" },
-              { icon: History, text: "Histórico Completo: Reveja e reutilize todas as suas transformações anteriores.", color: "text-ghibli-sky" },
-              { icon: UserPlus, text: "Vantagens Exclusivas: Acesso a funcionalidades premium e novidades em primeira mão.", color: "text-ghibli-sunflower" }
-              */
             ].map((item, index) => (
               <motion.li 
                 key={index}
