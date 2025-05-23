@@ -13,7 +13,6 @@ type SuccessProcessingState =
   | 'initializing'
   | 'awaiting_auth'
   | 'auth_failed'
-  | 'verifying_payment'
   | 'polling_status' 
   | 'processing'     
   | 'completed'
@@ -51,7 +50,6 @@ const SuccessPage = (): JSX.Element => {
 
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const pollCountRef = useRef<number>(0);
-  const hasVerifiedPayment = useRef<boolean>(false);
 
   const stopPollingAndCleanup = useCallback((finalState: 'completed' | 'error') => {
     if (pollingIntervalRef.current) {
@@ -334,54 +332,13 @@ const SuccessPage = (): JSX.Element => {
         return; 
       }
       console.log("[SuccessPage AuthCheck] Authentication loading complete. UserInfo present:", !!userInfo);
-      const params = new URLSearchParams(window.location.search);
-      const sessionIdFromUrl = params.get('session_id');
-      
-      if (sessionIdFromUrl && !hasVerifiedPayment.current) {
-        console.log("[SuccessPage AuthCheck] SessionID found in URL. Transitioning to verifying_payment.");
-        setPageState('verifying_payment');
-      } else {
-        console.log("[SuccessPage AuthCheck] No SessionID in URL or payment already verified. Transitioning to polling_status.");
-        setPageState('polling_status'); 
-      }
+      // Go directly to polling status since PicCoins payment is handled before reaching this page
+      console.log("[SuccessPage AuthCheck] User authenticated. Transitioning to polling_status.");
+      setPageState('polling_status');
       return; 
     }
     
-    if (pageState === 'verifying_payment' && jobId && !hasVerifiedPayment.current) {
-      console.log(`[SuccessPage PaymentVerify] Verifying payment for job: ${jobId}`);
-      setLoadingMessage('A confirmar pagamento...');
-      hasVerifiedPayment.current = true; 
-      
-      const params = new URLSearchParams(window.location.search);
-      const sessionIdFromUrl = params.get('session_id');
 
-      if (!sessionIdFromUrl) {
-        console.warn("[SuccessPage Payment] No session_id in URL, skipping payment verification, proceeding to poll.");
-        setPageState('polling_status');
-        return; 
-      }
-
-      const verifyPayment = async () => {
-        try {
-          const response = await fetch(`/api/verify-session?session_id=${sessionIdFromUrl}`);
-          if (!response.ok) { 
-            const errorData = await response.json().catch(() => ({ message: 'Falha ao verificar pagamento (resposta não JSON)' }));
-            throw new Error(errorData.message || 'Falha ao verificar pagamento'); 
-          }
-          await response.json(); 
-          toast.success('Pagamento confirmado!');
-          setPageState('polling_status'); 
-        } catch (error) {
-          console.error('[SuccessPage Payment] Error verifying payment:', error);
-          handleErrorState(
-            error instanceof Error ? error.message : 'Erro desconhecido na verificação do pagamento.',
-            "Erro na verificação do pagamento."
-          );
-        }
-      };
-      verifyPayment();
-      return; 
-    }
 
     if (jobId && (pageState === 'polling_status' || pageState === 'processing')) {
       if (!isAuthLoading && !completedJobData && !errorMessage) {
@@ -427,7 +384,6 @@ const SuccessPage = (): JSX.Element => {
     switch (pageState) {
       case 'initializing':
       case 'awaiting_auth':
-      case 'verifying_payment':
       case 'polling_status': 
       case 'processing':
         return (
@@ -453,7 +409,6 @@ const SuccessPage = (): JSX.Element => {
             </div>
             <h1 className="text-3xl font-ghibli font-bold text-ghibli-wood mb-3">
               { pageState === 'awaiting_auth' ? 'Autenticando...' :
-                pageState === 'verifying_payment' ? 'Verificando Pagamento...' :
                 pageState === 'processing' ? 'Criando a sua obra de arte...' :
                 pageState === 'polling_status' ? 'Criando a sua obra de arte...' : 
                 'Aguarde...' // Para initializing

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from '@/components/ui/sonner';
-import { loadStripe, Stripe } from '@stripe/stripe-js';
+
 import { useRouter } from 'next/router';
 import { UploadedFile } from './useImageUpload';
 import { Style } from '@/components/StyleSelectorModal';
@@ -36,19 +36,7 @@ type TransformationInsert = {
   input_file_path: string;
 };
 
-let stripePromise: Promise<Stripe | null>;
-const getStripe = () => {
-    const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    if (!publishableKey) {
-        console.error("❌ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set in environment variables.");
-        toast.error("Erro de Configuração", { description: "A chave de pagamento não está configurada." });
-        return Promise.resolve(null);
-    }
-    if (!stripePromise) {
-        stripePromise = loadStripe(publishableKey);
-    }
-    return stripePromise;
-};
+
 
 export type UseImageProcessingResult = ReturnType<typeof useImageProcessing>;
 
@@ -451,7 +439,7 @@ export function useImageProcessing() {
         localStorage.setItem('studioState', JSON.stringify({ selectedStyleId: selectedStyle.id }));
         setCurrentJobId(tempNewJobId);
         
-        // Start processing immediately
+        // Start polling for status (get-transformation-status will auto-initiate processing for 'paid' jobs)
         setProcessingState('polling_status');
         toast.success("✨ PicCoin gasto com sucesso!", { 
           description: "A transformação está a começar..." 
