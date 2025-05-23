@@ -31,27 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     );
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    // Get balance using the authenticated user ID
-    const { data, error } = await supabase
-      .from('users')
-      .select('piccoin_balance')
-      .eq('id', user.id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching balance:', error);
-      return res.status(500).json({ message: 'Internal Server Error' });
-    }
-
-    return res.status(200).json({ 
-      balance: data.piccoin_balance || 0 
-    });
+    const { data: { user }, error: authError } = await supabase.auth.getUser();    if (authError || !user) {      console.log('[Balance API] Authentication failed:', authError?.message || 'No user');      return res.status(401).json({ message: 'Unauthorized' });    }    console.log('[Balance API] User authenticated:', user.id);    const { data, error } = await supabase      .from('users')      .select('piccoin_balance')      .eq('id', user.id)      .single();    if (error) {      console.error('[Balance API] Error fetching balance:', error);      return res.status(500).json({ message: 'Internal Server Error' });    }    console.log('[Balance API] Raw data from DB:', data);    console.log('[Balance API] PicCoin balance:', data?.piccoin_balance);    return res.status(200).json({       balance: data?.piccoin_balance || 0     });
 
   } catch (error) {
     console.error('Balance API error:', error);

@@ -69,33 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         console.log("[syncUserWithDatabase] ✅ User profile synced/updated successfully in DB.");
         
-        // Award welcome bonus for new users
-        if (isNewUser) {
-          try {
-            console.log("[syncUserWithDatabase] 🎁 New user detected, awarding welcome bonus...");
-            
-            const { error: bonusError } = await supabase.rpc('earn_piccoins', {
-              p_user_id: userData.id,
-              p_amount: 2,
-              p_description: 'Bónus de boas-vindas - Bem-vindo ao PicTuz!',
-              p_transaction_id: `welcome_bonus_${userData.id}_${Date.now()}`
-            });
-
-            if (bonusError) {
-              console.error("[syncUserWithDatabase] Error awarding welcome bonus:", bonusError.message);
-            } else {
-              console.log("[syncUserWithDatabase] ✅ Welcome bonus awarded successfully!");
-              // Show welcome toast after a short delay to ensure user sees it
-              setTimeout(() => {
-                toast.success("🎁 Bem-vindo ao PicTuz!", {
-                  description: "Recebeste 2 PicCoins grátis para começares a transformar as tuas fotos!"
-                });
-              }, 1500);
-            }
-          } catch (bonusError) {
-            console.error("[syncUserWithDatabase] Exception during welcome bonus:", bonusError);
-          }
-        }
+                // Award welcome bonus for new users        if (isNewUser) {          try {            console.log("[syncUserWithDatabase] 🎁 New user detected, awarding welcome bonus...");                        const { error: bonusError } = await supabase.rpc('earn_piccoins', {              p_user_id: userData.id,              p_amount: 2,              p_type: 'bonus_first_login',              p_reference_id: `welcome_bonus_${userData.id}_${Date.now()}`,              p_description: 'Bónus de boas-vindas - Bem-vindo ao PicTuz!'            });            if (bonusError) {              console.error("[syncUserWithDatabase] Error awarding welcome bonus:", bonusError);              console.error("[syncUserWithDatabase] Full bonus error details:", JSON.stringify(bonusError));            } else {              console.log("[syncUserWithDatabase] ✅ Welcome bonus awarded successfully!");              setTimeout(() => {                toast.success("🎁 Bem-vindo ao PicTuz!", {                  description: "Recebeste 2 PicCoins grátis para começares a transformar as tuas fotos!"                });              }, 1500);            }          } catch (bonusError) {            console.error("[syncUserWithDatabase] Exception during welcome bonus:", bonusError);          }        }
       }
     } catch (error) {
       console.error('[syncUserWithDatabase] Exception:', error);
