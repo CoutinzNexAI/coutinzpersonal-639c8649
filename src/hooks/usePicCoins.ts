@@ -6,7 +6,38 @@ export const usePicCoins = () => {
   const [loading, setLoading] = useState(true);
   const { userInfo } = useAuth();
 
-    const fetchBalance = useCallback(async () => {    if (!userInfo) {      console.log('[usePicCoins] No userInfo, setting balance to 0');      setBalance(0);      setLoading(false);      return;    }        console.log('[usePicCoins] Fetching balance for user:', userInfo.id);        try {      const response = await fetch('/api/piccoins/balance');      console.log('[usePicCoins] Response status:', response.status);      console.log('[usePicCoins] Response ok:', response.ok);            if (response.ok) {        const data = await response.json();        console.log('[usePicCoins] Response data:', JSON.stringify(data, null, 2));        console.log('[usePicCoins] Balance from API:', data.balance);        console.log('[usePicCoins] Type of balance:', typeof data.balance);        setBalance(data.balance);      } else {        const errorText = await response.text();        console.error('[usePicCoins] Failed to fetch balance:', response.status, response.statusText);        console.error('[usePicCoins] Error response:', errorText);      }    } catch (error) {      console.error('[usePicCoins] Error fetching balance:', error);    } finally {      setLoading(false);    }  }, [userInfo]);
+  const fetchBalance = useCallback(async () => {
+    if (!userInfo) {
+      console.log('[usePicCoins] No userInfo, setting balance to 0');
+      setBalance(0);
+      setLoading(false);
+      return;
+    }
+
+    console.log('[usePicCoins] Fetching balance for user:', userInfo.id);
+
+    try {
+      const response = await fetch('/api/piccoins/balance');
+      console.log('[usePicCoins] Response status:', response.status);
+      console.log('[usePicCoins] Response ok:', response.ok);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('[usePicCoins] Response data:', JSON.stringify(data, null, 2));
+        console.log('[usePicCoins] Balance from API:', data.balance);
+        console.log('[usePicCoins] Type of balance:', typeof data.balance);
+        setBalance(data.balance);
+      } else {
+        const errorText = await response.text();
+        console.error('[usePicCoins] Failed to fetch balance:', response.status, response.statusText);
+        console.error('[usePicCoins] Error response:', errorText);
+      }
+    } catch (error) {
+      console.error('[usePicCoins] Error fetching balance:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [userInfo?.id]); // Only depend on stable user ID, not entire userInfo object
 
   const spendCoins = async (amount: number, transformationId: string) => {
     if (!userInfo) throw new Error('User not authenticated');
@@ -65,7 +96,7 @@ export const usePicCoins = () => {
 
   useEffect(() => {
     fetchBalance();
-  }, [userInfo, fetchBalance]);
+  }, [fetchBalance]);
 
   return {
     balance,
