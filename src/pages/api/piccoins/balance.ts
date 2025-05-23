@@ -2,10 +2,24 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
 
+// Função auxiliar para fazer o parse manual de um cookie específico
+function getManuallyParsedCookie(cookieString: string, cookieName: string): string | undefined {
+  if (!cookieString) return undefined;
+  const cookies = cookieString.split(';');
+  for (const cookie of cookies) {
+    const parts = cookie.split('=');
+    const name = parts[0]?.trim();
+    if (name === cookieName) {
+      return parts.slice(1).join('='); // Lida com valores de cookie que podem ter '='
+    }
+  }
+  return undefined;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   console.log('[Balance API] 🚀 Handler started');
   
-  const rawCookieHeaderFromRequest = req.headers.cookie ?? ''; // Guardar para log no início
+  const rawCookieHeaderFromRequest = req.headers.cookie ?? '';
   console.log('[Balance API] RAW COOKIE HEADER FROM REQUEST (at handler start):', rawCookieHeaderFromRequest);
 
   if (req.method !== 'GET') {
@@ -14,7 +28,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   console.log('[Balance API] ✅ Method is GET');
-  // O log do rawCookieHeader já foi feito acima.
   console.log('[Balance API] Cookies from request (simple check):', rawCookieHeaderFromRequest ? 'Present' : 'Missing');
   console.log('[Balance API] Environment vars - URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Present' : 'Missing');
   console.log('[Balance API] Environment vars - ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Present' : 'Missing');
@@ -28,20 +41,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       {
         cookies: {
           get: (name: string) => {
-            const cookieStrToParse = req.headers.cookie ?? ''; // Re-ler para ter a string original
-            const parsedCookiesObject = parseCookieHeader(cookieStrToParse);
+            const cookieStrToParse = req.headers.cookie ?? '';
             
-            console.log(`[Balance API] 🍪 Cookie Getter - Attempting to get: "${name}"`);
-            // Não é necessário logar a string completa aqui novamente se já foi logada no início do handler.
-            // console.log(`[Balance API] 🍪 Cookie Getter - Full cookie string being parsed: "${cookieStrToParse}"`); 
-            console.log('[Balance API] 🍪 Cookie Getter - Result of parseCookieHeader (keys found):', Object.keys(parsedCookiesObject).join(', ') || 'No keys parsed');
-            // Se quiseres ver o objeto completo (pode ser grande com tokens):
-            // console.log('[Balance API] 🍪 Cookie Getter - Full parsedCookiesObject:', JSON.stringify(parsedCookiesObject));
+            // Tentar primeiro com o parseCookieHeader original para logging
+            const parsedCookiesObjectOriginal = parseCookieHeader(cookieStrToParse);
+            console.log(`[Balance API] 🍪 Cookie Getter - Attempting to get (original parse): "${name}"`);
+            console.log('[Balance API] 🍪 Cookie Getter - Result of parseCookieHeader (keys found):', Object.keys(parsedCookiesObjectOriginal).join(', ') || 'No keys parsed');
+            const originalValue = parsedCookiesObjectOriginal[name];
+            console.log(`[Balance API] 🍪 Cookie Getter - Value for "${name}" (original parse): ${originalValue !== undefined ? `Found` : 'Not found (undefined)'}`);
 
-
-            const cookieValue = parsedCookiesObject[name];
-            console.log(`[Balance API] 🍪 Cookie Getter - Value for "${name}": ${cookieValue !== undefined ? `Found (length: ${String(cookieValue).length})` : 'Not found (undefined)'}`);
-            return cookieValue;
+            // Se for um cookie de autenticação do Supabase e o parse original falhou, tentar parse manual
+            if (name.startsWith('sb-') && name.includes('-auth-token') && originalValue === undefined) {
+              console.log(`[Balance API] 🍪 Cookie Getter - Original parse failed for Supabase token "${name}". Attempting manual parse.`);
+              const manualValue = getManuallyParsedCookie(cookieStrToParse, name);
+              console.log(`[Balance API] 🍪 Cookie Getter - Value for "${name}" (manual parse): ${manualValue !== undefined ? `Found (length: ${String(manualValue).length})` : 'Not found (undefined)'}`);
+              return manualValue;
+            }
+            
+            return originalValue; // Retorna o valor do parse original se não for um token Supabase ou se foi encontrado
           },
           set: (name: string, value: string, options) => {
             console.log('[Balance API] 🍪 Setting cookie:', name);
@@ -54,7 +71,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
             res.setHeader('Set-Cookie', [...setCookieHeader, cookie]);
           },
-          // A função remove pode ser útil se o Supabase precisar limpar cookies durante o refresh
           remove: (name: string, options) => {
             console.log('[Balance API] 🍪 Removing cookie:', name);
             const cookieHeader = serializeCookieHeader(name, '', { ...options, maxAge: 0 });
@@ -86,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('[Balance API] 📊 Querying database for user balance...');
     const { data, error } = await supabase
       .from('users')
-      .select('piccoin_balance, id, email, created_at') // Seleciona os campos que precisas
+      .select('piccoin_balance, id, email, created_at')
       .eq('id', user.id)
       .single();
 
@@ -95,26 +111,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (error) {
       console.error('[Balance API] ❌ Error fetching balance from DB:', error);
-      console.error('[Balance API] DB Error code:', error.code);
-      console.error('[Balance API] DB Error message:', error.message);
-      console.error('[Balance API] DB Error details:', error.details);
       return res.status(500).json({ message: 'Internal Server Error fetching balance' });
     }
 
     if (!data) {
       console.error('[Balance API] ❌ No data returned from users query for user ID:', user.id);
-      // Isto pode acontecer se o utilizador existir no auth.users mas não na tua tabela public.users
-      // O AuthProvider deveria ter criado o registo em public.users.
       return res.status(404).json({ message: 'User profile not found in database' });
     }
 
     const balance = data.piccoin_balance;
     console.log('[Balance API] 💰 Raw piccoin_balance from DB:', balance);
-    console.log('[Balance API] 💰 Type of balance from DB:', typeof balance);
-    console.log('[Balance API] 💰 Is balance from DB null?', balance === null);
-    console.log('[Balance API] 💰 Is balance from DB undefined?', balance === undefined);
     
-    const finalBalance = balance ?? 0; // Garante que é um número, mesmo que seja null/undefined da DB
+    const finalBalance = balance ?? 0;
     console.log('[Balance API] 💰 Final balance to return:', finalBalance);
 
     return res.status(200).json({
@@ -123,9 +131,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   } catch (error) {
     console.error('[Balance API] ❌ Unexpected error in main try/catch block:', error);
-    console.error('[Balance API] Error type:', typeof error);
-    console.error('[Balance API] Error message:', error instanceof Error ? error.message : 'Unknown error');
-    console.error('[Balance API] Error stack:', error instanceof Error ? error.stack : 'No stack');
     return res.status(500).json({ message: 'Internal Server Error in handler' });
   }
 }
