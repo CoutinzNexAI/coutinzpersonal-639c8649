@@ -1,4 +1,4 @@
-// pages/api/get-transformation-status.ts
+// src/pages/api/get-transformation-status.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
@@ -8,151 +8,171 @@ type ResponseData = {
   output_url?: string | null;
   error_message?: string | null;
   message?: string; // For general errors or specific error messages not tied to job fields
+  detail?: string; // <<< NOVO: Adicionado para mensagens de erro detalhadas
 };
+
+// Função auxiliar para fazer o parse manual de um cookie específico
+function getManuallyParsedCookie(cookieString: string, cookieName: string): string | undefined {
+  if (!cookieString) return undefined;
+  const cookiesArray = cookieString.split(';');
+  for (const cookie of cookiesArray) {
+    const parts = cookie.split('=');
+    const name = parts[0]?.trim();
+    if (name === cookieName) {
+      // Lida com valores de cookie que podem ter '=' no valor, juntando as partes restantes
+      return parts.slice(1).join('=');
+    }
+  }
+  return undefined;
+}
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
-  // Log da requisição recebida
-  console.log('[API get-transformation-status] Received request');
+  const endpointName = '[API get-transformation-status]';
+  console.log(`${endpointName} 🚀 Handler started. Method: ${req.method}`);
+  const rawCookieHeaderFromRequest = req.headers.cookie ?? '';
+  console.log(`${endpointName} RAW COOKIE HEADER:`, rawCookieHeaderFromRequest);
 
-  // 1. Validar o método HTTP
   if (req.method !== 'GET') {
-    console.warn('[API get-transformation-status] Method not allowed:', req.method);
+    console.warn(`${endpointName} ❌ Method not allowed: ${req.method}`);
     res.setHeader('Allow', 'GET');
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  // 2. Validar o parâmetro 'jobId'
-  const { jobId, userId } = req.query; // Accept userId from success.tsx
+  const { jobId, userId: userIdFromQuery } = req.query; // Renomeado para evitar conflito com user.id
   if (!jobId || typeof jobId !== 'string') {
-    console.error('[API get-transformation-status] Missing or invalid jobId query parameter.');
+    console.error(`${endpointName} ❌ Missing or invalid jobId query parameter.`);
     return res.status(400).json({ message: 'Missing or invalid jobId query parameter' });
   }
-  console.log(`[API get-transformation-status] Fetching status for jobId: ${jobId}`);
+  console.log(`${endpointName} Fetching status for jobId: ${jobId}`);
   
-  // Special flow flag from success.tsx
   const successPageFlow = req.headers['x-from-success-page'] === 'true';
-  const explicitUserId = typeof userId === 'string' ? userId : null;
+  const explicitUserId = typeof userIdFromQuery === 'string' ? userIdFromQuery : null;
   
-  let authenticatedUserId: string | null = null;
-  let isAdminFallback = false;
+  let authenticatedUserIdFromSession: string | null = null;
+  let usingExplicitUserIdAsFallback = false;
 
-  // 3. Verificação de Segurança: Obter o utilizador autenticado
-  // Primeiro tenta com cookies normais
+  console.log(`${endpointName} Environment vars - URL:`, process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Present' : 'Missing');
+  console.log(`${endpointName} Environment vars - ANON_KEY:`, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Present' : 'Missing');
+
   try {
-    // Cria um cliente Supabase server-side para ler os cookies da requisição
+    console.log(`${endpointName} 🔧 Creating Supabase SSR client...`);
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          // A função `get` lê um cookie da requisição HTTP
           get: (name: string) => {
-            const cookies = parseCookieHeader(req.headers.cookie ?? '');
-            return cookies[name];
-          },
-          // A função `set` define um cookie na resposta HTTP, caso a sessão seja atualizada
-          set: (name: string, value: string, options) => {
-            const cookie = serializeCookieHeader(name, value, options);
-            // Adiciona o cabeçalho Set-Cookie. Pode ser chamado múltiplas vezes.
-            let setCookieHeader = res.getHeader('Set-Cookie') ?? [];
-            if (typeof setCookieHeader === 'string') {
-              setCookieHeader = [setCookieHeader];
-            } else if (typeof setCookieHeader === 'number') {
-              // Este caso não deve acontecer para Set-Cookie, mas para segurança:
-              setCookieHeader = [String(setCookieHeader)];
+            const cookieStrToParse = req.headers.cookie ?? '';
+            const parsedCookiesObjectOriginal = parseCookieHeader(cookieStrToParse);
+            // console.log(`${endpointName} 🍪 Cookie Getter - Full cookie string: "${cookieStrToParse}"`);
+            console.log(`${endpointName} 🍪 Cookie Getter - Attempting to get (original parse): "${name}"`);
+            console.log(`${endpointName} 🍪 Cookie Getter - Result of parseCookieHeader (keys found):`, Object.keys(parsedCookiesObjectOriginal).join(', ') || 'No keys parsed');
+            const originalValue = parsedCookiesObjectOriginal[name];
+            console.log(`${endpointName} 🍪 Cookie Getter - Value for "${name}" (original parse): ${originalValue !== undefined ? `Found` : 'Not found (undefined)'}`);
+
+            if (name.startsWith('sb-') && name.includes('-auth-token') && originalValue === undefined) {
+              console.log(`${endpointName} 🍪 Cookie Getter - Original parse failed for Supabase token "${name}". Attempting manual parse.`);
+              const manualValue = getManuallyParsedCookie(cookieStrToParse, name);
+              console.log(`${endpointName} 🍪 Cookie Getter - Value for "${name}" (manual parse): ${manualValue !== undefined ? `Found (length: ${String(manualValue).length})` : 'Not found (undefined)'}`);
+              return manualValue;
             }
+            return originalValue;
+          },
+          set: (name: string, value: string, options) => {
+            console.log(`${endpointName} 🍪 Setting cookie:`, name);
+            const cookie = serializeCookieHeader(name, value, options);
+            let setCookieHeader = res.getHeader('Set-Cookie') ?? [];
+            if (typeof setCookieHeader === 'string') setCookieHeader = [setCookieHeader];
+            else if (typeof setCookieHeader === 'number') setCookieHeader = [String(setCookieHeader)];
             res.setHeader('Set-Cookie', [...setCookieHeader, cookie]);
           },
-          // A função `remove` é opcional aqui se não estiveres a modificar e remover cookies ativamente
-          // remove: (name: string, options) => {
-          //   const cookie = serializeCookieHeader(name, '', { ...options, maxAge: 0 });
-          //   // Adiciona o cabeçalho Set-Cookie para remover.
-          //   // (Lógica similar ao 'set' para adicionar à lista de Set-Cookie)
-          // },
+          remove: (name: string, options) => {
+            console.log(`${endpointName} 🍪 Removing cookie:`, name);
+            const cookieHeader = serializeCookieHeader(name, '', { ...options, maxAge: 0 });
+            let existingSetCookie = res.getHeader('Set-Cookie') ?? [];
+            if (typeof existingSetCookie === 'string') existingSetCookie = [existingSetCookie];
+            else if (typeof existingSetCookie === 'number') existingSetCookie = [String(existingSetCookie)];
+            res.setHeader('Set-Cookie', [...existingSetCookie, cookieHeader]);
+          },
         },
       }
     );
+    console.log(`${endpointName} ✅ Supabase client created successfully`);
+    console.log(`${endpointName} 🔐 Getting user authentication...`);
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
+    console.log(`${endpointName} Auth result - Error:`, userError?.message || 'None');
+    console.log(`${endpointName} Auth result - User:`, user ? `${user.id} (${user.email})` : 'null');
 
-    if (userError || !user) {
-      // If normal authentication fails, we'll check for alternative credentials
-      console.warn('[API get-transformation-status] Normal authentication failed:', userError?.message || 'No user');
-      
-      // Only check for alternative authentication if from success page with userId
+    if (user) {
+      authenticatedUserIdFromSession = user.id;
+      console.log(`${endpointName} ✅ Primary authentication successful: ${authenticatedUserIdFromSession}`);
+    } else {
+      console.warn(`${endpointName} Primary authentication failed:`, userError?.message || 'No user from session');
       if (successPageFlow && explicitUserId) {
-        console.log(`[API get-transformation-status] Using admin fallback with explicit userId: ${explicitUserId}`);
-        authenticatedUserId = explicitUserId;
-        isAdminFallback = true;
+        console.log(`${endpointName} ⚠️ Using explicitUserId as fallback: ${explicitUserId}`);
+        authenticatedUserIdFromSession = explicitUserId;
+        usingExplicitUserIdAsFallback = true;
       } else {
-        console.error('[API get-transformation-status] Not authenticated or error fetching user.', userError?.message);
-        return res.status(401).json({ message: 'Not authenticated. Please log in.' });
+        console.error(`${endpointName} ❌ Authentication failed and no valid fallback. UserError:`, userError?.message);
+        return res.status(401).json({ message: 'Not authenticated. Please log in.', detail: userError?.message });
       }
-    } else {
-      // Normal authentication succeeded
-      authenticatedUserId = user.id;
-      console.log(`[API get-transformation-status] Authenticated user: ${authenticatedUserId}`);
     }
-  } catch (authError) {
-    console.error('[API get-transformation-status] Error during authentication:', authError);
-    
-    // Only check for alternative authentication if from success page with userId
+  } catch (authCatchError) {
+    const errorMsg = authCatchError instanceof Error ? authCatchError.message : 'Unknown auth block error';
+    console.error(`${endpointName} 💥 Catch block during authentication: ${errorMsg}`);
     if (successPageFlow && explicitUserId) {
-      console.log(`[API get-transformation-status] Using admin fallback after auth error with explicit userId: ${explicitUserId}`);
-      authenticatedUserId = explicitUserId;
-      isAdminFallback = true;
+      console.log(`${endpointName} ⚠️ Using explicitUserId as fallback after auth catch block: ${explicitUserId}`);
+      authenticatedUserIdFromSession = explicitUserId;
+      usingExplicitUserIdAsFallback = true;
     } else {
-      return res.status(500).json({ message: 'Authentication error occurred.' });
+      return res.status(500).json({ message: 'Authentication error occurred.', detail: errorMsg });
     }
   }
 
-  // 4. Buscar os dados da transformação e verificar a propriedade
+  if (!authenticatedUserIdFromSession) {
+      console.error(`${endpointName} ❌ CRITICAL: authenticatedUserIdFromSession is null after auth block. This should not happen.`);
+      return res.status(500).json({ message: 'Internal authentication error.' });
+  }
+
   try {
+    console.log(`${endpointName} 📊 Querying 'transformations' table for jobId: ${jobId} (as supabaseAdmin)`);
     const { data: jobDetails, error: fetchError } = await supabaseAdmin
       .from('transformations')
-      .select('status, output_url, error_message, user_id, processing_started_at') // Adicionado processing_started_at à query
+      .select('status, output_url, error_message, user_id, processing_started_at')
       .eq('id', jobId)
-      .single(); // Espera um único resultado
+      .single();
+
+    console.log(`${endpointName} DB Query - Error:`, fetchError?.message || 'None');
+    console.log(`${endpointName} DB Query - Data:`, jobDetails ? 'Data received' : 'No data');
 
     if (fetchError) {
-      if (fetchError.code === 'PGRST116') { // Código Supabase para "Not found"
-        console.warn(`[API get-transformation-status] Job not found in database: ${jobId}`);
+      if (fetchError.code === 'PGRST116') {
+        console.warn(`${endpointName} Job not found in database: ${jobId}`);
         return res.status(404).json({ message: 'Job not found' });
       }
-      // Para outros erros de base de dados, loga o erro detalhado no servidor
-      console.error(`[API get-transformation-status] Supabase error fetching job ${jobId}:`, fetchError.message);
-      // Não exponhas o erro Supabase completo ao cliente por segurança
-      return res.status(500).json({ message: 'Error fetching job details.' });
+      console.error(`${endpointName} Supabase error fetching job ${jobId}:`, fetchError.message);
+      return res.status(500).json({ message: 'Error fetching job details.', detail: fetchError.message });
     }
 
-    if (!jobDetails) { // Fallback, embora PGRST116 deva apanhar isto
-      console.warn(`[API get-transformation-status] Job data unexpectedly null for ${jobId} (after fetch without error).`);
+    if (!jobDetails) {
+      console.warn(`${endpointName} Job data unexpectedly null for ${jobId} (after fetch without error).`);
       return res.status(404).json({ message: 'Job not found' });
     }
 
-    // Verificação de Propriedade CRUCIAL
-    if (jobDetails.user_id !== authenticatedUserId) {
-      console.error(`[API get-transformation-status] Forbidden: User ${authenticatedUserId} attempted to access job ${jobId} owned by ${jobDetails.user_id}.`);
+    if (jobDetails.user_id !== authenticatedUserIdFromSession) {
+      console.error(`${endpointName} 🚫 Forbidden: User ${authenticatedUserIdFromSession} (auth source: ${usingExplicitUserIdAsFallback ? 'explicit query param' : 'session'}) attempted to access job ${jobId} owned by ${jobDetails.user_id}.`);
       return res.status(403).json({ message: 'Forbidden: You do not have permission to access this job.' });
     }
     
-    if (isAdminFallback) {
-      console.log(`[API get-transformation-status] Admin fallback succeeded! Ownership verified for job ${jobId}. User: ${authenticatedUserId}`);
-    } else {
-      console.log(`[API get-transformation-status] Ownership verified for job ${jobId}. User: ${authenticatedUserId}`);
-    }
+    console.log(`${endpointName} ✅ Ownership verified for job ${jobId}. User: ${authenticatedUserIdFromSession} (Source: ${usingExplicitUserIdAsFallback ? 'explicit' : 'session'}).`);
 
-    // 5. Retornar os dados do job
-    console.log(`[API get-transformation-status] Status for job ${jobId}: ${jobDetails.status}, URL: ${jobDetails.output_url}, Error: ${jobDetails.error_message}`);
-    
-    // Validação adicional da URL da imagem
+    // Lógica de self-healing (mantida)
     if (jobDetails.status === 'completed' && (!jobDetails.output_url || jobDetails.output_url === '')) {
-      console.error(`[API get-transformation-status] Job ${jobId} marked as completed but has no output URL`);
-      
-      // Verificar diretamente no storage se há imagem
+      console.warn(`${endpointName} Job ${jobId} is 'completed' but output_url is missing. Attempting self-heal.`);
       try {
         const { data: files } = await supabaseAdmin
           .storage
@@ -161,22 +181,17 @@ export default async function handler(
             limit: 1,
             sortBy: { column: 'name', order: 'desc' },
           });
-          
+        
         if (files && files.length > 0) {
-          // Encontrou imagem no storage
           const fileName = files[0].name;
-          console.log(`[API get-transformation-status] Found image in storage: ${fileName}`);
-          
-          // Obter URL público
+          console.log(`${endpointName} Self-heal: Found image in storage: ${fileName}`);
           const { data: urlData } = await supabaseAdmin
             .storage
             .from('results')
             .getPublicUrl(`public/${jobDetails.user_id}/${jobId}/${fileName}`);
             
           if (urlData?.publicUrl) {
-            console.log(`[API get-transformation-status] Generated URL: ${urlData.publicUrl}`);
-            
-            // Atualiza no banco de dados para futuras consultas
+            console.log(`${endpointName} Self-heal: Generated URL: ${urlData.publicUrl}`);
             await supabaseAdmin
               .from('transformations')
               .update({ 
@@ -193,22 +208,19 @@ export default async function handler(
           }
         }
       } catch (storageError) {
-        console.error('[API get-transformation-status] Error checking storage:', storageError);
+        console.error(`${endpointName} Self-heal: Error checking storage:`, storageError instanceof Error ? storageError.message : storageError);
       }
-      
+      // Se o self-heal falhar ou não encontrar, continua para retornar o status 'failed' abaixo
       return res.status(200).json({
-        status: 'failed',
-        error_message: 'Transformação concluída, mas nenhuma URL de saída foi fornecida',
+        status: 'failed', // Ou 'error' se preferir, já que está completo mas sem URL
+        error_message: 'Transformação concluída, mas ocorreu um problema ao obter a URL de saída.',
       });
     }
     
-    // Verificar diretamente no storage se o status é 'processing' mas já tem muito tempo
-    if ((jobDetails.status === 'processing' || jobDetails.status === 'paid' || jobDetails.status === 'pending') && 
+    if ((jobDetails.status === 'processing' || jobDetails.status === 'paid' || jobDetails.status === 'pending_payment') && 
         jobDetails.processing_started_at && 
         new Date().getTime() - new Date(jobDetails.processing_started_at as string).getTime() > 2 * 60 * 1000) { // 2 minutos
-      
-      console.log(`[API get-transformation-status] Job ${jobId} in processing for long time, checking storage directly`);
-      
+      console.warn(`${endpointName} Job ${jobId} is '${jobDetails.status}' for >2 mins. Attempting self-heal for stuck job.`);
       try {
         const { data: files } = await supabaseAdmin
           .storage
@@ -217,22 +229,15 @@ export default async function handler(
             limit: 1,
             sortBy: { column: 'name', order: 'desc' },
           });
-          
         if (files && files.length > 0) {
-          // Encontrou imagem no storage
           const fileName = files[0].name;
-          console.log(`[API get-transformation-status] Found image in storage despite job status: ${fileName}`);
-          
-          // Obter URL público
+          console.log(`${endpointName} Self-heal (stuck job): Found image in storage: ${fileName}`);
           const { data: urlData } = await supabaseAdmin
             .storage
             .from('results')
             .getPublicUrl(`public/${jobDetails.user_id}/${jobId}/${fileName}`);
-            
           if (urlData?.publicUrl) {
-            console.log(`[API get-transformation-status] Generated URL: ${urlData.publicUrl}`);
-            
-            // Atualiza no banco de dados para futuras consultas
+            console.log(`${endpointName} Self-heal (stuck job): Generated URL: ${urlData.publicUrl}`);
             await supabaseAdmin
               .from('transformations')
               .update({ 
@@ -242,7 +247,6 @@ export default async function handler(
                 completed_at: new Date().toISOString()
               })
               .eq('id', jobId);
-              
             return res.status(200).json({
               status: 'completed',
               output_url: urlData.publicUrl,
@@ -251,19 +255,20 @@ export default async function handler(
           }
         }
       } catch (storageError) {
-        console.error('[API get-transformation-status] Error checking storage for processing job:', storageError);
+        console.error(`${endpointName} Self-heal (stuck job): Error checking storage:`, storageError instanceof Error ? storageError.message : storageError);
       }
     }
     
+    console.log(`${endpointName} ✅ Returning status for job ${jobId}: ${jobDetails.status}`);
     return res.status(200).json({
       status: jobDetails.status,
       output_url: jobDetails.output_url,
       error_message: jobDetails.error_message,
     });
 
-  } catch (error) { // Catch para erros inesperados não tratados acima
-    const genericErrorMessage = error instanceof Error ? error.message : 'Unknown server error during processing.';
-    console.error(`[API get-transformation-status] Critical error for job ${jobId}:`, genericErrorMessage);
-    return res.status(500).json({ message: 'Failed to get transformation status due to a server error.' });
+  } catch (error) {
+    const genericErrorMessage = error instanceof Error ? error.message : 'Unknown server error.';
+    console.error(`${endpointName} 💥 Critical error for job ${jobId}:`, genericErrorMessage);
+    return res.status(500).json({ message: 'Failed to get transformation status due to a server error.', detail: genericErrorMessage });
   }
 }
