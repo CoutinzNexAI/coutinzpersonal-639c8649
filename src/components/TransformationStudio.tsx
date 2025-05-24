@@ -65,7 +65,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
   handleFileChange,
   openStyleSelector,
   handleStyleSelect,
-  handlePaymentClick: initiatePayment,
+  handleStartTransformation: initiatePayment,
   // handleNewImage é substituído por onResetToStepZero para o contexto deste componente
   handleDownload,
   setActiveStep, // Adicionado para navegação interna
