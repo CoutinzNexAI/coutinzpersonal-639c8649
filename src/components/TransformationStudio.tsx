@@ -157,8 +157,9 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
         </div>
       );
     case 3: // "Pagamento" com PicCoins / Processamento / Resultado
+      console.log('[TransformationStudio] Step 3, processingState:', processingState);
       // Estados que mostram o PaymentState (agora mais para feedback de "a iniciar")
-      if (['checking_balance', 'spending_coins', 'uploading_image', 'creating_job_record', 'triggering_processing'].includes(processingState)) {
+      if (['idle', 'checking_balance', 'spending_coins', 'uploading_image', 'creating_job_record', 'triggering_processing'].includes(processingState)) {
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
             <div className="w-full flex-grow relative">

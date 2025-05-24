@@ -244,17 +244,27 @@ export function useImageProcessing() {
   }, [uploadedImage, setIsStyleModalOpen]); // setIsStyleModalOpen é estável
 
   const handleStyleSelect = useCallback((style: Style) => {
+    console.log('[handleStyleSelect] Style selected:', style.name);
     setSelectedStyle(style);
     setActiveStep(3); 
     setIsStyleModalOpen(false);
     setErrorMessage(null); 
-    if (uploadedImage) { // Só muda estado se houver imagem, senão fica 'idle'
-      setProcessingState('checking_balance'); // Alterado para iniciar fluxo PicCoins
+    if (uploadedImage) { 
+      console.log('[handleStyleSelect] Setting processingState to idle (user needs to click button)');
+      setProcessingState('idle'); // Mudança: não iniciar checking_balance automaticamente
     }
     toast.success(`Estilo "${style.name}" selecionado!`);
   }, [uploadedImage, setActiveStep, setSelectedStyle, setIsStyleModalOpen, setErrorMessage, setProcessingState]);
 
   const handleStartTransformation = useCallback(async () => {
+    console.log('[handleStartTransformation] Starting transformation with:', { 
+      hasImage: !!uploadedImage, 
+      hasStyle: !!selectedStyle, 
+      styleName: selectedStyle?.name,
+      isAuthLoading, 
+      userId: userInfo?.id 
+    });
+    
     if (!uploadedImage || !selectedStyle) {
       toast.error("Erro", { description: "Por favor, carregue uma imagem e selecione um estilo." }); return;
     }
@@ -385,8 +395,8 @@ export function useImageProcessing() {
     }
   }, [
     uploadedImage, selectedStyle, userInfo, isAuthLoading, 
-    spendCoins, refetchBalance, router, 
-    processingState, // Manter processingState para lógica no finally
+    spendCoins, refetchBalance, router
+    // Removed processingState to prevent unnecessary re-creations
     // setActiveStep, setErrorMessage, etc. são estáveis
   ]);
 
