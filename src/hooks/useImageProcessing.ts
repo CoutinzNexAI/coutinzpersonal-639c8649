@@ -188,7 +188,28 @@ export function useImageProcessing() {
           toast.success("Transformação concluída!");
           if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); setIsLoading(false);
         } else if (['processing', 'processing_queued'].includes(data.status || '')) {
-          console.log(`[useImageProcessing - Polling] Job PROCESSING. Status: ${data.status}`); // LOG 6
+          console.log(`[useImageProcessing - Polling] Job PROCESSING. Status: ${data.status} (attempt ${pollCountRef.current})`); // LOG 6
+
+          // After 10 attempts (30 seconds), try to force refresh or check completed directly
+          if (pollCountRef.current >= 10) {
+            console.log(`[useImageProcessing - Polling] 🚨 Been polling for 30s. Trying direct status check...`);
+            try {
+              // Force a fetch with cache-busting and extra query
+              const directResponse = await fetch(`/api/get-transformation-status?jobId=${currentJobId}&force=true&_t=${Date.now()}`);
+              const directData = await directResponse.json();
+              console.log(`[useImageProcessing - Polling] 🔄 Direct check result:`, directData);
+              
+              if (directData.status === 'completed' && directData.output_url) {
+                console.log(`[useImageProcessing - Polling] 🎯 Direct check found completed job!`);
+                setTransformedImage(directData.output_url); setProcessingState('completed'); setActiveStep(3);
+                toast.success("Transformação concluída!");
+                if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); setIsLoading(false);
+                return;
+              }
+            } catch (directError) {
+              console.error(`[useImageProcessing - Polling] Error in direct check:`, directError);
+            }
+          }
 
           if (processingState !== 'processing') {
             setProcessingState('processing'); setActiveStep(3);
