@@ -600,6 +600,7 @@ export function useImageProcessing() {
     if (transformedImage) {
         const link = document.createElement('a');
         link.href = transformedImage;
+        link.target = '_blank';
         try {
             const url = new URL(transformedImage);
             const pathSegments = url.pathname.split('/');
