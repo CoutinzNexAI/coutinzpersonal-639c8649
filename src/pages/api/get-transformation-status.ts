@@ -148,6 +148,8 @@ export default async function handler(
 
     console.log(`${endpointName} DB Query - Error:`, fetchError?.message || 'None');
     console.log(`${endpointName} DB Query - Data:`, jobDetails ? 'Data received' : 'No data');
+    console.log(`${endpointName} DB Query - JOB DETAILS READ FROM DB:`, JSON.stringify(jobDetails, null, 2));
+
 
     if (fetchError) {
       if (fetchError.code === 'PGRST116') {
