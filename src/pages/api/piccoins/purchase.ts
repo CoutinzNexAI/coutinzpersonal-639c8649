@@ -137,6 +137,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       mode: 'payment',
       success_url: `${appUrl}/pricing?success=true&session_id={CHECKOUT_SESSION_ID}&package_id=${packageId}`,
       cancel_url: `${appUrl}/pricing?canceled=true&package_id=${packageId}`,
+      allow_promotion_codes: true,
       customer_email: user.email, // Pre-fill customer email if available
       metadata: {
         userId: user.id, // Comes from authenticated user session
