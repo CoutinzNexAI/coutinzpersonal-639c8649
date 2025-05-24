@@ -28,7 +28,7 @@ const PICCOIN_PACKAGES = {
   starter: { coins: 1, price: 200, name: 'STARTER' }, // 2 EUR = 200 cents
   popular: { coins: 3, price: 500, name: 'POPULAR' }, // 5 EUR = 500 cents
   premium: { coins: 7, price: 1000, name: 'PREMIUM' }, // 10 EUR = 1000 cents
-  mega: { coins: 15, price: 50, name: 'MEGA' },     // 20 EUR = 2000 cents
+  mega: { coins: 15, price: 5000, name: 'MEGA' },     // 20 EUR = 2000 cents
   ultimate: { coins: 50, price: 5000, name: 'ULTIMATE' } // 50 EUR = 5000 cents
 };
 
