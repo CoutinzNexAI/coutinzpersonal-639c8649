@@ -21,6 +21,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
         <Image 
           src={transformedImageUrl} 
           alt="Imagem transformada" 
+          key={transformedImageUrl}
           fill
           style={{ objectFit: "cover" }}
           priority
