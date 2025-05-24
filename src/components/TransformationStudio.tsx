@@ -193,14 +193,16 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
         );
       } else if (processingState === 'completed' && transformedImage && selectedStyle) {
         return (
-          <div className="w-full h-full flex flex-col p-0">
-            <CompletedState
-              transformedImageUrl={transformedImage}
-              selectedStyle={selectedStyle}
-              onDownload={handleDownload}
-            />
-            <div className="p-4 pt-2 flex-shrink-0">
-              <Button className="w-full ghibli-button mt-2" onClick={onResetToStepZero} disabled={isLoading}>
+          <div className="w-full h-full flex flex-col">
+            <div className="flex-1 min-h-0">
+              <CompletedState
+                transformedImageUrl={transformedImage}
+                selectedStyle={selectedStyle}
+                onDownload={handleDownload}
+              />
+            </div>
+            <div className="p-4 pt-2 flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-gray-200">
+              <Button className="w-full ghibli-button" onClick={onResetToStepZero} disabled={isLoading}>
                 <RefreshCw className="mr-2 h-4 w-4" /> Nova Imagem
               </Button>
             </div>

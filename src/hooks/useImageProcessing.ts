@@ -598,24 +598,15 @@ export function useImageProcessing() {
 
   const handleDownload = useCallback(() => {
     if (transformedImage) {
-        const link = document.createElement('a');
-        link.href = transformedImage;
-        link.target = '_blank';
-        try {
-            const url = new URL(transformedImage);
-            const pathSegments = url.pathname.split('/');
-            link.download = pathSegments.pop() || `pictuz_transformed_${currentJobId || Date.now()}.png`;
-        } catch (e) {
-            link.download = `pictuz_transformed_${currentJobId || Date.now()}.png`;
-        }
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success("Download Iniciado!");
+      // Abre a imagem numa nova aba para visualização/download manual
+      window.open(transformedImage, '_blank', 'noopener,noreferrer');
+      toast.success("Imagem aberta em novo separador!");
+      console.log('[handleDownload] Opened image in new tab:', transformedImage);
     } else {
-        toast.error("Nenhuma imagem transformada para descarregar.");
+      toast.error("Nenhuma imagem transformada para abrir.");
+      console.warn('[handleDownload] No transformed image available');
     }
-  }, [transformedImage, currentJobId]);
+  }, [transformedImage]);
 
   return {
     uploadedImage, isStyleModalOpen, selectedStyle, processingState, transformedImage,
