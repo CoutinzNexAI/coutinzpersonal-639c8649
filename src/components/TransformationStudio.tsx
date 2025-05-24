@@ -4,29 +4,28 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, LoaderCircle, Check } from "lucide-react";
 import Image from 'next/image';
 
-// Componentes de UI e estado importados
 import ImageUpload from './ImageUpload';
-// StyleSelectorModal será aberto pelo GhibliHero, mas openStyleSelector é uma prop
 import ProcessingState from './studio/ProcessingState';
 import PaymentState from './studio/PaymentState';
 import ErrorState from './studio/ErrorState';
 import CompletedState from './studio/CompletedState';
-import { Step0Carousel } from './gallery/Step0Carousel'; // Carrossel do Passo 0
+import { Step0Carousel } from './gallery/Step0Carousel';
 import { cn } from '@/lib/utils';
-import { UseImageProcessingResult } from '@/hooks/useImageProcessing'; // Importa tipo necessário
-import { Style } from '@/components/StyleSelectorModal'; // Importa o tipo Style do seu local correto
+import { UseImageProcessingResult } from '@/hooks/useImageProcessing';
+import { Style } from '@/components/StyleSelectorModal';
 
-// --- Props para o TransformationStudio ---
-interface TransformationStudioProps extends Omit<UseImageProcessingResult, 'handleNewImage' | 'currentJobId' | 'setIsStyleModalOpen' | 'isStyleModalOpen'> {
-  // Omitimos props que não são diretamente usadas pelo render ou são geridas pelo GhibliHero
-  // Adicionamos as que são específicas para o controlo deste componente
+interface TransformationStudioProps extends Omit<UseImageProcessingResult, 
+  'handleNewImage' | 
+  'currentJobId' | 
+  'setIsStyleModalOpen' | 
+  'isStyleModalOpen' |
+  'handlePaymentClick' // Remover se existir, pois foi substituído
+> {
   showStepZeroContent: boolean;
-  onStartClickForCarousel: () => void; // Para o botão "Começar" do carrossel
-  onResetToStepZero: () => void; // Para voltar ao carrossel a partir dos passos do estúdio
-  // setActiveStep é parte de UseImageProcessingResult, então já está incluído
+  onStartClickForCarousel: () => void;
+  onResetToStepZero: () => void;
 }
 
-// --- Componente de Preview Interno (anteriormente em GhibliHero) ---
 const Step3Preview: React.FC<{ imageUrl: string | undefined; styleName: string | undefined }> = ({ imageUrl, styleName }) => {
   if (!imageUrl || !styleName) return null;
   return (
@@ -51,7 +50,6 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
   showStepZeroContent,
   onStartClickForCarousel,
   onResetToStepZero,
-  // Props do useImageProcessing
   uploadedImage,
   selectedStyle,
   processingState,
@@ -65,18 +63,16 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
   handleFileChange,
   openStyleSelector,
   handleStyleSelect,
-  handleStartTransformation: initiatePayment,
-  // handleNewImage é substituído por onResetToStepZero para o contexto deste componente
+  //  handlePaymentClick: initiatePayment, // <<< LINHA ANTIGA
+  handleStartTransformation, // <<< NOVO: Usar o nome da função do hook atualizado
   handleDownload,
-  setActiveStep, // Adicionado para navegação interna
+  setActiveStep,
 }) => {
 
-  // Se showStepZeroContent for true, mostra o carrossel
   if (showStepZeroContent) {
     return <Step0Carousel onStartClick={onStartClickForCarousel} />;
   }
 
-  // Caso contrário, mostra o fluxo normal do estúdio baseado no activeStep
   switch (activeStep) {
     case 1: // Upload
       return (
@@ -98,10 +94,10 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
             {stylesLoading ? (
               <div className="flex justify-center items-center h-full"> <LoaderCircle className="h-8 w-8 text-ghibli-moss animate-spin" /> </div>
             ) : stylesError ? (
-              <p className="text-sm text-red-600 text-center p-4">Erro ao carregar estilos.</p>
+              <p className="text-sm text-red-600 text-center p-4">Erro ao carregar estilos: {stylesError}</p>
             ) : availableStyles.length > 0 ? (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {availableStyles.map((style: Style) => ( // Especificar tipo Style
+                {availableStyles.map((style: Style) => (
                   <button
                     key={style.id}
                     onClick={() => handleStyleSelect(style)}
@@ -152,28 +148,30 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
           </div>
           <Button
             className="w-full max-w-xs ghibli-button mt-2"
-            disabled={!uploadedImage || stylesLoading}
-            onClick={openStyleSelector} // Esta função vem das props
+            disabled={!uploadedImage || stylesLoading || !availableStyles.length} // Adicionado !availableStyles.length
+            onClick={openStyleSelector}
           >
             {selectedStyle ? `Estilo: ${selectedStyle.name}` : (stylesLoading ? 'Carregando...' : 'Ver Todos / Escolher')}
           </Button>
           <Button variant="link" onClick={() => setActiveStep(1)} className="mt-2 text-ghibli-moss">Voltar ao Upload</Button>
         </div>
       );
-    case 3: // Pagamento / Processamento / Resultado
-      if (['awaiting_payment', 'creating_job', 'uploading_image', 'redirecting_to_payment', 'checking_balance', 'spending_coins'].includes(processingState)) {
+    case 3: // "Pagamento" com PicCoins / Processamento / Resultado
+      // Estados que mostram o PaymentState (agora mais para feedback de "a iniciar")
+      if (['checking_balance', 'spending_coins', 'uploading_image', 'creating_job_record', 'triggering_processing'].includes(processingState)) {
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
             <div className="w-full flex-grow relative">
               <PaymentState
                 selectedStyleName={selectedStyle?.name || 'Estilo não definido'}
-                onPaymentClick={initiatePayment} // Esta função vem das props
-                isRedirecting={isLoading}
+                // onPaymentClick agora é handleStartTransformation
+                onPaymentClick={handleStartTransformation} // <<< ALTERADO AQUI
+                isRedirecting={isLoading || ['checking_balance', 'spending_coins', 'triggering_processing'].includes(processingState)} // Melhorar condição de loading
                 errorMessage={errorMessage}
-                processingState={processingState}
+                processingState={processingState} // Passa o estado de processamento atual
               />
             </div>
-            <Button variant="link" onClick={() => setActiveStep(2)} className="mt-2 text-ghibli-moss">Escolher outro estilo</Button>
+            <Button variant="link" onClick={() => setActiveStep(2)} className="mt-2 text-ghibli-moss" disabled={isLoading}>Escolher outro estilo</Button>
           </div>
         );
       } else if (processingState === 'processing' || processingState === 'polling_status') {
@@ -187,7 +185,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
               <ProcessingState
                 uploadedImageUrl={uploadedImage?.preview || ''}
                 selectedStyle={selectedStyle}
-                progressValue={0} // O progresso real viria do hook se implementado
+                progressValue={0} 
               />
             </div>
           </div>
@@ -198,7 +196,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
             <CompletedState
               transformedImageUrl={transformedImage}
               selectedStyle={selectedStyle}
-              onDownload={handleDownload} // Esta função vem das props
+              onDownload={handleDownload}
             />
             <div className="p-4 pt-2 flex-shrink-0">
               <Button className="w-full ghibli-button mt-2" onClick={onResetToStepZero} disabled={isLoading}>
@@ -210,22 +208,32 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
       } else if (processingState === 'error') {
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
-            <h3 className="text-xl font-ghibli text-ghibli-wood mb-2 text-center text-destructive">Erro</h3>
+            <h3 className="text-xl font-ghibli text-ghibli-wood mb-2 text-center text-destructive">Erro na Transformação</h3>
             <Step3Preview imageUrl={uploadedImage?.preview} styleName={selectedStyle?.name} />
             <div className="w-full flex-grow">
               <ErrorState
                 uploadedImageUrl={uploadedImage?.preview || ''}
                 errorMessage={errorMessage}
-                onReset={onResetToStepZero} // Volta ao início (carrossel)
+                onReset={onResetToStepZero}
               />
             </div>
           </div>
         );
       } else {
-        // Estado de fallback ou inicial dentro do passo 3
-        return ( <div className="text-center p-4 flex flex-col items-center justify-center h-full"> <LoaderCircle className="h-12 w-12 text-ghibli-moss animate-spin mb-4" /> <p>Aguardando...</p> </div> );
+        // Estado de fallback ou inicial se activeStep for 3 mas processingState for 'idle'
+        // Isto pode acontecer se o utilizador selecionar um estilo (activeStep=3, processingState=checking_balance)
+        // e depois, por exemplo, o saldo for insuficiente e ele for redirecionado para /pricing.
+        // Ao voltar, se o estado for resetado para idle mas activeStep ainda for 3, pode mostrar isto.
+        // A melhor UX seria resetar activeStep também, mas como fallback:
+        return ( 
+            <div className="text-center p-4 flex flex-col items-center justify-center h-full"> 
+                <LoaderCircle className="h-12 w-12 text-ghibli-moss animate-spin mb-4" /> 
+                <p>A preparar o estúdio...</p> 
+                <Button onClick={onResetToStepZero} variant="outline" size="sm" className="mt-4">Recomeçar</Button>
+            </div> 
+        );
       }
-    default: // Passo inválido
+    default: 
       return (
         <div className="text-center p-4">
           <p className="text-destructive">Erro: Passo inválido ({activeStep}).</p>
