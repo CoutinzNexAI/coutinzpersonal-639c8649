@@ -45,7 +45,7 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-ghibli-paper text-ghibli-charcoal rounded-xl shadow-2xl overflow-hidden border-2 border-ghibli-slate/30">
+      <DialogContent className="sm:max-w-sm bg-ghibli-paper text-ghibli-charcoal rounded-xl shadow-2xl overflow-hidden border-2 border-ghibli-slate/30">
         
         <DialogHeader className="text-center pt-8 sm:pt-10 px-6">
           <DialogTitle className="text-2xl sm:text-3xl font-ghibli flex items-center justify-center mb-3 text-ghibli-wood">
@@ -76,13 +76,13 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
           </motion.div>
         </DialogHeader>
 
-        <div className="py-6 sm:py-8 px-6 sm:px-10">
+        <div className="py-6 sm:py-8 px-6 sm:px-8">
           <motion.ul className="space-y-3 sm:space-y-4 text-ghibli-charcoal text-sm sm:text-base">
             {[
               // Sugestões para os itens da lista:
               { icon: Save, text: "Guarde automaticamente todas as suas criações na sua galeria pessoal.", color: "text-ghibli-moss" },
               { icon: History, text: "Consulte o seu histórico de transformações a qualquer momento e em qualquer dispositivo.", color: "text-ghibli-sky" },
-              { icon: UserPlus, text: "Receba acesso prioritário a novos estilos e funcionalidades exclusivas.", color: "text-ghibli-sunflower" }
+              { icon: Sparkles, text: "🎁 Oferta de boas-vindas: 2 PicCoins grátis ao fazer o seu primeiro login!", color: "text-amber-500" }
               
             ].map((item, index) => (
               <motion.li 
@@ -100,7 +100,7 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
           </motion.ul>
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row sm:justify-center gap-3 pt-4 pb-8 px-6 sm:px-10 bg-ghibli-paper/30 border-t border-ghibli-slate/20">
+        <DialogFooter className="flex flex-col sm:flex-row sm:justify-center gap-3 pt-4 pb-8 px-6 sm:px-8 bg-ghibli-paper/30 border-t border-ghibli-slate/20">
           <Button
             onClick={onLogin}
             disabled={isLoggingIn}

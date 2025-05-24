@@ -30,7 +30,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       
       {/* Área da Imagem - Layout Melhorado */}
       <div className="flex-1 flex items-center justify-center p-4 md:p-6 min-h-0"> {/* min-h-0 importante para flex-1 */}
-        <div className="w-full max-w-lg min-h-[300px] max-h-[500px] aspect-square relative rounded-xl shadow-xl overflow-hidden border-2 border-gray-200 bg-gray-100">
+        <div className="w-full max-w-md min-h-[250px] max-h-[400px] aspect-square relative rounded-xl shadow-xl overflow-hidden border-2 border-gray-200 bg-gray-100">
           {imageError ? (
             // Placeholder para erro de imagem
             <div className="absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-sm text-gray-600 p-4">
@@ -44,7 +44,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
               src={transformedImageUrl} 
               alt={`Imagem transformada no estilo ${selectedStyle.name}`} 
               fill
-              sizes="(max-width: 768px) 90vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 768px) 70vw, (max-width: 1200px) 40vw, 25vw"
               style={{ 
                 objectFit: "contain",
                 width: "100%",
