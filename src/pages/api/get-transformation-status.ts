@@ -139,7 +139,9 @@ export default async function handler(
   }
 
   try {
-    console.log(`${endpointName} 📊 Querying 'transformations' table for jobId: ${jobId} (as supabaseAdmin)`);
+    console.log(`${endpointName} 📊 Querying 'transformations' table for jobId: ${jobId} (as supabaseAdmin with force fresh)`);
+    
+    // First attempt: Force fresh data 
     const { data: jobDetails, error: fetchError } = await supabaseAdmin
       .from('transformations')
       .select('status, output_url, error_message, user_id, processing_started_at')
@@ -150,6 +152,48 @@ export default async function handler(
     console.log(`${endpointName} DB Query - Data:`, jobDetails ? 'Data received' : 'No data');
     console.log(`${endpointName} DB Query - JOB DETAILS READ FROM DB:`, JSON.stringify(jobDetails, null, 2));
 
+    // If job shows as 'processing' for >30 seconds, check storage first
+    if (jobDetails && jobDetails.status === 'processing' && jobDetails.processing_started_at && 
+        new Date().getTime() - new Date(jobDetails.processing_started_at as string).getTime() > 30 * 1000) { // 30 seconds
+      console.warn(`${endpointName} 🔍 Job ${jobId} is 'processing' for >30s. Checking storage for early completion...`);
+      try {
+        const { data: files } = await supabaseAdmin
+          .storage
+          .from('results')
+          .list(`public/${jobDetails.user_id}/${jobId}`, {
+            limit: 1,
+            sortBy: { column: 'name', order: 'desc' },
+          });
+        if (files && files.length > 0) {
+          const fileName = files[0].name;
+          console.log(`${endpointName} 🎯 FOUND image in storage while DB shows processing: ${fileName}`);
+          const { data: urlData } = await supabaseAdmin
+            .storage
+            .from('results')
+            .getPublicUrl(`public/${jobDetails.user_id}/${jobId}/${fileName}`);
+          if (urlData?.publicUrl) {
+            console.log(`${endpointName} 🎯 Self-healing: Updating DB and returning completed status`);
+            await supabaseAdmin
+              .from('transformations')
+              .update({ 
+                status: 'completed',
+                output_url: urlData.publicUrl,
+                output_file_path: `public/${jobDetails.user_id}/${jobId}/${fileName}`,
+                completed_at: new Date().toISOString()
+              })
+              .eq('id', jobId);
+            
+            return res.status(200).json({
+              status: 'completed',
+              output_url: urlData.publicUrl,
+              error_message: null,
+            });
+          }
+        }
+      } catch (storageError) {
+        console.error(`${endpointName} Error checking storage during early check:`, storageError instanceof Error ? storageError.message : storageError);
+      }
+    }
 
     if (fetchError) {
       if (fetchError.code === 'PGRST116') {
@@ -182,6 +226,7 @@ export default async function handler(
           .list(`public/${jobDetails.user_id}/${jobId}`, {
             limit: 1,
             sortBy: { column: 'name', order: 'desc' },
+            
           });
         
         if (files && files.length > 0) {

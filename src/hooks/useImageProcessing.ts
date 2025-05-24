@@ -139,7 +139,7 @@ export function useImageProcessing() {
   }, [selectedStyle]);
 
   useEffect(() => {
-    const POLLING_INTERVAL_MS = 5000;
+    const POLLING_INTERVAL_MS = 3000; // Reduced from 5s to 3s for faster updates
     
     const checkStatus = async () => {
       if (!currentJobId) {
@@ -158,25 +158,38 @@ export function useImageProcessing() {
 
       pollCountRef.current++;
       
-      try {
-        const response = await fetch(`/api/get-transformation-status?jobId=${currentJobId}`);
+              try {
+          console.log(`[useImageProcessing - Polling] About to fetch status for jobId: ${currentJobId} (attempt ${pollCountRef.current})`); // LOG 1
+          
+          // Add cache-busting after 10 attempts (30 seconds)
+          const cacheParam = pollCountRef.current > 10 ? `&_t=${Date.now()}` : '';
+          const response = await fetch(`/api/get-transformation-status?jobId=${currentJobId}${cacheParam}`);
+          console.log(`[useImageProcessing - Polling] Response for ${currentJobId} - Status: ${response.status}, OK: ${response.ok}`); // LOG 2
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ message: `Erro ${response.status} ao buscar status`}));
+          console.error(`[useImageProcessing - Polling] Error data for ${currentJobId}:`, errorData);
           throw new Error(errorData.message || `Erro HTTP ${response.status}`);
         }
         const data: StatusResponse = await response.json();
+        console.log(`[useImageProcessing - Polling] Data received for ${currentJobId}:`, JSON.stringify(data, null, 2)); // LOG 3 (JSON.stringify para ver bem)
 
         if (data.status === 'error' || data.status?.startsWith('failed')) {
           const backendErrorMessage = data.error_message || 'Ocorreu uma falha desconhecida.';
+          console.log(`[useImageProcessing - Polling] Job FAILED. Error: ${data.error_message}`); // LOG 5
+
           // ... (lógica de userFriendlyMessage como antes) ...
           setErrorMessage(backendErrorMessage); // Simplificado para mostrar erro do backend
           setProcessingState('error'); setActiveStep(3); toast.error("Falha na Transformação", {description: backendErrorMessage});
           if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); setIsLoading(false);
         } else if (data.status === 'completed' && data.output_url) {
+          console.log(`[useImageProcessing - Polling] JOB COMPLETED! Output URL: ${data.output_url}`); // LOG 4
+
           setTransformedImage(data.output_url); setProcessingState('completed'); setActiveStep(3);
           toast.success("Transformação concluída!");
           if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); setIsLoading(false);
         } else if (['processing', 'processing_queued'].includes(data.status || '')) {
+          console.log(`[useImageProcessing - Polling] Job PROCESSING. Status: ${data.status}`); // LOG 6
+
           if (processingState !== 'processing') {
             setProcessingState('processing'); setActiveStep(3);
           }
