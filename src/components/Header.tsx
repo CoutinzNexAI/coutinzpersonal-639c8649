@@ -158,19 +158,19 @@ const Header: React.FC = () => {
             }
             
             return (
-              <a
-                key={link.id}
-                href={link.href}
-                className={cn(
-                  "text-ghibli-wood hover:text-ghibli-moss transition-colors relative pb-1",
-                  activeSection === link.id
-                    ? "font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-ghibli-moss"
-                    : ""
-                )}
-                aria-current={activeSection === link.id ? "page" : undefined}
-              >
-                {link.label}
-              </a>
+            <a
+              key={link.id}
+              href={link.href}
+              className={cn(
+                "text-ghibli-wood hover:text-ghibli-moss transition-colors relative pb-1",
+                activeSection === link.id
+                  ? "font-medium after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-ghibli-moss"
+                  : ""
+              )}
+              aria-current={activeSection === link.id ? "page" : undefined}
+            >
+              {link.label}
+            </a>
             );
           })}
           {/* PicCoinBalance and UserMenu para Desktop */}
@@ -227,14 +227,14 @@ const Header: React.FC = () => {
                 }
                 
                 return (
-                  <a
-                    key={link.id}
-                    href={link.href}
-                    className="text-ghibli-wood hover:text-ghibli-moss transition-colors px-4 py-2 rounded hover:bg-ghibli-cream/50 block"
-                    onClick={closeMobileMenu}
-                  >
-                    {link.label}
-                  </a>
+                <a
+                  key={link.id}
+                  href={link.href}
+                  className="text-ghibli-wood hover:text-ghibli-moss transition-colors px-4 py-2 rounded hover:bg-ghibli-cream/50 block"
+                  onClick={closeMobileMenu}
+                >
+                  {link.label}
+                </a>
                 );
               })}
               {/* UserMenu FOI REMOVIDO daqui, pois agora está na barra principal do header em mobile */}

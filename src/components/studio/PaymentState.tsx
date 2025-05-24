@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { LoaderCircle, CreditCard, Coins } from 'lucide-react';
 
 interface PaymentStateProps {
-  selectedStyleName: string;
+  selectedStyleName: string; 
   onPaymentClick: () => void;
   isRedirecting: boolean;
   errorMessage?: string | null;
@@ -53,7 +53,7 @@ const PaymentState: React.FC<PaymentStateProps> = ({
         </p>
       </div>
 
-      {errorMessage && (
+        {errorMessage && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-600 text-sm">{errorMessage}</p>
         </div>
@@ -71,15 +71,15 @@ const PaymentState: React.FC<PaymentStateProps> = ({
             </p>
           </div>
           
-          <Button 
-            onClick={onPaymentClick}
+        <Button
+          onClick={onPaymentClick}
             className="w-full ghibli-button"
-            disabled={isRedirecting}
+          disabled={isRedirecting}
           >
             <CreditCard className="mr-2 h-4 w-4" />
             Pagar e Transformar
-          </Button>
-        </div>
+        </Button>
+      </div>
       )}
     </div>
   );

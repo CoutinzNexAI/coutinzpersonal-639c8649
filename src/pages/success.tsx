@@ -334,7 +334,7 @@ const SuccessPage = (): JSX.Element => {
       console.log("[SuccessPage AuthCheck] Authentication loading complete. UserInfo present:", !!userInfo);
       // Go directly to polling status since PicCoins payment is handled before reaching this page
       console.log("[SuccessPage AuthCheck] User authenticated. Transitioning to polling_status.");
-      setPageState('polling_status');
+        setPageState('polling_status'); 
       return; 
     }
     

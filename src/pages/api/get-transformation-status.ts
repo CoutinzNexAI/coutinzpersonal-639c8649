@@ -154,7 +154,7 @@ export default async function handler(
 
     // If job shows as 'processing' for >30 seconds, check storage first
     if (jobDetails && jobDetails.status === 'processing' && jobDetails.processing_started_at && 
-        new Date().getTime() - new Date(jobDetails.processing_started_at as string).getTime() > 60 * 1000) { // 30 seconds
+        new Date().getTime() - new Date(jobDetails.processing_started_at as string).getTime() > 30 * 1000) { // 30 seconds
       console.warn(`${endpointName} 🔍 Job ${jobId} is 'processing' for >30s. Checking storage for early completion...`);
       try {
         const { data: files } = await supabaseAdmin

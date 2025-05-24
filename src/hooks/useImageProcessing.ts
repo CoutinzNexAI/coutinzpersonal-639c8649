@@ -158,13 +158,55 @@ export function useImageProcessing() {
 
       pollCountRef.current++;
       
-              try {
-          console.log(`[useImageProcessing - Polling] About to fetch status for jobId: ${currentJobId} (attempt ${pollCountRef.current})`); // LOG 1
-          
-          // Add cache-busting after 10 attempts (30 seconds)
-          const cacheParam = pollCountRef.current > 10 ? `&_t=${Date.now()}` : '';
-          const response = await fetch(`/api/get-transformation-status?jobId=${currentJobId}${cacheParam}`);
-          console.log(`[useImageProcessing - Polling] Response for ${currentJobId} - Status: ${response.status}, OK: ${response.ok}`); // LOG 2
+      try {
+        console.log(`[useImageProcessing - Polling] About to fetch status for jobId: ${currentJobId} (attempt ${pollCountRef.current})`); // LOG 1
+        
+        // EVERY 3rd attempt, check storage directly (like success.tsx that worked)
+        // More frequent checks in the beginning when jobs complete fast
+        if ((pollCountRef.current <= 6 && pollCountRef.current % 2 === 0) || 
+            (pollCountRef.current > 6 && pollCountRef.current % 3 === 0)) {
+          console.log(`[useImageProcessing - DirectCheck] Attempt ${pollCountRef.current}: Checking Supabase storage directly...`);
+          try {
+            const { data: files } = await supabase
+              .storage
+              .from('results')
+              .list(`public/${userInfo?.id}/${currentJobId}`, {
+                limit: 1,
+                sortBy: { column: 'name', order: 'desc' },
+              });
+            
+            if (files && files.length > 0) {
+              const fileName = files[0].name;
+              console.log(`🎯 [useImageProcessing - DirectCheck] FOUND image in storage: ${fileName}`);
+              const { data: urlData } = supabase
+                .storage
+                .from('results')
+                .getPublicUrl(`public/${userInfo?.id}/${currentJobId}/${fileName}`);
+              
+              if (urlData?.publicUrl) {
+                console.log(`🎯 [useImageProcessing - DirectCheck] Generated URL: ${urlData.publicUrl}`);
+                setTransformedImage(urlData.publicUrl); 
+                setProcessingState('completed'); 
+                setActiveStep(3);
+                toast.success("Transformação encontrada diretamente no storage!");
+                if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); 
+                setIsLoading(false);
+                return; // Skip API call this time since we found the result
+              }
+            } else {
+              console.log(`[useImageProcessing - DirectCheck] No files found in storage path: public/${userInfo?.id}/${currentJobId}`);
+            }
+          } catch (storageError) {
+            console.error(`[useImageProcessing - DirectCheck] Storage check failed:`, storageError);
+            // Continue with API call as fallback
+          }
+        }
+        
+        // Add cache-busting after 10 attempts (30 seconds) and always pass userId
+        const cacheParam = pollCountRef.current > 10 ? `&_t=${Date.now()}` : '';
+        const userParam = userInfo?.id ? `&userId=${userInfo.id}` : '';
+        const response = await fetch(`/api/get-transformation-status?jobId=${currentJobId}${userParam}${cacheParam}`);
+        console.log(`[useImageProcessing - Polling] Response for ${currentJobId} - Status: ${response.status}, OK: ${response.ok}`); // LOG 2
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ message: `Erro ${response.status} ao buscar status`}));
           console.error(`[useImageProcessing - Polling] Error data for ${currentJobId}:`, errorData);
@@ -188,28 +230,7 @@ export function useImageProcessing() {
           toast.success("Transformação concluída!");
           if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); setIsLoading(false);
         } else if (['processing', 'processing_queued'].includes(data.status || '')) {
-          console.log(`[useImageProcessing - Polling] Job PROCESSING. Status: ${data.status} (attempt ${pollCountRef.current})`); // LOG 6
-
-          // After 10 attempts (30 seconds), try to force refresh or check completed directly
-          if (pollCountRef.current >= 10) {
-            console.log(`[useImageProcessing - Polling] 🚨 Been polling for 30s. Trying direct status check...`);
-            try {
-              // Force a fetch with cache-busting and extra query
-              const directResponse = await fetch(`/api/get-transformation-status?jobId=${currentJobId}&force=true&_t=${Date.now()}`);
-              const directData = await directResponse.json();
-              console.log(`[useImageProcessing - Polling] 🔄 Direct check result:`, directData);
-              
-              if (directData.status === 'completed' && directData.output_url) {
-                console.log(`[useImageProcessing - Polling] 🎯 Direct check found completed job!`);
-                setTransformedImage(directData.output_url); setProcessingState('completed'); setActiveStep(3);
-                toast.success("Transformação concluída!");
-                if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); setIsLoading(false);
-                return;
-              }
-            } catch (directError) {
-              console.error(`[useImageProcessing - Polling] Error in direct check:`, directError);
-            }
-          }
+          console.log(`[useImageProcessing - Polling] Job PROCESSING. Status: ${data.status}`); // LOG 6
 
           if (processingState !== 'processing') {
             setProcessingState('processing'); setActiveStep(3);
@@ -220,6 +241,42 @@ export function useImageProcessing() {
 
         if (pollCountRef.current >= MAX_POLL_ATTEMPTS_CONST && 
             (processingState === 'polling_status' || processingState === 'processing')) {
+          console.warn(`[useImageProcessing - Polling] Max attempts reached (${pollCountRef.current}). Trying final direct storage check...`);
+          
+          // Final attempt: check storage directly before giving up
+          try {
+            const { data: files } = await supabase
+              .storage
+              .from('results')
+              .list(`public/${userInfo?.id}/${currentJobId}`, {
+                limit: 1,
+                sortBy: { column: 'name', order: 'desc' },
+              });
+            
+            if (files && files.length > 0) {
+              const fileName = files[0].name;
+              console.log(`🎯 [useImageProcessing - FinalCheck] FOUND image in final check: ${fileName}`);
+              const { data: urlData } = supabase
+                .storage
+                .from('results')
+                .getPublicUrl(`public/${userInfo?.id}/${currentJobId}/${fileName}`);
+              
+              if (urlData?.publicUrl) {
+                console.log(`🎯 [useImageProcessing - FinalCheck] Success in final check: ${urlData.publicUrl}`);
+                setTransformedImage(urlData.publicUrl); 
+                setProcessingState('completed'); 
+                setActiveStep(3);
+                toast.success("Transformação encontrada após verificação final!");
+                if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current); 
+                setIsLoading(false);
+                return;
+              }
+            }
+          } catch (finalStorageError) {
+            console.error(`[useImageProcessing - FinalCheck] Final storage check failed:`, finalStorageError);
+          }
+          
+          // If final storage check also fails, show timeout error
           const timeoutUserMsg = "A sua transformação está a demorar mais que o normal. Verifique em 'Minha Conta' ou tente mais tarde.";
           setErrorMessage(timeoutUserMsg);
           setProcessingState('error'); setActiveStep(3);

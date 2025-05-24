@@ -97,7 +97,7 @@ async function validateBufferContentType(buffer: Buffer): Promise<string | null>
     if (!ALLOWED_SERVER_MIME_TYPES.includes(detectedType)) {
         console.log(`[validateBufferContentType] ❌ Tipo detectado não permitido: ${detectedType}`);
         return null;
-    }
+            }
     
     console.log(`[validateBufferContentType] ✅ Imagem válida detectada: ${detectedType}, size: ${buffer.length} bytes`);
     return detectedType;
