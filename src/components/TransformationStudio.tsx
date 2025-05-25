@@ -156,51 +156,74 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
           <Button variant="link" onClick={() => setActiveStep(1)} className="mt-2 text-ghibli-moss">Voltar ao Upload</Button>
         </div>
       );
-    case 3: // "Pagamento" com PicCoins / Processamento / Resultado
+      case 3: // "Pagamento" com PicCoins / Processamento / Resultado
       console.log('[TransformationStudio] Step 3, processingState:', processingState);
-      // Estados que mostram o PaymentState (agora mais para feedback de "a iniciar")
+      
+      // Estados que mostram o PaymentState (antes de iniciar o processamento real)
       if (['idle', 'checking_balance', 'spending_coins', 'uploading_image', 'creating_job_record', 'triggering_processing'].includes(processingState)) {
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
-            <div className="w-full flex-grow relative">
+            <div className="w-full flex-grow relative"> {/* Mantém flex-grow para que PaymentState possa usar o espaço */}
               <PaymentState
                 selectedStyleName={selectedStyle?.name || 'Estilo não definido'}
-                // onPaymentClick agora é handleStartTransformation
-                onPaymentClick={handleStartTransformation} // <<< ALTERADO AQUI
-                isRedirecting={isLoading || ['checking_balance', 'spending_coins', 'triggering_processing'].includes(processingState)} // Melhorar condição de loading
+                onPaymentClick={handleStartTransformation}
+                isRedirecting={isLoading || ['checking_balance', 'spending_coins', 'triggering_processing'].includes(processingState)}
                 errorMessage={errorMessage}
-                processingState={processingState} // Passa o estado de processamento atual
+                processingState={processingState}
               />
             </div>
             <Button variant="link" onClick={() => setActiveStep(2)} className="mt-2 text-ghibli-moss" disabled={isLoading}>Escolher outro estilo</Button>
           </div>
         );
-      } else if (processingState === 'processing' || processingState === 'polling_status') {
-        if (!selectedStyle) return ( <div className="w-full h-full flex flex-col items-center justify-center p-4"> <LoaderCircle className="h-12 w-12 text-ghibli-moss animate-spin mb-4" /> <p>Carregando detalhes...</p> </div> );
+      } 
+      // Estado de Processamento (Polling ou Processando Ativamente)
+      else if (processingState === 'processing' || processingState === 'polling_status') {
+        // Se o estilo ainda não estiver carregado (caso raro, mas seguro verificar)
+        if (!selectedStyle) {
+          return ( 
+            <div className="w-full h-full flex flex-col items-center justify-center p-4">
+              <LoaderCircle className="h-12 w-12 text-ghibli-moss animate-spin mb-4" />
+              <p>Carregando detalhes...</p>
+            </div> 
+          );
+        }
+        // Renderiza APENAS o ProcessingState, centrado
         return (
-          <div className="w-full h-full flex flex-col items-center justify-center p-4">
-            <h3 className="text-xl font-ghibli text-ghibli-wood mb-2 text-center">Processando...</h3>
-            <Step3Preview imageUrl={uploadedImage?.preview} styleName={selectedStyle?.name} />
-            <p className="text-ghibli-earth text-center text-sm mb-4">A magia está a acontecer!</p>
-            <div className="w-full flex-grow">
+          <div className="w-full h-full flex flex-col items-center justify-center p-4"> {/* Container pai que centra */}
+            {/* Os elementos <h3 />, <Step3Preview />, e <p>A magia está a acontecer!</p> 
+              FORAM REMOVIDOS daqui para simplificar a UI.
+            */}
+            
+            {/* Este div wrapper ajuda a garantir que ProcessingState (que é w-full max-w-sm) 
+                seja centrado dentro do espaço vertical que flex-1 lhe daria. 
+                O ProcessingState.tsx já tem o seu próprio layout interno para centrar o conteúdo.
+            */}
+            <div className="w-full flex-1 flex items-center justify-center"> 
               <ProcessingState
-                uploadedImageUrl={uploadedImage?.preview || ''}
-                selectedStyle={selectedStyle}
-                progressValue={0} 
+                uploadedImageUrl={uploadedImage?.preview || ''} // Ainda é passado, caso o ProcessingState o use internamente
+                selectedStyle={selectedStyle} 
+                progressValue={0} // NOTA: Este valor de progresso está fixo em 0.
               />
             </div>
           </div>
         );
-      } else if (processingState === 'completed' && transformedImage && selectedStyle) {
+      } 
+      // Estado Concluído
+      else if (processingState === 'completed' && transformedImage && selectedStyle) {
         return (
-          <div className="w-full h-full flex flex-col">
-            <div className="flex-1 min-h-0">
+          // O div pai aqui foi ligeiramente ajustado para garantir que CompletedState possa usar h-full corretamente
+          <div className="w-full h-full flex flex-col"> 
+            {/* Adicionado min-h-0 ao contentor do CompletedState para garantir que flex-1 funciona bem
+              dentro de um contentor flexível pai, especialmente se houver conteúdo de altura fixa abaixo.
+            */}
+            <div className="flex-1 min-h-0"> {/* Garante que esta área pode encolher e crescer */}
               <CompletedState
                 transformedImageUrl={transformedImage}
                 selectedStyle={selectedStyle}
                 onDownload={handleDownload}
               />
             </div>
+            {/* Botão Nova Imagem (mantido como estava, mas com bg e border para consistência) */}
             <div className="p-4 pt-2 flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-gray-200">
               <Button className="w-full ghibli-button" onClick={onResetToStepZero} disabled={isLoading}>
                 <RefreshCw className="mr-2 h-4 w-4" /> Nova Imagem
@@ -208,40 +231,32 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
             </div>
           </div>
         );
-      } else if (processingState === 'error') {
+      } 
+      // Estado de Erro
+      else if (processingState === 'error') {
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
-            <h3 className="text-xl font-ghibli text-ghibli-wood mb-2 text-center text-destructive">Erro na Transformação</h3>
+            {/* Opcional: Manter o Step3Preview aqui para contexto do erro, ou remover se preferir mais simples */}
             <Step3Preview imageUrl={uploadedImage?.preview} styleName={selectedStyle?.name} />
-            <div className="w-full flex-grow">
+            <div className="w-full flex-grow flex items-center justify-center"> {/* Para centrar o ErrorState */}
               <ErrorState
-                uploadedImageUrl={uploadedImage?.preview || ''}
+                uploadedImageUrl={uploadedImage?.preview || ''} // Pode ser redundante se Step3Preview estiver acima
                 errorMessage={errorMessage}
                 onReset={onResetToStepZero}
               />
             </div>
           </div>
         );
-      } else {
-        // Estado de fallback ou inicial se activeStep for 3 mas processingState for 'idle'
-        // Isto pode acontecer se o utilizador selecionar um estilo (activeStep=3, processingState=checking_balance)
-        // e depois, por exemplo, o saldo for insuficiente e ele for redirecionado para /pricing.
-        // Ao voltar, se o estado for resetado para idle mas activeStep ainda for 3, pode mostrar isto.
-        // A melhor UX seria resetar activeStep também, mas como fallback:
+      } 
+      // Estado de Fallback (se activeStep for 3 mas processingState for 'idle' ou desconhecido)
+      else {
         return ( 
-            <div className="text-center p-4 flex flex-col items-center justify-center h-full"> 
-                <LoaderCircle className="h-12 w-12 text-ghibli-moss animate-spin mb-4" /> 
-                <p>A preparar o estúdio...</p> 
-                <Button onClick={onResetToStepZero} variant="outline" size="sm" className="mt-4">Recomeçar</Button>
-            </div> 
+          <div className="text-center p-4 flex flex-col items-center justify-center h-full"> 
+            <LoaderCircle className="h-12 w-12 text-ghibli-moss animate-spin mb-4" /> 
+            <p>A preparar o estúdio...</p> 
+            <Button onClick={onResetToStepZero} variant="outline" size="sm" className="mt-4">Recomeçar</Button>
+          </div> 
         );
       }
-    default: 
-      return (
-        <div className="text-center p-4">
-          <p className="text-destructive">Erro: Passo inválido ({activeStep}).</p>
-          <Button onClick={onResetToStepZero} variant="outline" size="sm" className="mt-4">Recomeçar</Button>
-        </div>
-      );
   }
-};
+}
