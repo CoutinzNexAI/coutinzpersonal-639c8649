@@ -93,7 +93,8 @@ export interface StyleExample {
       examples: [
         { before: "/profjamnormal.jpg", after: "/profbd.png" },
         { before: "/hermannormal.jpeg", after: "/hermanbd.png" },
-        { before: "/casamentonormal.jpg", after: "/casalbd.png" }
+        { before: "/casamentonormal.jpg", after: "/casalbd.png" },
+        { before: "/mbappenormal.jpg", after: "/mbappesp.png" }
       ]
     },
 
@@ -104,7 +105,9 @@ export interface StyleExample {
       examples: [
         { before: "/yamallewa.jpg", after: "/yamallewamine.png" },
         { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiraminecraft.png" },
-        { before: "/wbgnormal.jpg", after: "/wbgminevdd.png" }
+        { before: "/wbgnormal.jpg", after: "/wbgminevdd.png" },
+        { before: "/morambappenormal.webp", after: "/morambappemine.png" },
+        { before: "/montenegronormal.jpg", after: "/montemine.png" }
       ],
     }
   ];

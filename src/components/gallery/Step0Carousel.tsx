@@ -34,10 +34,10 @@ const EXAMPLES_DATA: CarouselExample[] = [
   },
   {
     id: 3,
-    beforeSrc: '/wbgnormal.jpg', // Supondo que WBG é uma paisagem ou objeto
-    afterSrc: '/wbgazulejo.png',
+    beforeSrc: '/yamalnormal.webp',
+    afterSrc: '/yamalazulejo.png',
     altBefore: 'Imagem original de uma paisagem urbana com grafitti',
-    altAfter: 'Paisagem urbana com grafitti transformada para o estilo Azulejo Português',
+    altAfter: 'Paisagem urbana com grafitti transformada para o estilo Azulejo',
     ariaLabel: 'Exemplo de transformação: Paisagem urbana para estilo Azulejo Português',
   },
 ];

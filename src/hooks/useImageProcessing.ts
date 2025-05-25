@@ -8,8 +8,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePicCoins } from '@/hooks/usePicCoins';
 
 const PICCOINS_PER_TRANSFORMATION = 1;
-const MAX_POLL_ATTEMPTS_CONST = 36; // Aprox. 3 minutos (36 * 3s = 108s)
+const MAX_POLL_ATTEMPTS_CONST = 40; // 40 * 3s = 120s = 2 minutos
 const POLLING_INTERVAL_MS = 3000; // Intervalo de polling (3 segundos)
+
+// Mensagens de erro padronizadas
+const STANDARD_ERROR_MESSAGE = "Ocorreu um erro a processar. Os nossos servidores podem estar com muito tráfego ou a sua imagem demorou demasiado. Por favor, tente novamente mais tarde. O seu crédito será reembolsado ou a fotografia aparecerá no seu perfil em breve. Pedimos desculpa!";
+const SIMPLE_ERROR_TOAST_MESSAGE = "Falha na transformação. Por favor, tente novamente.";
 
 // Tipos de status de falha que podem ser definidos na DB
 type FailureStatusDB = 
@@ -18,7 +22,8 @@ type FailureStatusDB =
   | 'failed_checkout_redirect'
   | 'failed_db_update'
   | 'failed_payment'
-  | 'failed_trigger';
+  | 'failed_trigger'
+  | 'failed_timeout_server';
 
 type ProcessingState =
   | 'idle'
@@ -252,12 +257,14 @@ export function useImageProcessing() {
         console.log(`[useImageProcessing - Polling] Data received from API for ${currentJobId}:`, JSON.stringify(data, null, 2));
 
         if (data.status === 'error' || data.status?.startsWith('failed')) {
-          const backendErrorMessage = data.error_message || 'Ocorreu uma falha desconhecida no processamento.';
-          console.log(`[useImageProcessing - Polling] Job FAILED via API. Status: ${data.status}, Error: ${backendErrorMessage}`);
-          setErrorMessage(backendErrorMessage); 
+          const backendErrorMessage = data.error_message || 'Falha desconhecida no backend.';
+          console.log(`[useImageProcessing - Polling] Job FAILED via API. Status: ${data.status}, Backend Msg: ${backendErrorMessage}`);
+
+          setErrorMessage(STANDARD_ERROR_MESSAGE); // <<< USA A MENSAGEM PADRÃO
           setProcessingState('error'); 
           setActiveStep(3); 
-          toast.error("Falha na Transformação", { description: backendErrorMessage });
+          toast.error("Falha na Transformação", {description: SIMPLE_ERROR_TOAST_MESSAGE}); // Toast simples
+
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
@@ -325,11 +332,13 @@ export function useImageProcessing() {
           console.error(`[useImageProcessing - FinalCheck] Final storage check failed:`, finalStorageError instanceof Error ? finalStorageError.message : String(finalStorageError));
         }
         
-        const timeoutUserMsg = "A sua transformação está a demorar mais que o normal. Por favor, verifique a sua galeria em 'Minha Conta' dentro de momentos ou tente mais tarde.";
-        setErrorMessage(timeoutUserMsg);
+        console.warn(`[useImageProcessing - Polling] Max attempts reached (${pollCountRef.current}). Final direct storage check failed or API timed out.`);
+
+        setErrorMessage(STANDARD_ERROR_MESSAGE); // <<< USA A MENSAGEM PADRÃO
         setProcessingState('error'); 
         setActiveStep(3);
-        toast.error("Processamento Demorado", { description: timeoutUserMsg, duration: 7000 });
+        toast.error("Processamento Demorado", { description: SIMPLE_ERROR_TOAST_MESSAGE, duration: 7000 }); // Toast simples
+
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current);
           pollingIntervalRef.current = null;
@@ -556,11 +565,23 @@ export function useImageProcessing() {
     } catch (err) { 
       const errorMsg = err instanceof Error ? err.message : 'Ocorreu uma falha desconhecida durante o início da transformação.';
       console.error("[useImageProcessing - handleStartTransformation] Error caught:", err);
-      setErrorMessage(errorMsg); 
-      toast.error("Erro no Processo", { description: errorMsg });
+
+      // Se o erro ocorreu DEPOIS de tentar gastar moedas ou acionar o backend
+      // (podes verificar o processingState ou se tempNewJobId existe)
+      // OU para simplificar, se já passou da fase de 'checking_balance'
+      if (processingState !== 'checking_balance' && processingState !== 'idle') {
+        setErrorMessage(STANDARD_ERROR_MESSAGE);
+        toast.error("Erro no Processo", { description: SIMPLE_ERROR_TOAST_MESSAGE });
+      } else {
+        // Para erros antes de gastar moedas, pode ser uma mensagem mais direta
+        setErrorMessage(errorMsg); 
+        toast.error("Erro no Processo", { description: errorMsg });
+      }
+
       setProcessingState('error'); 
       setActiveStep(3); 
-      
+            
+      // ... (lógica para atualizar job na BD para erro, se tempNewJobId existir) ...
       if (tempNewJobId) {
         try { 
           let failureStatus: FailureStatusDB = 'failed_system'; 

@@ -189,6 +189,55 @@ export default async function handler(
     // --- Início da Lógica de Self-Healing ---
     let selfHealActionTaken = "None";
 
+    // Self-heal NOVO: Job 'processing' por >90s (stuck due to Vercel timeout)
+    const JOB_STUCK_THRESHOLD_MS = 90 * 1000; // 90 segundos (59s Vercel + buffer)
+
+    if (jobDetails.status === 'processing' && 
+        jobDetails.processing_started_at && 
+        (Date.now() - new Date(jobDetails.processing_started_at as string).getTime() > JOB_STUCK_THRESHOLD_MS)) {
+          
+      console.warn(`${endpointName} JobId: ${jobId}. 🔍 SELF-HEAL (STUCK >90s): Job status is 'processing' for too long. Assuming timeout.`);
+      
+      // Tenta verificar no storage uma última vez, caso o processador tenha conseguido guardar antes de morrer
+      let foundInStorage = false;
+      let storageUrl = null;
+      try {
+        const storagePath = `public/${jobDetails.user_id}/${jobId}`;
+        const { data: files } = await supabaseAdmin.storage.from('results').list(storagePath, { limit: 1 });
+        if (files && files.length > 0) {
+          const { data: urlData } = await supabaseAdmin.storage.from('results').getPublicUrl(`${storagePath}/${files[0].name}`);
+          if (urlData?.publicUrl) {
+            foundInStorage = true;
+            storageUrl = urlData.publicUrl;
+            console.log(`${endpointName} JobId: ${jobId}. SELF-HEAL (STUCK >90s): Found image in storage. Updating to completed.`);
+            await supabaseAdmin.from('transformations').update({ 
+                status: 'completed', 
+                output_url: storageUrl, 
+                output_file_path: `${storagePath}/${files[0].name}`,
+                completed_at: new Date().toISOString(),
+                error_message: 'Recovered by self-heal (was stuck processing, found in storage)' 
+            }).eq('id', jobId);
+            // Retorna 'completed' para o cliente
+            return res.status(200).json({ status: 'completed', output_url: storageUrl, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: "Recovered stuck >90s job (found in storage)" });
+          }
+        }
+      } catch (e) {
+        console.error(`${endpointName} JobId: ${jobId}. SELF-HEAL (STUCK >90s): Error checking storage.`, e);
+      }
+
+      if (!foundInStorage) {
+        console.warn(`${endpointName} JobId: ${jobId}. SELF-HEAL (STUCK >90s): Updating DB to 'failed_timeout'.`);
+        const failureMessage = 'O processamento da imagem excedeu o tempo limite no servidor.';
+        await supabaseAdmin.from('transformations').update({ 
+            status: 'failed_timeout_server', // ou outro status de erro que definas
+            error_message: failureMessage,
+            completed_at: new Date().toISOString() 
+        }).eq('id', jobId);
+        // Retorna o erro para o cliente
+        return res.status(200).json({ status: 'failed_timeout_server', error_message: failureMessage, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: "Marked stuck >90s job as failed_timeout_server" });
+      }
+    }
+
     // Self-heal 1: Job 'processing' por >30s, mas imagem existe no storage
     if (jobDetails.status === 'processing' && jobDetails.processing_started_at && 
         (Date.now() - new Date(jobDetails.processing_started_at as string).getTime() > 30 * 1000)) {

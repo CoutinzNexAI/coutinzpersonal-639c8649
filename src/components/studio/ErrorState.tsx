@@ -37,17 +37,17 @@ const ErrorState: React.FC<ErrorStateProps> = ({ uploadedImageUrl, errorMessage,
           <p className="font-semibold text-lg sm:text-xl mb-2 text-foreground">
             Ops! Algo correu mal.
           </p>
-          <p className="text-sm sm:text-base text-muted-foreground mb-6 px-2">
+          <p className="text-sm sm:text-base text-muted-foreground mb-6 px-2 whitespace-pre-line">
             {displayErrorMessage}
           </p>
           
           <Button 
             onClick={onReset}
-            variant="destructive" // Ou 'outline' ou 'default' dependendo do design system
+            variant="outline"
             className="w-full py-3 text-base"
-            aria-label="Tentar Novamente com Outra Imagem"
+            aria-label="Tentar Novamente ou Escolher Outra Imagem"
           >
-            Tentar Novamente com Outra Imagem
+            Tentar Novamente ou Escolher Outra Imagem
           </Button>
         </div>
       </div>
