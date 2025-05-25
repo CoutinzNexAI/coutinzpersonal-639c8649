@@ -190,19 +190,11 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
         // Renderiza APENAS o ProcessingState, centrado
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4"> {/* Container pai que centra */}
-            {/* Os elementos <h3 />, <Step3Preview />, e <p>A magia está a acontecer!</p> 
-              FORAM REMOVIDOS daqui para simplificar a UI.
-            */}
-            
-            {/* Este div wrapper ajuda a garantir que ProcessingState (que é w-full max-w-sm) 
-                seja centrado dentro do espaço vertical que flex-1 lhe daria. 
-                O ProcessingState.tsx já tem o seu próprio layout interno para centrar o conteúdo.
-            */}
             <div className="w-full flex-1 flex items-center justify-center"> 
               <ProcessingState
-                uploadedImageUrl={uploadedImage?.preview || ''} // Ainda é passado, caso o ProcessingState o use internamente
+                uploadedImageUrl={uploadedImage?.preview || ''} 
                 selectedStyle={selectedStyle} 
-                progressValue={0} // NOTA: Este valor de progresso está fixo em 0.
+                progressValue={0} 
               />
             </div>
           </div>
@@ -211,19 +203,14 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
       // Estado Concluído
       else if (processingState === 'completed' && transformedImage && selectedStyle) {
         return (
-          // O div pai aqui foi ligeiramente ajustado para garantir que CompletedState possa usar h-full corretamente
           <div className="w-full h-full flex flex-col"> 
-            {/* Adicionado min-h-0 ao contentor do CompletedState para garantir que flex-1 funciona bem
-              dentro de um contentor flexível pai, especialmente se houver conteúdo de altura fixa abaixo.
-            */}
-            <div className="flex-1 min-h-0"> {/* Garante que esta área pode encolher e crescer */}
+            <div className="flex-1 min-h-0"> 
               <CompletedState
                 transformedImageUrl={transformedImage}
                 selectedStyle={selectedStyle}
                 onDownload={handleDownload}
               />
             </div>
-            {/* Botão Nova Imagem (mantido como estava, mas com bg e border para consistência) */}
             <div className="p-4 pt-2 flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-gray-200">
               <Button className="w-full ghibli-button" onClick={onResetToStepZero} disabled={isLoading}>
                 <RefreshCw className="mr-2 h-4 w-4" /> Nova Imagem
@@ -236,11 +223,10 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
       else if (processingState === 'error') {
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
-            {/* Opcional: Manter o Step3Preview aqui para contexto do erro, ou remover se preferir mais simples */}
-            <Step3Preview imageUrl={uploadedImage?.preview} styleName={selectedStyle?.name} />
+            {/* <Step3Preview imageUrl={uploadedImage?.preview} styleName={selectedStyle?.name} />  // <<< REMOVIDO/COMENTADO PARA MELHOR CENTRAMENTO DO ERRO */}
             <div className="w-full flex-grow flex items-center justify-center"> {/* Para centrar o ErrorState */}
               <ErrorState
-                uploadedImageUrl={uploadedImage?.preview || ''} // Pode ser redundante se Step3Preview estiver acima
+                uploadedImageUrl={uploadedImage?.preview || ''} // Mantido, caso o ErrorState o use para algo internamente
                 errorMessage={errorMessage}
                 onReset={onResetToStepZero}
               />
