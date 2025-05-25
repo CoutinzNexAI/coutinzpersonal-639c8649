@@ -118,7 +118,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 4. Create Stripe Checkout Session
     console.log(`${endpointName} Creating Stripe Checkout session...`);
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'], // You can add more payment methods here
       line_items: [
         {
           price_data: {
