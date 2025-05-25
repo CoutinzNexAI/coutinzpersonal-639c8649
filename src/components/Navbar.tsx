@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -41,6 +40,7 @@ const Navbar = () => {
     { name: 'Skills', href: '#skills' },
     { name: 'Experience', href: '#experience' },
     { name: 'Projects', href: '#projects' },
+    { name: 'Books', href: '#books' },
     { name: 'Testimonials', href: '#testimonials' },
     { name: 'Travel', href: '#travel' },
     { name: 'Diary', href: '#diary' },
