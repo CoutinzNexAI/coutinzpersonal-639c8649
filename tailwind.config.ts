@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -64,9 +63,9 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				cosmic: {
-					purple: '#8B5CF6',
+					purple: '#0EA5E9',
 					blue: '#0EA5E9',
-					pink: '#EC4899',
+					pink: '#38BDF8',
 					orange: '#F97316',
 					darkblue: '#1E293B',
 					black: '#0F172A',
@@ -89,7 +88,7 @@ export default {
 				'fade-in': {
 					'0%': {
 						opacity: '0',
-						transform: 'translateY(20px)'
+						transform: 'translateY(10px)'
 					},
 					'100%': {
 						opacity: '1',
@@ -103,7 +102,7 @@ export default {
 					},
 					'100%': {
 						opacity: '0',
-						transform: 'translateY(20px)'
+						transform: 'translateY(10px)'
 					}
 				},
 				'scale-in': {
@@ -118,10 +117,10 @@ export default {
 				},
 				'pulse-glow': {
 					'0%, 100%': {
-						boxShadow: '0 0 12px 3px rgba(100, 116, 139, 0.3)'
+						boxShadow: '0 0 8px 2px rgba(139, 92, 246, 0.5)'
 					},
 					'50%': {
-						boxShadow: '0 0 24px 6px rgba(100, 116, 139, 0.5)'
+						boxShadow: '0 0 16px 4px rgba(217, 70, 239, 0.6)'
 					}
 				},
 				float: {
@@ -129,7 +128,7 @@ export default {
 						transform: 'translateY(0)'
 					},
 					'50%': {
-						transform: 'translateY(-15px)'
+						transform: 'translateY(-10px)'
 					}
 				},
 				'slide-up': {
@@ -141,43 +140,16 @@ export default {
 						transform: 'translateY(0)',
 						opacity: '1'
 					}
-				},
-				'morphic': {
-					'0%, 100%': {
-						borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%',
-						transform: 'rotate(0deg) scale(1)'
-					},
-					'50%': {
-						borderRadius: '30% 60% 70% 40% / 50% 60% 30% 60%',
-						transform: 'rotate(180deg) scale(1.1)'
-					}
-				},
-				'glow-pulse': {
-					'0%, 100%': {
-						filter: 'drop-shadow(0 0 5px rgba(100, 116, 139, 0.2))'
-					},
-					'50%': {
-						filter: 'drop-shadow(0 0 20px rgba(100, 116, 139, 0.4))'
-					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'fade-in': 'fade-in 0.6s ease-out',
-				'scale-in': 'scale-in 0.4s ease-out',
-				'pulse-glow': 'pulse-glow 3s infinite',
-				'float': 'float 4s ease-in-out infinite',
-				'slide-up': 'slide-up 0.6s ease-out forwards',
-				'morphic': 'morphic 8s ease-in-out infinite',
-				'glow-pulse': 'glow-pulse 2s ease-in-out infinite'
-			},
-			perspective: {
-				'1000': '1000px',
-				'1500': '1500px'
-			},
-			transformStyle: {
-				'preserve-3d': 'preserve-3d'
+				'fade-in': 'fade-in 0.5s ease-out',
+				'scale-in': 'scale-in 0.3s ease-out',
+				'pulse-glow': 'pulse-glow 2s infinite',
+				'float': 'float 3s ease-in-out infinite',
+				'slide-up': 'slide-up 0.5s ease-out forwards'
 			}
 		}
 	},
