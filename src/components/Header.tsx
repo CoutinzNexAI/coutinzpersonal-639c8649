@@ -18,7 +18,7 @@ interface NavLink {
 
 // Simplified navigation - only pricing link
 const navLinks: NavLink[] = [
-  { href: "/pricing", label: "Pricing", id: "pricing" },
+  { href: "/pricing", label: "Preço", id: "pricing" },
 ];
 
 const Header: React.FC = () => {
@@ -117,23 +117,23 @@ const Header: React.FC = () => {
         <motion.div 
           className={cn(
             "relative flex items-center justify-between rounded-2xl border transition-all duration-500",
-            "bg-white/10 backdrop-blur-xl shadow-2xl",
+            "bg-ghibli-paper/80 backdrop-blur-xl shadow-2xl",
             scrolled 
-              ? "border-white/20 bg-white/20 shadow-black/10" 
-              : "border-white/10 bg-white/5 shadow-black/5",
-            // Floating 3D effect
-            "before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-r before:from-blue-500/5 before:via-purple-500/5 before:to-cyan-500/5 before:-z-10",
-            "after:absolute after:inset-0 after:rounded-2xl after:bg-gradient-to-b after:from-white/20 after:to-transparent after:-z-10"
+              ? "border-ghibli-sand/40 bg-ghibli-paper/90 shadow-ghibli-wood/10" 
+              : "border-ghibli-sand/30 bg-ghibli-paper/80 shadow-ghibli-wood/5",
+            // Floating 3D effect with ghibli colors
+            "before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-r before:from-ghibli-moss/5 before:via-ghibli-sand/5 before:to-ghibli-cream/5 before:-z-10",
+            "after:absolute after:inset-0 after:rounded-2xl after:bg-gradient-to-b after:from-ghibli-cream/20 after:to-transparent after:-z-10"
           )}
           whileHover={{ 
             y: -2,
             transition: { duration: 0.2 }
           }}
           style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
+            background: "linear-gradient(135deg, rgba(250, 248, 240, 0.9) 0%, rgba(250, 248, 240, 0.8) 100%)",
             boxShadow: scrolled 
-              ? "0 20px 40px -12px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)"
-              : "0 8px 32px -8px rgba(0,0,0,0.05), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1)"
+              ? "0 20px 40px -12px rgba(139, 116, 88, 0.15), 0 0 0 1px rgba(212, 190, 152, 0.3), inset 0 1px 0 rgba(250, 248, 240, 0.4)"
+              : "0 8px 32px -8px rgba(139, 116, 88, 0.1), 0 0 0 1px rgba(212, 190, 152, 0.2), inset 0 1px 0 rgba(250, 248, 240, 0.3)"
           }}
         >
           {/* Logo section */}
@@ -174,10 +174,10 @@ const Header: React.FC = () => {
                   href={link.href}
                   className={cn(
                     "relative px-4 py-2 text-sm font-medium transition-all duration-300",
-                    "text-gray-700 hover:text-gray-900",
-                    "before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-blue-500/10 before:to-purple-500/10 before:opacity-0 before:transition-opacity before:duration-300",
+                    "text-ghibli-wood hover:text-ghibli-moss",
+                    "before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-ghibli-moss/10 before:to-ghibli-cream/10 before:opacity-0 before:transition-opacity before:duration-300",
                     "hover:before:opacity-100",
-                    "after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500 after:transition-all after:duration-300 after:-translate-x-1/2",
+                    "after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-ghibli-moss after:to-ghibli-wood after:transition-all after:duration-300 after:-translate-x-1/2",
                     "hover:after:w-full"
                   )}
                 >
@@ -211,9 +211,9 @@ const Header: React.FC = () => {
                 size="icon"
                 className={cn(
                   "relative h-10 w-10 rounded-xl transition-all duration-300",
-                  "bg-white/10 hover:bg-white/20 border border-white/20",
-                  "text-gray-700 hover:text-gray-900",
-                  "backdrop-blur-sm"
+                  "bg-ghibli-cream/20 hover:bg-ghibli-cream/40 border border-ghibli-sand/30 hover:border-ghibli-sand/50",
+                  "text-ghibli-wood hover:text-ghibli-moss",
+                  "backdrop-blur-sm shadow-sm hover:shadow-md"
                 )}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
@@ -245,12 +245,12 @@ const Header: React.FC = () => {
             <div className="container mx-auto px-6">
               <motion.div 
                 className={cn(
-                  "mt-2 rounded-2xl border border-white/20 p-6",
-                  "bg-white/10 backdrop-blur-xl shadow-2xl"
+                  "mt-2 rounded-2xl border border-ghibli-sand/30 p-6",
+                  "bg-ghibli-paper/90 backdrop-blur-xl shadow-2xl"
                 )}
                 style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)",
-                  boxShadow: "0 20px 40px -12px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)"
+                  background: "linear-gradient(135deg, rgba(250, 248, 240, 0.95) 0%, rgba(250, 248, 240, 0.9) 100%)",
+                  boxShadow: "0 20px 40px -12px rgba(139, 116, 88, 0.2), 0 0 0 1px rgba(212, 190, 152, 0.3), inset 0 1px 0 rgba(250, 248, 240, 0.5)"
                 }}
               >
                 <nav className="flex flex-col space-y-3">
@@ -264,8 +264,8 @@ const Header: React.FC = () => {
                         href={link.href}
                         className={cn(
                           "block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
-                          "text-gray-700 hover:text-gray-900",
-                          "bg-white/10 hover:bg-white/20 border border-transparent hover:border-white/20"
+                          "text-ghibli-wood hover:text-ghibli-moss",
+                          "bg-ghibli-cream/20 hover:bg-ghibli-cream/40 border border-transparent hover:border-ghibli-sand/30"
                         )}
                         onClick={closeMobileMenu}
                       >
