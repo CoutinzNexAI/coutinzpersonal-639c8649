@@ -11,6 +11,13 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      // Se o Stripe usar imagens de um domínio específico que não seja coberto por 'https:',
+      // poderíamos adicioná-lo aqui, mas para CSP, img-src é mais direto.
+      // Exemplo:
+      // {
+      //   protocol: 'https',
+      //   hostname: '*.stripe.com', // Se necessário para next/image
+      // },
     ],
   },
   async headers() {
@@ -32,24 +39,49 @@ const nextConfig = {
           },
           {
             key: 'X-XSS-Protection',
-            value: '1; mode=block'
+            value: '1; mode=block' // Header legado, mas não prejudica
           },
           {
             key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains'
+            value: 'max-age=31536000; includeSubDomains' // Garante HTTPS
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://api.stripe.com https://www.google-analytics.com; frame-src https://js.stripe.com; object-src 'none'; base-uri 'self';"
+            value: 
+              "default-src 'self';" + // Padrão: só permite da mesma origem
+              // Scripts permitidos:
+              " script-src 'self' 'unsafe-inline' 'unsafe-eval'" + // 'self' e inline/eval (tenta remover unsafe-* se possível no futuro)
+              " https://www.googletagmanager.com https://www.google-analytics.com" + // Google Analytics e Tag Manager
+              " https://js.stripe.com https://m.stripe.network;" + // Stripe JS e Metering
+              // Estilos permitidos:
+              " style-src 'self' 'unsafe-inline'" + // 'self' e inline styles
+              " https://fonts.googleapis.com;" + // Google Fonts
+              // Fontes permitidas:
+              " font-src 'self' https://fonts.gstatic.com;" + // 'self' e Google Fonts
+              // Imagens permitidas:
+              " img-src 'self' data: https: blob:" + // 'self', data URIs, qualquer HTTPS, blobs
+              " https://*.stripe.com;" + // Imagens do Stripe
+              // Conexões permitidas (API calls, WebSockets):
+              " connect-src 'self'" + // 'self'
+              " https://*.supabase.co" + // Supabase
+              " https://api.stripe.com https://m.stripe.network" + // Stripe API e Metering
+              " https://www.google-analytics.com;" + // Google Analytics
+              // Iframes permitidos:
+              " frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network;" + // Stripe Elements/iframes
+              // Outras diretivas de segurança:
+              " object-src 'none';" + // Não permite <object>, <embed>, <applet>
+              " base-uri 'self';" // Restringe o <base> tag
+              // " form-action 'self';" // Opcional: restringe para onde os formulários podem submeter
+              // " frame-ancestors 'none';" // Similar ao X-Frame-Options: DENY
           }
         ]
       },
       {
-        source: '/api/(.*)',
+        source: '/api/(.*)', // Para todas as tuas rotas de API
         headers: [
           {
             key: 'X-Robots-Tag',
-            value: 'noindex, nofollow'
+            value: 'noindex, nofollow' // Impede indexação das APIs
           }
         ]
       }
@@ -57,4 +89,4 @@ const nextConfig = {
   }
 };
 
-export default nextConfig; 
+export default nextConfig;

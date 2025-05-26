@@ -28,21 +28,44 @@ const faqData: FaqItem[] = [
     question: "Como funciona o PicTuz?",
     answer: (
       <div className="space-y-2">
-        <p>É muito simples!</p>
+        <p>É muito simples transformar as suas fotos em arte connosco!</p>
         <ol className="list-decimal list-inside space-y-1 pl-2">
-          <li>Crie a sua conta ou faça login (pode usar a sua conta Google).</li>
-          <li>Carregue a fotografia que deseja transformar (aceitamos JPG, PNG, WEBP, até 10MB).</li>
-          <li>Navegue pela nossa galeria de estilos e escolha o seu favorito.</li>
-          <li>Efetue o pagamento de forma segura através do Stripe.</li>
+          <li>
+            Crie a sua conta ou faça login (pode usar a sua conta Google). 
+            <strong> Ao registar-se, recebe 2 PicCoins para as suas primeiras transformações gratuitas!</strong>
+          </li>
+          <li>
+            Carregue a fotografia que deseja transformar (aceitamos JPG, PNG, WEBP, até 10MB).
+          </li>
+          <li>
+            Navegue pela nossa galeria de estilos e escolha o seu favorito.
+          </li>
+          <li>
+            Utilize as suas PicCoins para realizar a transformação. As suas primeiras são por nossa conta!
+          </li>
         </ol>
-        <p>A nossa IA entra em ação e, em pouco tempo, a sua imagem transformada estará pronta para descarregar!</p>
+        <p>
+          A nossa IA entra em ação e, em pouco tempo, a sua imagem transformada estará pronta para ver e descarregar no seu perfil! Se precisar de mais PicCoins, pode adquiri-las facilmente na secção "Preço".
+        </p>
       </div>
     ),
   },
   {
     id: "item-3",
     question: "O PicTuz é gratuito?",
-    answer: "Cada transformação de imagem no PicTuz envolve um pequeno custo, pago no momento do processamento. Isto permite-nos manter e evoluir a tecnologia de IA. Fique atento a possíveis promoções!",
+    answer: (
+      <div className="space-y-2">
+        <p>
+          Para dar as boas-vindas e permitir que experimente a magia, <strong>o PicTuz oferece 2 PicCoins (equivalente a 2 transformações de imagem) gratuitamente a todos os novos utilizadores</strong> no momento do registo!
+        </p>
+        <p>
+          Após utilizar as suas transformações gratuitas, cada nova transformação é realizada utilizando PicCoins. Pode adquirir pacotes de PicCoins de forma conveniente na nossa plataforma, com descontos progressivos para pacotes maiores.
+        </p>
+        <p>
+          Este sistema de PicCoins ajuda-nos a cobrir os custos computacionais da inteligência artificial e a continuar a desenvolver e melhorar o PicTuz. Fique atento às nossas redes sociais e plataforma para possíveis promoções e formas de ganhar mais PicCoins!
+        </p>
+      </div>
+    ),
   },
   {
     id: "item-4",
@@ -68,7 +91,7 @@ const faqData: FaqItem[] = [
    {
     id: "item-8",
     question: "Quanto tempo demora para transformar uma imagem?",
-    answer: "O tempo de processamento pode variar dependendo da complexidade do estilo e da carga atual nos nossos servidores, mas geralmente leva apenas alguns instantes a poucos minutos. Será notificado assim que estiver pronta!",
+    answer: "O tempo de processamento pode variar dependendo da complexidade do estilo e da carga atual nos nossos servidores, mas geralmente leva apenas alguns instantes a poucos minutos.",
    },
 ];
 
