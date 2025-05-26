@@ -30,9 +30,7 @@ export default async function handler(
   res: NextApiResponse<ResponseData>
 ) {
   const endpointName = '[API process-image]';
-  console.log(`${endpointName} 🚀 Handler started. Method: ${req.method}`);
   const rawCookieHeaderFromRequest = req.headers.cookie ?? '';
-  console.log(`${endpointName} RAW COOKIE HEADER:`, rawCookieHeaderFromRequest);
 
   if (req.method !== 'POST') {
     console.warn(`${endpointName} ❌ Method not allowed: ${req.method}`);
