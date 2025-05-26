@@ -196,7 +196,7 @@ const TransformationsModal: React.FC = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={closeTransformationsModal}>
-      <DialogContent className="sm:max-w-[800px] md:max-w-[900px] lg:max-w-[1000px] max-h-[90vh] flex flex-col bg-ghibli-cream">
+      <DialogContent className="sm:max-w-[800px] md:max-w-[900px] lg:max-w-[1000px] max-h-[95vh] flex flex-col bg-ghibli-cream">
         <DialogHeader className="p-6 border-b border-ghibli-stone/30">
           <DialogTitle className="text-2xl font-ghibli text-ghibli-wood">As Minhas Transformações</DialogTitle>
           {totalCount > 0 && (
