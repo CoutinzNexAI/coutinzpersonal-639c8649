@@ -1,36 +1,37 @@
-// src/components/Header.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import UserMenu from "./UserMenu"; // Assume que UserMenu.tsx existe
-import { PicCoinBalance } from './PicCoinBalance'; // Assume que PicCoinBalance.tsx existe
+import UserMenu from "./UserMenu";
+import { PicCoinBalance } from './PicCoinBalance';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/router';
 
-// Interface para os links de navegação (simplificada)
+// Interface para os links de navegação
 interface NavLink {
   href: string;
   label: string;
-  id: string; // Mantido para key prop, mas não usado para scrollspy
+  id: string;
 }
 
-// Links de navegação simplificados
+// Simplified navigation - only pricing link
 const navLinks: NavLink[] = [
-  { href: "/pricing", label: "Preço", id: "pricing" },
+  { href: "/pricing", label: "Pricing", id: "pricing" },
 ];
 
 const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false); // Estado para scroll do header
+  const [scrolled, setScrolled] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const router = useRouter();
 
+  // Handle logo click
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    
     if (router.pathname === '/') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -38,166 +39,247 @@ const Header: React.FC = () => {
     }
   };
 
+  // Close mobile menu
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
-  // Efeito para fechar menu mobile com clique fora ou Escape
+  // Handle scroll effects
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close menu on click outside or escape
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (mobileMenuOpen && 
-          mobileMenuRef.current && 
-          !mobileMenuRef.current.contains(event.target as Node) &&
-          headerRef.current && 
-          !headerRef.current.contains(event.target as Node) // Garante que o clique não foi no próprio botão do header
-         ) {
+      if (mobileMenuOpen && mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node) && headerRef.current && !headerRef.current.contains(event.target as Node)) {
         closeMobileMenu();
       }
     };
+
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && mobileMenuOpen) {
         closeMobileMenu();
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEscapeKey);
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscapeKey);
     };
   }, [mobileMenuOpen, closeMobileMenu]);
 
-  // Efeito para mudança de estilo do header com scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30); // Ativa mudança após 30px de scroll
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Verifica no load inicial
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
+  // Mobile menu animation variants
   const mobileMenuVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.15, ease: "easeIn" } }
+    hidden: { opacity: 0, y: -20, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      transition: { 
+        duration: 0.3, 
+        ease: [0.4, 0.0, 0.2, 1],
+        staggerChildren: 0.1
+      } 
+    },
+    exit: { 
+      opacity: 0, 
+      y: -20, 
+      scale: 0.95,
+      transition: { 
+        duration: 0.2, 
+        ease: [0.4, 0.0, 1, 1] 
+      } 
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0 }
   };
 
   return (
-    <header ref={headerRef} className="sticky top-0 z-50 w-full pt-4"> {/* Adicionado pt-4 para dar espaço acima do header "flutuante" */}
-      <div 
-        className={cn(
-          "container mx-auto flex items-center justify-between rounded-2xl border border-ghibli-sand/30 backdrop-blur-md shadow-lg transition-all duration-300 ease-in-out",
-          "px-4 md:px-8", // Padding lateral: px-4 para mobile, md:px-8 para desktop
-          isScrolled 
-            ? "bg-ghibli-paper/95 py-1 shadow-xl backdrop-blur-lg" // Estilo quando scrolled
-            : "bg-ghibli-paper/80 py-2" // Estilo quando no topo
-        )}
-      >
-        {/* Logo com Link */}
-        <div className="flex items-center">
-          <Link
-            href="/"
-            onClick={handleLogoClick}
-            className="flex items-center group transition-all duration-300 ease-in-out hover:sepia" // Efeito sepia no hover do logo
-            aria-label="Página Inicial"
+    <motion.header 
+      ref={headerRef} 
+      className="fixed top-0 z-50 w-full"
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6, ease: [0.4, 0.0, 0.2, 1] }}
+    >
+      {/* Floating header container */}
+      <div className="container mx-auto px-6 py-4 md:px-8">
+        <motion.div 
+          className={cn(
+            "relative flex items-center justify-between rounded-2xl border transition-all duration-500",
+            "bg-white/10 backdrop-blur-xl shadow-2xl",
+            scrolled 
+              ? "border-white/20 bg-white/20 shadow-black/10" 
+              : "border-white/10 bg-white/5 shadow-black/5",
+            // Floating 3D effect
+            "before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-r before:from-blue-500/5 before:via-purple-500/5 before:to-cyan-500/5 before:-z-10",
+            "after:absolute after:inset-0 after:rounded-2xl after:bg-gradient-to-b after:from-white/20 after:to-transparent after:-z-10"
+          )}
+          whileHover={{ 
+            y: -2,
+            transition: { duration: 0.2 }
+          }}
+          style={{
+            background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
+            boxShadow: scrolled 
+              ? "0 20px 40px -12px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)"
+              : "0 8px 32px -8px rgba(0,0,0,0.05), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1)"
+          }}
+        >
+          {/* Logo section */}
+          <motion.div 
+            className="flex items-center"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <div className={cn(
-                "relative h-10 w-32 transition-all duration-300 ease-in-out", // Tamanho base do logo
-                isScrolled ? "h-8 w-28" : "h-10 w-32 md:h-12 md:w-36" // Logo menor quando scrolled
-            )}>
-              <Image
-                src="/pictuzlogooficial.png" // Confirma o caminho do teu logo
-                alt="PicTuz Logo"
-                fill
-                style={{ objectFit: "contain" }}
-                priority
-              />
-            </div>
-          </Link>
-        </div>
-  
-        {/* Navegação Desktop (visível em md e acima) */}
-        <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
-          {navLinks.map((link) => (
             <Link
-              key={link.id}
-              href={link.href}
-              className={cn(
-                "text-ghibli-wood hover:text-ghibli-moss transition-colors pb-1",
-                // Lógica para link ativo se router.pathname corresponder (para rotas, não hashes)
-                router.pathname === link.href 
-                  ? "font-semibold text-ghibli-moss after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-ghibli-moss" 
-                  : ""
-              )}
-              aria-current={router.pathname === link.href ? "page" : undefined}
+              href="/"
+              onClick={handleLogoClick}
+              className="flex items-center group transition-all duration-300"
+              aria-label="Página Inicial"
             >
-              {link.label}
+              <div className="relative h-12 w-36">
+                <Image
+                  src="/pictuzlogooficial.png"
+                  alt="PicTuz Logo"
+                  fill
+                  style={{ objectFit: "contain" }}
+                  priority
+                  className="transition-all duration-300 group-hover:brightness-110"
+                />
+              </div>
             </Link>
-          ))}
-          {/* PicCoinBalance and UserMenu para Desktop */}
-          <div className="flex items-center gap-3 ml-2 lg:ml-4">
-            {/* Wrapper para PicCoinBalance com min-width */}
-            {/* TODO: Implementar animação de "flash" no PicCoinBalance quando o saldo mudar (dentro do componente PicCoinBalance.tsx) */}
-            <div className="min-w-[65px] text-center"> {/* Ajusta min-width conforme necessário para 2-3 dígitos */}
+          </motion.div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link, index) => (
+              <motion.div
+                key={link.id}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
+              >
+                <Link
+                  href={link.href}
+                  className={cn(
+                    "relative px-4 py-2 text-sm font-medium transition-all duration-300",
+                    "text-gray-700 hover:text-gray-900",
+                    "before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-blue-500/10 before:to-purple-500/10 before:opacity-0 before:transition-opacity before:duration-300",
+                    "hover:before:opacity-100",
+                    "after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-blue-500 after:to-purple-500 after:transition-all after:duration-300 after:-translate-x-1/2",
+                    "hover:after:w-full"
+                  )}
+                >
+                  <span className="relative z-10">{link.label}</span>
+                </Link>
+              </motion.div>
+            ))}
+            
+            {/* Desktop user controls */}
+            <motion.div 
+              className="flex items-center gap-4 ml-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
               <PicCoinBalance />
-            </div>
-            {/* TODO: Adicionar animações de abertura/fecho ao UserMenu (dentro do componente UserMenu.tsx) */}
-            <UserMenu />
-          </div>
-        </nav>
-  
-        {/* Botões para Mobile (Login + Menu Hambúrguer - visível abaixo de md) */}
-        <div className="md:hidden flex items-center space-x-2">
-          {/* Wrapper para PicCoinBalance com min-width */}
-           {/* TODO: Implementar animação de "flash" no PicCoinBalance quando o saldo mudar (dentro do componente PicCoinBalance.tsx) */}
-          <div className="min-w-[60px] text-center"> {/* Ajusta min-width */}
+              <UserMenu />
+            </motion.div>
+          </nav>
+
+          {/* Mobile controls */}
+          <div className="md:hidden flex items-center space-x-3">
             <PicCoinBalance />
+            <UserMenu />
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "relative h-10 w-10 rounded-xl transition-all duration-300",
+                  "bg-white/10 hover:bg-white/20 border border-white/20",
+                  "text-gray-700 hover:text-gray-900",
+                  "backdrop-blur-sm"
+                )}
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+                aria-expanded={mobileMenuOpen}
+              >
+                <motion.div
+                  animate={{ rotate: mobileMenuOpen ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </motion.div>
+              </Button>
+            </motion.div>
           </div>
-          {/* TODO: Adicionar animações de abertura/fecho ao UserMenu (dentro do componente UserMenu.tsx) */}
-          <UserMenu />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-ghibli-wood hover:text-ghibli-moss hover:bg-ghibli-cream"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
-            aria-expanded={mobileMenuOpen}
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
-        </div>
+        </motion.div>
       </div>
-  
-      {/* Menu Mobile (Dropdown Animado) */}
+
+      {/* Mobile menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
             ref={mobileMenuRef}
-            className="md:hidden absolute top-full left-0 right-0 bg-ghibli-paper/95 backdrop-blur-md p-4 border-b border-t border-ghibli-sand/30 z-40 shadow-xl" // Adicionado shadow-xl e border-t
+            className="md:hidden absolute top-full left-0 right-0 z-40"
             variants={mobileMenuVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
           >
-            <nav className="flex flex-col space-y-3 py-2"> {/* Ajustado space-y e py */}
-              {navLinks.map((link) => (
-                <Link
-                  key={link.id}
-                  href={link.href}
-                  className={cn(
-                    "text-ghibli-wood hover:text-ghibli-moss transition-colors px-4 py-2.5 rounded-md hover:bg-ghibli-cream/50 block text-base", // Aumentado py e text-base
-                     router.pathname === link.href ? "bg-ghibli-cream text-ghibli-moss font-semibold" : ""
-                  )}
-                  onClick={closeMobileMenu}
-                  aria-current={router.pathname === link.href ? "page" : undefined}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+            <div className="container mx-auto px-6">
+              <motion.div 
+                className={cn(
+                  "mt-2 rounded-2xl border border-white/20 p-6",
+                  "bg-white/10 backdrop-blur-xl shadow-2xl"
+                )}
+                style={{
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)",
+                  boxShadow: "0 20px 40px -12px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)"
+                }}
+              >
+                <nav className="flex flex-col space-y-3">
+                  {navLinks.map((link, index) => (
+                    <motion.div
+                      key={link.id}
+                      variants={itemVariants}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Link
+                        href={link.href}
+                        className={cn(
+                          "block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                          "text-gray-700 hover:text-gray-900",
+                          "bg-white/10 hover:bg-white/20 border border-transparent hover:border-white/20"
+                        )}
+                        onClick={closeMobileMenu}
+                      >
+                        {link.label}
+                      </Link>
+                    </motion.div>
+                  ))}
+                </nav>
+              </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </motion.header>
   );
 };
 

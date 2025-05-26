@@ -1,6 +1,7 @@
 import { usePicCoins } from '@/hooks/usePicCoins';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export const PicCoinBalance = () => {
   const { balance, loading } = usePicCoins();
@@ -8,13 +9,44 @@ export const PicCoinBalance = () => {
 
   if (!userInfo || loading) return null;
 
+  // Dynamic padding based on number of digits
+  const digits = balance.toString().length;
+  const paddingClass = digits <= 2 ? 'px-3' : digits <= 3 ? 'px-4' : 'px-5';
+
   return (
-    <Link 
-      href="/pricing" 
-      className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-white px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer"
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.2 }}
     >
-      <span>⭐</span>
-      <span>{balance} PicCoins</span>
-    </Link>
+      <Link 
+        href="/pricing" 
+        className={`
+          flex items-center gap-2 transition-all duration-300 text-sm font-medium cursor-pointer
+          ${paddingClass} py-2 rounded-xl
+          bg-gradient-to-r from-amber-400/20 to-yellow-500/20 
+          hover:from-amber-400/30 hover:to-yellow-500/30
+          border border-amber-400/30 hover:border-amber-400/50
+          text-amber-700 hover:text-amber-800
+          backdrop-blur-sm shadow-lg hover:shadow-xl
+          relative
+          before:absolute before:inset-0 before:rounded-xl 
+          before:bg-gradient-to-r before:from-amber-400/10 before:to-yellow-500/10 
+          before:opacity-0 before:transition-opacity before:duration-300
+          hover:before:opacity-100
+        `}
+      >
+        <motion.span
+          animate={{ rotate: [0, 10, -10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+          className="text-amber-500"
+        >
+          ⭐
+        </motion.span>
+        <span className="relative z-10 whitespace-nowrap">
+          {balance} PicCoins
+        </span>
+      </Link>
+    </motion.div>
   );
 }; 
