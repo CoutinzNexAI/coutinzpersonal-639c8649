@@ -1,4 +1,6 @@
 
+import * as THREE from 'three';
+
 export interface GlobeProps {
   visitedCountries: string[];
   onCountrySelect?: (country: string) => void;
