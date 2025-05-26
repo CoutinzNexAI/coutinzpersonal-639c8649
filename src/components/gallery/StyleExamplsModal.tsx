@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Wand, X, ChevronLeft, ChevronRight, ArrowRight, ImageOff } from 'lucide-react';
+import { Wand, X, ChevronLeft, ChevronRight, ImageOff, Book, Camera } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,11 +21,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
-import { STYLE_EXAMPLES_DATA } from '@/lib/data/exampleData'; // Corrigido conforme a tua indicação
+import { STYLE_EXAMPLES_DATA } from '@/lib/data/exampleData';
 
 // Helper function para obter o src da imagem
 const getImageSrc = (path: string | undefined | null): string => {
-  if (!path) return 'https://placehold.co/300x300/EEE/31343C?text=Indisponível'; // Reduzido placeholder
+  if (!path) return 'https://placehold.co/200x200/F5F5DC/8B4513?text=Em+Breve';
   return path.startsWith('http') || path.startsWith('/') ? path : `/${path}`;
 };
 
@@ -42,7 +42,8 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
 }) => {
   const [selectedStyleId, setSelectedStyleId] = useState<string>(STYLE_EXAMPLES_DATA[0]?.id || '');
   const [currentPage, setCurrentPage] = useState(0);
-  const [swipeDirection, setSwipeDirection] = useState(0);
+  const [hoveredPhoto, setHoveredPhoto] = useState<number | null>(null);
+  const [revealedPhoto, setRevealedPhoto] = useState<number | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const modalTitleId = "style-examples-modal-title";
   const modalDescriptionId = "style-examples-modal-description";
@@ -51,46 +52,36 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
     return STYLE_EXAMPLES_DATA.find(s => s.id === selectedStyleId);
   }, [selectedStyleId]);
 
-  const [itemsPerPage, setItemsPerPage] = useState(2); 
-  useEffect(() => {
-    const updateItemsPerPage = () => {
-      if (window.innerWidth < 768) { 
-        setItemsPerPage(1);
-      } else { 
-        setItemsPerPage(2);
-      }
-    };
-    updateItemsPerPage();
-    window.addEventListener('resize', updateItemsPerPage);
-    return () => window.removeEventListener('resize', updateItemsPerPage);
-  }, []);
-
+  // Sempre mostra 6 exemplos por página para caber sem scroll
+  const EXAMPLES_PER_PAGE = 6;
   const examplesToShow = useMemo(() => {
     return currentStyleData?.examples || [];
   }, [currentStyleData]);
 
-  const totalExamplePages = Math.ceil(examplesToShow.length / itemsPerPage);
+  const totalPages = Math.ceil(examplesToShow.length / EXAMPLES_PER_PAGE);
 
-  const currentPagedExamples = useMemo(() => {
-    const startIndex = currentPage * itemsPerPage;
-    return examplesToShow.slice(startIndex, startIndex + itemsPerPage);
-  }, [examplesToShow, currentPage, itemsPerPage]);
+  const currentPageExamples = useMemo(() => {
+    const startIndex = currentPage * EXAMPLES_PER_PAGE;
+    return examplesToShow.slice(startIndex, startIndex + EXAMPLES_PER_PAGE);
+  }, [examplesToShow, currentPage]);
 
   const handleStyleChange = (styleId: string) => {
     setSelectedStyleId(styleId);
     setCurrentPage(0);
-    setSwipeDirection(0);
+    setHoveredPhoto(null);
+    setRevealedPhoto(null);
   };
 
-  const changeExamplePage = useCallback((direction: number) => {
-    setSwipeDirection(direction);
+  const changePage = useCallback((direction: number) => {
     setCurrentPage((prev) => {
       const newPage = prev + direction;
-      if (newPage < 0) return totalExamplePages > 0 ? totalExamplePages - 1 : 0;
-      if (newPage >= totalExamplePages) return 0;
+      if (newPage < 0) return totalPages > 0 ? totalPages - 1 : 0;
+      if (newPage >= totalPages) return 0;
       return newPage;
     });
-  }, [totalExamplePages]);
+    setHoveredPhoto(null);
+    setRevealedPhoto(null);
+  }, [totalPages]);
 
   useEffect(() => {
     if (isOpen && closeButtonRef.current) {
@@ -100,262 +91,295 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen || totalExamplePages <= 1) return;
+      if (!isOpen || totalPages <= 1) return;
       if (e.key === 'ArrowRight') {
-        changeExamplePage(1);
+        changePage(1);
       } else if (e.key === 'ArrowLeft') {
-        changeExamplePage(-1);
+        changePage(-1);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, changeExamplePage, totalExamplePages]);
+  }, [isOpen, changePage, totalPages]);
 
+  // Animação de virar página de livro
   const pageVariants = {
-    hidden: (direction: number) => ({
-      opacity: 0,
-      x: direction > 0 ? 30 : -30, // Reduzido o deslocamento X
-      scale: 0.97,
-    }),
-    visible: {
-      opacity: 1,
-      x: 0,
+    hidden: { opacity: 0, rotateY: -15, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      rotateY: 0, 
       scale: 1,
-      transition: { type: 'spring', stiffness: 120, damping: 22, duration: 0.3 } // Ajuste na animação
+      transition: { 
+        duration: 0.5, 
+        ease: "easeOut",
+        staggerChildren: 0.08
+      }
     },
-    exit: (direction: number) => ({
-      opacity: 0,
-      x: direction < 0 ? 30 : -30,
-      scale: 0.97,
-      transition: { duration: 0.15, ease: "easeIn" } // Saída mais rápida
-    })
+    exit: { 
+      opacity: 0, 
+      rotateY: 15, 
+      scale: 0.95,
+      transition: { duration: 0.3 }
+    }
+  };
+
+  const photoVariants = {
+    hidden: { opacity: 0, y: 20, rotateX: -10 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      rotateX: 0,
+      transition: { duration: 0.4, ease: "easeOut" }
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[75vw] xl:max-w-[65vw] p-0 max-h-[90vh] overflow-hidden flex flex-col bg-ghibli-cream rounded-xl shadow-2xl"
+        className="sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[80vw] xl:max-w-[75vw] max-h-[92vh] p-0 flex flex-col bg-ghibli-cream rounded-2xl shadow-2xl border-2 border-ghibli-sand/30"
         aria-labelledby={modalTitleId}
         aria-describedby={modalDescriptionId}
       >
-        <DialogHeader className="p-4 sm:p-6 border-b border-ghibli-sand/30 sticky top-0 bg-ghibli-cream/95 backdrop-blur-sm z-20">
-          <DialogTitle id={modalTitleId} className="text-2xl sm:text-3xl font-ghibli text-ghibli-wood">
-            ✨ Galeria de Estilos Mágicos
-          </DialogTitle>
-          {/* Descrição do modal ainda presente para acessibilidade, mas a descrição do estilo foi removida abaixo */}
-          <DialogDescription id={modalDescriptionId} className="sr-only"> 
-            Explore os exemplos dos diferentes estilos de transformação de imagem.
-          </DialogDescription>
-          <DialogClose ref={closeButtonRef} className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-full p-1.5 hover:bg-ghibli-sand/50 focus-visible:ring-ghibli-moss" aria-label="Fechar galeria de estilos">
-            <X className="h-5 w-5 sm:h-6 sm:w-6 text-ghibli-stone" />
+        {/* Header estilo livro antigo */}
+        <DialogHeader className="relative p-4 sm:p-5 border-b-2 border-ghibli-sand/40 bg-gradient-to-r from-ghibli-cream via-ghibli-sand/20 to-ghibli-cream">
+                     <div className="absolute inset-0 opacity-30" style={{
+             backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23D2B48C\" fill-opacity=\"0.05\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
+           }} />
+          <div className="relative z-10 flex items-center gap-3">
+            <Book className="w-7 h-7 text-ghibli-moss" />
+            <div>
+              <DialogTitle id={modalTitleId} className="text-2xl sm:text-3xl font-ghibli text-ghibli-wood">
+                Álbum Mágico de Estilos
+              </DialogTitle>
+              <DialogDescription id={modalDescriptionId} className="text-ghibli-earth text-sm mt-1">
+                Descubra as transformações incríveis de cada estilo
+              </DialogDescription>
+            </div>
+          </div>
+          <DialogClose 
+            ref={closeButtonRef} 
+            className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-full p-2 hover:bg-ghibli-sand/30 focus-visible:ring-2 focus-visible:ring-ghibli-moss transition-all backdrop-blur-sm bg-white/50" 
+            aria-label="Fechar álbum de estilos"
+          >
+            <X className="h-5 w-5 text-ghibli-stone" />
           </DialogClose>
         </DialogHeader>
 
-        <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-ghibli-sand/20 flex justify-center">
-          <Select value={selectedStyleId} onValueChange={handleStyleChange}>
-            <SelectTrigger className="w-full max-w-xs sm:max-w-sm md:max-w-md text-base min-h-[48px] bg-white border-ghibli-stone/40 focus:ring-ghibli-moss text-ghibli-wood" aria-label="Selecionar um estilo para ver exemplos">
-              <SelectValue placeholder="Selecione um estilo..." />
-            </SelectTrigger>
-            <SelectContent className="bg-ghibli-cream border-ghibli-sand shadow-lg">
-              {STYLE_EXAMPLES_DATA.map(style => (
-                <SelectItem 
-                  key={style.id} 
-                  value={style.id}
-                  className="text-base p-3 hover:bg-ghibli-sand/50 focus:bg-ghibli-sand/70 text-ghibli-wood cursor-pointer"
-                >
-                  {style.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Seletor de estilo - estilo pergaminho */}
+        <div className="px-4 sm:px-6 py-3 bg-gradient-to-b from-ghibli-sand/10 to-transparent border-b border-ghibli-sand/20">
+          <div className="flex justify-center">
+            <div className="relative">
+              <Select value={selectedStyleId} onValueChange={handleStyleChange}>
+                <SelectTrigger className="w-full max-w-sm text-base min-h-[44px] bg-ghibli-cream border-2 border-ghibli-sand/50 focus:ring-2 focus:ring-ghibli-moss text-ghibli-wood shadow-md rounded-xl font-medium">
+                  <Camera className="w-4 h-4 mr-2 text-ghibli-moss" />
+                  <SelectValue placeholder="Escolha um estilo..." />
+                </SelectTrigger>
+                <SelectContent className="bg-ghibli-cream border-ghibli-sand shadow-xl rounded-xl">
+                  {STYLE_EXAMPLES_DATA.map(style => (
+                    <SelectItem 
+                      key={style.id} 
+                      value={style.id}
+                      className="text-base p-3 hover:bg-ghibli-sand/30 focus:bg-ghibli-sand/50 text-ghibli-wood cursor-pointer transition-colors rounded-lg m-1"
+                    >
+                      {style.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6"> {/* Reduzido padding geral */}
-          {currentStyleData ? (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStyleData.id}
-                initial={{ opacity: 0 }} // Animação mais simples para a mudança de estilo
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
-              >
-                {/* Nome do Estilo (mantido, mas descrição removida) */}
-                <div className="mb-3 sm:mb-4 text-center">
-                  <motion.h3 
-                    key={`title-${currentStyleData.id}`}
-                    initial={{ opacity: 0, y:10 }} animate={{ opacity:1, y:0}} transition={{delay:0.05, duration:0.25}}
-                    className="font-ghibli text-ghibli-wood text-xl sm:text-2xl"
-                  >
-                    {currentStyleData.name}
-                  </motion.h3>
-                  {/* A DESCRIÇÃO DO ESTILO FOI REMOVIDA DAQUI */}
-                </div>
+        {/* Conteúdo principal - Páginas do álbum */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                      {currentStyleData ? (
+              <div className="flex flex-col min-h-full">
+              {/* Nome do estilo atual */}
+              <div className="text-center mb-4">
+                <h3 className="text-xl sm:text-2xl font-ghibli text-ghibli-wood mb-1">
+                  {currentStyleData.name}
+                </h3>
+                <div className="w-16 h-0.5 bg-ghibli-moss rounded-full mx-auto opacity-60"></div>
+              </div>
 
-                {examplesToShow.length > 0 ? (
+                              {currentPageExamples.length > 0 ? (
                   <div className="relative">
-                    {totalExamplePages > 1 && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => changeExamplePage(-1)}
-                          className="absolute left-[-8px] sm:left-[-12px] md:left-[-18px] top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white border-ghibli-sand/60 text-ghibli-wood rounded-full p-1.5 sm:p-2 shadow-lg hover:shadow-xl transition-all"
-                          aria-label="Exemplos anteriores"
-                        >
-                          <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => changeExamplePage(1)}
-                          className="absolute right-[-8px] sm:right-[-12px] md:right-[-18px] top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white border-ghibli-sand/60 text-ghibli-wood rounded-full p-1.5 sm:p-2 shadow-lg hover:shadow-xl transition-all"
-                          aria-label="Próximos exemplos"
-                        >
-                          <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </Button>
-                      </>
-                    )}
-                    <AnimatePresence initial={false} custom={swipeDirection} mode="popLayout">
-                      <motion.div
-                        key={currentStyleData.id + currentPage}
-                        custom={swipeDirection}
-                        variants={pageVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        className={cn(
-                            "grid gap-3 sm:gap-4 md:gap-6", 
-                            itemsPerPage === 1 && "grid-cols-1",
-                            itemsPerPage === 2 && "grid-cols-1 sm:grid-cols-2", 
-                        )}
-                        drag="x"
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={0.1}
-                        onDragEnd={(_e, i) => {
-                            const offset = i.offset.x;
-                            const velocity = i.velocity.x;
-                            if (offset < -40 || velocity < -250) { changeExamplePage(1); } 
-                            else if (offset > 40 || velocity > 250) { changeExamplePage(-1); }
-                        }}
+                  {/* Navegação entre páginas */}
+                  {totalPages > 1 && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => changePage(-1)}
+                        className="absolute left-[-16px] top-1/2 -translate-y-1/2 z-20 bg-ghibli-cream/80 hover:bg-ghibli-sand/30 border border-ghibli-sand/50 text-ghibli-wood rounded-full shadow-lg transition-all"
+                        aria-label="Página anterior"
                       >
-                        {currentPagedExamples.map((example, index) => (
-                          <motion.div 
-                            key={`${currentStyleData.id}-example-${example.before}-${index}`}
-                            className="bg-white/50 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-md hover:shadow-lg border border-ghibli-sand/30 flex flex-col items-center transition-shadow duration-300"
-                            initial={{ opacity: 0, scale: 0.97 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.3, delay: index * 0.05 }}
-                            whileHover={{ y: -3, boxShadow: "0px 8px 20px -4px rgba(76, 89, 67, 0.12), 0px 6px 8px -5px rgba(76, 89, 67, 0.08)"}}
+                        <ChevronLeft className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => changePage(1)}
+                        className="absolute right-[-16px] top-1/2 -translate-y-1/2 z-20 bg-ghibli-cream/80 hover:bg-ghibli-sand/30 border border-ghibli-sand/50 text-ghibli-wood rounded-full shadow-lg transition-all"
+                        aria-label="Próxima página"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </Button>
+                    </>
+                  )}
+
+                  {/* Grid de fotos polaroid */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                                             key={`${currentStyleData.id}-${currentPage}`}
+                       variants={pageVariants}
+                       initial="hidden"
+                       animate="visible"
+                       exit="exit"
+                       className="mb-4"
+                     >
+                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
+                        {currentPageExamples.map((example, index) => (
+                          <motion.div
+                            key={`${currentStyleData.id}-example-${index}`}
+                            variants={photoVariants}
+                            className="group cursor-pointer"
+                            onHoverStart={() => setHoveredPhoto(index)}
+                            onHoverEnd={() => setHoveredPhoto(null)}
+                            onClick={() => setRevealedPhoto(revealedPhoto === index ? null : index)}
                           >
-                            {/* Em mobile (itemsPerPage === 1), as imagens ficam lado a lado */}
-                            {/* Em desktop (itemsPerPage === 2), mantém a estrutura de coluna */}
-                            <div className={cn(
-                                "flex items-center justify-around w-full gap-1 sm:gap-2",
-                                itemsPerPage === 1 ? "flex-row" : "flex-col sm:flex-row" // Lado a lado em mobile se for 1 item por página
-                            )}>
-                              {/* Container da Imagem Original */}
-                              <div className={cn(
-                                "relative aspect-square group overflow-hidden rounded-md bg-slate-100/80",
-                                itemsPerPage === 1 ? "w-1/2" : "w-full sm:w-1/2" // Ajusta largura para mobile
-                              )}>
+                            {/* Polaroid container */}
+                            <div className="relative bg-white p-2 sm:p-3 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:rotate-1 hover:shadow-xl border border-ghibli-sand/30">
+                              {/* Tape effect no topo */}
+                              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-4 bg-ghibli-sand/40 rounded-sm rotate-45 shadow-sm"></div>
+                              
+                              {/* Foto container com reveal effect */}
+                              <div className="relative aspect-square rounded overflow-hidden bg-ghibli-sand/10">
+                                {/* Imagem original */}
                                 <Image
                                   src={getImageSrc(example.before)}
-                                  alt={`Original - ${currentStyleData.name} Exemplo ${index + 1}`}
+                                  alt={`Original - ${currentStyleData.name}`}
                                   fill
-                                  style={{ objectFit: "contain" }}
-                                  className="transition-transform duration-300 group-hover:scale-105"
-                                  sizes={itemsPerPage === 1 ? "40vw" : "(max-width: 767px) 80vw, 35vw"} // Tamanhos menores para mobile
+                                  style={{ objectFit: "cover" }}
+                                  className="transition-all duration-500"
+                                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 25vw"
                                   loading="lazy"
-                                  onError={(e) => { (e.target as HTMLImageElement).src = getImageSrc(null); }}
                                 />
-                                {/* Legenda removida para mobile, opcional para desktop */}
-                                <span className="hidden sm:block absolute top-1 left-1 bg-black/40 text-white text-[9px] px-1 py-0.5 rounded-sm">Original</span>
-                              </div>
+                                
+                                {/* Overlay da imagem transformada */}
+                                <div className={cn(
+                                  "absolute inset-0 transition-all duration-700 ease-out",
+                                  hoveredPhoto === index || revealedPhoto === index 
+                                    ? "opacity-100" 
+                                    : "opacity-0"
+                                )}>
+                                  <Image
+                                    src={getImageSrc(example.after)}
+                                    alt={`Transformada - ${currentStyleData.name}`}
+                                    fill
+                                    style={{ objectFit: "cover" }}
+                                    sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 25vw"
+                                    loading="lazy"
+                                  />
+                                </div>
 
-                              {/* Seta de transformação */}
-                              <div className="text-ghibli-moss shrink-0"> {/* shrink-0 para não esmagar a seta */}
-                                <ArrowRight className={cn("w-3 h-3 sm:w-4 sm:h-4", itemsPerPage === 1 ? "rotate-0" : "transform sm:rotate-0 rotate-90 my-1 sm:my-0")} />
+                                {/* Indicador de hover/reveal */}
+                                <div className={cn(
+                                  "absolute top-2 right-2 bg-ghibli-moss text-white text-xs px-2 py-1 rounded-full transition-all duration-300 shadow-sm",
+                                  hoveredPhoto === index || revealedPhoto === index
+                                    ? "opacity-100 scale-100"
+                                    : "opacity-0 scale-75"
+                                )}>
+                                  ✨
+                                </div>
+
+                                {/* Efeito de brilho mágico */}
+                                {(hoveredPhoto === index || revealedPhoto === index) && (
+                                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent animate-pulse"></div>
+                                )}
                               </div>
                               
-                              {/* Container da Imagem Transformada */}
-                              <div className={cn(
-                                "relative aspect-square group overflow-hidden rounded-md bg-slate-100/80",
-                                itemsPerPage === 1 ? "w-1/2" : "w-full sm:w-1/2" // Ajusta largura para mobile
-                              )}>
-                                <Image
-                                  src={getImageSrc(example.after)}
-                                  alt={`Transformada - ${currentStyleData.name} Exemplo ${index + 1}`}
-                                  fill
-                                  style={{ objectFit: "contain" }}
-                                  className="transition-transform duration-300 group-hover:scale-105"
-                                  sizes={itemsPerPage === 1 ? "40vw" : "(max-width: 767px) 80vw, 35vw"} // Tamanhos menores para mobile
-                                  loading="lazy"
-                                  onError={(e) => { (e.target as HTMLImageElement).src = getImageSrc(null); }}
-                                />
-                                <span className="hidden sm:block absolute top-1 left-1 bg-ghibli-sky/70 text-white text-[9px] px-1 py-0.5 rounded-sm">Transformada</span>
+                              {/* Legenda polaroid */}
+                              <div className="pt-2 text-center">
+                                <p className="text-xs text-ghibli-stone font-medium">
+                                  {hoveredPhoto === index || revealedPhoto === index ? "✨ Transformada" : "Original"}
+                                </p>
                               </div>
                             </div>
                           </motion.div>
                         ))}
-                      </motion.div>
-                    </AnimatePresence>
-                    {totalExamplePages > 1 && (
-                      <div className="mt-3 sm:mt-4 flex justify-center items-center gap-1.5 sm:gap-2">
-                        {Array.from({ length: totalExamplePages }).map((_, idx) => (
-                          <button
-                            key={`dot-${idx}`}
-                            onClick={() => {
-                              setSwipeDirection(idx > currentPage ? 1 : (idx < currentPage ? -1 : 0));
-                              setCurrentPage(idx);
-                            }}
-                            className={cn(
-                              "w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-300 ease-in-out focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-ghibli-moss",
-                              currentPage === idx ? "bg-ghibli-moss scale-125 shadow-sm" : "bg-ghibli-stone/40 hover:bg-ghibli-stone/60"
-                            )}
-                            aria-label={`Ir para página de exemplos ${idx + 1}`}
-                            aria-current={currentPage === idx}
-                          />
-                        ))}
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-ghibli-earth flex flex-col items-center min-h-[200px] justify-center">
-                    <ImageOff className="w-12 h-12 text-ghibli-stone/70 mb-3" />
-                    Ainda não existem exemplos para este estilo.
-                  </div>
-                )}
-                
-                {onStartTransformationClick && examplesToShow.length > 0 && currentStyleData && (
-                  <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-ghibli-sand/30 text-center">
-                     <motion.div
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="inline-block"
-                      >
-                        <Button
-                          className="ghibli-button px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base" // Ajuste no padding e texto
-                          onClick={() => {
-                            if (currentStyleData) {
-                                onOpenChange(false); 
-                                onStartTransformationClick(currentStyleData.id); 
-                            }
-                          }}
-                          aria-label={`Começar transformação com o estilo ${currentStyleData.name}`}
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Indicadores de página estilo livro */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-4">
+                      <span className="text-xs text-ghibli-stone mr-2">Página</span>
+                      {Array.from({ length: totalPages }).map((_, idx) => (
+                        <button
+                          key={`page-${idx}`}
+                          onClick={() => setCurrentPage(idx)}
+                          className={cn(
+                            "w-6 h-6 rounded text-xs font-bold transition-all duration-200",
+                            currentPage === idx
+                              ? "bg-ghibli-moss text-white shadow-md scale-110"
+                              : "bg-ghibli-sand/30 text-ghibli-stone hover:bg-ghibli-sand/50"
+                          )}
+                          aria-label={`Ir para página ${idx + 1}`}
                         >
-                          <Wand className="mr-1.5 sm:mr-2 h-4 w-4 sm:h-5 sm:h-5" />
-                          Experimente o Estilo {currentStyleData.name}
-                        </Button>
-                      </motion.div>
+                          {idx + 1}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                              ) : (
+                  <div className="flex flex-col items-center justify-center text-center py-8 min-h-[300px]">
+                  <div className="bg-ghibli-sand/20 p-6 rounded-full mb-4">
+                    <ImageOff className="w-12 h-12 text-ghibli-stone/60" />
                   </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          ) : (
-             <div className="text-center py-12 text-ghibli-earth flex flex-col items-center min-h-[200px] justify-center">
-                <ImageOff className="w-16 h-16 text-ghibli-stone/60 mb-4" />
-                <p className="text-lg">Selecione um estilo para ver os exemplos.</p>
+                  <p className="text-lg text-ghibli-earth font-medium mb-2">
+                    Esta página está vazia
+                  </p>
+                  <p className="text-sm text-ghibli-stone">
+                    Em breve teremos exemplos mágicos!
+                  </p>
+                </div>
+              )}
+              
+              {/* Botão CTA - estilo Ghibli */}
+              {onStartTransformationClick && currentPageExamples.length > 0 && currentStyleData && (
+                <div className="mt-4 pt-4 border-t border-ghibli-sand/30 text-center">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      className="ghibli-button px-6 py-3 text-base font-semibold shadow-lg"
+                      onClick={() => {
+                        if (currentStyleData) {
+                          onOpenChange(false); 
+                          onStartTransformationClick(currentStyleData.id); 
+                        }
+                      }}
+                      aria-label={`Experimentar o estilo ${currentStyleData.name}`}
+                    >
+                      <Wand className="mr-2 h-5 w-5" />
+                      Experimentar {currentStyleData.name}
+                    </Button>
+                  </motion.div>
+                </div>
+              )}
+            </div>
+                      ) : (
+              <div className="flex flex-col items-center justify-center text-center py-12 min-h-[400px]">
+              <div className="bg-ghibli-sand/20 p-8 rounded-full mb-6">
+                <Book className="w-16 h-16 text-ghibli-stone/60" />
+              </div>
+              <p className="text-xl text-ghibli-earth font-medium">
+                Selecione um estilo para abrir o álbum
+              </p>
             </div>
           )}
         </div>
