@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import { Environment, OrbitControls, Html, Billboard } from '@react-three/drei';
@@ -40,16 +41,16 @@ const geoToPosition = (lon: number, lat: number, radius: number = 1): [number, n
 };
 
 // Componente Globo que roda
-const RotatingGlobe: React.FC = () => {
+const RotatingGlobe: React.FC<{ globeRef: React.RefObject<THREE.Group> }> = ({ globeRef }) => {
   const meshRef = useRef<THREE.Mesh>(null);
-  // Usar diretamente uma URL externa para a textura (via CDN)
   const earthDayMapUrl = "https://unpkg.com/three-globe@2.30.0/example/img/earth-blue-marble.jpg";
   const earthMap = useLoader(THREE.TextureLoader, earthDayMapUrl);
   
   // Criar um efeito de rotação suave
   useFrame(() => {
-    if (!meshRef.current) return;
+    if (!meshRef.current || !globeRef.current) return;
     meshRef.current.rotation.y += 0.001;
+    globeRef.current.rotation.copy(meshRef.current.rotation);
   });
 
   return (
@@ -64,65 +65,92 @@ const RotatingGlobe: React.FC = () => {
   );
 };
 
-// Marcador para países visitados com ícone de localização
+// Marcador para países visitados com ícone de localização (fixo no espaço)
 const LocationPin: React.FC<{ 
   position: [number, number, number]; 
   country: string;
   onSelect: (country: string) => void;
   isActive: boolean;
-}> = ({ position, country, onSelect, isActive }) => {
+  globeRotation: THREE.Euler;
+}> = ({ position, country, onSelect, isActive, globeRotation }) => {
+  const groupRef = useRef<THREE.Group>(null);
   const pinSize = isActive ? 32 : 28;
   const pinColor = isActive ? "#FF4588" : "#00FFFF";
   
+  // Atualizar a posição do marcador baseado na rotação do globo
+  useFrame(() => {
+    if (!groupRef.current) return;
+    
+    // Criar uma matriz de rotação baseada na rotação atual do globo
+    const rotationMatrix = new THREE.Matrix4();
+    rotationMatrix.makeRotationFromEuler(globeRotation);
+    
+    // Aplicar a rotação à posição original
+    const originalPosition = new THREE.Vector3(...position);
+    const rotatedPosition = originalPosition.clone().applyMatrix4(rotationMatrix);
+    
+    groupRef.current.position.copy(rotatedPosition);
+    groupRef.current.lookAt(0, 0, 0);
+  });
+  
   return (
-    <Billboard
-      follow={true}
-      lockX={false}
-      lockY={false}
-      lockZ={false}
-    >
-      <Html
-        position={position}
-        distanceFactor={10}
-        center
-        className="pointer-events-auto cursor-pointer select-none"
-        zIndexRange={[100, 0]}
+    <group ref={groupRef}>
+      <Billboard
+        follow={true}
+        lockX={false}
+        lockY={false}
+        lockZ={false}
       >
-        <div 
-          className="flex flex-col items-center transition-all duration-300 transform"
-          style={{ transform: `scale(${isActive ? 1.2 : 1})` }}
-          onClick={() => onSelect(country)}
+        <Html
+          distanceFactor={10}
+          center
+          className="pointer-events-auto cursor-pointer select-none"
+          zIndexRange={[100, 0]}
         >
-          <div className="relative animate-bounce-slow" style={{ animationDelay: `${Math.random() * 2}s` }}>
-            <span 
-              style={{ 
-                fontSize: `${pinSize}px`, 
-                color: pinColor,
-                textShadow: "0 0 10px rgba(0,0,0,0.5)",
-                filter: "drop-shadow(0 0 8px rgba(0,255,255,0.3))"
-              }}
-            >
-              📍
-            </span>
-            <span 
-              className="absolute bottom-1 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
-              style={{ 
-                opacity: isActive ? 1 : 0.8,
-                fontSize: isActive ? '10px' : '8px'
-              }}
-            >
-              {country}
-            </span>
+          <div 
+            className="flex flex-col items-center transition-all duration-300 transform"
+            style={{ transform: `scale(${isActive ? 1.2 : 1})` }}
+            onClick={() => onSelect(country)}
+          >
+            <div className="relative animate-bounce-slow" style={{ animationDelay: `${Math.random() * 2}s` }}>
+              <span 
+                style={{ 
+                  fontSize: `${pinSize}px`, 
+                  color: pinColor,
+                  textShadow: "0 0 10px rgba(0,0,0,0.5)",
+                  filter: "drop-shadow(0 0 8px rgba(0,255,255,0.3))"
+                }}
+              >
+                📍
+              </span>
+              <span 
+                className="absolute bottom-1 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
+                style={{ 
+                  opacity: isActive ? 1 : 0.8,
+                  fontSize: isActive ? '10px' : '8px'
+                }}
+              >
+                {country}
+              </span>
+            </div>
           </div>
-        </div>
-      </Html>
-    </Billboard>
+        </Html>
+      </Billboard>
+    </group>
   );
 };
 
 // Componente principal que contém o globo e os marcadores
 const Globe: React.FC<GlobeProps> = ({ visitedCountries, onCountrySelect }) => {
   const [activeCountry, setActiveCountry] = useState<string | null>(null);
+  const globeRef = useRef<THREE.Group>(null);
+  const [globeRotation, setGlobeRotation] = useState(new THREE.Euler());
+  
+  useFrame(() => {
+    if (globeRef.current) {
+      setGlobeRotation(globeRef.current.rotation.clone());
+    }
+  });
   
   const handleCountrySelect = (country: string) => {
     setActiveCountry(country);
@@ -133,9 +161,11 @@ const Globe: React.FC<GlobeProps> = ({ visitedCountries, onCountrySelect }) => {
   
   return (
     <>
-      <RotatingGlobe />
+      <group ref={globeRef}>
+        <RotatingGlobe globeRef={globeRef} />
+      </group>
       
-      {/* Marcadores de países (fixos, não giram com o globo) */}
+      {/* Marcadores de países (fixos no espaço, não giram com o globo) */}
       <group>
         {visitedCountries.map((country) => {
           if (countryCoordinates[country]) {
@@ -149,6 +179,7 @@ const Globe: React.FC<GlobeProps> = ({ visitedCountries, onCountrySelect }) => {
                 position={position}
                 onSelect={handleCountrySelect}
                 isActive={activeCountry === country}
+                globeRotation={globeRotation}
               />
             );
           }
@@ -164,7 +195,6 @@ const Globe3D: React.FC<GlobeProps> = ({ visitedCountries, onCountrySelect }) =>
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Pré-carregar a textura da CDN para verificar se está acessível
     const textureLoader = new THREE.TextureLoader();
     const earthDayMapUrl = "https://unpkg.com/three-globe@2.30.0/example/img/earth-blue-marble.jpg";
     
@@ -213,7 +243,6 @@ const Globe3D: React.FC<GlobeProps> = ({ visitedCountries, onCountrySelect }) =>
           maxDistance={5}
           autoRotate={false}
           enablePan={false}
-          // Não permitir rotação vertical completa (evita virar o globo de cabeça para baixo)
           minPolarAngle={Math.PI/4}
           maxPolarAngle={Math.PI/1.5}
         />
