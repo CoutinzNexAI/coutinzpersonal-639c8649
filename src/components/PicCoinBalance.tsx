@@ -9,9 +9,9 @@ export const PicCoinBalance = () => {
 
   if (!userInfo || loading) return null;
 
-  // Dynamic padding based on number of digits
+  // Dynamic padding based on number of digits - more compact for mobile
   const digits = balance.toString().length;
-  const paddingClass = digits <= 2 ? 'px-3' : digits <= 3 ? 'px-4' : 'px-5';
+  const paddingClass = digits <= 2 ? 'px-2 md:px-3' : digits <= 3 ? 'px-3 md:px-4' : 'px-4 md:px-5';
 
   return (
     <motion.div
@@ -22,7 +22,7 @@ export const PicCoinBalance = () => {
       <Link 
         href="/pricing" 
         className={`
-          flex items-center gap-2 transition-all duration-300 text-sm font-medium cursor-pointer
+          flex items-center gap-1.5 md:gap-2 transition-all duration-300 text-sm font-medium cursor-pointer
           ${paddingClass} py-2 rounded-xl
           bg-gradient-to-r from-amber-400/20 to-yellow-500/20 
           hover:from-amber-400/30 hover:to-yellow-500/30
@@ -44,7 +44,9 @@ export const PicCoinBalance = () => {
           ⭐
         </motion.span>
         <span className="relative z-10 whitespace-nowrap">
-          {balance} PicCoins
+          {/* Mobile: only number, Desktop: full text */}
+          <span className="md:hidden">{balance}</span>
+          <span className="hidden md:inline">{balance} PicCoins</span>
         </span>
       </Link>
     </motion.div>

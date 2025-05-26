@@ -347,7 +347,7 @@ export default async function handler(
                 selfHealActionTaken += " - DB Update FAILED";
             } else {
                  console.log(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 3: DB Update SUCCESSFUL.`);
-            }
+          }
             return res.status(200).json({ status: 'completed', output_url: urlData.publicUrl, error_message: null, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: selfHealActionTaken });
           }
         } else {

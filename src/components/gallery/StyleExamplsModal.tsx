@@ -105,8 +105,8 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
   // Animação de virar página de livro
   const pageVariants = {
     hidden: { opacity: 0, rotateY: -15, scale: 0.95 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       rotateY: 0, 
       scale: 1,
       transition: { 
@@ -116,7 +116,7 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
       }
     },
     exit: { 
-      opacity: 0, 
+      opacity: 0,
       rotateY: 15, 
       scale: 0.95,
       transition: { duration: 0.3 }
@@ -148,12 +148,12 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
           <div className="relative z-10 flex items-center gap-3">
             <Book className="w-7 h-7 text-ghibli-moss" />
             <div>
-              <DialogTitle id={modalTitleId} className="text-2xl sm:text-3xl font-ghibli text-ghibli-wood">
+          <DialogTitle id={modalTitleId} className="text-2xl sm:text-3xl font-ghibli text-ghibli-wood">
                 Álbum Mágico de Estilos
-              </DialogTitle>
+          </DialogTitle>
               <DialogDescription id={modalDescriptionId} className="text-ghibli-earth text-sm mt-1">
                 Descubra as transformações incríveis de cada estilo
-              </DialogDescription>
+          </DialogDescription>
             </div>
           </div>
           <DialogClose 
@@ -169,78 +169,78 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
         <div className="px-4 sm:px-6 py-3 bg-gradient-to-b from-ghibli-sand/10 to-transparent border-b border-ghibli-sand/20">
           <div className="flex justify-center">
             <div className="relative">
-              <Select value={selectedStyleId} onValueChange={handleStyleChange}>
+          <Select value={selectedStyleId} onValueChange={handleStyleChange}>
                 <SelectTrigger className="w-full max-w-sm text-base min-h-[44px] bg-ghibli-cream border-2 border-ghibli-sand/50 focus:ring-2 focus:ring-ghibli-moss text-ghibli-wood shadow-md rounded-xl font-medium">
                   <Camera className="w-4 h-4 mr-2 text-ghibli-moss" />
                   <SelectValue placeholder="Escolha um estilo..." />
-                </SelectTrigger>
+            </SelectTrigger>
                 <SelectContent className="bg-ghibli-cream border-ghibli-sand shadow-xl rounded-xl">
-                  {STYLE_EXAMPLES_DATA.map(style => (
-                    <SelectItem 
-                      key={style.id} 
-                      value={style.id}
+              {STYLE_EXAMPLES_DATA.map(style => (
+                <SelectItem 
+                  key={style.id} 
+                  value={style.id}
                       className="text-base p-3 hover:bg-ghibli-sand/30 focus:bg-ghibli-sand/50 text-ghibli-wood cursor-pointer transition-colors rounded-lg m-1"
-                    >
-                      {style.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                >
+                  {style.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
             </div>
           </div>
         </div>
 
         {/* Conteúdo principal - Páginas do álbum */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-                      {currentStyleData ? (
+          {currentStyleData ? (
               <div className="flex flex-col min-h-full">
               {/* Nome do estilo atual */}
               <div className="text-center mb-4">
                 <h3 className="text-xl sm:text-2xl font-ghibli text-ghibli-wood mb-1">
-                  {currentStyleData.name}
+                    {currentStyleData.name}
                 </h3>
                 <div className="w-16 h-0.5 bg-ghibli-moss rounded-full mx-auto opacity-60"></div>
-              </div>
+                </div>
 
                               {currentPageExamples.length > 0 ? (
                   <div className="relative">
                   {/* Navegação entre páginas */}
                   {totalPages > 1 && (
-                    <>
-                      <Button
+                      <>
+                        <Button
                         variant="ghost"
-                        size="icon"
+                          size="icon"
                         onClick={() => changePage(-1)}
                         className="absolute left-[-16px] top-1/2 -translate-y-1/2 z-20 bg-ghibli-cream/80 hover:bg-ghibli-sand/30 border border-ghibli-sand/50 text-ghibli-wood rounded-full shadow-lg transition-all"
                         aria-label="Página anterior"
-                      >
+                        >
                         <ChevronLeft className="h-5 w-5" />
-                      </Button>
-                      <Button
+                        </Button>
+                        <Button
                         variant="ghost"
-                        size="icon"
+                          size="icon"
                         onClick={() => changePage(1)}
                         className="absolute right-[-16px] top-1/2 -translate-y-1/2 z-20 bg-ghibli-cream/80 hover:bg-ghibli-sand/30 border border-ghibli-sand/50 text-ghibli-wood rounded-full shadow-lg transition-all"
                         aria-label="Próxima página"
-                      >
+                        >
                         <ChevronRight className="h-5 w-5" />
-                      </Button>
-                    </>
-                  )}
+                        </Button>
+                      </>
+                    )}
 
                   {/* Grid de fotos polaroid */}
                   <AnimatePresence mode="wait">
-                    <motion.div
+                      <motion.div
                                              key={`${currentStyleData.id}-${currentPage}`}
-                       variants={pageVariants}
-                       initial="hidden"
-                       animate="visible"
-                       exit="exit"
+                        variants={pageVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
                        className="mb-4"
                      >
                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
                         {currentPageExamples.map((example, index) => (
-                          <motion.div
+                          <motion.div 
                             key={`${currentStyleData.id}-example-${index}`}
                             variants={photoVariants}
                             className="group cursor-pointer"
@@ -291,7 +291,7 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
                                     : "opacity-0 scale-75"
                                 )}>
                                   ✨
-                                </div>
+                              </div>
 
                                 {/* Efeito de brilho mágico */}
                                 {(hoveredPhoto === index || revealedPhoto === index) && (
@@ -309,32 +309,32 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
                           </motion.div>
                         ))}
                       </div>
-                    </motion.div>
-                  </AnimatePresence>
+                      </motion.div>
+                    </AnimatePresence>
 
                   {/* Indicadores de página estilo livro */}
                   {totalPages > 1 && (
                     <div className="flex justify-center items-center gap-2 mt-4">
                       <span className="text-xs text-ghibli-stone mr-2">Página</span>
                       {Array.from({ length: totalPages }).map((_, idx) => (
-                        <button
+                          <button
                           key={`page-${idx}`}
                           onClick={() => setCurrentPage(idx)}
-                          className={cn(
+                            className={cn(
                             "w-6 h-6 rounded text-xs font-bold transition-all duration-200",
                             currentPage === idx
                               ? "bg-ghibli-moss text-white shadow-md scale-110"
                               : "bg-ghibli-sand/30 text-ghibli-stone hover:bg-ghibli-sand/50"
-                          )}
+                            )}
                           aria-label={`Ir para página ${idx + 1}`}
                         >
                           {idx + 1}
                         </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                              ) : (
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
                   <div className="flex flex-col items-center justify-center text-center py-8 min-h-[300px]">
                   <div className="bg-ghibli-sand/20 p-6 rounded-full mb-4">
                     <ImageOff className="w-12 h-12 text-ghibli-stone/60" />
@@ -345,34 +345,34 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
                   <p className="text-sm text-ghibli-stone">
                     Em breve teremos exemplos mágicos!
                   </p>
-                </div>
-              )}
-              
+                  </div>
+                )}
+                
               {/* Botão CTA - estilo Ghibli */}
               {onStartTransformationClick && currentPageExamples.length > 0 && currentStyleData && (
                 <div className="mt-4 pt-4 border-t border-ghibli-sand/30 text-center">
-                  <motion.div
+                     <motion.div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                  >
-                    <Button
+                      >
+                        <Button
                       className="ghibli-button px-6 py-3 text-base font-semibold shadow-lg"
-                      onClick={() => {
-                        if (currentStyleData) {
-                          onOpenChange(false); 
-                          onStartTransformationClick(currentStyleData.id); 
-                        }
-                      }}
+                          onClick={() => {
+                            if (currentStyleData) {
+                                onOpenChange(false); 
+                                onStartTransformationClick(currentStyleData.id); 
+                            }
+                          }}
                       aria-label={`Experimentar o estilo ${currentStyleData.name}`}
-                    >
+                        >
                       <Wand className="mr-2 h-5 w-5" />
                       Experimentar {currentStyleData.name}
-                    </Button>
-                  </motion.div>
-                </div>
-              )}
+                        </Button>
+                      </motion.div>
+                  </div>
+                )}
             </div>
-                      ) : (
+          ) : (
               <div className="flex flex-col items-center justify-center text-center py-12 min-h-[400px]">
               <div className="bg-ghibli-sand/20 p-8 rounded-full mb-6">
                 <Book className="w-16 h-16 text-ghibli-stone/60" />

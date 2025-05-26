@@ -142,37 +142,37 @@ const Header: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Link
-              href="/"
-              onClick={handleLogoClick}
+          <Link
+            href="/"
+            onClick={handleLogoClick}
               className="flex items-center group transition-all duration-300"
-              aria-label="Página Inicial"
-            >
+            aria-label="Página Inicial"
+          >
               <div className="relative h-12 w-36">
-                <Image
-                  src="/pictuzlogooficial.png"
-                  alt="PicTuz Logo"
-                  fill
-                  style={{ objectFit: "contain" }}
-                  priority
+              <Image
+                src="/pictuzlogooficial.png"
+                alt="PicTuz Logo"
+                fill
+                style={{ objectFit: "contain" }}
+                priority
                   className="transition-all duration-300 group-hover:brightness-110"
-                />
-              </div>
-            </Link>
+              />
+            </div>
+          </Link>
           </motion.div>
-
+  
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link, index) => (
               <motion.div
-                key={link.id}
+              key={link.id}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 + 0.3, duration: 0.5 }}
               >
                 <Link
-                  href={link.href}
-                  className={cn(
+              href={link.href}
+              className={cn(
                     "relative px-4 py-2 text-sm font-medium transition-all duration-300",
                     "text-ghibli-wood hover:text-ghibli-moss",
                     "before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-ghibli-moss/10 before:to-ghibli-cream/10 before:opacity-0 before:transition-opacity before:duration-300",
@@ -180,11 +180,11 @@ const Header: React.FC = () => {
                     "after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-ghibli-moss after:to-ghibli-wood after:transition-all after:duration-300 after:-translate-x-1/2",
                     "hover:after:w-full"
                   )}
-                >
+            >
                   <span className="relative z-10">{link.label}</span>
                 </Link>
               </motion.div>
-            ))}
+          ))}
             
             {/* Desktop user controls */}
             <motion.div 
@@ -206,31 +206,31 @@ const Header: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Button
-                variant="ghost"
-                size="icon"
+          <Button
+            variant="ghost"
+            size="icon"
                 className={cn(
                   "relative h-10 w-10 rounded-xl transition-all duration-300",
                   "bg-ghibli-cream/20 hover:bg-ghibli-cream/40 border border-ghibli-sand/30 hover:border-ghibli-sand/50",
                   "text-ghibli-wood hover:text-ghibli-moss",
                   "backdrop-blur-sm shadow-sm hover:shadow-md"
                 )}
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
-                aria-expanded={mobileMenuOpen}
-              >
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={mobileMenuOpen}
+          >
                 <motion.div
                   animate={{ rotate: mobileMenuOpen ? 90 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
                   {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </motion.div>
-              </Button>
+          </Button>
             </motion.div>
-          </div>
+        </div>
         </motion.div>
       </div>
-
+  
       {/* Mobile menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
@@ -256,24 +256,24 @@ const Header: React.FC = () => {
                 <nav className="flex flex-col space-y-3">
                   {navLinks.map((link, index) => (
                     <motion.div
-                      key={link.id}
+                  key={link.id}
                       variants={itemVariants}
                       transition={{ delay: index * 0.1 }}
                     >
                       <Link
-                        href={link.href}
+                  href={link.href}
                         className={cn(
                           "block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
                           "text-ghibli-wood hover:text-ghibli-moss",
                           "bg-ghibli-cream/20 hover:bg-ghibli-cream/40 border border-transparent hover:border-ghibli-sand/30"
                         )}
-                        onClick={closeMobileMenu}
-                      >
-                        {link.label}
+                  onClick={closeMobileMenu}
+                >
+                  {link.label}
                       </Link>
                     </motion.div>
-                  ))}
-                </nav>
+              ))}
+            </nav>
               </motion.div>
             </div>
           </motion.div>

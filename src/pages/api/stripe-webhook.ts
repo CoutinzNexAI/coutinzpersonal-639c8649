@@ -56,20 +56,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 2. Verify webhook signature
-    let event: Stripe.Event;
-    try {
+  let event: Stripe.Event;
+  try {
       event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET);
       console.log(`${endpointName} ✅ Webhook signature verified. Event type: ${event.type}`);
-    } catch (err) {
+  } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown verification error';
       console.error(`${endpointName} ❌ Webhook signature verification failed:`, errorMsg);
       return res.status(400).json({ message: `Webhook Error: ${errorMsg}` });
     }
 
     // 3. Handle the checkout.session.completed event
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session;
-      
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+
       console.log(`${endpointName} 🎯 Processing checkout.session.completed for session: ${session.id}`);
       console.log(`${endpointName} Payment status: ${session.payment_status}`);
       console.log(`${endpointName} Session metadata:`, JSON.stringify(session.metadata, null, 2));
@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ message: 'Invalid session metadata' });
       }
 
-      const { userId, piccoinsAmount, packageId, packageName, purchaseType } = metadata;
+      const { userId, piccoinsAmount, packageId, packageName } = metadata;
       const coinsAmount = parseInt(piccoinsAmount, 10);
 
       if (isNaN(coinsAmount) || coinsAmount <= 0) {
@@ -176,7 +176,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(`${endpointName} Generic Error instance detected.`);
       errorMessage = 'Webhook processing error';
       errorDetail = error.message;
-    } else {
+  } else {
       console.log(`${endpointName} Non-Error type thrown:`, error);
       errorDetail = String(error);
     }
