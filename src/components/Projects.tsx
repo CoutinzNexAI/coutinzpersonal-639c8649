@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { FileImage, Link, Sparkles, Zap, Eye } from 'lucide-react';
-import GlowingButton from './GlowingButton';
+import { Button } from './ui/button';
 
 type Project = {
   id: number;
@@ -126,15 +126,16 @@ const Projects = () => {
                       ))}
                     </div>
                     
-                    {/* Enhanced project link */}
-                    <GlowingButton 
-                      href={project.link} 
-                      className="w-full flex items-center justify-center gap-2 group-hover:scale-105 transition-all duration-300 bg-gradient-to-r from-cosmic-blue to-cosmic-purple hover:from-cosmic-purple hover:to-cosmic-pink"
+                    {/* Simplified project button */}
+                    <Button 
+                      asChild
+                      className="w-full bg-cosmic-purple hover:bg-cosmic-blue transition-colors duration-300"
                     >
-                      <Link size={16} className="group-hover:rotate-12 transition-transform duration-300" />
-                      <span>View Project</span>
-                      <Sparkles size={14} className="animate-pulse" />
-                    </GlowingButton>
+                      <a href={project.link} className="flex items-center justify-center gap-2">
+                        <Link size={16} />
+                        <span>View Project</span>
+                      </a>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -147,16 +148,19 @@ const Projects = () => {
           ))}
         </div>
         
-        {/* Call to action */}
+        {/* Fixed call to action */}
         <div className="text-center mt-16">
           <p className="text-gray-300 mb-6">Want to see more of my work?</p>
-          <GlowingButton 
-            href="#contact" 
-            className="bg-gradient-to-r from-cosmic-purple to-cosmic-pink hover:from-cosmic-pink hover:to-cosmic-orange transform hover:scale-110 transition-all duration-300"
+          <Button 
+            asChild
+            size="lg"
+            className="bg-gradient-to-r from-cosmic-purple to-cosmic-pink hover:from-cosmic-pink hover:to-cosmic-purple transition-colors duration-300"
           >
-            <Sparkles className="mr-2" size={18} />
-            Let's Collaborate
-          </GlowingButton>
+            <a href="#contact" className="flex items-center gap-2">
+              <Sparkles size={18} />
+              Let's Collaborate
+            </a>
+          </Button>
         </div>
       </div>
     </section>
