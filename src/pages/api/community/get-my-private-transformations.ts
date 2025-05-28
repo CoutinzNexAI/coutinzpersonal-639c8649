@@ -12,7 +12,7 @@ import { getMyPrivateTransformationsSchema, COMMUNITY_ERROR_MESSAGES } from '@/l
 // Interface for database response
 interface TransformationWithStyles {
   id: string;
-  input_url: string;
+  input_file_path: string;
   output_url: string;
   created_at: string;
   public_title?: string;
@@ -198,7 +198,7 @@ export default async function handler(
       .from('transformations')
       .select(`
         id,
-        input_url,
+        input_file_path,
         output_url,
         created_at,
         public_title,
@@ -229,7 +229,7 @@ export default async function handler(
     // ====================
     const formattedTransformations: PrivateTransformation[] = (transformations || []).map((t: TransformationWithStyles) => ({
       id: t.id,
-      input_url: t.input_url,
+      input_url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/uploads/${t.input_file_path}`,
       output_url: t.output_url,
       created_at: t.created_at,
       public_title: t.public_title,
