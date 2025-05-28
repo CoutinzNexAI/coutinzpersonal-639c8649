@@ -1,0 +1,421 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
+import { applyRateLimit, communityCommentRateLimiter } from '@/lib/rate-limit';
+import { 
+  getCommentsSchema, 
+  commentSchema,
+  COMMUNITY_ERROR_MESSAGES,
+  validateContentSafety,
+  ANTI_GAMING_LIMITS 
+} from '@/lib/validations/community';
+
+// =====================================================
+// API: COMMUNITY COMMENTS
+// GET: Buscar comentários | POST: Adicionar comentário
+// =====================================================
+
+type Comment = {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  user_full_name?: string;
+  user_avatar_url?: string;
+  parent_comment_id?: string;
+  replies?: Comment[];
+};
+
+type GetResponseData = {
+  success?: boolean;
+  comments?: Comment[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    total_pages: number;
+    has_next_page: boolean;
+    has_prev_page: boolean;
+  };
+  error?: string;
+};
+
+type PostResponseData = {
+  success?: boolean;
+  comment?: Comment;
+  earned_piccoin?: boolean;
+  message?: string;
+  error?: string;
+};
+
+// Função auxiliar para parse manual de cookies
+function getManuallyParsedCookie(cookieString: string, cookieName: string): string | undefined {
+  if (!cookieString) return undefined;
+  const cookiesArray = cookieString.split(';');
+  for (const cookie of cookiesArray) {
+    const parts = cookie.split('=');
+    const name = parts[0]?.trim();
+    if (name === cookieName) {
+      return parts.slice(1).join('=');
+    }
+  }
+  return undefined;
+}
+
+// Interface for database response
+interface CommentWithUser {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  parent_comment_id?: string;
+  users: {
+    full_name?: string;
+    avatar_url?: string;
+  }[];
+}
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<GetResponseData | PostResponseData>
+) {
+  const endpointName = '[API comments]';
+
+  if (req.method === 'GET') {
+    return handleGetComments(req, res);
+  } else if (req.method === 'POST') {
+    return handlePostComment(req, res);
+  } else {
+    res.setHeader('Allow', 'GET, POST');
+    return res.status(405).json({ 
+      error: 'Only GET and POST requests are allowed'
+    });
+  }
+}
+
+// GET COMMENTS
+// ============
+async function handleGetComments(
+  req: NextApiRequest,
+  res: NextApiResponse<GetResponseData>
+) {
+  const endpointName = '[API comments GET]';
+
+  try {
+    // 1. VALIDAÇÃO DE QUERY PARAMETERS
+    // =================================
+    let validatedQuery;
+    try {
+      validatedQuery = getCommentsSchema.parse(req.query);
+    } catch (error) {
+      return res.status(400).json({ 
+        error: error instanceof Error ? error.message : 'Invalid query parameters'
+      });
+    }
+
+    // 2. VERIFICAR SE A TRANSFORMAÇÃO EXISTE E ESTÁ PÚBLICA
+    // ====================================================
+    const { data: transformation, error: transformationError } = await supabaseAdmin
+      .from('transformations')
+      .select('id, community_status')
+      .eq('id', validatedQuery.transformation_id)
+      .eq('community_status', 'approved')
+      .single();
+
+    if (transformationError || !transformation) {
+      return res.status(404).json({ 
+        error: COMMUNITY_ERROR_MESSAGES.TRANSFORMATION_NOT_PUBLIC
+      });
+    }
+
+    // 3. BUSCAR COMENTÁRIOS COM PAGINAÇÃO
+    // ===================================
+    const offset = (validatedQuery.page - 1) * validatedQuery.limit;
+
+    // Count total
+    const { count: totalCount, error: countError } = await supabaseAdmin
+      .from('community_comments')
+      .select('id', { count: 'exact', head: true })
+      .eq('transformation_id', validatedQuery.transformation_id)
+      .is('parent_comment_id', null); // Só comentários de nível superior
+
+    if (countError) {
+      console.error(`${endpointName} ❌ Count error:`, countError.message);
+      return res.status(500).json({ 
+        error: COMMUNITY_ERROR_MESSAGES.SERVER_ERROR
+      });
+    }
+
+    // Fetch comments with user data
+    let query = supabaseAdmin
+      .from('community_comments')
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        parent_comment_id,
+        users!inner(
+          full_name,
+          avatar_url
+        )
+      `)
+      .eq('transformation_id', validatedQuery.transformation_id)
+      .is('parent_comment_id', null);
+
+    // Apply sorting
+    switch (validatedQuery.sort) {
+      case 'newest':
+        query = query.order('created_at', { ascending: false });
+        break;
+      case 'oldest':
+        query = query.order('created_at', { ascending: true });
+        break;
+      case 'popular':
+        // For now, just use newest as we don't have comment likes yet
+        query = query.order('created_at', { ascending: false });
+        break;
+    }
+
+    const { data: comments, error: fetchError } = await query
+      .range(offset, offset + validatedQuery.limit - 1);
+
+    if (fetchError) {
+      console.error(`${endpointName} ❌ Fetch error:`, fetchError.message);
+      return res.status(500).json({ 
+        error: COMMUNITY_ERROR_MESSAGES.SERVER_ERROR
+      });
+    }
+
+    // 4. FORMATAR RESPOSTA
+    // ====================
+    const formattedComments: Comment[] = (comments || []).map((c: CommentWithUser) => ({
+      id: c.id,
+      content: c.content,
+      created_at: c.created_at,
+      user_id: c.user_id,
+      user_full_name: c.users?.[0]?.full_name || null,
+      user_avatar_url: c.users?.[0]?.avatar_url || null,
+      parent_comment_id: c.parent_comment_id,
+    }));
+
+    const totalPages = Math.ceil((totalCount || 0) / validatedQuery.limit);
+
+    const pagination = {
+      page: validatedQuery.page,
+      limit: validatedQuery.limit,
+      total: totalCount || 0,
+      total_pages: totalPages,
+      has_next_page: validatedQuery.page < totalPages,
+      has_prev_page: validatedQuery.page > 1,
+    };
+
+    console.log(`${endpointName} ✅ Retrieved ${formattedComments.length} comments for transformation ${validatedQuery.transformation_id}`);
+
+    return res.status(200).json({
+      success: true,
+      comments: formattedComments,
+      pagination
+    });
+
+  } catch (error) {
+    console.error(`${endpointName} 💥 Unexpected error:`, error);
+    return res.status(500).json({ 
+      error: COMMUNITY_ERROR_MESSAGES.SERVER_ERROR
+    });
+  }
+}
+
+// POST COMMENT
+// ============
+async function handlePostComment(
+  req: NextApiRequest,
+  res: NextApiResponse<PostResponseData>
+) {
+  const endpointName = '[API comments POST]';
+
+  try {
+    // 1. AUTENTICAÇÃO
+    // ===============
+    const supabaseAuthClient = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name: string) => {
+            const cookieStrToParse = req.headers.cookie ?? '';
+            const parsedCookiesObjectOriginal = parseCookieHeader(cookieStrToParse);
+            const originalValue = parsedCookiesObjectOriginal[name];
+            
+            if (name.startsWith('sb-') && name.includes('-auth-token') && originalValue === undefined) {
+              const manualValue = getManuallyParsedCookie(cookieStrToParse, name);
+              return manualValue;
+            }
+            return originalValue;
+          },
+          set: (name: string, value: string, options) => {
+            const cookie = serializeCookieHeader(name, value, options);
+            let setCookieHeader = res.getHeader('Set-Cookie') ?? [];
+            if (typeof setCookieHeader === 'string') setCookieHeader = [setCookieHeader];
+            else if (typeof setCookieHeader === 'number') setCookieHeader = [String(setCookieHeader)];
+            res.setHeader('Set-Cookie', [...setCookieHeader, cookie]);
+          },
+          remove: (name: string, options) => {
+            const cookieHeader = serializeCookieHeader(name, '', { ...options, maxAge: 0 });
+            let existingSetCookie = res.getHeader('Set-Cookie') ?? [];
+            if (typeof existingSetCookie === 'string') existingSetCookie = [existingSetCookie];
+            else if (typeof existingSetCookie === 'number') existingSetCookie = [String(existingSetCookie)];
+            res.setHeader('Set-Cookie', [...existingSetCookie, cookieHeader]);
+          },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabaseAuthClient.auth.getUser();
+    
+    if (authError || !user) {
+      return res.status(401).json({ 
+        error: COMMUNITY_ERROR_MESSAGES.UNAUTHORIZED
+      });
+    }
+
+    // 2. RATE LIMITING
+    // ================
+    const permitted = await applyRateLimit(req, res, communityCommentRateLimiter, user.id);
+    if (!permitted) {
+      console.warn(`${endpointName} Rate limit exceeded for user: ${user.id}`);
+      return;
+    }
+
+    // 3. VALIDAÇÃO DO INPUT
+    // =====================
+    let validatedData;
+    try {
+      // Adjust the schema key for content
+      const bodyWithCorrectKey = {
+        ...req.body,
+        comment_text: req.body.content || req.body.comment_text
+      };
+      validatedData = commentSchema.parse(bodyWithCorrectKey);
+    } catch (error) {
+      return res.status(400).json({ 
+        error: error instanceof Error ? error.message : 'Invalid input data'
+      });
+    }
+
+    // 4. VERIFICAR SE A TRANSFORMAÇÃO EXISTE E ESTÁ PÚBLICA
+    // ====================================================
+    const { data: transformation, error: transformationError } = await supabaseAdmin
+      .from('transformations')
+      .select('id, community_status')
+      .eq('id', validatedData.transformation_id)
+      .eq('community_status', 'approved')
+      .single();
+
+    if (transformationError || !transformation) {
+      return res.status(404).json({ 
+        error: COMMUNITY_ERROR_MESSAGES.TRANSFORMATION_NOT_PUBLIC
+      });
+    }
+
+    // 5. VALIDAÇÃO DE CONTEÚDO
+    // =========================
+    const contentSafety = validateContentSafety(validatedData.comment_text);
+    if (!contentSafety.isValid) {
+      return res.status(400).json({ 
+        error: contentSafety.reason || COMMUNITY_ERROR_MESSAGES.CONTENT_VALIDATION_FAILED
+      });
+    }
+
+    // 6. INSERIR COMENTÁRIO
+    // =====================
+    const { data: newComment, error: insertError } = await supabaseAdmin
+      .from('community_comments')
+      .insert({
+        transformation_id: validatedData.transformation_id,
+        user_id: user.id,
+        content: validatedData.comment_text.trim(),
+        parent_comment_id: validatedData.parent_comment_id || null,
+      })
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        parent_comment_id,
+        users!inner(
+          full_name,
+          avatar_url
+        )
+      `)
+      .single();
+
+    if (insertError) {
+      console.error(`${endpointName} ❌ Insert error:`, insertError.message);
+      return res.status(500).json({ 
+        error: COMMUNITY_ERROR_MESSAGES.SERVER_ERROR
+      });
+    }
+
+    // 7. LÓGICA DE INCENTIVOS (A CADA 5 COMENTÁRIOS)
+    // ===============================================
+    let earnedPiccoin = false;
+    try {
+      // Count user's comments for today
+      const today = new Date().toISOString().split('T')[0];
+      const { count: todayComments } = await supabaseAdmin
+        .from('community_comments')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', `${today}T00:00:00.000Z`)
+        .lte('created_at', `${today}T23:59:59.999Z`);
+
+      // Grant PicCoin every 5 comments
+      if (todayComments && todayComments % ANTI_GAMING_LIMITS.COMMENTS_PER_BONUS_GROUP === 0) {
+        const { error: rewardError } = await supabaseAdmin
+          .rpc('earn_piccoins', {
+            p_user_id: user.id,
+            p_amount: 1,
+            p_reason: `Comentário #${todayComments} do dia`
+          });
+
+        if (rewardError) {
+          console.warn(`${endpointName} ⚠️ Failed to grant PicCoin:`, rewardError.message);
+        } else {
+          earnedPiccoin = true;
+          console.log(`${endpointName} 🪙 Granted 1 PicCoin to user ${user.id} for ${todayComments}th comment`);
+        }
+      }
+    } catch (incentiveError) {
+      console.warn(`${endpointName} ⚠️ Incentive logic error:`, incentiveError);
+      // Don't fail the comment creation for this
+    }
+
+    // 8. FORMATAR RESPOSTA
+    // ====================
+    const formattedComment: Comment = {
+      id: newComment.id,
+      content: newComment.content,
+      created_at: newComment.created_at,
+      user_id: newComment.user_id,
+      user_full_name: (newComment.users as CommentWithUser['users'])?.[0]?.full_name || null,
+      user_avatar_url: (newComment.users as CommentWithUser['users'])?.[0]?.avatar_url || null,
+      parent_comment_id: newComment.parent_comment_id,
+    };
+
+    console.log(`${endpointName} ✅ Comment created successfully by user ${user.id} on transformation ${validatedData.transformation_id}`);
+
+    return res.status(201).json({
+      success: true,
+      comment: formattedComment,
+      earned_piccoin: earnedPiccoin,
+      message: earnedPiccoin ? 'Comentário adicionado e 1 PicCoin ganho!' : 'Comentário adicionado'
+    });
+
+  } catch (error) {
+    console.error(`${endpointName} 💥 Unexpected error:`, error);
+    return res.status(500).json({ 
+      error: COMMUNITY_ERROR_MESSAGES.SERVER_ERROR
+    });
+  }
+} 

@@ -3,7 +3,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
 import axios from 'axios'; // Se ainda usares axios para chamar o processador-background
-
+import { applyRateLimit, processImageApiRateLimiter } from '@/lib/rate-limit';
+// ... outros imports que já tens (NextApiRequest, NextApiResponse, supabaseAdmin, createServerClient, etc.)
 // Função auxiliar para fazer o parse manual de um cookie específico
 function getManuallyParsedCookie(cookieString: string, cookieName: string): string | undefined {
   if (!cookieString) return undefined;
@@ -75,21 +76,24 @@ export default async function handler(
       }
     );
 
-    console.log(`${endpointName} 🔐 Authenticating user...`);
     const { data: { user: authenticatedUser }, error: authError } = await supabaseAuthClient.auth.getUser();
 
     if (authError || !authenticatedUser) {
       console.error(`${endpointName} ❌ Authentication failed:`, authError?.message || 'No user session');
       return res.status(401).json({ message: 'Unauthorized', error: authError?.message || 'User session not found.' });
     }
-    console.log(`${endpointName} ✅ User authenticated: ${authenticatedUser.id}`);
+    
+    const permitted = await applyRateLimit(req, res, processImageApiRateLimiter, authenticatedUser.id);
+    if (!permitted) {
+      console.warn(`${endpointName} Rate limit exceeded for user: ${authenticatedUser.id}`);
+      return; // applyRateLimit já enviou a resposta 429
+    }
 
     const { jobId } = req.body;
     if (!jobId || typeof jobId !== 'string') {
       console.error(`${endpointName} ❌ Missing or invalid jobId in request body.`);
       return res.status(400).json({ message: 'jobId is required and must be a string' });
     }
-    console.log(`${endpointName} Processing request for jobId: ${jobId}`);
 
     // Verificar se o job pertence ao utilizador autenticado
     const { data: jobData, error: jobFetchError } = await supabaseAdmin
@@ -122,7 +126,6 @@ export default async function handler(
     }
 
 
-    console.log(`${endpointName} ✅ Job ${jobId} ownership and status verified. Proceeding to update status and trigger background processor.`);
 
     const { error: updateError } = await supabaseAdmin
       .from('transformations')
@@ -156,7 +159,6 @@ export default async function handler(
         return res.status(500).json({ success: false, message: 'Server configuration error.' });
     }
     
-    console.log(`${endpointName} 🚀 Triggering background processor for job ${jobId} at ${backgroundProcessorUrl}`);
     
     // Chamada assíncrona sem await para não bloquear a resposta
     axios.post(
@@ -180,7 +182,6 @@ export default async function handler(
       // Ex: await supabaseAdmin.from('transformations').update({ status: 'failed_trigger', error_message: `Failed to trigger background: ${axiosErrorMsg}` }).eq('id', jobId);
     });
 
-    console.log(`${endpointName} ✅ Responding 202 Accepted for job ${jobId}. Background processing scheduled.`);
     return res.status(202).json({
       success: true,
       message: 'Processing initiated',

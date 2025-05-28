@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { applyRateLimit, purchaseApiRateLimiter } from '@/lib/rate-limit'; // Importa o rate limiter
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -92,7 +93,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.error(`${endpointName} Authentication failed:`, authError?.message || 'No user session.');
       return res.status(401).json({ message: 'Unauthorized', detail: authError?.message || 'User not authenticated.' });
     }
-    console.log(`${endpointName} User authenticated: ${user.id}`);
+    // Se chegou aqui, o user está autenticado. AGORA aplicamos o rate limit.
+    console.log(`${endpointName} User authenticated: ${user.id}. Applying rate limit...`);
+    const permitted = await applyRateLimit(req, res, purchaseApiRateLimiter, user.id);
+    if (!permitted) {
+      console.warn(`${endpointName} Rate limit exceeded for user: ${user.id}`);
+      return; 
+    }
+    console.log(`${endpointName} Rate limit check passed for user: ${user.id}`);
 
     // 2. Get packageId from request body
     const { packageId } = req.body;

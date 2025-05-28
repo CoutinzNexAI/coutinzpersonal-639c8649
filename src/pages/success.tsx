@@ -35,8 +35,8 @@ type CompletedJobData = {
 };
 
 // Constantes para polling
-const POLLING_INTERVAL_MS = 3000; // 3 segundos
-const MAX_POLL_ATTEMPTS = 40;     // 40 tentativas * 3s = 120s = 2 minutos
+const POLLING_INTERVAL_MS = 10000; // 10 segundos
+const MAX_POLL_ATTEMPTS = 20;     // 20 tentativas * 10s = 200s = 3 minutos e 20 segundos
 
 const SuccessPage = (): JSX.Element => {
   const router = useRouter();
@@ -55,11 +55,9 @@ const SuccessPage = (): JSX.Element => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
-      console.log(`[SuccessPage Cleanup] Polling STOPPED. Final state: ${finalState}, JobID: ${jobId}`);
     }
     if (finalState === 'completed' || finalState === 'error') {
       try {
-        console.log('[SuccessPage Cleanup] Removing localStorage items for completed/failed job...');
         localStorage.removeItem('currentJobId');
         localStorage.removeItem('studioState');
       } catch (e) {
@@ -110,7 +108,6 @@ const SuccessPage = (): JSX.Element => {
   }, [completedJobData]);
 
   const checkDirectlyInSupabase = useCallback(async (jobIdToCheck: string, userIdToCheck?: string) => {
-    console.log(`[SuccessPage DirectCheck] Attempting direct Supabase check for job ${jobIdToCheck}`);
     try {
       const effectiveUserId = userIdToCheck || userInfo?.id;
       if (!effectiveUserId) {
@@ -132,14 +129,12 @@ const SuccessPage = (): JSX.Element => {
 
       if (results && results.length > 0) {
         const fileName = results[0].name;
-        console.log(`[SuccessPage DirectCheck] Found file in Supabase: ${fileName}`);
         const { data: urlData } = supabase
           .storage
           .from('results')
           .getPublicUrl(`public/${effectiveUserId}/${jobIdToCheck}/${fileName}`);
 
         if (urlData?.publicUrl) {
-          console.log(`[SuccessPage DirectCheck] Generated public URL: ${urlData.publicUrl}`);
           setCompletedJobData({ outputUrl: urlData.publicUrl, jobId: jobIdToCheck });
           if (pageState !== 'completed') {
             setPageState('completed');
@@ -180,7 +175,6 @@ const SuccessPage = (): JSX.Element => {
     const currentPollCount = pollCountRef.current;
 
     if (currentPollCount % 3 === 0 && currentPollCount > 1) {
-      console.log(`[Polling #${currentPollCount}] Attempting direct check in Supabase for job ${jobIdToCheck}...`);
       const found = await checkDirectlyInSupabase(jobIdToCheck, userInfo?.id); // Passa userInfo.id
       if (found) return;
     }
@@ -198,7 +192,6 @@ const SuccessPage = (): JSX.Element => {
       return;
     }
     
-    console.log(`[Polling #${currentPollCount}/${MAX_POLL_ATTEMPTS}] Checking API status for job ${jobIdToCheck}... Current PageState: ${pageState}`);
     if (pageState === 'polling_status' || pageState === 'processing') {
       setLoadingMessage('A sua imagem está a ser preparada...');
     }
@@ -209,7 +202,6 @@ const SuccessPage = (): JSX.Element => {
         apiUrl += `&userId=${userInfo.id}`;
       }
       
-      console.log(`[Polling #${currentPollCount}] Calling API: ${apiUrl}`);
       const response = await fetch(apiUrl, {
         headers: {
           'x-from-success-page': 'true', 
@@ -223,7 +215,6 @@ const SuccessPage = (): JSX.Element => {
       if (response.headers.get("content-type")?.includes("application/json")) {
         try { 
           data = await response.json(); 
-          console.log(`[Polling #${currentPollCount}] API Response for ${jobIdToCheck}:`, JSON.stringify(data));
         } catch (e) { 
           console.error(`[Polling #${currentPollCount}] Failed to parse JSON response for job ${jobIdToCheck}`, e);
           return; // Continua polling, pode ser erro temporário
@@ -244,7 +235,6 @@ const SuccessPage = (): JSX.Element => {
         return; 
       }
 
-      console.log(`[Polling #${currentPollCount}] Received API status for ${jobIdToCheck}: ${data.status}, URL: ${data.output_url || 'none'}`);
       
       // Lógica de tradução de erros do backend
       if (data.status === 'error' || data.status?.startsWith('failed')) {
@@ -263,14 +253,12 @@ const SuccessPage = (): JSX.Element => {
           handleErrorState(userFriendlyMessage);
       
       } else if (data.output_url && data.output_url.startsWith('http')) { 
-        console.log(`[Polling #${currentPollCount}] Output URL found for ${jobIdToCheck}, treating as completed.`);
         setCompletedJobData({ outputUrl: data.output_url, jobId: jobIdToCheck });
         if ((pageState as SuccessProcessingState) !== 'completed') setPageState('completed');
         toast.success("Transformação concluída!");
         stopPollingAndCleanup('completed');
         return; 
       } else if (data.status === 'completed' && data.output_url) { // Redundante se o de cima apanhar, mas seguro
-        console.log(`[Polling #${currentPollCount}] Job ${jobIdToCheck} completed with output URL.`);
         setCompletedJobData({ outputUrl: data.output_url, jobId: jobIdToCheck });
         if ((pageState as SuccessProcessingState) !== 'completed') setPageState('completed');
         toast.success("Transformação concluída!");
@@ -296,23 +284,19 @@ const SuccessPage = (): JSX.Element => {
   }, [userInfo, pageState, completedJobData, stopPollingAndCleanup, checkDirectlyInSupabase, handleErrorState]); 
 
   useEffect(() => {
-    console.log(`[SuccessPage Effect] State: ${pageState}, JobID: ${jobId}, AuthLoading: ${isAuthLoading}, User: ${!!userInfo}, PollingActive: ${!!pollingIntervalRef.current}, Completed: ${!!completedJobData}, Error: ${!!errorMessage}`);
 
     if (pageState === 'initializing') {
-      console.log("[SuccessPage Init] Initializing: Getting Job ID.");
       setLoadingMessage('A obter detalhes da transformação...');
       const params = new URLSearchParams(window.location.search);
       const jobIdFromUrl = params.get('job_id');
       let jobIdFromStorage: string | null = null;
       try {
         jobIdFromStorage = localStorage.getItem('currentJobId');
-        console.log(`[SuccessPage Init] JobID from localStorage: ${jobIdFromStorage}, from URL: ${jobIdFromUrl}`);
       } catch (e) { console.error("[SuccessPage Init] Error reading localStorage for JobID:", e); }
       
       const finalJobId = jobIdFromUrl || jobIdFromStorage; // Prioriza URL se ambos existirem
       if (finalJobId) {
         setJobId(finalJobId);
-        console.log(`[SuccessPage Init] JobID set: ${finalJobId}. Transitioning to awaiting_auth.`);
         setPageState('awaiting_auth'); 
       } else {
         console.error("[SuccessPage Init] CRITICAL: No JobID found in URL or localStorage.");
@@ -325,15 +309,11 @@ const SuccessPage = (): JSX.Element => {
     }
 
     if (pageState === 'awaiting_auth') {
-      console.log("[SuccessPage AuthCheck] In awaiting_auth state.");
       if (isAuthLoading) {
-        console.log("[SuccessPage AuthCheck] Authentication is loading...");
         setLoadingMessage('A verificar sessão...');
         return; 
       }
-      console.log("[SuccessPage AuthCheck] Authentication loading complete. UserInfo present:", !!userInfo);
       // Go directly to polling status since PicCoins payment is handled before reaching this page
-      console.log("[SuccessPage AuthCheck] User authenticated. Transitioning to polling_status.");
         setPageState('polling_status'); 
       return; 
     }
@@ -343,7 +323,6 @@ const SuccessPage = (): JSX.Element => {
     if (jobId && (pageState === 'polling_status' || pageState === 'processing')) {
       if (!isAuthLoading && !completedJobData && !errorMessage) {
         if (!pollingIntervalRef.current) { 
-          console.log(`[SuccessPage PollingManager] Starting/Restarting polling interval for JobID: ${jobId}, Current State: ${pageState}`);
           pollCountRef.current = 0; 
           checkJobStatus(jobId);   
           
@@ -356,24 +335,20 @@ const SuccessPage = (): JSX.Element => {
           console.log(`[SuccessPage PollingManager] Polling already active for JobID: ${jobId}, Current State: ${pageState}`);
         }
       } else if (isAuthLoading) {
-        console.log(`[SuccessPage PollingManager] Auth is loading, polling paused for JobID: ${jobId}`);
         if (pageState === 'polling_status' || pageState === 'processing') { 
           setLoadingMessage('A verificar sessão antes de continuar...');
         }
       } else if (completedJobData || errorMessage) {
         if (pollingIntervalRef.current) {
-          console.log(`[SuccessPage PollingManager] Job is ${completedJobData ? 'completed' : 'in error'}. Ensuring polling is stopped.`);
           stopPollingAndCleanup(completedJobData ? 'completed' : 'error');
         }
       }
     } else if (pollingIntervalRef.current && (pageState === 'completed' || pageState === 'error' || pageState === 'auth_failed')) {
-      console.log(`[SuccessPage PollingManager] Job is ${pageState}. Ensuring polling is stopped for JobID: ${jobId}`);
       stopPollingAndCleanup(pageState === 'completed' ? 'completed' : 'error');
     }
     
     return () => {
       if (pollingIntervalRef.current) {
-        console.log('[SuccessPage Effect Cleanup] Clearing polling interval due to unmount or critical dependency change (e.g., jobId).');
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
@@ -462,7 +437,6 @@ const SuccessPage = (): JSX.Element => {
                     alt="Preload" 
                     width={1}
                     height={1}
-                    onLoad={() => console.log("[Success Page Image] Preloaded successfully")}
                     onError={() => console.error("[Success Page Image] Preload failed")}
                     unoptimized
                   />

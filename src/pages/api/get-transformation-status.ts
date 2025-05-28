@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
+import { applyRateLimit, getStatusApiRateLimiter } from '@/lib/rate-limit';
+
 
 type ResponseData = {
   status?: string;
@@ -35,7 +37,6 @@ export default async function handler(
 ) {
   const endpointName = '[API get-transformation-status]';
   const requestStartTime = Date.now();
-  console.log(`${endpointName} 🚀 Handler started. Method: ${req.method}. Timestamp: ${new Date().toISOString()}`);
   const rawCookieHeaderFromRequest = req.headers.cookie ?? '';
   // console.log(`${endpointName} RAW COOKIE HEADER:`, rawCookieHeaderFromRequest); // Log muito verboso, comentado
 
@@ -50,7 +51,6 @@ export default async function handler(
     console.error(`${endpointName} ❌ Missing or invalid jobId query parameter.`);
     return res.status(400).json({ message: 'Missing or invalid jobId query parameter' });
   }
-  console.log(`${endpointName} Fetching status for jobId: ${jobId}`);
   
   const successPageFlow = req.headers['x-from-success-page'] === 'true';
   const explicitUserId = typeof userIdFromQuery === 'string' ? userIdFromQuery : null;
@@ -58,8 +58,6 @@ export default async function handler(
   let authenticatedUserIdFromSession: string | null = null;
   let usingExplicitUserIdAsFallback = false;
 
-  // console.log(`${endpointName} Environment vars - URL:`, process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Present' : 'Missing');
-  // console.log(`${endpointName} Environment vars - ANON_KEY:`, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Present' : 'Missing');
 
   try {
     // console.log(`${endpointName} 🔧 Creating Supabase SSR client...`); // Log menos crítico
@@ -107,19 +105,15 @@ export default async function handler(
     // console.log(`${endpointName} 🔐 Getting user authentication...`);
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    console.log(`${endpointName} Auth result - Error: ${userError?.message || 'None'}. User ID: ${user?.id || 'null'}`);
 
     if (user) {
       authenticatedUserIdFromSession = user.id;
-      console.log(`${endpointName} ✅ Primary authentication successful: User ID ${authenticatedUserIdFromSession}`);
     } else {
       console.warn(`${endpointName} Primary authentication failed:`, userError?.message || 'No user from session');
       if (successPageFlow && explicitUserId) {
-        console.log(`${endpointName} ⚠️ Using explicitUserId as fallback: ${explicitUserId}`);
         authenticatedUserIdFromSession = explicitUserId;
         usingExplicitUserIdAsFallback = true;
       } else {
-        console.error(`${endpointName} ❌ Authentication failed and no valid fallback. UserError:`, userError?.message);
         return res.status(401).json({ message: 'Not authenticated. Please log in.', detail: userError?.message });
       }
     }
@@ -127,7 +121,6 @@ export default async function handler(
     const errorMsg = authCatchError instanceof Error ? authCatchError.message : 'Unknown auth block error';
     console.error(`${endpointName} 💥 Catch block during authentication: ${errorMsg}`);
     if (successPageFlow && explicitUserId) {
-      console.log(`${endpointName} ⚠️ Using explicitUserId as fallback after auth catch block: ${explicitUserId}`);
       authenticatedUserIdFromSession = explicitUserId;
       usingExplicitUserIdAsFallback = true;
     } else {
@@ -140,19 +133,21 @@ export default async function handler(
       return res.status(500).json({ message: 'Internal authentication error.' });
   }
 
+  console.log(`${endpointName} User identified: ${authenticatedUserIdFromSession}. Applying rate limit...`);
+const permitted = await applyRateLimit(req, res, getStatusApiRateLimiter, authenticatedUserIdFromSession);
+if (!permitted) {
+  console.warn(`${endpointName} Rate limit exceeded for user: ${authenticatedUserIdFromSession}`);
+  return; // applyRateLimit já enviou a resposta 429
+}
+console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUserIdFromSession}`);
+
   try {
-    console.log(`${endpointName} JobId: ${jobId}. User for query: ${authenticatedUserIdFromSession}.`);
     
     if (DB_READ_DELAY_MS > 0) {
-        console.log(`${endpointName} JobId: ${jobId}. INTRODUCING DELAY of ${DB_READ_DELAY_MS}ms before DB query.`);
         await new Promise(resolve => setTimeout(resolve, DB_READ_DELAY_MS));
-        console.log(`${endpointName} JobId: ${jobId}. Delay finished. Proceeding with DB query.`);
-    } else {
-        console.log(`${endpointName} JobId: ${jobId}. No delay introduced (DB_READ_DELAY_MS is 0).`);
-    }
+    } 
     
     const dbQueryTime = new Date().toISOString();
-    console.log(`${endpointName} JobId: ${jobId}. 📊 Querying 'transformations' table (as supabaseAdmin). Query Time: ${dbQueryTime}`);
     
     const { data: jobDetails, error: fetchError } = await supabaseAdmin
       .from('transformations')
@@ -160,9 +155,6 @@ export default async function handler(
       .eq('id', jobId)
       .single();
 
-    console.log(`${endpointName} JobId: ${jobId}. DB Query - Error:`, fetchError?.message || 'None');
-    console.log(`${endpointName} JobId: ${jobId}. DB Query - Data received:`, jobDetails ? 'Yes' : 'No');
-    console.log(`${endpointName} JobId: ${jobId}. DB Query - FULL JOB DETAILS READ FROM DB:`, JSON.stringify(jobDetails, null, 2));
 
     if (fetchError) {
       if (fetchError.code === 'PGRST116') { // "Not found"
@@ -178,13 +170,11 @@ export default async function handler(
       return res.status(404).json({ message: 'Job not found (null data)', debug_db_read_at: dbQueryTime });
     }
 
-    console.log(`${endpointName} JobId: ${jobId}. Ownership check: DB user_id: ${jobDetails.user_id}, Authenticated user_id: ${authenticatedUserIdFromSession}`);
     if (jobDetails.user_id !== authenticatedUserIdFromSession) {
       console.error(`${endpointName} JobId: ${jobId}. 🚫 Forbidden: User ${authenticatedUserIdFromSession} (auth source: ${usingExplicitUserIdAsFallback ? 'explicit query param' : 'session'}) attempted to access job owned by ${jobDetails.user_id}.`);
       return res.status(403).json({ message: 'Forbidden: You do not have permission to access this job.', debug_db_read_at: dbQueryTime });
     }
     
-    console.log(`${endpointName} JobId: ${jobId}. ✅ Ownership verified. User: ${authenticatedUserIdFromSession} (Source: ${usingExplicitUserIdAsFallback ? 'explicit' : 'session'}). Current DB status: ${jobDetails.status}`);
 
     // --- Início da Lógica de Self-Healing ---
     let selfHealActionTaken = "None";
@@ -209,7 +199,6 @@ export default async function handler(
           if (urlData?.publicUrl) {
             foundInStorage = true;
             storageUrl = urlData.publicUrl;
-            console.log(`${endpointName} JobId: ${jobId}. SELF-HEAL (STUCK >90s): Found image in storage. Updating to completed.`);
             await supabaseAdmin.from('transformations').update({ 
                 status: 'completed', 
                 output_url: storageUrl, 
@@ -247,10 +236,8 @@ export default async function handler(
         const { data: files } = await supabaseAdmin.storage.from('results').list(`public/${jobDetails.user_id}/${jobId}`, { limit: 1, sortBy: { column: 'name', order: 'desc' } });
         if (files && files.length > 0) {
           const fileName = files[0].name;
-          console.log(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 1: FOUND image in storage: ${fileName}. DB status was '${jobDetails.status}'.`);
           const { data: urlData } = await supabaseAdmin.storage.from('results').getPublicUrl(`public/${jobDetails.user_id}/${jobId}/${fileName}`);
           if (urlData?.publicUrl) {
-            console.log(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 1: Updating DB to 'completed' and returning.`);
             selfHealActionTaken = "Updated DB from processing>30s to completed (found in storage)";
             const updatePayload = { 
               status: 'completed',
@@ -329,10 +316,8 @@ export default async function handler(
         const { data: files } = await supabaseAdmin.storage.from('results').list(`public/${jobDetails.user_id}/${jobId}`, { limit: 1, sortBy: { column: 'name', order: 'desc' } });
         if (files && files.length > 0) {
           const fileName = files[0].name;
-          console.log(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 3 (stuck job): Found image in storage: ${fileName}.`);
           const { data: urlData } = await supabaseAdmin.storage.from('results').getPublicUrl(`public/${jobDetails.user_id}/${jobId}/${fileName}`);
           if (urlData?.publicUrl) {
-            console.log(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 3 (stuck job): Generated URL: ${urlData.publicUrl}. Updating DB.`);
             selfHealActionTaken = `Updated DB from stuck job (status: ${jobDetails.status}) to completed (found in storage)`;
             const updatePayload = { 
               status: 'completed',

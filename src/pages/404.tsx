@@ -8,9 +8,7 @@ const NotFoundPage = () => {
 
   // Função para navegação direta - evita o router do Next.js
   const navigateToHome = () => {
-    // Logs para depuração
-    console.log("[404 Page] Navegando diretamente para a home");
-    // Navegação direta sem usar o router
+        // Navegação direta sem usar o router
     window.location.href = "/";
   };
 

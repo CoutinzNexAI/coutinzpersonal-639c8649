@@ -70,9 +70,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
-      console.log(`${endpointName} 🎯 Processing checkout.session.completed for session: ${session.id}`);
-      console.log(`${endpointName} Payment status: ${session.payment_status}`);
-      console.log(`${endpointName} Session metadata:`, JSON.stringify(session.metadata, null, 2));
 
       // 4. Validate payment was successful
       if (session.payment_status !== 'paid') {
@@ -95,7 +92,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ message: 'Invalid piccoins amount' });
       }
 
-      console.log(`${endpointName} 🪙 Processing purchase: ${coinsAmount} PicCoins for user ${userId}`);
 
       // 6. Check for duplicate processing (idempotency)
       const { data: existingTransaction, error: checkError } = await supabaseAdmin
@@ -111,7 +107,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (existingTransaction) {
-        console.log(`${endpointName} ⚠️ Transaction for session ${session.id} already processed. Transaction ID: ${existingTransaction.id}`);
         return res.status(200).json({ 
           message: 'Transaction already processed', 
           transactionId: existingTransaction.id 
@@ -119,7 +114,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // 7. Credit PicCoins using the atomic RPC function
-      console.log(`${endpointName} 💰 Crediting ${coinsAmount} PicCoins to user ${userId}...`);
       
       const { data: earnResult, error: earnError } = await supabaseAdmin.rpc('earn_piccoins', {
         p_user_id: userId,
@@ -141,11 +135,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ message: 'Failed to credit PicCoins', detail: earnResult?.error });
       }
 
-      console.log(`${endpointName} ✅ Successfully credited ${coinsAmount} PicCoins to user ${userId}`);
-      console.log(`${endpointName} 💰 New balance: ${earnResult.newBalance}`);
-
-      // 8. Optionally log the successful webhook processing
-      console.log(`${endpointName} 🎉 Webhook processed successfully for session ${session.id}`);
       
       return res.status(200).json({ 
         success: true,
@@ -158,7 +147,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     } else {
       // Handle other event types if needed
-      console.log(`${endpointName} ℹ️ Unhandled event type: ${event.type}`);
+  
       return res.status(200).json({ message: `Unhandled event type: ${event.type}` });
     }
 
@@ -169,15 +158,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let errorDetail: string | undefined;
 
     if (error instanceof Stripe.errors.StripeError) {
-      console.log(`${endpointName} StripeError detected. Type: ${error.type}, Code: ${error.code}`);
       errorMessage = error.message || 'Stripe webhook error';
       errorDetail = `${error.type}: ${error.code}`;
     } else if (error instanceof Error) {
-      console.log(`${endpointName} Generic Error instance detected.`);
       errorMessage = 'Webhook processing error';
       errorDetail = error.message;
   } else {
-      console.log(`${endpointName} Non-Error type thrown:`, error);
       errorDetail = String(error);
     }
 

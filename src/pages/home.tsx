@@ -1,4 +1,3 @@
-console.log("[index.tsx] Ficheiro carregado, a iniciar renderização do componente para /");
 import React from 'react';
 import Header from '@/components/Header';
 import GhibliHero from '@/components/GhibliHero'; // Componente principal com texto e área interativa
@@ -10,7 +9,6 @@ import { FAQSection } from '@/components/FAQSection'; // Ajusta o caminho se nec
 
 // Componente funcional para a página inicial (rota '/')
 const Index = () => {
-  console.log("[index.tsx] Componente Index a renderizar para /");
 
   return (
     // Container principal da página com layout flexível vertical e cor de fundo
