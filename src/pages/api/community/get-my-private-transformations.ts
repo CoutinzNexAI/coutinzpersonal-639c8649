@@ -17,9 +17,10 @@ interface TransformationWithStyles {
   created_at: string;
   public_title?: string;
   public_description?: string;
+  style_requested: string;
   styles: {
     name: string;
-  }[];
+  }[] | null;
 }
 
 type PrivateTransformation = {
@@ -126,6 +127,9 @@ export default async function handler(
       return;
     }
 
+    console.log(`${endpointName} 🔍 DEBUG - User ID: ${user.id}`);
+    console.log(`${endpointName} 🔍 DEBUG - Query params:`, req.query);
+
     // 3. VALIDAÇÃO DE QUERY PARAMETERS
     // =================================
     let validatedQuery;
@@ -141,6 +145,37 @@ export default async function handler(
     // =================================
     const offset = (validatedQuery.page - 1) * validatedQuery.limit;
 
+    console.log(`${endpointName} 🔍 DEBUG - Offset: ${offset}, Limit: ${validatedQuery.limit}`);
+    console.log(`${endpointName} 🔍 DEBUG - Filters: user_id=${user.id}, status=completed, community_status=private`);
+
+    // First, let's test with a simple query to see if we have ANY transformations for this user
+    const { data: simpleTest, error: simpleTestError } = await supabaseAdmin
+      .from('transformations')
+      .select('id, status, community_status, user_id')
+      .eq('user_id', user.id);
+    
+    console.log(`${endpointName} 🔍 DEBUG - Simple test (all user transformations):`, simpleTest?.length || 0);
+    console.log(`${endpointName} 🔍 DEBUG - Simple test sample:`, simpleTest?.slice(0, 3));
+
+    // Now test with just the status filters
+    const { data: statusTest, error: statusTestError } = await supabaseAdmin
+      .from('transformations')
+      .select('id, status, community_status')
+      .eq('user_id', user.id)
+      .eq('status', 'completed');
+    
+    console.log(`${endpointName} 🔍 DEBUG - Completed transformations:`, statusTest?.length || 0);
+
+    // Test with community_status filter
+    const { data: communityTest, error: communityTestError } = await supabaseAdmin
+      .from('transformations')
+      .select('id, status, community_status')
+      .eq('user_id', user.id)
+      .eq('status', 'completed')
+      .eq('community_status', 'private');
+    
+    console.log(`${endpointName} 🔍 DEBUG - Private completed transformations:`, communityTest?.length || 0);
+
     // Count total private transformations
     const { count: totalCount, error: countError } = await supabaseAdmin
       .from('transformations')
@@ -148,6 +183,8 @@ export default async function handler(
       .eq('user_id', user.id)
       .eq('status', 'completed')
       .eq('community_status', 'private');
+
+    console.log(`${endpointName} 🔍 DEBUG - Count result: totalCount=${totalCount}, countError:`, countError);
 
     if (countError) {
       console.error(`${endpointName} ❌ Count error:`, countError.message);
@@ -166,7 +203,8 @@ export default async function handler(
         created_at,
         public_title,
         public_description,
-        styles!inner(
+        style_requested,
+        styles(
           name
         )
       `)
@@ -175,6 +213,10 @@ export default async function handler(
       .eq('community_status', 'private')
       .order('created_at', { ascending: false })
       .range(offset, offset + validatedQuery.limit - 1);
+
+    console.log(`${endpointName} 🔍 DEBUG - Fetch result: found ${transformations?.length || 0} transformations`);
+    console.log(`${endpointName} 🔍 DEBUG - Fetch error:`, fetchError);
+    console.log(`${endpointName} 🔍 DEBUG - First transformation (if any):`, transformations?.[0]);
 
     if (fetchError) {
       console.error(`${endpointName} ❌ Fetch error:`, fetchError.message);
@@ -192,7 +234,7 @@ export default async function handler(
       created_at: t.created_at,
       public_title: t.public_title,
       public_description: t.public_description,
-      style_name: t.styles?.[0]?.name || 'Estilo Desconhecido',
+      style_name: t.styles?.[0]?.name || `Estilo ${t.style_requested}` || 'Estilo Desconhecido',
     }));
 
     const totalPages = Math.ceil((totalCount || 0) / validatedQuery.limit);
@@ -207,6 +249,12 @@ export default async function handler(
     };
 
     console.log(`${endpointName} ✅ Retrieved ${formattedTransformations.length} private transformations for user ${user.id}`);
+    console.log(`${endpointName} 🔍 DEBUG - Final response:`, {
+      success: true,
+      transformations: formattedTransformations,
+      pagination,
+      transformationsCount: formattedTransformations.length
+    });
 
     return res.status(200).json({
       success: true,
