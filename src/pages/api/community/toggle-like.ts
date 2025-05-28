@@ -138,47 +138,15 @@ export default async function handler(
       });
     }
 
-    // 6. BUSCAR CONTAGEM ATUALIZADA
-    // ==============================
-    const { data: updatedTransformation, error: fetchError } = await supabaseAdmin
-      .from('transformations')
-      .select('like_count')
-      .eq('id', validatedData.transformation_id)
-      .single();
-
-    if (fetchError) {
-      console.error(`${endpointName} ❌ Fetch updated count error:`, fetchError.message);
-      return res.status(500).json({ 
-        error: COMMUNITY_ERROR_MESSAGES.SERVER_ERROR
-      });
-    }
-
-    // 7. VERIFICAR SE O UTILIZADOR TEM LIKE ATIVO
-    // ============================================
-    const { data: currentLike, error: likeCheckError } = await supabaseAdmin
-      .from('transformation_likes')
-      .select('id')
-      .eq('transformation_id', validatedData.transformation_id)
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (likeCheckError) {
-      console.error(`${endpointName} ❌ Like check error:`, likeCheckError.message);
-      return res.status(500).json({ 
-        error: COMMUNITY_ERROR_MESSAGES.SERVER_ERROR
-      });
-    }
-
-    const isLiked = !!currentLike;
-    const finalLikeCount = updatedTransformation.like_count || 0;
-
-    console.log(`${endpointName} ✅ Toggle like successful for user ${user.id} on transformation ${validatedData.transformation_id}. Now liked: ${isLiked}, count: ${finalLikeCount}`);
+    // 6. RESPOSTA DE SUCESSO
+    // ======================
+    console.log(`${endpointName} ✅ Like toggled successfully forr user ${user.id} on transformation ${validatedData.transformation_id}`);
 
     return res.status(200).json({
       success: true,
-      is_liked: isLiked,
-      like_count: finalLikeCount,
-      message: isLiked ? 'Like adicionado' : 'Like removido'
+      is_liked: result.is_liked,
+      like_count: result.like_count,
+      message: result.is_liked ? 'Like adicionado' : 'Like removido'
     });
 
   } catch (error) {

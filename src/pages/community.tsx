@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { 
   SparklesIcon,
@@ -57,8 +56,6 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   
-  const router = useRouter(); 
-
   // ANIMATIONS
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -122,7 +119,7 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   // EFFECTS
   useEffect(() => {
     fetchTransformations(filters, true);
-  }, [filters.sort, filters.timeframe, filters.search, fetchTransformations]);
+  }, [filters, fetchTransformations]);
 
   return (
     <>

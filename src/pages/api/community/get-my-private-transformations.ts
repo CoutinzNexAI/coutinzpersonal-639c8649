@@ -9,6 +9,19 @@ import { getMyPrivateTransformationsSchema, COMMUNITY_ERROR_MESSAGES } from '@/l
 // Buscar transformações privadas do utilizador para submeter
 // =====================================================
 
+// Interface for database response
+interface TransformationWithStyles {
+  id: string;
+  input_url: string;
+  output_url: string;
+  created_at: string;
+  public_title?: string;
+  public_description?: string;
+  styles: {
+    name: string;
+  }[];
+}
+
 type PrivateTransformation = {
   id: string;
   input_url: string;
@@ -172,14 +185,14 @@ export default async function handler(
 
     // 5. FORMATAR RESPOSTA
     // ====================
-    const formattedTransformations: PrivateTransformation[] = (transformations || []).map(t => ({
+    const formattedTransformations: PrivateTransformation[] = (transformations || []).map((t: TransformationWithStyles) => ({
       id: t.id,
       input_url: t.input_url,
       output_url: t.output_url,
-      style_name: (t.styles as any)?.name || 'Estilo Desconhecido',
       created_at: t.created_at,
       public_title: t.public_title,
       public_description: t.public_description,
+      style_name: t.styles?.[0]?.name || 'Estilo Desconhecido',
     }));
 
     const totalPages = Math.ceil((totalCount || 0) / validatedQuery.limit);

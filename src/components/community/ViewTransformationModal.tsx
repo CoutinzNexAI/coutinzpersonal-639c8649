@@ -54,7 +54,7 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
     if (isOpen && transformation) {
       onFetchComments(transformation.id);
     }
-  }, [isOpen, transformation?.id, onFetchComments]);
+  }, [isOpen, transformation, onFetchComments]);
 
   useEffect(() => {
     if (comments.length > 0) {
