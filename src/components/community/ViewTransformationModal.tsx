@@ -148,7 +148,7 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
 
           {/* Modal */}
           <motion.div
-            className="relative w-full max-w-6xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-7xl max-h-[95vh] bg-white rounded-3xl shadow-2xl overflow-hidden"
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
@@ -162,10 +162,10 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
               <XMarkIcon className="w-6 h-6 text-ghibli-wood" />
             </button>
 
-            <div className="flex flex-col lg:flex-row h-full max-h-[90vh]">
+            <div className="flex flex-col lg:flex-row h-full max-h-[95vh]">
               {/* Image Section - Left Side */}
               <div className="lg:w-3/5 relative bg-ghibli-sand/10">
-                <div className="relative w-full h-64 lg:h-full min-h-[400px]">
+                <div className="relative w-full h-64 lg:h-full min-h-[500px]">
                   <Image
                     src={transformation.output_url}
                     alt={transformation.public_title || 'Transformação da comunidade'}
@@ -181,9 +181,9 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
               </div>
 
               {/* Content Section - Right Side */}
-              <div className="lg:w-2/5 flex flex-col h-full">
-                {/* Header */}
-                <div className="p-6 border-b border-ghibli-sand/30">
+              <div className="lg:w-2/5 flex flex-col h-full min-h-[600px]">
+                {/* Header - Fixed height */}
+                <div className="p-6 border-b border-ghibli-sand/30 flex-shrink-0">
                   {/* User Info */}
                   <div className="flex items-center space-x-3 mb-4">
                     <div className="relative">
@@ -214,37 +214,37 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
 
                   {/* Title */}
                   {transformation.public_title && (
-                    <h2 className="text-2xl font-bold text-ghibli-wood mb-3">
+                    <h2 className="text-xl font-bold text-ghibli-wood mb-2">
                       {transformation.public_title}
                     </h2>
                   )}
 
                   {/* Description */}
                   {transformation.public_description && (
-                    <p className="text-ghibli-earth mb-4">
+                    <p className="text-ghibli-earth mb-3 text-sm">
                       {transformation.public_description}
                     </p>
                   )}
 
                   {/* Style Tag */}
-                  <div className="inline-block px-4 py-2 bg-gradient-to-r from-amber-400/20 to-yellow-600/20 rounded-full text-sm font-medium text-amber-700 mb-4 border border-amber-400/30">
-                    {transformation.style_name}
+                  <div className="inline-block px-3 py-1 bg-gradient-to-r from-amber-400/20 to-yellow-600/20 rounded-full text-xs font-medium text-amber-700 mb-3 border border-amber-400/30">
+                    {transformation.style_name || transformation.style_requested}
                   </div>
 
                   {/* Actions Row */}
                   <div className="flex items-center justify-between">
                     {/* Stats */}
-                    <div className="flex items-center space-x-6 text-ghibli-earth">
+                    <div className="flex items-center space-x-4 text-ghibli-earth text-sm">
                       <span className="flex items-center">
-                        <HeartIcon className="w-5 h-5 mr-2 text-red-500" />
+                        <HeartIcon className="w-4 h-4 mr-1 text-red-500" />
                         {formatCount(transformation.like_count)}
                       </span>
                       <span className="flex items-center">
-                        <ChatBubbleLeftIcon className="w-5 h-5 mr-2 text-blue-500" />
+                        <ChatBubbleLeftIcon className="w-4 h-4 mr-1 text-blue-500" />
                         {formatCount(transformation.comment_count)}
                       </span>
                       <span className="flex items-center">
-                        <EyeIcon className="w-5 h-5 mr-2 text-green-500" />
+                        <EyeIcon className="w-4 h-4 mr-1 text-green-500" />
                         {formatCount(transformation.view_count)}
                       </span>
                     </div>
@@ -253,7 +253,7 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                     <motion.button
                       onClick={() => onLike(transformation.id)}
                       disabled={isTogglingLike}
-                      className={`flex items-center px-4 py-2 rounded-full font-medium transition-all ${
+                      className={`flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all ${
                         isLiked
                           ? 'bg-red-500 text-white shadow-lg'
                           : 'bg-gray-100 text-red-500 hover:bg-red-500 hover:text-white'
@@ -262,32 +262,32 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                       whileTap={{ scale: isTogglingLike ? 1 : 0.95 }}
                     >
                       {isLiked ? (
-                        <HeartIconSolid className="w-5 h-5 mr-2" />
+                        <HeartIconSolid className="w-4 h-4 mr-1" />
                       ) : (
-                        <HeartIcon className="w-5 h-5 mr-2" />
+                        <HeartIcon className="w-4 h-4 mr-1" />
                       )}
                       {isLiked ? 'Gostaste' : 'Gostar'}
                     </motion.button>
                   </div>
                 </div>
 
-                {/* Comments Section */}
+                {/* Comments Section - Expanded with better scrolling */}
                 <div className="flex-1 flex flex-col min-h-0">
                   {/* Comments Header */}
-                  <div className="p-4 border-b border-ghibli-sand/30">
+                  <div className="px-6 py-3 border-b border-ghibli-sand/30 flex-shrink-0">
                     <button
                       onClick={() => setShowComments(!showComments)}
-                      className="flex items-center text-ghibli-wood font-semibold"
+                      className="flex items-center text-ghibli-wood font-semibold text-sm"
                     >
-                      <ChatBubbleLeftIcon className="w-5 h-5 mr-2" />
+                      <ChatBubbleLeftIcon className="w-4 h-4 mr-2" />
                       Comentários ({comments.length})
                     </button>
                   </div>
 
                   {showComments && (
                     <>
-                      {/* Comments List */}
-                      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                      {/* Comments List - IMPROVED scrolling area */}
+                      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0" style={{ maxHeight: 'calc(95vh - 400px)' }}>
                         {isLoadingComments ? (
                           <div className="flex justify-center py-8">
                             <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
@@ -342,8 +342,8 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                         )}
                       </div>
 
-                      {/* Comment Form */}
-                      <div className="border-t border-ghibli-sand/30 p-4">
+                      {/* Comment Form - Fixed at bottom */}
+                      <div className="border-t border-ghibli-sand/30 p-4 flex-shrink-0 bg-white">
                         <form onSubmit={handleSubmitComment} className="flex space-x-3">
                           <div className="flex-shrink-0">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 flex items-center justify-center text-xs font-semibold text-white">
@@ -356,8 +356,8 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                               onChange={(e) => setNewComment(e.target.value)}
                               onKeyDown={handleKeyDown}
                               placeholder="Escreve um comentário... (Ctrl+Enter para enviar)"
-                              className="w-full px-4 py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all"
-                              rows={3}
+                              className="w-full px-4 py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all text-sm"
+                              rows={2}
                               disabled={isSubmittingComment}
                             />
                             <div className="flex items-center justify-between mt-2">
@@ -367,7 +367,7 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                               <motion.button
                                 type="submit"
                                 disabled={!newComment.trim() || isSubmittingComment || newComment.length > 500}
-                                className="flex items-center px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-600 text-white rounded-full font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                className="flex items-center px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-600 text-white rounded-full font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
                                 whileHover={{ scale: !newComment.trim() || isSubmittingComment ? 1 : 1.05 }}
                                 whileTap={{ scale: !newComment.trim() || isSubmittingComment ? 1 : 0.95 }}
                               >

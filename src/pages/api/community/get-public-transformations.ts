@@ -110,20 +110,13 @@ export default async function handler(
         updated_at,
         created_at,
         user_id,
-        style_requested,
-        users!left(
-          full_name,
-          avatar_url
-        ),
-        styles!left(
-          name
-        )
+        style_requested
       `)
       .eq('community_status', 'approved')
       .not('output_url', 'is', null);
 
-    // 5. APLICAR FILTROS DE TIMEFRAME
-    // ===============================
+    // 5. APLICAR FILTROS DE TIMEFRAME - FIXED to use the correct date logic
+    // =====================================================================
     if (validatedQuery.timeframe !== 'all') {
       const now = new Date();
       let startDate: Date;
@@ -142,6 +135,7 @@ export default async function handler(
           startDate = new Date(0); // All time
       }
       
+      // Use submitted_for_publication_at or fallback to updated_at
       query = query.or(`submitted_for_publication_at.gte.${startDate.toISOString()},and(submitted_for_publication_at.is.null,updated_at.gte.${startDate.toISOString()})`);
     }
 
@@ -178,10 +172,42 @@ export default async function handler(
       });
     }
 
-    // 8. FORMATAR RESPOSTA
-    // ====================
+    // 8. BUSCAR DADOS DOS UTILIZADORES E ESTILOS SEPARADAMENTE
+    // ========================================================
+    const userIds = [...new Set((transformations || []).map(t => t.user_id))];
+    const styleIds = [...new Set((transformations || []).map(t => t.style_requested))];
+
+    // Buscar utilizadores
+    const { data: users, error: usersError } = await supabaseAdmin
+      .from('users')
+      .select('id, full_name, avatar_url')
+      .in('id', userIds);
+
+    if (usersError) {
+      console.warn(`${endpointName} ⚠️ Failed to fetch users data:`, usersError.message);
+    }
+
+    // Buscar estilos
+    const { data: styles, error: stylesError } = await supabaseAdmin
+      .from('styles')
+      .select('id, name')
+      .in('id', styleIds);
+
+    if (stylesError) {
+      console.warn(`${endpointName} ⚠️ Failed to fetch styles data:`, stylesError.message);
+    }
+
+    // Create lookup maps
+    const userMap = new Map((users || []).map(u => [u.id, u]));
+    const styleMap = new Map((styles || []).map(s => [s.id, s]));
+
+    // 9. FORMATAR RESPOSTA - FIXED TypeScript and date logic
+    // =======================================================
     const formattedTransformations: PublicTransformation[] = (transformations || []).map((t) => {
+      // Use submitted_for_publication_at if available, otherwise use updated_at, fallback to created_at
       const publicationDate = t.submitted_for_publication_at || t.updated_at || t.created_at;
+      const user = userMap.get(t.user_id);
+      const style = styleMap.get(t.style_requested);
       
       return {
         id: t.id,
@@ -191,11 +217,11 @@ export default async function handler(
         like_count: t.like_count || 0,
         comment_count: t.comment_count || 0,
         view_count: t.view_count || 0,
-        published_at: publicationDate,
+        published_at: publicationDate, // This will be the computed publication date
         user_id: t.user_id,
-        user_full_name: t.users?.[0]?.full_name || null,
-        user_avatar_url: t.users?.[0]?.avatar_url || null,
-        style_name: t.styles?.[0]?.name || null,
+        user_full_name: user?.full_name || null,  // FIXED: From lookup map
+        user_avatar_url: user?.avatar_url || null, // FIXED: From lookup map
+        style_name: style?.name || null,          // FIXED: From lookup map
         style_requested: t.style_requested,
       };
     });
