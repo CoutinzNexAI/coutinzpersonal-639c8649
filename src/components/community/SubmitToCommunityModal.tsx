@@ -155,7 +155,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
           {/* Backdrop */}
           <motion.div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -165,55 +165,55 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
             onClick={handleClose}
           />
 
-          {/* Modal */}
+          {/* Modal - Mobile Optimized */}
           <motion.div
-            className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden"
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
           >
-            {/* Close Button */}
+            {/* Close Button - Mobile Optimized */}
             <button
               onClick={handleClose}
-              className="absolute top-6 right-6 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all shadow-lg"
+              className="absolute top-3 right-3 sm:top-6 sm:right-6 z-10 p-2 sm:p-2.5 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all shadow-lg touch-manipulation"
             >
-              <XMarkIcon className="w-6 h-6 text-ghibli-wood" />
+              <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-ghibli-wood" />
             </button>
 
             {/* STEP: SELECT TRANSFORMATION */}
             {step === 'select' && (
-              <div className="p-8">
+              <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto max-h-[95vh] sm:max-h-[90vh]">
                 {/* Header */}
-                <div className="text-center mb-8">
-                  <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-amber-400/20 to-yellow-600/20 border border-amber-400/30 mb-4">
-                    <SparklesIcon className="w-5 h-5 text-amber-600 mr-2" />
-                    <span className="text-ghibli-wood text-sm font-medium">Publicar na Comunidade</span>
+                <div className="text-center mb-6 sm:mb-8">
+                  <div className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-amber-400/20 to-yellow-600/20 border border-amber-400/30 mb-3 sm:mb-4">
+                    <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 mr-2" />
+                    <span className="text-ghibli-wood text-xs sm:text-sm font-medium">Publicar na Comunidade</span>
                   </div>
-                  <h2 className="text-3xl font-ghibli font-bold text-ghibli-wood mb-2">
+                  <h2 className="text-2xl sm:text-3xl font-ghibli font-bold text-ghibli-wood mb-2">
                     🎨 Partilha a Tua Arte
                   </h2>
-                  <p className="text-ghibli-earth">
+                  <p className="text-ghibli-earth text-sm sm:text-base">
                     Escolhe uma das tuas transformações para submeter à comunidade
                   </p>
                 </div>
 
-                {/* Transformations Grid */}
-                <div className="max-h-96 overflow-y-auto">
+                {/* Transformations Grid - Mobile Optimized */}
+                <div className="max-h-[60vh] sm:max-h-96 overflow-y-auto">
                   {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                       {[...Array(6)].map((_, i) => (
-                        <div key={i} className="aspect-square bg-ghibli-sand/20 rounded-2xl animate-pulse" />
+                        <div key={i} className="aspect-square bg-ghibli-sand/20 rounded-xl sm:rounded-2xl animate-pulse" />
                       ))}
                     </div>
                   ) : privateTransformations.length === 0 ? (
-                    <div className="text-center py-12">
-                      <PhotoIcon className="w-16 h-16 mx-auto mb-4 text-ghibli-sand" />
-                      <p className="text-ghibli-earth text-lg mb-2">Nenhuma transformação privada encontrada</p>
+                    <div className="text-center py-8 sm:py-12">
+                      <PhotoIcon className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-ghibli-sand" />
+                      <p className="text-ghibli-earth text-base sm:text-lg mb-2">Nenhuma transformação privada encontrada</p>
                       <p className="text-ghibli-earth text-sm">Cria primeiro algumas transformações para as poderes partilhar!</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                       {privateTransformations.map((transformation) => (
                         <motion.button
                           key={transformation.id}
@@ -223,7 +223,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                             setPublicDescription(transformation.public_description || '');
                             setStep('details');
                           }}
-                          className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all group ${
+                          className={`relative aspect-square rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all group touch-manipulation ${
                             selectedTransformation?.id === transformation.id
                               ? 'border-amber-400 shadow-lg'
                               : 'border-ghibli-sand/30 hover:border-amber-400/50'
@@ -235,12 +235,13 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                             src={transformation.output_url}
                             alt="Transformação"
                             fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                             className="object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                             <div className="text-white text-left">
-                              <p className="font-medium text-sm">{transformation.style_name}</p>
+                              <p className="font-medium text-xs sm:text-sm truncate">{transformation.style_name}</p>
                               <p className="text-xs opacity-75">{formatTimeAgo(transformation.created_at)}</p>
                             </div>
                           </div>
@@ -254,34 +255,35 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
 
             {/* STEP: DETAILS */}
             {step === 'details' && selectedTransformation && (
-              <div className="p-8">
+              <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto max-h-[95vh] sm:max-h-[90vh]">
                 {/* Header */}
-                <div className="text-center mb-8">
-                  <h2 className="text-2xl font-ghibli font-bold text-ghibli-wood mb-2">
+                <div className="text-center mb-6 sm:mb-8">
+                  <h2 className="text-xl sm:text-2xl font-ghibli font-bold text-ghibli-wood mb-2">
                     ✨ Adiciona Detalhes
                   </h2>
-                  <p className="text-ghibli-earth">
+                  <p className="text-ghibli-earth text-sm sm:text-base">
                     Personaliza como a tua arte aparecerá na comunidade
                   </p>
                 </div>
 
-                <div className="grid lg:grid-cols-2 gap-8">
+                <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
                   {/* Preview */}
                   <div>
-                    <h3 className="font-semibold text-ghibli-wood mb-4">Pré-visualização</h3>
-                    <div className="aspect-square rounded-2xl overflow-hidden border border-ghibli-sand/30">
+                    <h3 className="font-semibold text-ghibli-wood mb-3 sm:mb-4 text-sm sm:text-base">Pré-visualização</h3>
+                    <div className="aspect-square rounded-xl sm:rounded-2xl overflow-hidden border border-ghibli-sand/30">
                       <Image
                         src={selectedTransformation.output_url}
                         alt="Pré-visualização"
                         width={400}
                         height={400}
+                        sizes="(max-width: 1024px) 100vw, 50vw"
                         className="w-full h-full object-cover"
                       />
                     </div>
                   </div>
 
-                  {/* Form */}
-                  <div className="space-y-6">
+                  {/* Form - Mobile Optimized */}
+                  <div className="space-y-4 sm:space-y-6">
                     <div>
                       <label className="block text-sm font-medium text-ghibli-wood mb-2">
                         Título Público (opcional)
@@ -291,7 +293,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                         value={publicTitle}
                         onChange={(e) => setPublicTitle(e.target.value)}
                         placeholder="Ex: A minha primeira arte Ghibli!"
-                        className="w-full px-4 py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all"
+                        className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all text-sm sm:text-base"
                         maxLength={100}
                       />
                       <p className="text-xs text-ghibli-earth mt-1">{publicTitle.length}/100 caracteres</p>
@@ -305,25 +307,25 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                         value={publicDescription}
                         onChange={(e) => setPublicDescription(e.target.value)}
                         placeholder="Conta a história por trás desta transformação..."
-                        className="w-full px-4 py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all"
-                        rows={4}
+                        className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all text-sm sm:text-base"
+                        rows={3}
                         maxLength={500}
                       />
                       <p className="text-xs text-ghibli-earth mt-1">{publicDescription.length}/500 caracteres</p>
                     </div>
 
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                      <h4 className="font-medium text-amber-800 mb-2">🎉 Submissão com Recompensa</h4>
-                      <p className="text-amber-700 text-sm">
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4">
+                      <h4 className="font-medium text-amber-800 mb-2 text-sm sm:text-base">🎉 Submissão com Recompensa</h4>
+                      <p className="text-amber-700 text-xs sm:text-sm">
                         Ao submeter para aprovação, podes ganhar <strong>1 PicCoin</strong> como recompensa semanal!
                       </p>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex space-x-4 pt-4">
+                    {/* Actions - Mobile Optimized */}
+                    <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-4">
                       <button
                         onClick={() => setStep('select')}
-                        className="flex-1 px-6 py-3 border border-ghibli-sand/30 text-ghibli-wood rounded-xl hover:bg-ghibli-sand/20 transition-all"
+                        className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 border border-ghibli-sand/30 text-ghibli-wood rounded-xl hover:bg-ghibli-sand/20 transition-all text-sm sm:text-base touch-manipulation"
                         disabled={submitting}
                       >
                         Voltar
@@ -331,18 +333,18 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                       <motion.button
                         onClick={handleSubmit}
                         disabled={submitting}
-                        className="flex-1 ghibli-button inline-flex items-center justify-center px-6 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 ghibli-button inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base touch-manipulation"
                         whileHover={{ scale: submitting ? 1 : 1.02 }}
                         whileTap={{ scale: submitting ? 1 : 0.98 }}
                       >
                         {submitting ? (
                           <>
-                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                             A submeter...
                           </>
                         ) : (
                           <>
-                            <PaperAirplaneIcon className="w-5 h-5 mr-2" />
+                            <PaperAirplaneIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                             Submeter para Aprovação
                           </>
                         )}

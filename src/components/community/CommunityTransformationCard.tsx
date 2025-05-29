@@ -3,8 +3,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { 
   HeartIcon, 
-  ChatBubbleLeftIcon, 
-  EyeIcon 
+  ChatBubbleLeftIcon 
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { CommunityTransformation } from '@/hooks/useCommunity';
@@ -47,14 +46,10 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
     return `${(count / 1000000).toFixed(1)}M`;
   };
 
-  const getUserInitial = () => {
-    return transformation.user_full_name?.[0]?.toUpperCase() || 'U';
-  };
-
   return (
     <motion.div
       className="group relative bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden border border-ghibli-sand/30 hover:border-amber-400/50 transition-all duration-300 hover:shadow-xl cursor-pointer"
-      whileHover={{ y: -4, scale: 1.02 }}
+      whileHover={{ y: -2, scale: 1.01 }}
       onClick={() => onView(transformation)}
       layout
     >
@@ -64,23 +59,23 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
           src={transformation.output_url}
           alt={transformation.public_title || 'Transformação da comunidade'}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover group-hover:scale-110 transition-transform duration-500"
+          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
           priority={false}
         />
         
         {/* Gradient Overlay on Hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
-        {/* Quick Actions - Top Right */}
-        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {/* Quick Actions - Mobile Optimized */}
+        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <motion.button
             onClick={(e) => {
               e.stopPropagation();
               onLike(transformation.id);
             }}
             disabled={isTogglingLike}
-            className={`p-2 rounded-full backdrop-blur-md transition-all ${
+            className={`p-2 sm:p-2.5 rounded-full backdrop-blur-md transition-all touch-manipulation ${
               isLiked
                 ? 'bg-red-500 text-white shadow-lg'
                 : 'bg-white/80 text-red-500 hover:bg-red-500 hover:text-white'
@@ -89,65 +84,59 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
             whileTap={{ scale: isTogglingLike ? 1 : 0.9 }}
           >
             {isLiked ? (
-              <HeartIconSolid className="w-5 h-5" />
+              <HeartIconSolid className="w-4 h-4 sm:w-5 sm:h-5" />
             ) : (
-              <HeartIcon className="w-5 h-5" />
+              <HeartIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             )}
           </motion.button>
         </div>
 
-        {/* View Indicator - Bottom Right */}
-        <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-white text-xs font-medium">
-            Clica para ver
+        {/* View Indicator - Mobile Optimized */}
+        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="px-2 py-1 sm:px-3 sm:py-1.5 bg-black/60 backdrop-blur-md rounded-full text-white text-xs font-medium">
+            👆 Toca para ver
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-5">
+      {/* Content - Mobile Optimized */}
+      <div className="p-3 sm:p-4 lg:p-5">
         {/* Title */}
         {transformation.public_title && (
-          <h3 className="text-lg font-semibold text-ghibli-wood mb-2 line-clamp-2 group-hover:text-amber-600 transition-colors">
+          <h3 className="text-base sm:text-lg font-semibold text-ghibli-wood mb-2 line-clamp-2 group-hover:text-amber-600 transition-colors">
             {transformation.public_title}
           </h3>
         )}
 
-        {/* Description */}
+        {/* Description - Hidden on very small screens */}
         {transformation.public_description && (
-          <p className="text-ghibli-earth text-sm mb-3 line-clamp-2">
+          <p className="hidden sm:block text-ghibli-earth text-sm mb-3 line-clamp-2">
             {transformation.public_description}
           </p>
         )}
 
         {/* Style Tag */}
-        <div className="inline-block px-3 py-1 bg-gradient-to-r from-amber-400/20 to-yellow-600/20 rounded-full text-xs font-medium text-amber-700 mb-3 border border-amber-400/30">
+        <div className="inline-block px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-amber-400/20 to-yellow-600/20 rounded-full text-xs font-medium text-amber-700 mb-3 border border-amber-400/30">
           {transformation.style_name}
         </div>
 
-        {/* Stats Row */}
+        {/* Stats Row - Mobile Optimized */}
         <div className="flex items-center justify-between text-ghibli-earth text-sm mb-3">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3 sm:space-x-4">
             {/* Likes */}
             <motion.span 
               className="flex items-center"
               animate={{ scale: isTogglingLike ? [1, 1.2, 1] : 1 }}
               transition={{ duration: 0.3 }}
             >
-              <HeartIcon className="w-4 h-4 mr-1 text-red-500" />
-              {formatCount(transformation.like_count)}
+              <HeartIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 text-red-500" />
+              <span className="text-xs sm:text-sm">{formatCount(transformation.like_count)}</span>
             </motion.span>
 
             {/* Comments */}
             <span className="flex items-center">
-              <ChatBubbleLeftIcon className="w-4 h-4 mr-1 text-blue-500" />
-              {formatCount(transformation.comment_count)}
-            </span>
-
-            {/* Views */}
-            <span className="flex items-center">
-              <EyeIcon className="w-4 h-4 mr-1 text-green-500" />
-              {formatCount(transformation.view_count)}
+              <ChatBubbleLeftIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 text-blue-500" />
+              <span className="text-xs sm:text-sm">{formatCount(transformation.comment_count)}</span>
             </span>
           </div>
 
@@ -157,28 +146,10 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
           </span>
         </div>
 
-        {/* User Info */}
-        <div className="flex items-center space-x-3">
-          {/* User Avatar */}
-          <div className="relative">
-            {transformation.user_avatar_url ? (
-              <Image
-                src={transformation.user_avatar_url}
-                alt={transformation.user_full_name || 'Utilizador'}
-                width={32}
-                height={32}
-                className="rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 flex items-center justify-center text-xs font-semibold text-white">
-                {getUserInitial()}
-              </div>
-            )}
-          </div>
-
-          {/* User Name */}
-          <span className="text-ghibli-earth text-sm font-medium">
-            {transformation.user_full_name || 'Utilizador'}
+        {/* User Info - No Avatar */}
+        <div className="flex items-center justify-between">
+          <span className="text-ghibli-earth text-xs sm:text-sm font-medium truncate">
+            por {transformation.user_full_name || 'Utilizador'}
           </span>
         </div>
       </div>
