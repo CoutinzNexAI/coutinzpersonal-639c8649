@@ -133,11 +133,6 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
       minute: '2-digit'
     });
   };
-
-  const getUserInitial = (name?: string) => {
-    return name?.[0]?.toUpperCase() || 'U';
-  };
-
   // Check if comment is from the author of the transformation
   const isAuthorComment = (comment: CommunityComment) => {
     return transformation && comment.user_id === transformation.user_id;

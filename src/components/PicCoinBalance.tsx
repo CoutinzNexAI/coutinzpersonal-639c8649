@@ -53,25 +53,7 @@ export const PicCoinBalance = () => {
           <span className="md:hidden">{balance}</span>
           <span className="hidden md:inline">{balance} PicCoins</span>
         </span>
-      </Link>
-
-      {/* Tooltip */}
-      <AnimatePresence>
-        {showTooltip && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
-            className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50"
-          >
-            <div className="bg-ghibli-wood text-ghibli-cream px-3 py-2 rounded-lg text-xs font-medium shadow-lg whitespace-nowrap">
-              Ganha mais explorando a comunidade! ✨
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-ghibli-wood"></div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </Link> 
     </motion.div>
   );
 }; 
