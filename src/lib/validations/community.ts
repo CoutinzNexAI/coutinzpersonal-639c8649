@@ -33,7 +33,7 @@ export const commentSchema = z.object({
   transformation_id: z.string().uuid('ID de transformação inválido'),
   comment_text: z.string()
     .min(1, 'Comentário não pode estar vazio')
-    .max(280, 'Comentário deve ter no máximo 280 caracteres')
+    .max(75, 'Comentário deve ter no máximo 75 caracteres')
     .trim()
     .refine(
       (text) => text.length > 0 && /\S/.test(text),

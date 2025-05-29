@@ -146,9 +146,9 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
             onClick={onClose}
           />
 
-          {/* Modal */}
+          {/* Modal - FIXED SIZE */}
           <motion.div
-            className="relative w-full max-w-7xl max-h-[95vh] bg-white rounded-3xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-7xl h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden"
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
@@ -162,45 +162,27 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
               <XMarkIcon className="w-6 h-6 text-ghibli-wood" />
             </button>
 
-            <div className="flex flex-col lg:flex-row h-full max-h-[95vh]">
-              {/* Image Section - Left Side */}
-              <div className="lg:w-3/5 relative bg-ghibli-sand/10">
-                <div className="relative w-full h-64 lg:h-full min-h-[500px]">
+            <div className="flex flex-col lg:flex-row h-full">
+              {/* Image Section - Left Side - PERFECT SQUARE */}
+              <div className="lg:w-3/5 relative bg-ghibli-sand/10 flex items-center justify-center">
+                <div className="relative w-full h-full max-w-[600px] max-h-[600px] aspect-square mx-auto">
                   <Image
                     src={transformation.output_url}
                     alt={transformation.public_title || 'Transformação da comunidade'}
                     fill
-                    sizes="(max-width: 1024px) 100vw, 60vw"
-                    className="object-contain"
+                    sizes="600px"
+                    className="object-cover rounded-2xl"
                     priority
                   />
-                  
-                  {/* Gradient Overlay at Bottom for Mobile */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/30 to-transparent h-16 lg:hidden" />
                 </div>
               </div>
 
-              {/* Content Section - Right Side */}
-              <div className="lg:w-2/5 flex flex-col h-full min-h-[600px]">
-                {/* Header - Fixed height */}
+              {/* Content Section - Right Side - FIXED HEIGHT */}
+              <div className="lg:w-2/5 flex flex-col h-full">
+                {/* Header - Fixed height - NO AVATAR */}
                 <div className="p-6 border-b border-ghibli-sand/30 flex-shrink-0">
-                  {/* User Info */}
+                  {/* User Info - NO AVATAR */}
                   <div className="flex items-center space-x-3 mb-4">
-                    <div className="relative">
-                      {transformation.user_avatar_url ? (
-                        <Image
-                          src={transformation.user_avatar_url}
-                          alt={transformation.user_full_name || 'Utilizador'}
-                          width={48}
-                          height={48}
-                          className="rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 flex items-center justify-center text-lg font-semibold text-white">
-                          {getUserInitial(transformation.user_full_name)}
-                        </div>
-                      )}
-                    </div>
                     <div>
                       <h3 className="font-semibold text-ghibli-wood">
                         {transformation.user_full_name || 'Utilizador'}
@@ -231,9 +213,9 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                     {transformation.style_name || transformation.style_requested}
                   </div>
 
-                  {/* Actions Row */}
+                  {/* Actions Row - REMOVED VIEW COUNT */}
                   <div className="flex items-center justify-between">
-                    {/* Stats */}
+                    {/* Stats - NO VIEW COUNT */}
                     <div className="flex items-center space-x-4 text-ghibli-earth text-sm">
                       <span className="flex items-center">
                         <HeartIcon className="w-4 h-4 mr-1 text-red-500" />
@@ -243,26 +225,25 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                         <ChatBubbleLeftIcon className="w-4 h-4 mr-1 text-blue-500" />
                         {formatCount(transformation.comment_count)}
                       </span>
-                      <span className="flex items-center">
-                        <EyeIcon className="w-4 h-4 mr-1 text-green-500" />
-                        {formatCount(transformation.view_count)}
-                      </span>
                     </div>
 
-                    {/* Like Button */}
+                    {/* Like Button - IMPROVED ANIMATION */}
                     <motion.button
                       onClick={() => onLike(transformation.id)}
                       disabled={isTogglingLike}
-                      className={`flex items-center px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                      className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                         isLiked
-                          ? 'bg-red-500 text-white shadow-lg'
-                          : 'bg-gray-100 text-red-500 hover:bg-red-500 hover:text-white'
+                          ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg scale-105'
+                          : 'bg-gray-100 text-red-500 hover:bg-red-50 border border-red-200'
                       } ${isTogglingLike ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      whileHover={{ scale: isTogglingLike ? 1 : 1.05 }}
-                      whileTap={{ scale: isTogglingLike ? 1 : 0.95 }}
+                      whileHover={{ scale: isTogglingLike ? 1 : (isLiked ? 1.05 : 1.02) }}
+                      whileTap={{ scale: isTogglingLike ? 1 : 0.98 }}
+                      animate={isLiked ? { 
+                        boxShadow: "0 0 20px rgba(239, 68, 68, 0.4)",
+                      } : {}}
                     >
                       {isLiked ? (
-                        <HeartIconSolid className="w-4 h-4 mr-1" />
+                        <HeartIconSolid className="w-4 h-4 mr-1 animate-pulse" />
                       ) : (
                         <HeartIcon className="w-4 h-4 mr-1" />
                       )}
@@ -271,7 +252,7 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                   </div>
                 </div>
 
-                {/* Comments Section - Expanded with better scrolling */}
+                {/* Comments Section - FIXED HEIGHT */}
                 <div className="flex-1 flex flex-col min-h-0">
                   {/* Comments Header */}
                   <div className="px-6 py-3 border-b border-ghibli-sand/30 flex-shrink-0">
@@ -286,8 +267,11 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
 
                   {showComments && (
                     <>
-                      {/* Comments List - IMPROVED scrolling area */}
-                      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0" style={{ maxHeight: 'calc(95vh - 400px)' }}>
+                      {/* Comments List - FIXED HEIGHT WITH SCROLL */}
+                      <div 
+                        className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0" 
+                        style={{ height: 'calc(90vh - 350px)' }}
+                      >
                         {isLoadingComments ? (
                           <div className="flex justify-center py-8">
                             <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
@@ -302,26 +286,9 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                           <>
                             {comments.map((comment) => (
                               <div key={comment.id} className="flex space-x-3">
-                                {/* Avatar */}
-                                <div className="flex-shrink-0">
-                                  {comment.user_avatar_url ? (
-                                    <Image
-                                      src={comment.user_avatar_url}
-                                      alt={comment.user_full_name || 'Utilizador'}
-                                      width={32}
-                                      height={32}
-                                      className="rounded-full object-cover"
-                                    />
-                                  ) : (
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 flex items-center justify-center text-xs font-semibold text-white">
-                                      {getUserInitial(comment.user_full_name)}
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Comment Content */}
+                                {/* Comment Content - NO AVATAR */}
                                 <div className="flex-1 min-w-0">
-                                  <div className="bg-ghibli-sand/20 rounded-2xl rounded-tl-sm px-4 py-3">
+                                  <div className="bg-ghibli-sand/20 rounded-2xl px-4 py-3">
                                     <div className="flex items-center space-x-2 mb-1">
                                       <span className="font-medium text-ghibli-wood text-sm">
                                         {comment.user_full_name || 'Utilizador'}
@@ -342,14 +309,9 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                         )}
                       </div>
 
-                      {/* Comment Form - Fixed at bottom */}
+                      {/* Comment Form - Fixed at bottom - NO AVATAR */}
                       <div className="border-t border-ghibli-sand/30 p-4 flex-shrink-0 bg-white">
                         <form onSubmit={handleSubmitComment} className="flex space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 flex items-center justify-center text-xs font-semibold text-white">
-                              <UserIcon className="w-4 h-4" />
-                            </div>
-                          </div>
                           <div className="flex-1">
                             <textarea
                               value={newComment}
@@ -362,11 +324,11 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                             />
                             <div className="flex items-center justify-between mt-2">
                               <span className="text-xs text-ghibli-earth">
-                                {newComment.length}/500 caracteres
+                                {newComment.length}/75 caracteres
                               </span>
                               <motion.button
                                 type="submit"
-                                disabled={!newComment.trim() || isSubmittingComment || newComment.length > 500}
+                                disabled={!newComment.trim() || isSubmittingComment || newComment.length > 75}
                                 className="flex items-center px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-600 text-white rounded-full font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
                                 whileHover={{ scale: !newComment.trim() || isSubmittingComment ? 1 : 1.05 }}
                                 whileTap={{ scale: !newComment.trim() || isSubmittingComment ? 1 : 0.95 }}
