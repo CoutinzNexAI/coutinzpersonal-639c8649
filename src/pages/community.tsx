@@ -112,9 +112,8 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   };
 
   const handlePublishSuccess = (message: string) => {
-    console.log("Publicação submetida:", message);
-    // Show success toast here if you have one
-    alert(message);
+    console.log("✅ Publicação submetida:", message);
+    // Success is already handled by the modal's PicCoin animation
   };
 
   // EFFECTS

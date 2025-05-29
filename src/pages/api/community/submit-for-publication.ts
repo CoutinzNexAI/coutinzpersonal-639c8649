@@ -194,6 +194,14 @@ export default async function handler(
     const publicationsThisWeek = weeklyLimits?.publications_this_week || 0;
     const canEarnBonus = publicationsThisWeek < ANTI_GAMING_LIMITS.MAX_PUBLICATIONS_BONUS_PER_WEEK;
 
+    console.log(`${endpointName} 📊 Weekly limits check:`, {
+      user_id: user.id,
+      week_start_date: weekStart,
+      publications_this_week: publicationsThisWeek,
+      max_allowed: ANTI_GAMING_LIMITS.MAX_PUBLICATIONS_BONUS_PER_WEEK,
+      can_earn_bonus: canEarnBonus
+    });
+
     // 7. ATUALIZAR TRANSFORMAÇÃO PARA PENDING_APPROVAL
     // =================================================
     const { error: updateError } = await supabaseAdmin
@@ -217,8 +225,12 @@ export default async function handler(
     // 8. CONCEDER PICCOIN SE ELEGÍVEL
     // ===============================
     let earnedPiccoin = false;
+    console.log(`${endpointName} 🪙 PicCoin check: canEarnBonus = ${canEarnBonus}`);
+    
     if (canEarnBonus) {
       try {
+        console.log(`${endpointName} 🔄 Attempting to grant PicCoin to user ${user.id}...`);
+        
         const { error: rewardError } = await supabaseAdmin
           .rpc('earn_piccoins', {
             p_user_id: user.id,
@@ -236,6 +248,8 @@ export default async function handler(
         console.warn(`${endpointName} ⚠️ Incentive error:`, incentiveError);
         // Don't fail the submission for this
       }
+    } else {
+      console.log(`${endpointName} ⏸️ Cannot grant PicCoin - user already has ${publicationsThisWeek} publications this week`);
     }
 
     // 9. ATUALIZAR WEEKLY LIMITS

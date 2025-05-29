@@ -15,7 +15,7 @@ export const submitPublicationSchema = z.object({
     .max(100, 'Título deve ter no máximo 100 caracteres')
     .trim()
     .refine(
-      (title) => !title.includes('<') && !title.includes('>'),
+      (title) => !/<[^>]*>/g.test(title),
       'Título não pode conter HTML'
     )
     .optional(),
@@ -23,7 +23,7 @@ export const submitPublicationSchema = z.object({
     .max(500, 'Descrição deve ter no máximo 500 caracteres')
     .trim()
     .refine(
-      (desc) => !desc.includes('<') && !desc.includes('>'),
+      (desc) => !/<[^>]*>/g.test(desc),
       'Descrição não pode conter HTML'
     )
     .optional(),
@@ -40,7 +40,7 @@ export const commentSchema = z.object({
       'Comentário deve conter pelo menos um caractere não vazio'
     )
     .refine(
-      (text) => !text.includes('<') && !text.includes('>'),
+      (text) => !/<[^>]*>/g.test(text),
       'Comentário não pode conter HTML'
     ),
   parent_comment_id: z.string().uuid('ID de comentário pai inválido').optional(),
