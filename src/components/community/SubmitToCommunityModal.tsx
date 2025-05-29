@@ -8,6 +8,7 @@ import {
   PhotoIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
+import PicCoinAnimation from './PicCoinAnimation';
 
 // =====================================================
 // SUBMIT TO COMMUNITY MODAL
@@ -27,7 +28,7 @@ interface PrivateTransformation {
 interface SubmitToCommunityModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: (message: string, earnedPiccoin: boolean) => void;
+  onSuccess: (message: string) => void;
 }
 
 const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
@@ -43,6 +44,8 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState<'select' | 'details' | 'success'>('select');
+  const [showPicCoinAnimation, setShowPicCoinAnimation] = useState(false);
+  const [picCoinMessage, setPicCoinMessage] = useState('');
 
   // FETCH PRIVATE TRANSFORMATIONS
   const fetchPrivateTransformations = async () => {
@@ -93,7 +96,14 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
 
       if (data.success) {
         setStep('success');
-        onSuccess(data.message || 'Submetido com sucesso!', data.earned_piccoin || false);
+        
+        // Show PicCoin animation if earned
+        if (data.earned_piccoin) {
+          setPicCoinMessage(data.message || 'Primeira publicação da semana! Ganhaste 2 PicCoins! 🪙🪙');
+          setShowPicCoinAnimation(true);
+        }
+        
+        onSuccess(data.message || 'Submetido com sucesso!');
       } else {
         alert(`Erro: ${data.error}`);
       }
@@ -374,6 +384,13 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
               </div>
             )}
           </motion.div>
+
+          {/* PicCoin Animation */}
+          <PicCoinAnimation
+            isVisible={showPicCoinAnimation}
+            onComplete={() => setShowPicCoinAnimation(false)}
+            message={picCoinMessage}
+          />
         </div>
       )}
     </AnimatePresence>

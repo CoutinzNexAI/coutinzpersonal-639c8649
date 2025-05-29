@@ -381,35 +381,58 @@ async function handlePostComment(
       console.warn(`${endpointName} ⚠️ Failed to fetch user data:`, userError.message);
     }
 
-    // 8. LÓGICA DE INCENTIVOS (A CADA 5 COMENTÁRIOS)
-    // ===============================================
+    // 8. LÓGICA DE INCENTIVOS (PRIMEIRO COMENTÁRIO DA SEMANA)
+    // ======================================================
     let earnedPiccoin = false;
     try {
-      // Count user's comments for today
-      const today = new Date().toISOString().split('T')[0];
-      const { count: todayComments } = await supabaseAdmin
-        .from('community_comments')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gte('created_at', `${today}T00:00:00.000Z`)
-        .lte('created_at', `${today}T23:59:59.999Z`);
+      // Check user's comments for this week
+      const weekStart = new Date();
+      const day = weekStart.getDay();
+      const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1); // Segunda-feira
+      const weekStartDate = new Date(weekStart.setDate(diff));
+      weekStartDate.setHours(0, 0, 0, 0);
+      const weekStartStr = weekStartDate.toISOString().split('T')[0];
 
-      // Grant PicCoin every 5 comments
-      if (todayComments && todayComments % ANTI_GAMING_LIMITS.COMMENTS_PER_BONUS_GROUP === 0) {
+      // Get or create weekly limits record
+      const { data: weeklyLimits } = await supabaseAdmin
+        .from('user_weekly_limits')
+        .select('comments_for_bonus_count')
+        .eq('user_id', user.id)
+        .eq('week_start_date', weekStartStr)
+        .single();
+
+      const commentsThisWeek = weeklyLimits?.comments_for_bonus_count || 0;
+
+      // Grant PicCoin for first comment of the week
+      if (commentsThisWeek === 0) {
         const { error: rewardError } = await supabaseAdmin
           .rpc('earn_piccoins', {
             p_user_id: user.id,
             p_amount: 1,
-            p_reason: `Comentário #${todayComments} do dia`
+            p_reason: 'Primeiro comentário da semana'
           });
 
         if (rewardError) {
           console.warn(`${endpointName} ⚠️ Failed to grant PicCoin:`, rewardError.message);
         } else {
           earnedPiccoin = true;
-          console.log(`${endpointName} 🪙 Granted 1 PicCoin to user ${user.id} for ${todayComments}th comment`);
+          console.log(`${endpointName} 🪙 Granted 1 PicCoin to user ${user.id} for first comment of the week`);
         }
       }
+
+      // Update weekly limits counter
+      await supabaseAdmin
+        .from('user_weekly_limits')
+        .upsert({
+          user_id: user.id,
+          week_start_date: weekStartStr,
+          comments_for_bonus_count: commentsThisWeek + 1,
+          last_action_at: new Date().toISOString(),
+        }, { 
+          onConflict: 'user_id,week_start_date',
+          ignoreDuplicates: false 
+        });
+
     } catch (incentiveError) {
       console.warn(`${endpointName} ⚠️ Incentive logic error:`, incentiveError);
       // Don't fail the comment creation for this
@@ -433,7 +456,7 @@ async function handlePostComment(
       success: true,
       comment: formattedComment,
       earned_piccoin: earnedPiccoin,
-      message: earnedPiccoin ? 'Comentário adicionado e 1 PicCoin ganho!' : 'Comentário adicionado'
+      message: earnedPiccoin ? 'Comentário adicionado e 1 PicCoin ganho! 🪙' : 'Comentário adicionado'
     });
 
   } catch (error) {

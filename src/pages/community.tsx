@@ -98,7 +98,8 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
 
   const handleAddComment = async (transformationId: string, content: string) => {
     try {
-      await addComment(transformationId, content);
+      const result = await addComment(transformationId, content);
+      return result;
     } catch (error) {
       console.error('Error adding comment:', error);
       throw error; // Re-throw to let modal handle it
@@ -110,10 +111,10 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
     setFilters(prev => ({ ...prev, search: searchInput.trim() }));
   };
 
-  const handlePublishSuccess = (message: string, earnedPiccoin: boolean) => {
-    console.log("Publicação submetida:", message, "Bónus:", earnedPiccoin);
+  const handlePublishSuccess = (message: string) => {
+    console.log("Publicação submetida:", message);
     // Show success toast here if you have one
-    alert(`${message}${earnedPiccoin ? ' 🪙' : ''}`);
+    alert(message);
   };
 
   // EFFECTS

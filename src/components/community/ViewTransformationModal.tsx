@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { CommunityTransformation, CommunityComment } from '@/hooks/useCommunity';
+import PicCoinAnimation from './PicCoinAnimation';
 
 // =====================================================
 // VIEW TRANSFORMATION MODAL
@@ -29,7 +30,7 @@ interface ViewTransformationModalProps {
   onClose: () => void;
   onLike: (transformationId: string) => void;
   onFetchComments: (transformationId: string) => void;
-  onAddComment: (transformationId: string, content: string) => Promise<void>;
+  onAddComment: (transformationId: string, content: string) => Promise<{ earned_piccoin?: boolean; message?: string }>;
 }
 
 const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
@@ -47,6 +48,8 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
 }) => {
   const [newComment, setNewComment] = useState('');
   const [showComments, setShowComments] = useState(true);
+  const [showPicCoinAnimation, setShowPicCoinAnimation] = useState(false);
+  const [picCoinMessage, setPicCoinMessage] = useState('');
   const commentsEndRef = useRef<HTMLDivElement>(null);
 
   // EFFECTS
@@ -68,8 +71,14 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
     if (!newComment.trim() || !transformation) return;
 
     try {
-      await onAddComment(transformation.id, newComment.trim());
+      const result = await onAddComment(transformation.id, newComment.trim());
       setNewComment('');
+      
+      // Show PicCoin animation if earned
+      if (result?.earned_piccoin) {
+        setPicCoinMessage(result.message || 'Ganhaste 1 PicCoin! 🪙');
+        setShowPicCoinAnimation(true);
+      }
     } catch (error) {
       console.error('Error submitting comment:', error);
     }
@@ -350,6 +359,13 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
               </div>
             </div>
           </motion.div>
+
+          {/* PicCoin Animation */}
+          <PicCoinAnimation
+            isVisible={showPicCoinAnimation}
+            onComplete={() => setShowPicCoinAnimation(false)}
+            message={picCoinMessage}
+          />
         </div>
       )}
     </AnimatePresence>

@@ -248,7 +248,11 @@ export const useCommunity = () => {
           [transformationId]: [data.comment, ...(prev[transformationId] || [])]
         }));
 
-        return data;
+        // Return the API response which includes earned_piccoin and message
+        return {
+          earned_piccoin: data.earned_piccoin,
+          message: data.message
+        };
       } else {
         throw new Error(data.error || 'Failed to add comment');
       }
