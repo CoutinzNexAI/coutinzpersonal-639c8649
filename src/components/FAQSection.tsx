@@ -93,6 +93,33 @@ const faqData: FaqItem[] = [
     question: "Quanto tempo demora para transformar uma imagem?",
     answer: "O tempo de processamento pode variar dependendo da complexidade do estilo e da carga atual nos nossos servidores, mas geralmente leva apenas alguns instantes a poucos minutos.",
    },
+   {
+    id: "item-9",
+    question: "Como posso obter mais PicCoins?",
+    answer: (
+      <div className="space-y-2">
+        <p>
+          Existem várias formas de obteres PicCoins para as tuas transformações mágicas:
+        </p>
+        <ul className="list-disc list-inside space-y-1 pl-2">
+          <li>
+            <strong>🎁 Bónus de Registo:</strong> Quando te registas, recebes automaticamente 2 PicCoins gratuitas para começares!
+          </li>
+          <li>
+            <strong>💳 Compra Direta:</strong> Podes adquirir pacotes de PicCoins na nossa secção "Preço" com descontos progressivos.
+          </li>
+          <li>
+            <strong>🌟 Explora a Comunidade:</strong> Participa ativamente na nossa comunidade... quem sabe que surpresas te aguardam? 😉
+          </li>
+        </ul>
+        <div className="mt-3 p-3 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
+          <p className="text-amber-700 text-sm">
+            💡 <strong>Dica secreta:</strong> Utilizadores ativos na comunidade têm descoberto formas especiais de ganhar PicCoins extra... vale a pena explorares! ✨
+          </p>
+        </div>
+      </div>
+    ),
+   },
 ];
 
 // Variantes de animação para o conteúdo da resposta

@@ -55,6 +55,8 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
+  const [showFilters, setShowFilters] = useState(false); // Para controlar filtros no mobile
+  const [isDesktop, setIsDesktop] = useState(false); // Para verificar se é desktop
   
   // ANIMATIONS
   const containerVariants = {
@@ -120,6 +122,14 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   useEffect(() => {
     fetchTransformations(filters, true);
   }, [filters, fetchTransformations]);
+
+  // Check if is desktop for filters visibility
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   return (
     <>
@@ -192,23 +202,31 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
               >
                 <Link href="/">
                   <motion.button
-                    className="ghibli-button inline-flex items-center px-4 py-2.5 sm:px-6 sm:py-3 font-semibold text-sm sm:text-base w-full sm:w-auto"
+                    className={`ghibli-button inline-flex items-center font-semibold w-full sm:w-auto ${
+                      // Smaller padding and text on mobile
+                      'px-3 py-2 text-sm sm:px-6 sm:py-3 sm:text-base'
+                    }`}
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    Criar Nova Transformação
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    <span className="hidden xs:inline">Criar Nova Transformação</span>
+                    <span className="xs:hidden">Criar Transformação</span>
                   </motion.button>
                 </Link>
 
                 <motion.button
                   onClick={() => setIsPublishModalOpen(true)}
-                  className="inline-flex items-center px-4 py-2.5 sm:px-6 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base w-full sm:w-auto"
+                  className={`inline-flex items-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto ${
+                    // Smaller padding and text on mobile
+                    'px-3 py-2 text-sm sm:px-6 sm:py-3 sm:text-base'
+                  }`}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <ShareIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  Publicar a Minha Arte
+                  <ShareIcon className="w-4 h-4 mr-2" />
+                  <span className="hidden xs:inline">Publicar a Minha Arte</span>
+                  <span className="xs:hidden">Publicar Arte</span>
                 </motion.button>
               </motion.div>
             </motion.div>
@@ -240,91 +258,118 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
                   )}
                 </div>
               </form>
-            </motion.section>
 
-            {/* FILTERS SECTION - Mobile Optimized */}
-            <motion.section 
-              className="mb-6 sm:mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.6 }}
-            >
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-ghibli-sand/30 shadow-sm">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  {/* Sort Filters - Mobile First */}
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-2">
-                    <div className="flex items-center space-x-2">
-                      <AdjustmentsHorizontalIcon className="w-4 h-4 sm:w-5 sm:h-5 text-ghibli-earth" />
-                      <span className="text-sm font-medium text-ghibli-earth">Ordenar:</span>
-                    </div>
-                    <div className="flex rounded-lg bg-ghibli-sand/20 p-1 overflow-x-auto">
-                      {[
-                        { key: 'recent', label: 'Recentes', icon: ClockIcon },
-                        { key: 'popular', label: 'Populares', icon: HeartIcon },
-                        { key: 'trending', label: 'Trending', icon: FireIcon }
-                      ].map(({ key, label, icon: Icon }) => (
-                        <button
-                          key={key}
-                          onClick={() => setFilters(prev => ({ ...prev, sort: key as 'recent' | 'popular' | 'trending' }))}
-                          className={`flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
-                            filters.sort === key
-                              ? 'bg-gradient-to-r from-amber-400 to-yellow-600 text-white shadow-lg'
-                              : 'text-ghibli-earth hover:text-ghibli-wood hover:bg-ghibli-sand/30'
-                          }`}
-                        >
-                          <Icon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                          <span className="hidden xs:inline">{label}</span>
-                          <span className="xs:hidden">{key === 'recent' ? '🕐' : key === 'popular' ? '❤️' : '🔥'}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Timeframe Filters - Mobile Optimized */}
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                    <span className="text-sm font-medium text-ghibli-earth">Período:</span>
-                    <div className="flex rounded-lg bg-ghibli-sand/20 p-1 overflow-x-auto">
-                      {[
-                        { key: 'day', label: 'Hoje' },
-                        { key: 'week', label: 'Semana' },
-                        { key: 'month', label: 'Mês' },
-                        { key: 'all', label: 'Tudo' }
-                      ].map(({ key, label }) => (
-                        <button
-                          key={key}
-                          onClick={() => setFilters(prev => ({ ...prev, timeframe: key as 'day' | 'week' | 'month' | 'all' }))}
-                          className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
-                            filters.timeframe === key
-                              ? 'bg-ghibli-moss text-white'
-                              : 'text-ghibli-earth hover:text-ghibli-wood hover:bg-ghibli-sand/30'
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Active Search Filter */}
-                {filters.search && (
-                  <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between bg-amber-50 border border-amber-200 rounded-lg p-3 gap-2">
-                    <span className="text-amber-800 text-sm">
-                      A pesquisar por: <strong>"{filters.search}"</strong>
-                    </span>
-                    <button
-                      onClick={() => {
-                        setFilters(prev => ({ ...prev, search: '' }));
-                        setSearchInput('');
-                      }}
-                      className="text-amber-600 hover:text-amber-800 text-sm underline self-start sm:self-auto"
-                    >
-                      Limpar
-                    </button>
-                  </div>
-                )}
+              {/* Mobile Filters Toggle Button */}
+              <div className="md:hidden mt-4 flex justify-center">
+                <motion.button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="inline-flex items-center px-4 py-2 bg-ghibli-moss/10 border border-ghibli-moss/30 rounded-xl text-ghibli-wood hover:bg-ghibli-moss/20 transition-all duration-300"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <AdjustmentsHorizontalIcon className="w-4 h-4 mr-2" />
+                  <span className="text-sm font-medium">
+                    {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+                  </span>
+                  <motion.div
+                    animate={{ rotate: showFilters ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="ml-2"
+                  >
+                    ⌄
+                  </motion.div>
+                </motion.button>
               </div>
             </motion.section>
+
+            {/* FILTERS SECTION - Mobile Collapsible */}
+            <AnimatePresence>
+              {(showFilters || isDesktop) && (
+                <motion.section 
+                  className="mb-6 sm:mb-8"
+                  initial={{ opacity: 0, height: 0, y: -20 }}
+                  animate={{ opacity: 1, height: 'auto', y: 0 }}
+                  exit={{ opacity: 0, height: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-ghibli-sand/30 shadow-sm overflow-hidden">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      {/* Sort Filters - Mobile First */}
+                      <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-2">
+                        <div className="flex items-center space-x-2">
+                          <AdjustmentsHorizontalIcon className="w-4 h-4 sm:w-5 sm:h-5 text-ghibli-earth" />
+                          <span className="text-sm font-medium text-ghibli-earth">Ordenar:</span>
+                        </div>
+                        <div className="flex rounded-lg bg-ghibli-sand/20 p-1 overflow-x-auto">
+                          {[
+                            { key: 'recent', label: 'Recentes', icon: ClockIcon },
+                            { key: 'popular', label: 'Populares', icon: HeartIcon },
+                            { key: 'trending', label: 'Trending', icon: FireIcon }
+                          ].map(({ key, label, icon: Icon }) => (
+                            <button
+                              key={key}
+                              onClick={() => setFilters(prev => ({ ...prev, sort: key as 'recent' | 'popular' | 'trending' }))}
+                              className={`flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                                filters.sort === key
+                                  ? 'bg-gradient-to-r from-amber-400 to-yellow-600 text-white shadow-lg'
+                                  : 'text-ghibli-earth hover:text-ghibli-wood hover:bg-ghibli-sand/30'
+                              }`}
+                            >
+                              <Icon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                              <span className="hidden xs:inline">{label}</span>
+                              <span className="xs:hidden">{key === 'recent' ? '🕐' : key === 'popular' ? '❤️' : '🔥'}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Timeframe Filters - Mobile Optimized */}
+                      <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                        <span className="text-sm font-medium text-ghibli-earth">Período:</span>
+                        <div className="flex rounded-lg bg-ghibli-sand/20 p-1 overflow-x-auto">
+                          {[
+                            { key: 'day', label: 'Hoje' },
+                            { key: 'week', label: 'Semana' },
+                            { key: 'month', label: 'Mês' },
+                            { key: 'all', label: 'Tudo' }
+                          ].map(({ key, label }) => (
+                            <button
+                              key={key}
+                              onClick={() => setFilters(prev => ({ ...prev, timeframe: key as 'day' | 'week' | 'month' | 'all' }))}
+                              className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                                filters.timeframe === key
+                                  ? 'bg-ghibli-moss text-white'
+                                  : 'text-ghibli-earth hover:text-ghibli-wood hover:bg-ghibli-sand/30'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Search Filter */}
+                    {filters.search && (
+                      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between bg-amber-50 border border-amber-200 rounded-lg p-3 gap-2">
+                        <span className="text-amber-800 text-sm">
+                          A pesquisar por: <strong>"{filters.search}"</strong>
+                        </span>
+                        <button
+                          onClick={() => {
+                            setFilters(prev => ({ ...prev, search: '' }));
+                            setSearchInput('');
+                          }}
+                          className="text-amber-600 hover:text-amber-800 text-sm underline self-start sm:self-auto"
+                        >
+                          Limpar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </motion.section>
+              )}
+            </AnimatePresence>
 
             {/* TRANSFORMATIONS GRID - Mobile Optimized */}
             <motion.section 

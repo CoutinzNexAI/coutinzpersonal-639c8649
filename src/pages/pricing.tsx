@@ -321,6 +321,10 @@ export default function PricingPage() {
                           pkg.popular ? 'bg-purple-600 hover:bg-purple-700' : 
                           pkg.bestValue ? 'bg-amber-600 hover:bg-amber-700' :
                           'ghibli-button'
+                        } ${
+                          pkg.popular || pkg.bestValue ? 'py-3 px-6 text-base' : 'py-2.5 px-5 text-sm'
+                        } ${
+                          'max-md:py-2 max-md:px-4 max-md:text-sm'
                         }`}
                       >
                         <div className="relative z-10 flex items-center justify-center gap-2">

@@ -7,7 +7,6 @@ import {
   commentSchema,
   COMMUNITY_ERROR_MESSAGES,
   validateContentSafety,
-  ANTI_GAMING_LIMITS 
 } from '@/lib/validations/community';
 
 // =====================================================
@@ -62,18 +61,7 @@ function getManuallyParsedCookie(cookieString: string, cookieName: string): stri
   return undefined;
 }
 
-// Interface for database response - FIXED to match actual schema
-interface CommentFromDB {
-  id: string;
-  comment_text: string; // This is the actual column name in DB
-  created_at: string;
-  user_id: string;
-  parent_comment_id?: string;
-  users?: {
-    full_name?: string;
-    avatar_url?: string;
-  } | null;
-}
+
 
 export default async function handler(
   req: NextApiRequest,

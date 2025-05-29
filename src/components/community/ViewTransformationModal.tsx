@@ -5,10 +5,8 @@ import {
   XMarkIcon,
   HeartIcon, 
   ChatBubbleLeftIcon, 
-  EyeIcon,
   PaperAirplaneIcon,
   CalendarIcon,
-  UserIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { CommunityTransformation, CommunityComment } from '@/hooks/useCommunity';
@@ -139,6 +137,23 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
   const getUserInitial = (name?: string) => {
     return name?.[0]?.toUpperCase() || 'U';
   };
+
+  // Check if comment is from the author of the transformation
+  const isAuthorComment = (comment: CommunityComment) => {
+    return transformation && comment.user_id === transformation.user_id;
+  };
+
+  // Sort comments to show author's comment first if it exists
+  const sortedComments = transformation ? [...comments].sort((a, b) => {
+    const aIsAuthor = isAuthorComment(a);
+    const bIsAuthor = isAuthorComment(b);
+    
+    if (aIsAuthor && !bIsAuthor) return -1;
+    if (!aIsAuthor && bIsAuthor) return 1;
+    
+    // If both are author comments or both are not, maintain chronological order
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  }) : comments;
 
   if (!transformation) return null;
 
@@ -364,26 +379,42 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                           </div>
                         ) : (
                           <>
-                            {comments.map((comment) => (
-                              <div key={comment.id} className="flex space-x-2 lg:space-x-3">
-                                {/* Comment Content - No Avatar */}
-                                <div className="flex-1 min-w-0">
-                                  <div className="bg-ghibli-sand/20 rounded-xl lg:rounded-2xl px-3 py-2 lg:px-4 lg:py-3">
-                                    <div className="flex items-center space-x-2 mb-1">
-                                      <span className="font-medium text-ghibli-wood text-sm">
-                                        {comment.user_full_name || 'Utilizador'}
-                                      </span>
-                                      <span className="text-xs text-ghibli-earth">
-                                        {formatTimeAgo(comment.created_at)}
-                                      </span>
+                            {sortedComments.map((comment) => {
+                              const isAuthor = isAuthorComment(comment);
+                              return (
+                                <div key={comment.id} className="flex space-x-2 lg:space-x-3">
+                                  {/* Comment Content - No Avatar */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className={`rounded-xl lg:rounded-2xl px-3 py-2 lg:px-4 lg:py-3 ${
+                                      isAuthor 
+                                        ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200' 
+                                        : 'bg-ghibli-sand/20'
+                                    }`}>
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <span className={`font-medium text-sm ${
+                                          isAuthor ? 'text-amber-800' : 'text-ghibli-wood'
+                                        }`}>
+                                          {comment.user_full_name || 'Utilizador'}
+                                        </span>
+                                        {isAuthor && (
+                                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500 text-white">
+                                            📌 Autor
+                                          </span>
+                                        )}
+                                        <span className="text-xs text-ghibli-earth">
+                                          {formatTimeAgo(comment.created_at)}
+                                        </span>
+                                      </div>
+                                      <p className={`text-sm leading-relaxed ${
+                                        isAuthor ? 'text-amber-800' : 'text-ghibli-earth'
+                                      }`}>
+                                        {comment.content}
+                                      </p>
                                     </div>
-                                    <p className="text-ghibli-earth text-sm leading-relaxed">
-                                      {comment.content}
-                                    </p>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                             <div ref={commentsEndRef} />
                           </>
                         )}

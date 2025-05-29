@@ -255,9 +255,16 @@ const GhibliHero = () => {
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-200 to-yellow-300 rounded-lg blur opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
                 <Button
                   variant="ghost"
-                  className="relative w-full text-lg px-8 py-3.5 bg-gradient-to-br from-amber-50 to-yellow-50 text-ghibli-wood font-medium inline-flex items-center justify-center
+                  className={`relative w-full inline-flex items-center justify-center
                                   rounded-lg border-2 border-amber-100 hover:border-amber-200 transition-all duration-300
-                                  shadow-md hover:shadow-lg"
+                                  shadow-md hover:shadow-lg bg-gradient-to-br from-amber-50 to-yellow-50 text-ghibli-wood font-medium
+                                  ${
+                                    // Primary CTA - larger
+                                    'text-lg px-6 py-3 md:px-7 md:py-3.5'
+                                  } ${
+                                    // Mobile - more compact
+                                    'max-md:text-base max-md:px-5 max-md:py-2.5'
+                                  }`}
                   onClick={handleTriggerStudio} // <<< Ação principal aqui
                 >
                   <motion.span
@@ -281,9 +288,16 @@ const GhibliHero = () => {
               >
                 <Button
                   variant="outline"
-                  className="w-full text-lg px-6 py-3.5 text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
-                                  hover:border-ghibli-moss inline-flex items-center justify-center transition-all duration-300
-                                  rounded-lg shadow-sm hover:shadow-md"
+                  className={`w-full inline-flex items-center justify-center transition-all duration-300
+                                  rounded-lg shadow-sm hover:shadow-md text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
+                                  hover:border-ghibli-moss
+                                  ${
+                                    // Secondary button - smaller than primary
+                                    'text-base px-5 py-2.5 md:px-6 md:py-3'
+                                  } ${
+                                    // Mobile - even more compact
+                                    'max-md:text-sm max-md:px-4 max-md:py-2'
+                                  }`}
                   onClick={handleOpenExamples}
                 >
                   <motion.span
