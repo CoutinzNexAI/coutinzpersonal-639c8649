@@ -235,7 +235,9 @@ export default async function handler(
           .rpc('earn_piccoins', {
             p_user_id: user.id,
             p_amount: 1,
-            p_reason: 'Publicação submetida para aprovação'
+            p_type: 'earned',
+            p_reference_id: validatedData.transformationId,
+            p_description: 'Publicação submetida para aprovação'
           });
 
         if (rewardError) {

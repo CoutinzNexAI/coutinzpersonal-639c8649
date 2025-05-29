@@ -409,7 +409,9 @@ async function handlePostComment(
           .rpc('earn_piccoins', {
             p_user_id: user.id,
             p_amount: 1,
-            p_reason: 'Primeiro comentário da semana'
+            p_type: 'earned',
+            p_reference_id: newComment.id,
+            p_description: 'Primeiro comentário da semana'
           });
 
         if (rewardError) {
