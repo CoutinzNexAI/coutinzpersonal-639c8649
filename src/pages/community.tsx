@@ -49,6 +49,7 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   const [filters, setFilters] = useState({
     sort: 'recent' as 'recent' | 'popular' | 'trending',
     timeframe: 'all' as 'day' | 'week' | 'month' | 'all',
+    style: 'all' as 'all' | 'ghibli' | 'disney' | 'anime' | 'pixar' | 'cartoon',
     search: ''
   });
   const [selectedTransformation, setSelectedTransformation] = useState<CommunityTransformation | null>(null);
@@ -213,6 +214,58 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
               </motion.div>
             </motion.div>
 
+            {/* COMMUNITY STATS - New */}
+            <motion.section 
+              className="mb-6 sm:mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.6 }}
+            >
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                {[
+                  { 
+                    icon: '🎨', 
+                    label: 'Transformações', 
+                    value: transformations.length > 0 ? pagination.total : '...',
+                    color: 'from-blue-500 to-blue-600'
+                  },
+                  { 
+                    icon: '❤️', 
+                    label: 'Likes Totais', 
+                    value: transformations.reduce((sum, t) => sum + t.like_count, 0) || '...',
+                    color: 'from-red-500 to-red-600'
+                  },
+                  { 
+                    icon: '💬', 
+                    label: 'Comentários', 
+                    value: transformations.reduce((sum, t) => sum + t.comment_count, 0) || '...',
+                    color: 'from-green-500 to-green-600'
+                  },
+                  { 
+                    icon: '✨', 
+                    label: 'Artistas Ativos', 
+                    value: new Set(transformations.map(t => t.user_id)).size || '...',
+                    color: 'from-purple-500 to-purple-600'
+                  }
+                ].map((stat, index) => (
+                  <motion.div
+                    key={stat.label}
+                    className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-ghibli-sand/30 shadow-sm text-center"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.9 + index * 0.1, duration: 0.5 }}
+                    whileHover={{ y: -2, scale: 1.02 }}
+                  >
+                    <div className={`inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-r ${stat.color} text-white text-xl sm:text-2xl mb-2 sm:mb-3`}>
+                      {stat.icon}
+                    </div>
+                    <div className="text-lg sm:text-2xl font-bold text-ghibli-wood">{stat.value}</div>
+                    <div className="text-xs sm:text-sm text-ghibli-earth font-medium">{stat.label}</div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.section>
+
             {/* SEARCH BAR - Mobile Optimized */}
             <motion.section 
               className="mb-6 sm:mb-8"
@@ -304,6 +357,33 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
                       ))}
                     </div>
                   </div>
+
+                  {/* Style Filters - New */}
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                    <span className="text-sm font-medium text-ghibli-earth">Estilo:</span>
+                    <div className="flex rounded-lg bg-ghibli-sand/20 p-1 overflow-x-auto">
+                      {[
+                        { key: 'all', label: 'Todos' },
+                        { key: 'ghibli', label: 'Ghibli' },
+                        { key: 'disney', label: 'Disney' },
+                        { key: 'anime', label: 'Anime' },
+                        { key: 'pixar', label: 'Pixar' },
+                        { key: 'cartoon', label: 'Cartoon' }
+                      ].map(({ key, label }) => (
+                        <button
+                          key={key}
+                          onClick={() => setFilters(prev => ({ ...prev, style: key as 'all' | 'ghibli' | 'disney' | 'anime' | 'pixar' | 'cartoon' }))}
+                          className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                            filters.style === key
+                              ? 'bg-amber-500 text-white'
+                              : 'text-ghibli-earth hover:text-ghibli-wood hover:bg-ghibli-sand/30'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Active Search Filter */}
@@ -335,7 +415,19 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
               {loadingTransformations && transformations.length === 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                   {[...Array(12)].map((_, i) => (
-                    <div key={i} className="bg-ghibli-sand/20 rounded-2xl aspect-square animate-pulse border border-ghibli-sand/30" />
+                    <div key={i} className="bg-white/90 rounded-2xl overflow-hidden border border-ghibli-sand/30">
+                      {/* Image skeleton */}
+                      <div className="aspect-square bg-gradient-to-r from-ghibli-sand/20 via-ghibli-sand/30 to-ghibli-sand/20 animate-pulse" />
+                      {/* Content skeleton */}
+                      <div className="p-3 sm:p-4 space-y-2">
+                        <div className="h-4 bg-gradient-to-r from-ghibli-sand/20 via-ghibli-sand/30 to-ghibli-sand/20 rounded animate-pulse" />
+                        <div className="h-3 bg-gradient-to-r from-ghibli-sand/20 via-ghibli-sand/30 to-ghibli-sand/20 rounded w-3/4 animate-pulse" />
+                        <div className="flex justify-between items-center">
+                          <div className="h-3 bg-gradient-to-r from-ghibli-sand/20 via-ghibli-sand/30 to-ghibli-sand/20 rounded w-1/3 animate-pulse" />
+                          <div className="h-3 bg-gradient-to-r from-ghibli-sand/20 via-ghibli-sand/30 to-ghibli-sand/20 rounded w-1/4 animate-pulse" />
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               ) : transformations.length === 0 ? (

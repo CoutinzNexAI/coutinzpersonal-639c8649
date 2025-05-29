@@ -16,8 +16,9 @@ interface NavLink {
   id: string;
 }
 
-// Simplified navigation - only pricing link
+// Simplified navigation - community and pricing links
 const navLinks: NavLink[] = [
+  { href: "/community", label: "Comunidade", id: "community" },
   { href: "/pricing", label: "Preço", id: "pricing" },
 ];
 
