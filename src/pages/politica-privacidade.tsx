@@ -16,8 +16,19 @@ const PoliticaPrivacidadePage: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen bg-ghibli-paper">
       <Head>
-        <title>Política de Privacidade - PicTuz</title>
-        <meta name="description" content="Política de Privacidade do serviço PicTuz, explicando como tratamos os seus dados." />
+        <title>Política de Privacidade - Como Protegemos os Seus Dados | Pictuz</title>
+        <meta name="description" content="Política de Privacidade do Pictuz. Saiba como protegemos e tratamos os seus dados pessoais, imagens e informações de pagamento com total transparência." />
+        <meta name="keywords" content="política privacidade, proteção dados, RGPD, privacidade AI, dados pessoais Portugal" />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="Política de Privacidade - Pictuz" />
+        <meta property="og:description" content="Como protegemos os seus dados pessoais e imagens na plataforma Pictuz" />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://pictuz.com/politica-privacidade" />
+        
+        {/* SEO Técnico */}
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://pictuz.com/politica-privacidade" />
       </Head>
 
       <Header />

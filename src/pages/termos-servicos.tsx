@@ -15,8 +15,19 @@ const TermosServicosPage: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen bg-ghibli-paper">
       <Head>
-        <title>Termos e Condições de Serviço - PicTuz</title>
-        <meta name="description" content="Termos e Condições de utilização do serviço PicTuz." />
+        <title>Termos e Condições de Serviço - Regras de Utilização | Pictuz</title>
+        <meta name="description" content="Termos e Condições de utilização do Pictuz. Conheça as regras, direitos e deveres para usar nossa plataforma de transformação de fotos com AI." />
+        <meta name="keywords" content="termos serviço, condições utilização, regras AI fotos, termos Pictuz, direitos utilizador" />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="Termos e Condições de Serviço - Pictuz" />
+        <meta property="og:description" content="Regras e condições para utilização da plataforma Pictuz de transformação de fotos com AI" />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://pictuz.com/termos-servicos" />
+        
+        {/* SEO Técnico */}
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://pictuz.com/termos-servicos" />
       </Head>
 
       <Header />

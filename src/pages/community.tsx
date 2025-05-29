@@ -134,12 +134,48 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   return (
     <>
       <Head>
-        <title>Comunidade PicTuz | Descobre Arte AI Incrível</title>
-        <meta name="description" content="Explora a galeria da comunidade PicTuz e descobre transformações de arte AI incríveis criadas pelos nossos utilizadores." />
-        <meta property="og:title" content="Comunidade PicTuz | Galeria de Arte AI" />
-        <meta property="og:description" content="Descobre, gosta e comenta transformações de arte AI incríveis na comunidade PicTuz" />
+        <title>Galeria da Comunidade AI - Arte Criada por Utilizadores | Pictuz</title>
+        <meta name="description" content="Descobre transformações incríveis de fotos em arte AI criadas pela comunidade Pictuz. Inspira-te, gosta e comenta obras de arte geradas por inteligência artificial." />
+        <meta name="keywords" content="galeria AI arte, comunidade fotos AI, transformações utilizadores, arte artificial comunidade, inspiração AI Portugal" />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="Galeria da Comunidade - Arte AI Incrível | Pictuz" />
+        <meta property="og:description" content="Descobre, gosta e comenta transformações de arte AI incríveis criadas pela nossa comunidade" />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://pictuz.com/community" />
+        <meta property="og:image" content="https://pictuz.com/community-og.jpg" />
+        
+        {/* Twitter Cards */}
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Galeria da Comunidade Pictuz - Arte AI" />
+        <meta name="twitter:description" content="Explora arte AI incrível criada pela nossa comunidade" />
+        
+        {/* SEO Técnico */}
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://pictuz.com/community" />
+        
+        {/* Schema.org para Galeria */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ImageGallery",
+              "name": "Galeria da Comunidade Pictuz",
+              "description": "Galeria de arte AI criada pelos utilizadores da comunidade Pictuz",
+              "url": "https://pictuz.com/community",
+              "creator": {
+                "@type": "Organization",
+                "name": "Pictuz Community"
+              },
+              "audience": {
+                "@type": "Audience",
+                "geographicArea": ["Portugal", "Brasil"]
+              },
+              "inLanguage": "pt-PT"
+            })
+          }}
+        />
       </Head>
 
       <div className="min-h-screen bg-ghibli-cream flex flex-col">
