@@ -51,7 +51,8 @@ const nextConfig = {
               "default-src 'self';" + // Padrão: só permite da mesma origem
               // Scripts permitidos:
               " script-src 'self' 'unsafe-inline' 'unsafe-eval'" + // 'self' e inline/eval (tenta remover unsafe-* se possível no futuro)
-              " https://www.googletagmanager.com https://www.google-analytics.com" + // Google Analytics e Tag Manager
+              " https://vercel.live https://_next-live/feedback/feedback.js" + // Vercel Live feedback
+              " https://www.googletagmanager.com https://*.google-analytics.com" + // Google Analytics e Tag Manager
               " https://js.stripe.com https://m.stripe.network;" + // Stripe JS e Metering
               // Estilos permitidos:
               " style-src 'self' 'unsafe-inline'" + // 'self' e inline styles
@@ -65,7 +66,8 @@ const nextConfig = {
               " connect-src 'self'" + // 'self'
               " https://*.supabase.co" + // Supabase
               " https://api.stripe.com https://m.stripe.network" + // Stripe API e Metering
-              " https://www.google-analytics.com;" + // Google Analytics
+              " https://vercel.live wss://vercel.live" + // Vercel Live websockets
+              " https://region1.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com;" + // Google Analytics
               // Iframes permitidos:
               " frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network;" + // Stripe Elements/iframes
               // Outras diretivas de segurança:

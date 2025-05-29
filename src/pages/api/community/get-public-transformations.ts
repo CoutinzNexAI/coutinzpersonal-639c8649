@@ -5,7 +5,7 @@ import { getPublicTransformationsSchema, COMMUNITY_ERROR_MESSAGES } from '@/lib/
 
 // =====================================================
 // API: GET PUBLIC TRANSFORMATIONS
-// Galeria pública da comunidade com sorting e filtros
+// Buscar transformações públicas com filtros e paginação
 // =====================================================
 
 type PublicTransformation = {
@@ -35,33 +35,8 @@ type ResponseData = {
     has_next_page: boolean;
     has_prev_page: boolean;
   };
-  filters?: {
-    sort: string;
-    timeframe: string;
-  };
   error?: string;
 };
-
-// Interface for database response
-interface TransformationWithJoins {
-  id: string;
-  public_title?: string;
-  public_description?: string;
-  output_url: string;
-  like_count: number;
-  comment_count: number;
-  view_count: number;
-  published_at: string;
-  user_id: string;
-  style_requested: string;
-  users: {
-    full_name?: string;
-    avatar_url?: string;
-  }[];
-  styles: {
-    name: string;
-  }[];
-}
 
 export default async function handler(
   req: NextApiRequest,
@@ -77,12 +52,17 @@ export default async function handler(
   }
 
   try {
-    // 1. RATE LIMITING (sem autenticação para galeria pública)
-    // ========================================================
-    const permitted = await applyRateLimit(req, res, communityViewRateLimiter);
-    if (!permitted) {
-      console.warn(`${endpointName} Rate limit exceeded for IP: ${req.socket.remoteAddress}`);
-      return;
+    // 1. RATE LIMITING (Optional - for anonymous users)
+    // =================================================
+    try {
+      const permitted = await applyRateLimit(req, res, communityViewRateLimiter);
+      if (!permitted) {
+        console.warn(`${endpointName} Rate limit exceeded for IP: ${req.headers['x-forwarded-for'] || req.connection.remoteAddress}`);
+        return;
+      }
+    } catch (rateLimitError) {
+      // If rate limiting fails, continue (for now)
+      console.warn(`${endpointName} Rate limit check failed:`, rateLimitError);
     }
 
     // 2. VALIDAÇÃO DE QUERY PARAMETERS
@@ -96,8 +76,25 @@ export default async function handler(
       });
     }
 
-    // 3. CONSTRUIR QUERY BASE USANDO TABELAS DIRETAMENTE
-    // ==================================================
+    // 3. CONSTRUIR QUERY BASE
+    // =======================
+    const offset = (validatedQuery.page - 1) * validatedQuery.limit;
+
+    // Count total aprovadas
+    const { count: totalCount, error: countError } = await supabaseAdmin
+      .from('transformations')
+      .select('id', { count: 'exact', head: true })
+      .eq('community_status', 'approved');
+
+    if (countError) {
+      console.error(`${endpointName} ❌ Count error:`, countError.message);
+      return res.status(500).json({ 
+        error: COMMUNITY_ERROR_MESSAGES.SERVER_ERROR
+      });
+    }
+
+    // 4. BUSCAR TRANSFORMAÇÕES COM DADOS RELACIONADOS
+    // ===============================================
     let query = supabaseAdmin
       .from('transformations')
       .select(`
@@ -109,25 +106,28 @@ export default async function handler(
         comment_count,
         view_count,
         published_at,
+        submitted_for_publication_at,
+        updated_at,
+        created_at,
         user_id,
         style_requested,
-        users!inner(
+        users!left(
           full_name,
           avatar_url
         ),
-        styles!inner(
+        styles!left(
           name
         )
-      `, { count: 'exact' })
+      `)
       .eq('community_status', 'approved')
-      .eq('status', 'completed');
+      .not('output_url', 'is', null);
 
-    // 4. APLICAR FILTROS DE TIMEFRAME
+    // 5. APLICAR FILTROS DE TIMEFRAME
     // ===============================
     if (validatedQuery.timeframe !== 'all') {
       const now = new Date();
       let startDate: Date;
-
+      
       switch (validatedQuery.timeframe) {
         case 'day':
           startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -139,48 +139,37 @@ export default async function handler(
           startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
           break;
         default:
-          startDate = new Date(0); // Fallback para todos
+          startDate = new Date(0); // All time
       }
-
-      query = query.gte('published_at', startDate.toISOString());
+      
+      query = query.or(`submitted_for_publication_at.gte.${startDate.toISOString()},and(submitted_for_publication_at.is.null,updated_at.gte.${startDate.toISOString()})`);
     }
 
-    // 5. APLICAR FILTROS DE PESQUISA
-    // ===============================
-    if (validatedQuery.search && validatedQuery.search.trim()) {
-      const searchTerm = validatedQuery.search.trim();
-      query = query.or(`public_title.ilike.%${searchTerm}%,public_description.ilike.%${searchTerm}%,style_requested.ilike.%${searchTerm}%`);
-    }
-
-    // 6. APLICAR SORTING
-    // ==================
+    // 6. APLICAR ORDENAÇÃO - FIXED to use the correct date logic
+    // ==========================================================
     switch (validatedQuery.sort) {
       case 'recent':
-        query = query.order('published_at', { ascending: false });
+        // Order by submitted_for_publication_at desc, fallback to updated_at desc
+        query = query.order('submitted_for_publication_at', { ascending: false, nullsFirst: false })
+                     .order('updated_at', { ascending: false });
         break;
       case 'popular':
         query = query.order('like_count', { ascending: false })
-                    .order('published_at', { ascending: false }); // Tie-breaker
+                     .order('submitted_for_publication_at', { ascending: false, nullsFirst: false })
+                     .order('updated_at', { ascending: false }); // Secondary sort
         break;
       case 'trending':
-        // Algoritmo simples de trending: peso por likes recentes
-        // Para simplificar, vamos usar like_count + comment_count como proxy
+        // For trending, we'll use a combination of recent likes and recency
         query = query.order('like_count', { ascending: false })
-                    .order('comment_count', { ascending: false })
-                    .order('published_at', { ascending: false });
+                     .order('submitted_for_publication_at', { ascending: false, nullsFirst: false })
+                     .order('updated_at', { ascending: false });
         break;
-      default:
-        query = query.order('published_at', { ascending: false });
     }
 
     // 7. APLICAR PAGINAÇÃO
     // ====================
-    const offset = (validatedQuery.page - 1) * validatedQuery.limit;
-    query = query.range(offset, offset + validatedQuery.limit - 1);
-
-    // 8. EXECUTAR QUERY
-    // =================
-    const { data: transformations, error: fetchError, count: totalCount } = await query;
+    const { data: transformations, error: fetchError } = await query
+      .range(offset, offset + validatedQuery.limit - 1);
 
     if (fetchError) {
       console.error(`${endpointName} ❌ Fetch error:`, fetchError.message);
@@ -189,23 +178,27 @@ export default async function handler(
       });
     }
 
-    // 9. FORMATAR RESPOSTA
+    // 8. FORMATAR RESPOSTA
     // ====================
-    const formattedTransformations: PublicTransformation[] = (transformations || []).map((t: TransformationWithJoins) => ({
-      id: t.id,
-      public_title: t.public_title,
-      public_description: t.public_description,
-      output_url: t.output_url,
-      like_count: t.like_count || 0,
-      comment_count: t.comment_count || 0,
-      view_count: t.view_count || 0,
-      published_at: t.published_at,
-      user_id: t.user_id,
-      user_full_name: t.users?.[0]?.full_name || null,
-      user_avatar_url: t.users?.[0]?.avatar_url || null,
-      style_name: t.styles?.[0]?.name || 'Estilo Desconhecido',
-      style_requested: t.style_requested,
-    }));
+    const formattedTransformations: PublicTransformation[] = (transformations || []).map((t) => {
+      const publicationDate = t.submitted_for_publication_at || t.updated_at || t.created_at;
+      
+      return {
+        id: t.id,
+        public_title: t.public_title,
+        public_description: t.public_description,
+        output_url: t.output_url,
+        like_count: t.like_count || 0,
+        comment_count: t.comment_count || 0,
+        view_count: t.view_count || 0,
+        published_at: publicationDate,
+        user_id: t.user_id,
+        user_full_name: t.users?.[0]?.full_name || null,
+        user_avatar_url: t.users?.[0]?.avatar_url || null,
+        style_name: t.styles?.[0]?.name || null,
+        style_requested: t.style_requested,
+      };
+    });
 
     const totalPages = Math.ceil((totalCount || 0) / validatedQuery.limit);
 
@@ -218,18 +211,12 @@ export default async function handler(
       has_prev_page: validatedQuery.page > 1,
     };
 
-    const filters = {
-      sort: validatedQuery.sort,
-      timeframe: validatedQuery.timeframe,
-    };
-
-    console.log(`${endpointName} ✅ Retrieved ${formattedTransformations.length} public transformations (page ${validatedQuery.page}, sort: ${validatedQuery.sort}, timeframe: ${validatedQuery.timeframe})`);
+    console.log(`${endpointName} ✅ Retrieved ${formattedTransformations.length} public transformations`);
 
     return res.status(200).json({
       success: true,
       transformations: formattedTransformations,
-      pagination,
-      filters
+      pagination
     });
 
   } catch (error) {

@@ -84,8 +84,16 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
 
   // FORMATAÇÃO
   const formatTimeAgo = (dateString: string) => {
+    if (!dateString) return 'Data inválida';
+    
     const now = new Date();
     const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Data inválida';
+    }
+    
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     
     if (diffInSeconds < 60) return 'agora mesmo';
@@ -101,7 +109,16 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-PT', {
+    if (!dateString) return 'Data inválida';
+    
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Data inválida';
+    }
+    
+    return date.toLocaleDateString('pt-PT', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',

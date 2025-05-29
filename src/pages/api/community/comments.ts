@@ -62,17 +62,17 @@ function getManuallyParsedCookie(cookieString: string, cookieName: string): stri
   return undefined;
 }
 
-// Interface for database response
-interface CommentWithUser {
+// Interface for database response - FIXED to match actual schema
+interface CommentFromDB {
   id: string;
-  content: string;
+  comment_text: string; // This is the actual column name in DB
   created_at: string;
   user_id: string;
   parent_comment_id?: string;
-  users: {
+  users?: {
     full_name?: string;
     avatar_url?: string;
-  }[];
+  } | null;
 }
 
 export default async function handler(
@@ -128,8 +128,8 @@ async function handleGetComments(
       });
     }
 
-    // 3. BUSCAR COMENTÁRIOS COM PAGINAÇÃO
-    // ===================================
+    // 3. BUSCAR COMENTÁRIOS COM PAGINAÇÃO E DADOS DO UTILIZADOR
+    // ========================================================
     const offset = (validatedQuery.page - 1) * validatedQuery.limit;
 
     // Count total
@@ -137,7 +137,8 @@ async function handleGetComments(
       .from('community_comments')
       .select('id', { count: 'exact', head: true })
       .eq('transformation_id', validatedQuery.transformation_id)
-      .is('parent_comment_id', null); // Só comentários de nível superior
+      .is('parent_comment_id', null)
+      .eq('is_hidden_by_admin', false); // Only show non-hidden comments
 
     if (countError) {
       console.error(`${endpointName} ❌ Count error:`, countError.message);
@@ -146,22 +147,19 @@ async function handleGetComments(
       });
     }
 
-    // Fetch comments with user data
+    // FIXED: Use simpler select without complex JOIN to avoid TS issues
     let query = supabaseAdmin
       .from('community_comments')
       .select(`
         id,
-        content,
+        comment_text,
         created_at,
         user_id,
-        parent_comment_id,
-        users!inner(
-          full_name,
-          avatar_url
-        )
+        parent_comment_id
       `)
       .eq('transformation_id', validatedQuery.transformation_id)
-      .is('parent_comment_id', null);
+      .is('parent_comment_id', null)
+      .eq('is_hidden_by_admin', false);
 
     // Apply sorting
     switch (validatedQuery.sort) {
@@ -187,17 +185,35 @@ async function handleGetComments(
       });
     }
 
-    // 4. FORMATAR RESPOSTA
-    // ====================
-    const formattedComments: Comment[] = (comments || []).map((c: CommentWithUser) => ({
-      id: c.id,
-      content: c.content,
-      created_at: c.created_at,
-      user_id: c.user_id,
-      user_full_name: c.users?.[0]?.full_name || null,
-      user_avatar_url: c.users?.[0]?.avatar_url || null,
-      parent_comment_id: c.parent_comment_id,
-    }));
+    // 4. BUSCAR DADOS DOS UTILIZADORES SEPARADAMENTE
+    // ==============================================
+    const userIds = [...new Set((comments || []).map(c => c.user_id))];
+    const { data: users, error: usersError } = await supabaseAdmin
+      .from('users')
+      .select('id, full_name, avatar_url')
+      .in('id', userIds);
+
+    if (usersError) {
+      console.warn(`${endpointName} ⚠️ Failed to fetch users data:`, usersError.message);
+    }
+
+    // Create a user lookup map
+    const userMap = new Map((users || []).map(u => [u.id, u]));
+
+    // 5. FORMATAR RESPOSTA - FIXED mapping
+    // ====================================
+    const formattedComments: Comment[] = (comments || []).map((c) => {
+      const user = userMap.get(c.user_id);
+      return {
+        id: c.id,
+        content: c.comment_text, // Map comment_text to content for frontend
+        created_at: c.created_at,
+        user_id: c.user_id,
+        user_full_name: user?.full_name || null,
+        user_avatar_url: user?.avatar_url || null,
+        parent_comment_id: c.parent_comment_id,
+      };
+    });
 
     const totalPages = Math.ceil((totalCount || 0) / validatedQuery.limit);
 
@@ -287,16 +303,16 @@ async function handlePostComment(
       return;
     }
 
-    // 3. VALIDAÇÃO DO INPUT
-    // =====================
+    // 3. VALIDAÇÃO DO INPUT - FIXED to handle both content and comment_text
+    // =============================================
     let validatedData;
     try {
-      // Adjust the schema key for content
-      const bodyWithCorrectKey = {
+      // Accept both 'content' (from frontend) and 'comment_text' (from schema)
+      const normalizedBody = {
         ...req.body,
         comment_text: req.body.content || req.body.comment_text
       };
-      validatedData = commentSchema.parse(bodyWithCorrectKey);
+      validatedData = commentSchema.parse(normalizedBody);
     } catch (error) {
       return res.status(400).json({ 
         error: error instanceof Error ? error.message : 'Invalid input data'
@@ -327,26 +343,22 @@ async function handlePostComment(
       });
     }
 
-    // 6. INSERIR COMENTÁRIO
-    // =====================
+    // 6. INSERIR COMENTÁRIO - FIXED to use correct column name
+    // =======================================================
     const { data: newComment, error: insertError } = await supabaseAdmin
       .from('community_comments')
       .insert({
         transformation_id: validatedData.transformation_id,
         user_id: user.id,
-        content: validatedData.comment_text.trim(),
+        comment_text: validatedData.comment_text.trim(), // Use comment_text column
         parent_comment_id: validatedData.parent_comment_id || null,
       })
       .select(`
         id,
-        content,
+        comment_text,
         created_at,
         user_id,
-        parent_comment_id,
-        users!inner(
-          full_name,
-          avatar_url
-        )
+        parent_comment_id
       `)
       .single();
 
@@ -357,7 +369,19 @@ async function handlePostComment(
       });
     }
 
-    // 7. LÓGICA DE INCENTIVOS (A CADA 5 COMENTÁRIOS)
+    // 7. BUSCAR DADOS DO UTILIZADOR SEPARADAMENTE PARA RESPOSTA
+    // ========================================================
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('full_name, avatar_url')
+      .eq('id', user.id)
+      .single();
+
+    if (userError) {
+      console.warn(`${endpointName} ⚠️ Failed to fetch user data:`, userError.message);
+    }
+
+    // 8. LÓGICA DE INCENTIVOS (A CADA 5 COMENTÁRIOS)
     // ===============================================
     let earnedPiccoin = false;
     try {
@@ -391,15 +415,15 @@ async function handlePostComment(
       // Don't fail the comment creation for this
     }
 
-    // 8. FORMATAR RESPOSTA
-    // ====================
+    // 9. FORMATAR RESPOSTA - FIXED mapping
+    // ====================================
     const formattedComment: Comment = {
       id: newComment.id,
-      content: newComment.content,
+      content: newComment.comment_text, // Map comment_text to content for frontend
       created_at: newComment.created_at,
       user_id: newComment.user_id,
-      user_full_name: (newComment.users as CommentWithUser['users'])?.[0]?.full_name || null,
-      user_avatar_url: (newComment.users as CommentWithUser['users'])?.[0]?.avatar_url || null,
+      user_full_name: userData?.full_name || null,
+      user_avatar_url: userData?.avatar_url || null,
       parent_comment_id: newComment.parent_comment_id,
     };
 
