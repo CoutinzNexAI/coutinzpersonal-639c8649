@@ -10,7 +10,7 @@ import {
   // DialogClose, // O X é geralmente incluído por defeito no DialogContent do Shadcn/UI
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { LogIn, UserPlus, Sparkles, History, Save, Loader2 } from 'lucide-react';
+import { LogIn, Sparkles, History, Save, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface LoginPromptModalProps {

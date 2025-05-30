@@ -355,6 +355,40 @@ const SuccessPage = (): JSX.Element => {
     };
   }, [pageState, jobId, isAuthLoading, userInfo, completedJobData, errorMessage, stopPollingAndCleanup, checkJobStatus, handleErrorState]);
 
+  // Clean up localStorage on component unmount
+  useEffect(() => {
+    return () => {
+      try {
+        localStorage.removeItem('currentJobId');
+        localStorage.removeItem('processingImageUrl');
+      } catch (e) {
+        // Silent cleanup
+      }
+    };
+  }, []);
+
+  const downloadImage = useCallback(async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Download failed');
+      
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error("[Download Error - Fetch Attempt]", error);
+      }
+      toast.error("Erro ao descarregar imagem");
+    }
+  }, []);
+
   const renderContent = () => {
     switch (pageState) {
       case 'initializing':

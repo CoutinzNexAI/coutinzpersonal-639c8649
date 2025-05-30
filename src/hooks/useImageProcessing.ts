@@ -107,31 +107,37 @@ export function useImageProcessing() {
     }
   }, []);
 
-  // Fetch available styles
+  // Fetch available styles on mount
   useEffect(() => {
-    const fetchStylesHandler = async () => {
-      if (availableStyles.length > 0 && !stylesLoading) return;
-      setStylesLoading(true);
-      setStylesError(null);
+    const fetchStyles = async () => {
       try {
-        const { data, error: fetchError } = await supabase
+        setStylesLoading(true);
+        const { data, error } = await supabase
           .from('styles')
           .select('*')
           .eq('is_active', true)
-          .order('order', { ascending: true });
-        if (fetchError) throw fetchError;
+          .order('name');
+
+        if (error) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error("❌ [useImageProcessing] Erro ao buscar estilos:", error);
+          }
+          toast.error("Erro ao carregar estilos");
+          return;
+        }
+
         setAvailableStyles(data || []);
-      } catch (err: unknown) {
-        console.error("❌ [useImageProcessing] Erro ao buscar estilos:", err);
-        const errorMessageText = err instanceof Error ? err.message : 'Falha ao carregar estilos.';
-        setStylesError(errorMessageText);
-        toast.error("Erro ao Carregar Estilos", { description: errorMessageText });
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("❌ [useImageProcessing] Erro ao buscar estilos:", err);
+        }
+        toast.error("Erro ao carregar estilos");
       } finally {
         setStylesLoading(false);
       }
     };
-    fetchStylesHandler();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    fetchStyles();
   }, []);
 
   // Reset state if user changes
@@ -195,171 +201,86 @@ export function useImageProcessing() {
   // Polling Logic useEffect
   useEffect(() => {
     const checkStatus = async () => {
-      if (!currentJobId || !userInfo?.id) {
-        console.warn(`[useImageProcessing - Polling] checkStatus: Conditions not met for polling (JobId: ${currentJobId}, UserInfo: ${!!userInfo?.id}). Clearing interval.`);
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null;
-        }
-        if (!userInfo?.id && currentJobId) {
-            setErrorMessage("Sessão inválida. Por favor, faça login novamente.");
-            setProcessingState('error');
-        setIsLoading(false);
-        }
+      if (!currentJobId || !userInfo?.id || processingState !== 'processing') {
+        clearPolling();
         return;
       }
 
-      if (isAuthLoading) {
-        return;
-      }
+      pollCountRef.current += 1;
+      if (pollCountRef.current > MAX_POLL_ATTEMPTS_CONST) {
+        // Max attempts reached - try final direct storage check
+        try {
+          const finalStoragePath = `transformations/${userInfo.id}`;
+          const { data: finalList, error: finalLisError } = await supabase.storage
+            .from('uploads')
+            .list(finalStoragePath);
 
-      pollCountRef.current++;
+          if (finalLisError) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error(`[useImageProcessing - FinalCheck] Error listing files:`, finalLisError.message);
+            }
+          } else if (finalList && finalList.length > 0) {
+            const finalFile = finalList.find(f => f.name.includes(currentJobId!));
+            if (finalFile) {
+              const { data: finalPublicUrlData } = supabase.storage
+                .from('uploads')
+                .getPublicUrl(`${finalStoragePath}/${finalFile.name}`);
 
-      // Atualizar progresso simulado
-      const newProgress = calculateSimulatedProgress(pollCountRef.current);
-      setSimulatedProgress(newProgress);
-
-      const shouldDirectCheck = (pollCountRef.current <= 3) || // Primeiras 3 tentativas (0-30s)
-                                (pollCountRef.current > 3 && pollCountRef.current <= 12 && pollCountRef.current % 2 === 0) || // A cada 20s até 2min
-                                (pollCountRef.current > 12 && pollCountRef.current % 3 === 0); // A cada 30s depois dos 2min
-
-      if (shouldDirectCheck) {
-      try {
-          const storagePath = `public/${userInfo.id}/${currentJobId}`;
-          const { data: files, error: listError } = await supabase.storage.from('results').list(storagePath, {
-            limit: 1,
-            sortBy: { column: 'name', order: 'desc' },
-          });
-
-          if (listError) {
-            console.error(`[useImageProcessing - DirectCheck] Error listing files in ${storagePath}:`, listError.message);
-          } else if (files && files.length > 0) {
-            const fileName = files[0].name;
-            const { data: urlData } = supabase.storage.from('results').getPublicUrl(`${storagePath}/${fileName}`);
-            
-            if (urlData?.publicUrl) {
-              setTransformedImage(urlData.publicUrl); 
-              setProcessingState('completed'); 
-              setActiveStep(3); 
-              setSimulatedProgress(100); // Progresso completo!
-              toast.success("Transformação encontrada diretamente no storage!");
-              if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
-                pollingIntervalRef.current = null;
-              }
-              setIsLoading(false); 
+              if (finalPublicUrlData?.publicUrl) {
+                setTransformedImage(finalPublicUrlData.publicUrl);
+                setProcessingState('completed');
+                clearPolling();
                 return;
-            } else {
-              console.warn(`[useImageProcessing - DirectCheck] Could not get public URL for ${fileName}`);
-            }
-          }
-        } catch (storageError) {
-          console.error(`[useImageProcessing - DirectCheck] Storage check failed:`, storageError instanceof Error ? storageError.message : String(storageError));
-        }
-      }
-      
-      try {
-        const cacheParam = pollCountRef.current > 18 ? `&_t=${Date.now()}` : '';
-        const userParam = userInfo?.id ? `&userId=${userInfo.id}` : '';
-        const apiUrl = `/api/get-transformation-status?jobId=${currentJobId}${userParam}${cacheParam}`;
-        
-        const response = await fetch(apiUrl);
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ message: `Erro HTTP ${response.status} ao buscar status. Sem corpo JSON.` }));
-          console.error(`[useImageProcessing - Polling] Error data from API for ${currentJobId}:`, errorData);
-          throw new Error(errorData.message || `Erro HTTP ${response.status}`);
-        }
-
-        const data: StatusResponse = await response.json();
-        
-        if (data.status === 'error' || data.status?.startsWith('failed')) {
-          const backendErrorMessage = data.error_message || 'Falha desconhecida no backend.';
-
-          setErrorMessage(STANDARD_ERROR_MESSAGE); // <<< USA A MENSAGEM PADRÃO
-            setProcessingState('error');
-            setActiveStep(3);
-          toast.error("Falha na Transformação", {description: SIMPLE_ERROR_TOAST_MESSAGE}); // Toast simples
-
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-          }
-          setIsLoading(false);
-        } else if (data.status === 'completed' && data.output_url) {
-          setTransformedImage(data.output_url);
-          setProcessingState('completed');
-          setActiveStep(3);
-          setSimulatedProgress(100); // Progresso completo!
-          toast.success("Transformação concluída!");
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-          }
-          setIsLoading(false);
-        } else if (['processing', 'processing_queued'].includes(data.status || '')) {
-          if (processingState !== 'processing') { 
-            setProcessingState('processing'); 
-          }
-        } else if (data.status) { 
-          console.warn(`[useImageProcessing - Polling] Status inesperado da API: ${data.status || 'vazio'}. JobId: ${currentJobId}`);
-        } else {
-          console.warn(`[useImageProcessing - Polling] API returned no status for JobId: ${currentJobId}. Response:`, data);
-        }
-      } catch (apiError) { 
-        const errorMsg = apiError instanceof Error ? apiError.message : "Erro de rede ou formato de resposta inválido.";
-        console.error(`[useImageProcessing - Polling] ❌ API call error for ${currentJobId}:`, errorMsg);
-      }
-
-      if (pollCountRef.current >= MAX_POLL_ATTEMPTS_CONST && 
-          (processingState === 'polling_status' || processingState === 'processing')) {
-        console.warn(`[useImageProcessing - Polling] Max attempts reached (${pollCountRef.current}). Trying final direct storage check...`);
-        
-        try { 
-          const finalStoragePath = `public/${userInfo.id}/${currentJobId}`;
-          const { data: files, error: finalLisError } = await supabase.storage.from('results').list(finalStoragePath, {
-            limit: 1,
-            sortBy: { column: 'name', order: 'desc' },
-          });
-
-          if(finalLisError){
-            console.error(`[useImageProcessing - FinalCheck] Error listing files in ${finalStoragePath}:`, finalLisError.message);
-          } else if (files && files.length > 0) {
-            const fileName = files[0].name;
-            const { data: urlData } = supabase.storage.from('results').getPublicUrl(`${finalStoragePath}/${fileName}`);
-            
-            if (urlData?.publicUrl) {
-              setTransformedImage(urlData.publicUrl); 
-              setProcessingState('completed'); 
-            setActiveStep(3); 
-              setSimulatedProgress(100); // Progresso completo!
-              toast.success("Transformação encontrada após verificação final!");
-              if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
-                pollingIntervalRef.current = null;
               }
-              setIsLoading(false);
-              return; 
             }
-        }
+          }
         } catch (finalStorageError) {
-          console.error(`[useImageProcessing - FinalCheck] Final storage check failed:`, finalStorageError instanceof Error ? finalStorageError.message : String(finalStorageError));
+          if (process.env.NODE_ENV === 'development') {
+            console.error(`[useImageProcessing - FinalCheck] Final storage check failed:`, finalStorageError);
+          }
         }
-        
-        console.warn(`[useImageProcessing - Polling] Max attempts reached (${pollCountRef.current}). Final direct storage check failed or API timed out after 6 minutes.`);
 
-        setErrorMessage(STANDARD_ERROR_MESSAGE); // <<< USA A MENSAGEM PADRÃO
-        setProcessingState('error'); 
-        setActiveStep(3);
-        toast.error("Processamento Demorado", { description: "A transformação está a demorar mais que o esperado. A sua imagem pode aparecer no perfil em breve.", duration: 7000 }); // Toast mais informativo
-
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null;
-        }
-        setIsLoading(false);
+        setProcessingState('error');
+        clearPolling();
+        return;
       }
-    }; 
+
+      try {
+        const response = await fetch(`/api/get-transformation-status?jobId=${currentJobId}`);
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          if (process.env.NODE_ENV === 'development') {
+            console.error(`[useImageProcessing - Polling] Error data from API:`, errorData);
+          }
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.status === 'completed' && data.outputUrl) {
+          setTransformedImage(data.outputUrl);
+          setProcessingState('completed');
+          clearPolling();
+          return;
+        }
+
+        if (data.status === 'failed') {
+          setProcessingState('error');
+          setErrorMessage(data.errorMessage || 'Processing failed');
+          clearPolling();
+          return;
+        }
+
+        // Continue polling for other statuses
+
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error(`[useImageProcessing - Polling] API call error:`, errorMsg);
+        }
+      }
+    };
 
     if (currentJobId && 
         userInfo?.id && 
@@ -387,8 +308,7 @@ export function useImageProcessing() {
         pollingIntervalRef.current = null;
       }
     };
-  }, [currentJobId, processingState, userInfo, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage]);
-
+  }, [currentJobId, processingState, userInfo, isAuthLoading, setTransformedImage]);
 
   const resetAllLocalStates = useCallback(() => {
     setUploadedImage(null);
@@ -438,15 +358,6 @@ export function useImageProcessing() {
 
 
   const handleStartTransformation = useCallback(async () => {
-    console.log('[useImageProcessing - handleStartTransformation] Attempting to start transformation. Current state:', { 
-      hasImage: !!uploadedImage, 
-      hasStyle: !!selectedStyle, 
-      styleName: selectedStyle?.name,
-      isAuthLoading, 
-      userId: userInfo?.id,
-      currentProcessingState: processingState 
-    });
-    
     if (!uploadedImage || !selectedStyle) {
       toast.error("Erro de Preparação", { description: "Por favor, carregue uma imagem e selecione um estilo antes de transformar." }); 
       return;
@@ -461,7 +372,6 @@ export function useImageProcessing() {
     }
 
     if (!['idle', 'error', 'completed'].includes(processingState)) {
-        console.warn(`[useImageProcessing - handleStartTransformation] Transformation already in progress or in a non-startable state: ${processingState}. Aborting.`);
         toast.info("Processo em Andamento", { description: "Uma transformação já está em curso ou a finalizar." });
         return;
     }
@@ -471,8 +381,8 @@ export function useImageProcessing() {
     setErrorMessage(null);
     setTransformedImage(null); 
     setCurrentJobId(null); 
-    setSimulatedProgress(0); // Reset progresso para nova transformação
-    pollCountRef.current = 0; 
+    setSimulatedProgress(0);
+    pollCountRef.current = 0;
 
     let tempUploadedFilePath: string | null = null;
     let tempNewJobId: string | null = null;
@@ -662,6 +572,13 @@ export function useImageProcessing() {
       toast.info("📱 Imagem aberta em nova aba para download manual");
     }
   }, [transformedImage, selectedStyle]);
+
+  const clearPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  }, []);
 
   return {
     uploadedImage, isStyleModalOpen, selectedStyle, processingState, transformedImage,

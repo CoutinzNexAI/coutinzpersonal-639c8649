@@ -33,90 +33,77 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [isLoading, sessionChecked]);
 
-  const syncUserWithDatabase = useCallback(async (user: SupabaseUser, updateLoadingState = true) => {
-    if (updateLoadingState) setIsLoading(true);
+  const syncUserWithDatabase = useCallback(async (authUser: SupabaseUser) => {
+    if (!authUser?.id || !authUser?.email) return;
+
     try {
-      const userData: UserInfo = {
-        id: user.id,
-        email: user.email || '',
-        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário',
-        avatar_url: user.user_metadata?.avatar_url || '',
-      };
-      setUserInfo(userData); // Atualiza UI com dados básicos primeiro
-
-      // Check if this is a new user by checking if they exist in database
-      const { error: checkError } = await supabase
-        .from('users')
-        .select('id, created_at')
-        .eq('id', userData.id)
-        .single();
-
-      const isNewUser = checkError && checkError.code === 'PGRST116'; // Not found error
-
       const { error: upsertError } = await supabase
         .from('users')
         .upsert({
-          id: userData.id,
-          email: userData.email,
-          full_name: userData.full_name,
-          avatar_url: userData.avatar_url,
-          updated_at: new Date().toISOString(),
+          id: authUser.id,
+          email: authUser.email,
+          name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || null,
+          avatar_url: authUser.user_metadata?.avatar_url || null,
+          updated_at: new Date().toISOString()
         }, { onConflict: 'id' });
 
       if (upsertError) {
-        console.error("[syncUserWithDatabase] Error upserting user:", upsertError.message);
-        toast.error("Erro ao sincronizar perfil", { description: upsertError.message });
-      } else {
-        console.log("[syncUserWithDatabase] ✅ User profile synced/updated successfully in DB.");
-        
-                // Award welcome bonus for new users        if (isNewUser) {          try {            console.log("[syncUserWithDatabase] 🎁 New user detected, awarding welcome bonus...");                        const { error: bonusError } = await supabase.rpc('earn_piccoins', {              p_user_id: userData.id,              p_amount: 2,              p_type: 'bonus_first_login',              p_reference_id: `welcome_bonus_${userData.id}_${Date.now()}`,              p_description: 'Bónus de boas-vindas - Bem-vindo ao PicTuz!'            });            if (bonusError) {              console.error("[syncUserWithDatabase] Error awarding welcome bonus:", bonusError);              console.error("[syncUserWithDatabase] Full bonus error details:", JSON.stringify(bonusError));            } else {              console.log("[syncUserWithDatabase] ✅ Welcome bonus awarded successfully!");              setTimeout(() => {                toast.success("🎁 Bem-vindo ao PicTuz!", {                  description: "Recebeste 2 PicCoins grátis para começares a transformar as tuas fotos!"                });              }, 1500);            }          } catch (bonusError) {            console.error("[syncUserWithDatabase] Exception during welcome bonus:", bonusError);          }        }
+        if (process.env.NODE_ENV === 'development') {
+          console.error("[syncUserWithDatabase] Error upserting user:", upsertError.message);
+        }
       }
     } catch (error) {
-      console.error('[syncUserWithDatabase] Exception:', error);
-    } finally {
-      if (updateLoadingState) setIsLoading(false);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[syncUserWithDatabase] Exception:', error);
+      }
     }
-  }, []); 
+  }, []);
 
-  const refreshSession = useCallback(async (manageLoadingState = false) => {
-    if (manageLoadingState) setIsLoading(true);
+  const refreshSession = useCallback(async () => {
+    if (isLoading) return;
+    setIsLoading(true);
     
     try {
       const { data, error } = await supabase.auth.getSession();
-      setSession(data.session); // Guarda a sessão atual
       if (error) {
-        console.error('[refreshSession] Error getting session:', error.message);
-        setUserInfo(null);
-        if (manageLoadingState) setIsLoading(false);
-        setSessionChecked(true);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[refreshSession] Error getting session:', error.message);
+        }
         return;
       }
-      
-      const currentSupabaseSession = data?.session;
-      if (currentSupabaseSession?.user) {
-        await syncUserWithDatabase(currentSupabaseSession.user, false); 
+
+      if (data.session?.user) {
+        setUserInfo({
+          id: data.session.user.id,
+          email: data.session.user.email || '',
+          full_name: data.session.user.user_metadata?.full_name || data.session.user.email?.split('@')[0] || 'User',
+          avatar_url: data.session.user.user_metadata?.avatar_url || '',
+        });
+        await syncUserWithDatabase(data.session.user);
+        setSessionChecked(true);
       } else {
         setUserInfo(null);
+        setSessionChecked(true);
       }
     } catch (e) {
-      console.error('[refreshSession] Exception:', e);
-      setUserInfo(null);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[refreshSession] Exception:', e);
+      }
     } finally {
-      if (manageLoadingState) setIsLoading(false);
-      setSessionChecked(true); 
+      setIsLoading(false);
     }
-  }, [syncUserWithDatabase]);
+  }, [isLoading, sessionChecked, syncUserWithDatabase]);
 
   useEffect(() => {
     if (sessionChecked && pathname && !isLoading) { 
-      refreshSession(false);
+      refreshSession();
     }
   }, [pathname, sessionChecked, refreshSession, isLoading]);
 
   useEffect(() => {
     const handleVisibilityOrFocus = async () => {
       if (document.visibilityState === 'visible') {
-        await refreshSession(true); 
+        await refreshSession(); 
       }
     };
     
@@ -125,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const periodicRefreshInterval = setInterval(() => {
       if (document.visibilityState === 'visible' && userInfo) {
-        refreshSession(true);
+        refreshSession();
       }
     }, 5 * 60 * 1000);
     
@@ -160,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             // Não bloqueia isLoading para syncUserWithDatabase; deixa-o correr em background.
             // A UI já tem basicUserInfo e isLoading será false em breve.
-            syncUserWithDatabase(currentUser, false).then(() => {
+            syncUserWithDatabase(currentUser).then(() => {
             });
           } else {
             setUserInfo(null); 
@@ -174,13 +161,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsLoading(false);
           setSessionChecked(true);
         } else if (event === 'USER_UPDATED' && currentUser) {
-           syncUserWithDatabase(currentUser, false);
+           syncUserWithDatabase(currentUser);
         }
       }
     );
 
     const checkInitialSession = async () => {
-        await refreshSession(true); 
+        await refreshSession(); 
     };
     checkInitialSession();
 

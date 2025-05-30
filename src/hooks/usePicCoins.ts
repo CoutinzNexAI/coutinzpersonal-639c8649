@@ -13,21 +13,23 @@ export const usePicCoins = () => {
       return;
     }
 
-
     try {
       const response = await fetch('/api/piccoins/balance');
 
       if (response.ok) {
         const data = await response.json();
-
         setBalance(data.balance);
       } else {
         const errorText = await response.text();
-        console.error('[usePicCoins] Failed to fetch balance:', response.status, response.statusText);
-        console.error('[usePicCoins] Error response:', errorText);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[usePicCoins] Failed to fetch balance:', response.status, response.statusText);
+          console.error('[usePicCoins] Error response:', errorText);
+        }
       }
     } catch (error) {
-      console.error('[usePicCoins] Error fetching balance:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[usePicCoins] Error fetching balance:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -83,7 +85,9 @@ export const usePicCoins = () => {
         return data.transactions;
       }
     } catch (error) {
-      console.error('Error fetching history:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching history:', error);
+      }
     }
     return [];
   };
