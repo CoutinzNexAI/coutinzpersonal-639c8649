@@ -201,7 +201,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
             onClick={handleClose}
           />
 
-          {/* Modal - Simplified for better mobile keyboard handling */}
+          {/* Modal - Enhanced mobile keyboard handling */}
           <motion.div
             className={`relative w-full max-w-4xl bg-white shadow-2xl overflow-hidden transition-all duration-300 ${
               isInputFocused 
@@ -295,35 +295,54 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
 
             {/* STEP: DETAILS */}
             {step === 'details' && selectedTransformation && (
-              <div className="overflow-y-auto h-full p-4 sm:p-6 lg:p-8">
-                {/* Header */}
-                <div className="text-center mb-6 sm:mb-8">
+              <div className={`${isInputFocused ? 'h-screen' : 'max-h-[95vh] sm:max-h-[90vh]'} overflow-y-auto p-4 sm:p-6 lg:p-8`}>
+                {/* Header - Simplified when input focused */}
+                <div className={`text-center ${isInputFocused ? 'mb-4' : 'mb-6 sm:mb-8'}`}>
                   <h2 className="text-xl sm:text-2xl font-ghibli font-bold text-ghibli-wood mb-2">
                     ✨ Adiciona Detalhes
                   </h2>
-                  <p className="text-ghibli-earth text-sm sm:text-base">
-                    Personaliza como a tua arte aparecerá na comunidade
-                  </p>
+                  {!isInputFocused && (
+                    <p className="text-ghibli-earth text-sm sm:text-base">
+                      Personaliza como a tua arte aparecerá na comunidade
+                    </p>
+                  )}
                 </div>
 
                 <div className={`grid gap-6 sm:gap-8 ${isInputFocused ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
-                  {/* Preview - Hide on mobile when input focused */}
-                  <div className={isInputFocused ? 'hidden lg:block' : ''}>
-                    <h3 className="font-semibold text-ghibli-wood mb-3 sm:mb-4 text-sm sm:text-base">Pré-visualização</h3>
-                    <div className="aspect-square rounded-xl sm:rounded-2xl overflow-hidden border border-ghibli-sand/30">
-                      <Image
-                        src={selectedTransformation.output_url}
-                        alt="Pré-visualização"
-                        width={400}
-                        height={400}
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                        className="w-full h-full object-cover"
-                      />
+                  {/* Preview - Hide completely on mobile when input focused */}
+                  {!isInputFocused && (
+                    <div>
+                      <h3 className="font-semibold text-ghibli-wood mb-3 sm:mb-4 text-sm sm:text-base">Pré-visualização</h3>
+                      <div className="aspect-square rounded-xl sm:rounded-2xl overflow-hidden border border-ghibli-sand/30">
+                        <Image
+                          src={selectedTransformation.output_url}
+                          alt="Pré-visualização"
+                          width={400}
+                          height={400}
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Form - Optimized for mobile */}
-                  <div className="space-y-4 sm:space-y-6">
+                  {/* Form - Mobile optimized */}
+                  <div className={`space-y-4 sm:space-y-6 ${isInputFocused ? 'pt-4' : ''}`}>
+                    {/* Small preview when input focused on mobile */}
+                    {isInputFocused && (
+                      <div className="flex items-center justify-center mb-4">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden border border-ghibli-sand/30">
+                          <Image
+                            src={selectedTransformation.output_url}
+                            alt="Preview"
+                            width={64}
+                            height={64}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </div>
+                    )}
+
                     <div>
                       <label className="block text-sm font-medium text-ghibli-wood mb-2">
                         Título Público (opcional)
@@ -332,12 +351,16 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                         ref={titleInputRef}
                         type="text"
                         value={publicTitle}
-                        onChange={(e) => setPublicTitle(e.target.value)}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 75) {
+                            setPublicTitle(e.target.value);
+                          }
+                        }}
                         placeholder="Ex: A minha primeira arte Ghibli!"
                         className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all text-sm sm:text-base"
-                        maxLength={100}
+                        maxLength={75}
                       />
-                      <p className="text-xs text-ghibli-earth mt-1">{publicTitle.length}/100 caracteres</p>
+                      <p className="text-xs text-ghibli-earth mt-1">{publicTitle.length}/75 caracteres</p>
                     </div>
 
                     <div>
@@ -347,24 +370,30 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                       <textarea
                         ref={descriptionTextareaRef}
                         value={publicDescription}
-                        onChange={(e) => setPublicDescription(e.target.value)}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 75) {
+                            setPublicDescription(e.target.value);
+                          }
+                        }}
                         placeholder="Conta a história por trás desta transformação..."
                         className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all text-sm sm:text-base"
-                        rows={isInputFocused ? 4 : 3} // More rows when focused
-                        maxLength={500}
+                        rows={isInputFocused ? 3 : 3}
+                        maxLength={75}
                       />
-                      <p className="text-xs text-ghibli-earth mt-1">{publicDescription.length}/500 caracteres</p>
+                      <p className="text-xs text-ghibli-earth mt-1">{publicDescription.length}/75 caracteres</p>
                     </div>
 
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 sm:p-4">
-                      <h4 className="font-medium text-green-800 mb-2 text-sm sm:text-base">🎉 Publicação Direta na Comunidade</h4>
-                      <p className="text-green-700 text-xs sm:text-sm">
-                        A tua arte será <strong>publicada imediatamente</strong> na comunidade! Podes ganhar <strong>1 PicCoin</strong> por semana.
-                      </p>
-                    </div>
+                    {!isInputFocused && (
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 sm:p-4">
+                        <h4 className="font-medium text-green-800 mb-2 text-sm sm:text-base">🎉 Publicação Direta na Comunidade</h4>
+                        <p className="text-green-700 text-xs sm:text-sm">
+                          A tua arte será <strong>publicada imediatamente</strong> na comunidade! Podes ganhar <strong>1 PicCoin</strong> por semana.
+                        </p>
+                      </div>
+                    )}
 
-                    {/* Actions - Always at bottom */}
-                    <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-4">
+                    {/* Actions - Simplified when input focused */}
+                    <div className={`flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 ${isInputFocused ? 'pt-4' : 'pt-4'}`}>
                       <button
                         onClick={() => setStep('select')}
                         className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 border border-ghibli-sand/30 text-ghibli-wood rounded-xl hover:bg-ghibli-sand/20 transition-all text-sm sm:text-base touch-manipulation"
