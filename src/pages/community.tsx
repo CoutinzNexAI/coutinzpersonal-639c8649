@@ -18,6 +18,8 @@ import { useCommunity, CommunityTransformation } from '@/hooks/useCommunity';
 import CommunityTransformationCard from '@/components/community/CommunityTransformationCard';
 import ViewTransformationModal from '@/components/community/ViewTransformationModal';
 import SubmitToCommunityModal from '@/components/community/SubmitToCommunityModal';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/components/ui/sonner';
 
 // =====================================================
 // PICTUZ COMMUNITY - GALERIA PRINCIPAL
@@ -29,6 +31,7 @@ type CommunityPageProps = Record<string, never>;
 
 const CommunityPage: React.FC<CommunityPageProps> = () => {
   // HOOKS
+  const { userInfo, signInWithGoogle, isLoading: isAuthLoading } = useAuth();
   const {
     transformations,
     loadingTransformations,
@@ -91,6 +94,24 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   };
 
   const handleLike = async (transformationId: string) => {
+    // Verificar se o utilizador está autenticado
+    if (!userInfo) {
+      toast.info("Login Necessário", {
+        description: "Para dar like nas transformações, precisa de fazer login com a sua conta Google.",
+        duration: 4000
+      });
+      
+      try {
+        await signInWithGoogle();
+      } catch (error) {
+        console.error('Error during login:', error);
+        toast.error("Erro no Login", {
+          description: "Não foi possível fazer login. Tente novamente."
+        });
+      }
+      return;
+    }
+
     try {
       await toggleLike(transformationId);
     } catch (error) {
@@ -99,6 +120,23 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   };
 
   const handleAddComment = async (transformationId: string, content: string) => {
+    // Verificar se o utilizador está autenticado
+    if (!userInfo) {
+      toast.info("Login Necessário", {
+        description: "Para comentar transformações, precisa de fazer login com a sua conta Google.",
+        duration: 4000
+      });
+      
+      try {
+        await signInWithGoogle();
+        // Não prosseguir com o comentário após login - utilizador terá de tentar novamente
+        throw new Error("Login required");
+      } catch (error) {
+        console.error('Error during login or authentication required:', error);
+        throw error; // Re-throw to let modal handle it
+      }
+    }
+
     try {
       const result = await addComment(transformationId, content);
       return result;
@@ -116,6 +154,28 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   const handlePublishSuccess = (message: string) => {
     console.log("✅ Publicação submetida:", message);
     // Success is already handled by the modal's PicCoin animation
+  };
+
+  const handlePublishClick = () => {
+    // Verificar se o utilizador está autenticado
+    if (!userInfo) {
+      toast.info("Login Necessário", {
+        description: "Para publicar na comunidade, precisa de fazer login com a sua conta Google.",
+        duration: 4000
+      });
+      
+      try {
+        signInWithGoogle();
+      } catch (error) {
+        console.error('Error during login:', error);
+        toast.error("Erro no Login", {
+          description: "Não foi possível fazer login. Tente novamente."
+        });
+      }
+      return;
+    }
+
+    setIsPublishModalOpen(true);
   };
 
   // EFFECTS
@@ -252,7 +312,7 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
                 </Link>
 
                 <motion.button
-                  onClick={() => setIsPublishModalOpen(true)}
+                  onClick={handlePublishClick}
                   className={`inline-flex items-center justify-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto ${
                     // Smaller padding and text on mobile
                     'px-3 py-2 text-sm sm:px-6 sm:py-3 sm:text-base'

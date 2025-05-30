@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
 import { 
   HeartIcon, 
   ChatBubbleLeftIcon 
@@ -9,6 +8,7 @@ import {
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { CommunityTransformation } from '@/hooks/useCommunity';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/components/ui/sonner';
 
 // =====================================================
 // COMMUNITY TRANSFORMATION CARD
@@ -30,8 +30,7 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
   onLike,
   onView
 }) => {
-  const { userInfo } = useAuth();
-  const router = useRouter();
+  const { userInfo, signInWithGoogle } = useAuth();
 
   // FORMATAÇÃO
   const formatTimeAgo = (dateString: string) => {
@@ -56,7 +55,19 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
     e.stopPropagation();
     
     if (!userInfo) {
-      router.push('/auth/login');
+      toast.info("Login Necessário", {
+        description: "Para dar like nas transformações, precisa de fazer login com a sua conta Google.",
+        duration: 4000
+      });
+      
+      try {
+        signInWithGoogle();
+      } catch (error) {
+        console.error('Error during login:', error);
+        toast.error("Erro no Login", {
+          description: "Não foi possível fazer login. Tente novamente."
+        });
+      }
       return;
     }
     

@@ -12,6 +12,7 @@ import {
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { CommunityTransformation, CommunityComment } from '@/hooks/useCommunity';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/components/ui/sonner';
 import PicCoinAnimation from './PicCoinAnimation';
 
 // =====================================================
@@ -54,7 +55,7 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
   const commentsEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
-  const { userInfo } = useAuth();
+  const { userInfo, signInWithGoogle } = useAuth();
 
   // EFFECTS
   useEffect(() => {
@@ -104,7 +105,19 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
     if (!newComment.trim() || !transformation) return;
 
     if (!userInfo) {
-      router.push('/auth/login');
+      toast.info("Login Necessário", {
+        description: "Para comentar transformações, precisa de fazer login com a sua conta Google.",
+        duration: 4000
+      });
+      
+      try {
+        await signInWithGoogle();
+      } catch (error) {
+        console.error('Error during login:', error);
+        toast.error("Erro no Login", {
+          description: "Não foi possível fazer login. Tente novamente."
+        });
+      }
       return;
     }
 
@@ -124,7 +137,19 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
 
   const handleLikeClick = (transformationId: string) => {
     if (!userInfo) {
-      router.push('/auth/login');
+      toast.info("Login Necessário", {
+        description: "Para dar like nas transformações, precisa de fazer login com a sua conta Google.",
+        duration: 4000
+      });
+      
+      try {
+        signInWithGoogle();
+      } catch (error) {
+        console.error('Error during login:', error);
+        toast.error("Erro no Login", {
+          description: "Não foi possível fazer login. Tente novamente."
+        });
+      }
       return;
     }
     
