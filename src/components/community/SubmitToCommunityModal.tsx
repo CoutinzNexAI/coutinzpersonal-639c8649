@@ -6,7 +6,9 @@ import {
   SparklesIcon,
   PaperAirplaneIcon,
   PhotoIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon
 } from '@heroicons/react/24/outline';
 import PicCoinAnimation from './PicCoinAnimation';
 
@@ -43,10 +45,10 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
   const [publicDescription, setPublicDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [step, setStep] = useState<'select' | 'details' | 'success'>('select');
+  const [step, setStep] = useState<'select' | 'preview' | 'details' | 'success'>('select');
   const [showPicCoinAnimation, setShowPicCoinAnimation] = useState(false);
   const [picCoinMessage, setPicCoinMessage] = useState('');
-  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -129,6 +131,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
     setPublicTitle('');
     setPublicDescription('');
     setStep('select');
+    setIsKeyboardVisible(false);
   };
 
   // EFFECTS
@@ -144,15 +147,35 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
     }
   }, [isOpen]);
 
-  // Mobile input focus handling
+  // Enhanced keyboard handling for mobile
   useEffect(() => {
+    const handleResize = () => {
+      // Detect keyboard on mobile by checking if viewport height significantly decreased
+      const vh = window.visualViewport?.height || window.innerHeight;
+      const isKeyboard = vh < window.screen.height * 0.75;
+      setIsKeyboardVisible(isKeyboard);
+    };
+
     const handleFocus = () => {
-      setIsInputFocused(true);
+      setTimeout(() => {
+        const vh = window.visualViewport?.height || window.innerHeight;
+        const isKeyboard = vh < window.screen.height * 0.75;
+        setIsKeyboardVisible(isKeyboard);
+      }, 300);
     };
     
     const handleBlur = () => {
-      setIsInputFocused(false);
+      setTimeout(() => {
+        setIsKeyboardVisible(false);
+      }, 300);
     };
+
+    // Visual Viewport API support
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    } else {
+      window.addEventListener('resize', handleResize);
+    }
 
     const titleInput = titleInputRef.current;
     const descriptionTextarea = descriptionTextareaRef.current;
@@ -168,6 +191,12 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
         titleInput.removeEventListener('blur', handleBlur);
         descriptionTextarea.removeEventListener('focus', handleFocus);
         descriptionTextarea.removeEventListener('blur', handleBlur);
+        
+        if (window.visualViewport) {
+          window.visualViewport.removeEventListener('resize', handleResize);
+        } else {
+          window.removeEventListener('resize', handleResize);
+        }
       };
     }
   }, [step]);
@@ -188,6 +217,9 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
     onOpenChange(false);
   };
 
+  // Mobile detection
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -204,7 +236,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
           {/* Modal - Enhanced mobile keyboard handling */}
           <motion.div
             className={`relative w-full max-w-4xl bg-white shadow-2xl overflow-hidden transition-all duration-300 ${
-              isInputFocused 
+              isKeyboardVisible 
                 ? 'fixed inset-0 rounded-none z-[60]' 
                 : 'max-h-[95vh] sm:max-h-[90vh] rounded-2xl sm:rounded-3xl'
             }`}
@@ -261,7 +293,8 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                             setSelectedTransformation(transformation);
                             setPublicTitle(transformation.public_title || '');
                             setPublicDescription(transformation.public_description || '');
-                            setStep('details');
+                            // Go to preview step on mobile, details on desktop
+                            setStep(isMobile ? 'preview' : 'details');
                           }}
                           className={`relative aspect-square rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all group touch-manipulation ${
                             selectedTransformation?.id === transformation.id
@@ -293,24 +326,97 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
               </div>
             )}
 
+            {/* STEP: PREVIEW (Mobile Only) */}
+            {step === 'preview' && selectedTransformation && (
+              <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto max-h-[95vh] sm:max-h-[90vh]">
+                {/* Header */}
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400/20 to-yellow-600/20 border border-amber-400/30 mb-3">
+                    <SparklesIcon className="w-4 h-4 text-amber-600 mr-2" />
+                    <span className="text-ghibli-wood text-xs font-medium">Pré-visualização</span>
+                  </div>
+                  <h2 className="text-xl font-ghibli font-bold text-ghibli-wood mb-2">
+                    🎨 A Tua Arte
+                  </h2>
+                  <p className="text-ghibli-earth text-sm">
+                    Confirma se é esta a arte que queres partilhar
+                  </p>
+                </div>
+
+                {/* Large Preview */}
+                <div className="flex justify-center mb-6">
+                  <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", damping: 20 }}
+                    className="w-full max-w-sm aspect-square rounded-2xl overflow-hidden border border-ghibli-sand/30 shadow-lg"
+                  >
+                    <Image
+                      src={selectedTransformation.output_url}
+                      alt="Arte selecionada"
+                      width={400}
+                      height={400}
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                </div>
+
+                {/* Style Info */}
+                <div className="text-center mb-8">
+                  <p className="text-ghibli-wood font-medium text-base">
+                    {selectedTransformation.style_name}
+                  </p>
+                  <p className="text-ghibli-earth text-sm">
+                    Criado {formatTimeAgo(selectedTransformation.created_at)}
+                  </p>
+                </div>
+
+                {/* Info Card */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-6">
+                  <h4 className="font-medium text-green-800 mb-2 text-sm">🎉 Publicação Direta na Comunidade</h4>
+                  <p className="text-green-700 text-xs">
+                    A tua arte será <strong>publicada imediatamente</strong> na comunidade! Podes ganhar <strong>1 PicCoin</strong> por semana.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setStep('select')}
+                    className="flex-1 px-4 py-3 border border-ghibli-sand/30 text-ghibli-wood rounded-xl hover:bg-ghibli-sand/20 transition-all text-sm touch-manipulation inline-flex items-center justify-center"
+                  >
+                    <ArrowLeftIcon className="w-4 h-4 mr-2" />
+                    Voltar
+                  </button>
+                  <button
+                    onClick={() => setStep('details')}
+                    className="flex-1 ghibli-button px-4 py-3 font-semibold text-sm touch-manipulation inline-flex items-center justify-center"
+                  >
+                    Continuar
+                    <ArrowRightIcon className="w-4 h-4 ml-2" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* STEP: DETAILS */}
             {step === 'details' && selectedTransformation && (
-              <div className={`${isInputFocused ? 'h-screen' : 'max-h-[95vh] sm:max-h-[90vh]'} overflow-y-auto p-4 sm:p-6 lg:p-8`}>
-                {/* Header - Simplified when input focused */}
-                <div className={`text-center ${isInputFocused ? 'mb-4' : 'mb-6 sm:mb-8'}`}>
+              <div className={`${isKeyboardVisible ? 'h-screen' : 'max-h-[95vh] sm:max-h-[90vh]'} overflow-y-auto p-4 sm:p-6 lg:p-8`}>
+                {/* Header - Simplified when keyboard visible */}
+                <div className={`text-center ${isKeyboardVisible ? 'mb-4' : 'mb-6 sm:mb-8'}`}>
                   <h2 className="text-xl sm:text-2xl font-ghibli font-bold text-ghibli-wood mb-2">
                     ✨ Adiciona Detalhes
                   </h2>
-                  {!isInputFocused && (
+                  {!isKeyboardVisible && (
                     <p className="text-ghibli-earth text-sm sm:text-base">
                       Personaliza como a tua arte aparecerá na comunidade
                     </p>
                   )}
                 </div>
 
-                <div className={`grid gap-6 sm:gap-8 ${isInputFocused ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
-                  {/* Preview - Hide completely on mobile when input focused */}
-                  {!isInputFocused && (
+                <div className={`grid gap-6 sm:gap-8 ${isKeyboardVisible || isMobile ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
+                  {/* Preview - Hide on mobile when keyboard visible or in mobile details step */}
+                  {!isKeyboardVisible && !isMobile && (
                     <div>
                       <h3 className="font-semibold text-ghibli-wood mb-3 sm:mb-4 text-sm sm:text-base">Pré-visualização</h3>
                       <div className="aspect-square rounded-xl sm:rounded-2xl overflow-hidden border border-ghibli-sand/30">
@@ -327,9 +433,9 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                   )}
 
                   {/* Form - Mobile optimized */}
-                  <div className={`space-y-4 sm:space-y-6 ${isInputFocused ? 'pt-4' : ''}`}>
-                    {/* Small preview when input focused on mobile */}
-                    {isInputFocused && (
+                  <div className={`space-y-4 sm:space-y-6 ${isKeyboardVisible ? 'pt-4' : ''}`}>
+                    {/* Small preview when keyboard visible on mobile */}
+                    {isKeyboardVisible && (
                       <div className="flex items-center justify-center mb-4">
                         <div className="w-16 h-16 rounded-lg overflow-hidden border border-ghibli-sand/30">
                           <Image
@@ -377,13 +483,13 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                         }}
                         placeholder="Conta a história por trás desta transformação..."
                         className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all text-sm sm:text-base"
-                        rows={isInputFocused ? 3 : 3}
+                        rows={isKeyboardVisible ? 3 : 3}
                         maxLength={75}
                       />
                       <p className="text-xs text-ghibli-earth mt-1">{publicDescription.length}/75 caracteres</p>
                     </div>
 
-                    {!isInputFocused && (
+                    {!isKeyboardVisible && (
                       <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 sm:p-4">
                         <h4 className="font-medium text-green-800 mb-2 text-sm sm:text-base">🎉 Publicação Direta na Comunidade</h4>
                         <p className="text-green-700 text-xs sm:text-sm">
@@ -392,13 +498,14 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                       </div>
                     )}
 
-                    {/* Actions - Simplified when input focused */}
-                    <div className={`flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 ${isInputFocused ? 'pt-4' : 'pt-4'}`}>
+                    {/* Actions - Simplified when keyboard visible */}
+                    <div className={`flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 ${isKeyboardVisible ? 'pt-4' : 'pt-4'}`}>
                       <button
-                        onClick={() => setStep('select')}
-                        className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 border border-ghibli-sand/30 text-ghibli-wood rounded-xl hover:bg-ghibli-sand/20 transition-all text-sm sm:text-base touch-manipulation"
+                        onClick={() => setStep(isMobile ? 'preview' : 'select')}
+                        className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 border border-ghibli-sand/30 text-ghibli-wood rounded-xl hover:bg-ghibli-sand/20 transition-all text-sm sm:text-base touch-manipulation inline-flex items-center justify-center"
                         disabled={submitting}
                       >
+                        <ArrowLeftIcon className="w-4 h-4 mr-2" />
                         Voltar
                       </button>
                       <motion.button
