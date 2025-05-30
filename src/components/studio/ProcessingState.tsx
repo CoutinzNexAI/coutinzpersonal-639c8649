@@ -10,7 +10,6 @@ interface ProcessingStateProps {
 }
 
 const ProcessingState: React.FC<ProcessingStateProps> = ({
-  uploadedImageUrl,
   selectedStyle,
   progressValue,
 }) => {
@@ -26,7 +25,7 @@ const ProcessingState: React.FC<ProcessingStateProps> = ({
         </p>
         <Progress value={progressValue} className="h-3 mb-3" />
         <p className="text-xs text-ghibli-earth/70">
-          {progressValue}% concluído
+          {Math.round(progressValue)}% concluído
         </p>
       </div>
     </div>

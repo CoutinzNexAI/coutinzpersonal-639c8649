@@ -8,8 +8,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePicCoins } from '@/hooks/usePicCoins';
 
 const PICCOINS_PER_TRANSFORMATION = 1;
-const MAX_POLL_ATTEMPTS_CONST = 40; // 40 * 3s = 120s = 2 minutos
-const POLLING_INTERVAL_MS = 3000; // Intervalo de polling (3 segundos)
+const MAX_POLL_ATTEMPTS_CONST = 36; // 36 * 10s = 360s = 6 minutos (buffer para Vercel Pro 5min)
+const POLLING_INTERVAL_MS = 10000; // Intervalo de polling (10 segundos) - menos agressivo
 
 // Mensagens de erro padronizadas
 const STANDARD_ERROR_MESSAGE = "Ocorreu um erro a processar. Os nossos servidores podem estar com muito tráfego ou a sua imagem demorou demasiado. Por favor, tente novamente mais tarde. O seu crédito será reembolsado ou a fotografia aparecerá no seu perfil em breve. Pedimos desculpa!";
@@ -70,6 +70,7 @@ export function useImageProcessing() {
   const [isLoading, setIsLoading] = useState(false); // Usado para o loading geral do botão/UI
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [simulatedProgress, setSimulatedProgress] = useState<number>(0); // Nova state para progresso simulado
 
   const [availableStyles, setAvailableStyles] = useState<Style[]>([]);
   const [stylesLoading, setStylesLoading] = useState<boolean>(true);
@@ -79,6 +80,32 @@ export function useImageProcessing() {
   const initialLoadAttempted = useRef(false);
   const prevUserId = useRef<string | undefined | null>(null);
   const pollCountRef = useRef(0);
+
+  // Função para calcular progresso simulado baseado nas tentativas
+  const calculateSimulatedProgress = useCallback((pollCount: number): number => {
+    if (pollCount === 0) return 0;
+    
+    // Fórmula de progresso simulado:
+    // - Inicia com 5% na primeira tentativa
+    // - Cresce rapidamente até 30% nos primeiros 30s
+    // - Cresce moderadamente até 70% nos próximos 2min
+    // - Cresce lentamente até 95% no resto do tempo
+    // - Nunca chega a 100% (só quando realmente completa)
+    
+    if (pollCount <= 3) {
+      // Primeiros 30s: 5% -> 30%
+      return 5 + (pollCount * 8);
+    } else if (pollCount <= 12) {
+      // 30s -> 2min: 30% -> 70%
+      return 30 + ((pollCount - 3) * 4.5);
+    } else if (pollCount <= 30) {
+      // 2min -> 5min: 70% -> 90%
+      return 70 + ((pollCount - 12) * 1.1);
+    } else {
+      // 5min+: 90% -> 95% (muito lento)
+      return Math.min(95, 90 + ((pollCount - 30) * 0.5));
+    }
+  }, []);
 
   // Fetch available styles
   useEffect(() => {
@@ -196,8 +223,14 @@ export function useImageProcessing() {
       pollCountRef.current++;
       console.log(`[useImageProcessing - Polling] Attempt ${pollCountRef.current}/${MAX_POLL_ATTEMPTS_CONST} for jobId: ${currentJobId}`);
 
-      const shouldDirectCheck = (pollCountRef.current <= 6 && pollCountRef.current > 1 && pollCountRef.current % 2 === 0) || 
-                                (pollCountRef.current > 6 && pollCountRef.current % 3 === 0);
+      // Atualizar progresso simulado
+      const newProgress = calculateSimulatedProgress(pollCountRef.current);
+      setSimulatedProgress(newProgress);
+      console.log(`[useImageProcessing - Progress] Poll ${pollCountRef.current}: ${newProgress.toFixed(1)}%`);
+
+      const shouldDirectCheck = (pollCountRef.current <= 3) || // Primeiras 3 tentativas (0-30s)
+                                (pollCountRef.current > 3 && pollCountRef.current <= 12 && pollCountRef.current % 2 === 0) || // A cada 20s até 2min
+                                (pollCountRef.current > 12 && pollCountRef.current % 3 === 0); // A cada 30s depois dos 2min
 
       if (shouldDirectCheck) {
         console.log(`[useImageProcessing - DirectCheck] Attempt ${pollCountRef.current}: Checking Supabase storage directly...`);
@@ -220,6 +253,7 @@ export function useImageProcessing() {
               setTransformedImage(urlData.publicUrl); 
               setProcessingState('completed'); 
               setActiveStep(3); 
+              setSimulatedProgress(100); // Progresso completo!
               toast.success("Transformação encontrada diretamente no storage!");
               if (pollingIntervalRef.current) {
                 clearInterval(pollingIntervalRef.current);
@@ -239,7 +273,7 @@ export function useImageProcessing() {
       }
       
       try {
-        const cacheParam = pollCountRef.current > 10 ? `&_t=${Date.now()}` : '';
+        const cacheParam = pollCountRef.current > 18 ? `&_t=${Date.now()}` : '';
         const userParam = userInfo?.id ? `&userId=${userInfo.id}` : '';
         const apiUrl = `/api/get-transformation-status?jobId=${currentJobId}${userParam}${cacheParam}`;
         console.log(`[useImageProcessing - Polling] Fetching API: ${apiUrl}`);
@@ -275,6 +309,7 @@ export function useImageProcessing() {
           setTransformedImage(data.output_url);
           setProcessingState('completed');
           setActiveStep(3);
+          setSimulatedProgress(100); // Progresso completo!
           toast.success("Transformação concluída!");
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
@@ -319,25 +354,26 @@ export function useImageProcessing() {
               setTransformedImage(urlData.publicUrl); 
               setProcessingState('completed'); 
             setActiveStep(3); 
+              setSimulatedProgress(100); // Progresso completo!
               toast.success("Transformação encontrada após verificação final!");
               if (pollingIntervalRef.current) {
                 clearInterval(pollingIntervalRef.current);
                 pollingIntervalRef.current = null;
               }
               setIsLoading(false);
-              return; 
+              return;
             }
         }
         } catch (finalStorageError) {
           console.error(`[useImageProcessing - FinalCheck] Final storage check failed:`, finalStorageError instanceof Error ? finalStorageError.message : String(finalStorageError));
         }
         
-        console.warn(`[useImageProcessing - Polling] Max attempts reached (${pollCountRef.current}). Final direct storage check failed or API timed out.`);
+        console.warn(`[useImageProcessing - Polling] Max attempts reached (${pollCountRef.current}). Final direct storage check failed or API timed out after 6 minutes.`);
 
         setErrorMessage(STANDARD_ERROR_MESSAGE); // <<< USA A MENSAGEM PADRÃO
         setProcessingState('error'); 
         setActiveStep(3);
-        toast.error("Processamento Demorado", { description: SIMPLE_ERROR_TOAST_MESSAGE, duration: 7000 }); // Toast simples
+        toast.error("Processamento Demorado", { description: "A transformação está a demorar mais que o esperado. A sua imagem pode aparecer no perfil em breve.", duration: 7000 }); // Toast mais informativo
 
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current);
@@ -389,6 +425,7 @@ export function useImageProcessing() {
     setCurrentJobId(null);
     setActiveStep(1);
     setIsLoading(false);
+    setSimulatedProgress(0); // Reset do progresso simulado
     localStorage.removeItem('studioState');
     localStorage.removeItem('currentJobId');
     if (pollingIntervalRef.current) {
@@ -463,7 +500,8 @@ export function useImageProcessing() {
     setErrorMessage(null);
     setTransformedImage(null); 
     setCurrentJobId(null); 
-    pollCountRef.current = 0; 
+    setSimulatedProgress(0); // Reset progresso para nova transformação
+    pollCountRef.current = 0;
 
     let tempUploadedFilePath: string | null = null;
     let tempNewJobId: string | null = null;
@@ -631,7 +669,7 @@ export function useImageProcessing() {
 
   return {
     uploadedImage, isStyleModalOpen, selectedStyle, processingState, transformedImage,
-    activeStep, isLoading, errorMessage, currentJobId,
+    activeStep, isLoading, errorMessage, currentJobId, simulatedProgress,
     availableStyles, stylesLoading, stylesError,
     setIsStyleModalOpen, setActiveStep, 
     handleFileChange, openStyleSelector, handleStyleSelect,

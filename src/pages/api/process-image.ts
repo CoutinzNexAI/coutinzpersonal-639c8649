@@ -169,7 +169,7 @@ export default async function handler(
           'x-internal-secret': internalApiSecret, // Envia o secret
           'Content-Type': 'application/json'
         },
-        timeout: 30000 
+        timeout: 60000 // 1 minuto - mais generoso para Vercel Pro
       }
     )
     .then(response => {

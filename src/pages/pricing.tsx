@@ -217,260 +217,260 @@ export default function PricingPage() {
         />
       </Head>
 
-      <div className="min-h-screen bg-ghibli-cream flex flex-col">
-        {/* Header */}
-        <Header />
+    <div className="min-h-screen bg-ghibli-cream flex flex-col">
+      {/* Header */}
+      <Header />
 
-        {/* Falling Elements */}
-        <div className="leaf-decoration top-20 left-10 text-3xl">🍃</div>
-        <div className="leaf-decoration bottom-28 right-16 text-2xl">🍂</div>
-        <div className="star-decoration top-40 right-28 text-xl">✨</div>
-        <div className="star-decoration bottom-16 left-20 text-2xl">⭐</div>
+      {/* Falling Elements */}
+      <div className="leaf-decoration top-20 left-10 text-3xl">🍃</div>
+      <div className="leaf-decoration bottom-28 right-16 text-2xl">🍂</div>
+      <div className="star-decoration top-40 right-28 text-xl">✨</div>
+      <div className="star-decoration bottom-16 left-20 text-2xl">⭐</div>
 
-        {/* Main Content */}
-        <main className="flex-grow pt-24 pb-16">
-          <div className="container mx-auto px-4">
-            {/* Hero Section */}
-            <motion.div 
-              className="text-center mb-16"
-              initial={{ opacity: 0, y: 30 }}
+      {/* Main Content */}
+      <main className="flex-grow pt-24 pb-16">
+        <div className="container mx-auto px-4">
+          {/* Hero Section */}
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            <motion.h1 
+              className="text-4xl md:text-5xl lg:text-6xl font-ghibli font-bold text-ghibli-wood mb-6"
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <motion.h1 
-                className="text-4xl md:text-5xl lg:text-6xl font-ghibli font-bold text-ghibli-wood mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                ⭐ Pacotes de{' '}
-                <span className="bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent">
-                  PicCoins
-                </span>
-              </motion.h1>
-              
-              <motion.p 
-                className="text-xl md:text-2xl text-ghibli-earth mb-8 max-w-3xl mx-auto"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-              >
-                Escolhe o pacote perfeito para as tuas{' '}
-                <span className="font-semibold text-ghibli-wood">transformações mágicas</span>
-              </motion.p>
-              
-              {userInfo && (
-                <motion.div 
-                  className="flex items-center justify-center gap-3 mb-8"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6, delay: 0.6 }}
-                >
-                  <span className="text-ghibli-earth text-lg">Saldo atual:</span>
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-6 py-3 rounded-full font-bold text-lg shadow-lg">
-                    <Star className="w-5 h-5" />
-                    <span>{balance} PicCoins</span>
-                  </div>
-                </motion.div>
-              )}
-            </motion.div>
-
-            {/* Packages Grid */}
-            <motion.div 
-              className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto mb-20 mt-12"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
+              ⭐ Pacotes de{' '}
+              <span className="bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent">
+                PicCoins
+              </span>
+            </motion.h1>
+            
+            <motion.p 
+              className="text-xl md:text-2xl text-ghibli-earth mb-8 max-w-3xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
             >
-              {packages.map((pkg) => {
-                const IconComponent = pkg.icon;
-                return (
-                  <motion.div key={pkg.id} variants={cardVariants} className="relative">
-                    {/* Floating Badges - Outside and Above Cards */}
-                    <AnimatePresence>
-                      {pkg.popular && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0, y: 10 }}
-                          animate={{ scale: 1, opacity: 1, y: 0 }}
-                          className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20"
-                        >
-                          <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap">
-                            <Sparkles className="w-4 h-4" />
-                            Mais Popular
-                            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-purple-600"></div>
-                          </div>
-                        </motion.div>
-                      )}
-                      {pkg.bestValue && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0, y: 10 }}
-                          animate={{ scale: 1, opacity: 1, y: 0 }}
-                          className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20"
-                        >
-                          <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap">
-                            <Crown className="w-4 h-4" />
-                            Melhor Valor
-                            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-amber-600"></div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+              Escolhe o pacote perfeito para as tuas{' '}
+              <span className="font-semibold text-ghibli-wood">transformações mágicas</span>
+            </motion.p>
+            
+            {userInfo && (
+              <motion.div 
+                className="flex items-center justify-center gap-3 mb-8"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <span className="text-ghibli-earth text-lg">Saldo atual:</span>
+                <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-6 py-3 rounded-full font-bold text-lg shadow-lg">
+                  <Star className="w-5 h-5" />
+                  <span>{balance} PicCoins</span>
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
 
-                    <Card 
-                      className={`relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-2 overflow-hidden group ${
-                        pkg.popular ? 'border-purple-300 shadow-lg scale-105' : 
-                        pkg.bestValue ? 'border-amber-300 shadow-lg' : 'border-ghibli-sand/30 hover:border-ghibli-moss/50'
-                      }`}
-                    >
-                      {/* Glowing Background Effect */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${pkg.gradient} opacity-5 group-hover:opacity-10 transition-opacity duration-300`} />
-                      
-                      <CardHeader className="text-center pb-3 pt-6 relative z-10">
-                        <div className="flex justify-center mb-3">
-                          <div className={`p-3 rounded-full bg-gradient-to-br ${pkg.gradient} text-white shadow-lg`}>
-                            <IconComponent className="w-6 h-6" />
-                          </div>
+          {/* Packages Grid */}
+          <motion.div 
+            className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto mb-20 mt-12"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {packages.map((pkg) => {
+              const IconComponent = pkg.icon;
+              return (
+                <motion.div key={pkg.id} variants={cardVariants} className="relative">
+                  {/* Floating Badges - Outside and Above Cards */}
+                  <AnimatePresence>
+                    {pkg.popular && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0, y: 10 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20"
+                      >
+                        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap">
+                          <Sparkles className="w-4 h-4" />
+                          Mais Popular
+                          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-purple-600"></div>
                         </div>
-                        <CardTitle className="text-xl font-bold text-ghibli-wood">{pkg.name}</CardTitle>
-                        <CardDescription className="text-sm text-ghibli-earth">{pkg.description}</CardDescription>
-                      </CardHeader>
-                      
-                      <CardContent className="text-center space-y-4 relative z-10 pb-6">
-                        {/* PicCoins Display */}
-                        <div className="py-2">
-                          <motion.div 
-                            className="text-4xl font-bold text-amber-600 mb-1"
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ type: "spring", stiffness: 300 }}
-                          >
-                            ⭐ {pkg.coins}
-                          </motion.div>
-                          <div className="text-sm text-ghibli-earth">
-                            {pkg.coins === 1 ? 'PicCoin' : 'PicCoins'}
-                          </div>
+                      </motion.div>
+                    )}
+                    {pkg.bestValue && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0, y: 10 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20"
+                      >
+                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap">
+                          <Crown className="w-4 h-4" />
+                          Melhor Valor
+                          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-amber-600"></div>
                         </div>
-                        
-                        {/* Price */}
-                        <div className="space-y-2">
-                          <div className="text-3xl font-bold text-ghibli-wood">
-                            €{pkg.price}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <Card 
+                    className={`relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-2 overflow-hidden group ${
+                      pkg.popular ? 'border-purple-300 shadow-lg scale-105' : 
+                      pkg.bestValue ? 'border-amber-300 shadow-lg' : 'border-ghibli-sand/30 hover:border-ghibli-moss/50'
+                    }`}
+                  >
+                    {/* Glowing Background Effect */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${pkg.gradient} opacity-5 group-hover:opacity-10 transition-opacity duration-300`} />
+                    
+                    <CardHeader className="text-center pb-3 pt-6 relative z-10">
+                      <div className="flex justify-center mb-3">
+                        <div className={`p-3 rounded-full bg-gradient-to-br ${pkg.gradient} text-white shadow-lg`}>
+                          <IconComponent className="w-6 h-6" />
+                        </div>
+                      </div>
+                      <CardTitle className="text-xl font-bold text-ghibli-wood">{pkg.name}</CardTitle>
+                      <CardDescription className="text-sm text-ghibli-earth">{pkg.description}</CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="text-center space-y-4 relative z-10 pb-6">
+                      {/* PicCoins Display */}
+                      <div className="py-2">
+                        <motion.div 
+                          className="text-4xl font-bold text-amber-600 mb-1"
+                          whileHover={{ scale: 1.1 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          ⭐ {pkg.coins}
+                        </motion.div>
+                        <div className="text-sm text-ghibli-earth">
+                          {pkg.coins === 1 ? 'PicCoin' : 'PicCoins'}
+                        </div>
+                      </div>
+                      
+                      {/* Price */}
+                      <div className="space-y-2">
+                        <div className="text-3xl font-bold text-ghibli-wood">
+                          €{pkg.price}
+                        </div>
+                        <div className="text-sm text-ghibli-earth">
+                          €{(pkg.price / pkg.coins).toFixed(2)} por PicCoin
+                        </div>
+                        {pkg.coins > 1 && (
+                          <div className="text-sm text-emerald-600 font-medium">
+                            Poupa {Math.round((1 - (pkg.price / pkg.coins) / 2) * 100)}%
                           </div>
-                          <div className="text-sm text-ghibli-earth">
-                            €{(pkg.price / pkg.coins).toFixed(2)} por PicCoin
-                          </div>
-                          {pkg.coins > 1 && (
-                            <div className="text-sm text-emerald-600 font-medium">
-                              Poupa {Math.round((1 - (pkg.price / pkg.coins) / 2) * 100)}%
-                            </div>
+                        )}
+                      </div>
+                      
+                      {/* Buy Button */}
+                      <Button 
+                        onClick={() => handlePurchase(pkg.id)}
+                        disabled={loading === pkg.id}
+                        className={`w-full relative overflow-hidden group ${
+                          pkg.popular ? 'bg-purple-600 hover:bg-purple-700' : 
+                          pkg.bestValue ? 'bg-amber-600 hover:bg-amber-700' :
+                          'ghibli-button'
+                        } ${
+                          pkg.popular || pkg.bestValue ? 'py-3 px-6 text-base' : 'py-2.5 px-5 text-sm'
+                        } ${
+                          'max-md:py-2 max-md:px-4 max-md:text-sm'
+                        }`}
+                      >
+                        <div className="relative z-10 flex items-center justify-center gap-2">
+                          {loading === pkg.id ? (
+                            <>
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                              >
+                                <Sparkles className="w-4 h-4" />
+                              </motion.div>
+                              Processando...
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="w-4 h-4" />
+                              Comprar Agora
+                            </>
                           )}
                         </div>
-                        
-                        {/* Buy Button */}
-                        <Button 
-                          onClick={() => handlePurchase(pkg.id)}
-                          disabled={loading === pkg.id}
-                          className={`w-full relative overflow-hidden group ${
-                            pkg.popular ? 'bg-purple-600 hover:bg-purple-700' : 
-                            pkg.bestValue ? 'bg-amber-600 hover:bg-amber-700' :
-                            'ghibli-button'
-                          } ${
-                            pkg.popular || pkg.bestValue ? 'py-3 px-6 text-base' : 'py-2.5 px-5 text-sm'
-                          } ${
-                            'max-md:py-2 max-md:px-4 max-md:text-sm'
-                          }`}
-                        >
-                          <div className="relative z-10 flex items-center justify-center gap-2">
-                            {loading === pkg.id ? (
-                              <>
-                                <motion.div
-                                  animate={{ rotate: 360 }}
-                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                >
-                                  <Sparkles className="w-4 h-4" />
-                                </motion.div>
-                                Processando...
-                              </>
-                            ) : (
-                              <>
-                                <Zap className="w-4 h-4" />
-                                Comprar Agora
-                              </>
-                            )}
-                          </div>
-                          <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300" />
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
+                        <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </motion.div>
 
-            {/* Benefits Section */}
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.8 }}
-            >
-              <h2 className="section-title text-ghibli-wood mb-12">
-                Porquê escolher PicCoins?
-              </h2>
-              <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                {[
-                  {
-                    icon: "🚀",
-                    title: "Transformações Instantâneas",
-                    description: "1 PicCoin = 1 transformação mágica com IA avançada"
-                  },
-                  {
-                    icon: "💎",
-                    title: "Sem Expiração",
-                    description: "Os teus PicCoins nunca expiram - usa quando quiseres"
-                  },
-                  {
-                    icon: "🎨",
-                    title: "Biblioteca Completa",
-                    description: "Acesso a todos os estilos e futuras atualizações"
-                  }
-                ].map((benefit, index) => (
-                  <motion.div 
-                    key={index}
-                    className="ghibli-card p-8 text-center group hover:shadow-lg transition-all duration-300"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: index * 0.2 }}
-                    whileHover={{ y: -5 }}
-                  >
-                    <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                      {benefit.icon}
-                    </div>
-                    <h3 className="font-ghibli text-xl font-semibold text-ghibli-wood mb-3">
-                      {benefit.title}
-                    </h3>
-                    <p className="text-ghibli-earth leading-relaxed">
-                      {benefit.description}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        </main>
+          {/* Benefits Section */}
+          <motion.div 
+            className="text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="section-title text-ghibli-wood mb-12">
+              Porquê escolher PicCoins?
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {[
+                {
+                  icon: "🚀",
+                  title: "Transformações Instantâneas",
+                  description: "1 PicCoin = 1 transformação mágica com IA avançada"
+                },
+                {
+                  icon: "💎",
+                  title: "Sem Expiração",
+                  description: "Os teus PicCoins nunca expiram - usa quando quiseres"
+                },
+                {
+                  icon: "🎨",
+                  title: "Biblioteca Completa",
+                  description: "Acesso a todos os estilos e futuras atualizações"
+                }
+              ].map((benefit, index) => (
+                <motion.div 
+                  key={index}
+                  className="ghibli-card p-8 text-center group hover:shadow-lg transition-all duration-300"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.2 }}
+                  whileHover={{ y: -5 }}
+                >
+                  <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                    {benefit.icon}
+                  </div>
+                  <h3 className="font-ghibli text-xl font-semibold text-ghibli-wood mb-3">
+                    {benefit.title}
+                  </h3>
+                  <p className="text-ghibli-earth leading-relaxed">
+                    {benefit.description}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </main>
 
-        {/* Footer */}
-        <Footer />
+      {/* Footer */}
+      <Footer />
 
-        {/* Login Modal */}
-        <LoginPromptModal
-          isOpen={isLoginModalOpen}
-          onOpenChange={setIsLoginModalOpen}
-          onLogin={handleLogin}
-          isLoggingIn={isLoggingIn}
-        />
-      </div>
+      {/* Login Modal */}
+      <LoginPromptModal
+        isOpen={isLoginModalOpen}
+        onOpenChange={setIsLoginModalOpen}
+        onLogin={handleLogin}
+        isLoggingIn={isLoggingIn}
+      />
+    </div>
     </>
   );
 } 

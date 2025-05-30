@@ -42,7 +42,7 @@ try {
     console.error('[GLOBAL] Failed to register global error handlers:', e);
 }
 
-export const config = { maxDuration: 59 };
+export const config = { maxDuration: 300 }; // 5 minutos para Vercel Pro
 
 type JobData = {
     id: string;
@@ -260,7 +260,7 @@ async function processImage(jobId: string, jobData: JobData) {
                 ...formData.getHeaders(),
                 'Authorization': `Bearer ${openaiApiKey}`
             },
-            timeout: 58000
+            timeout: 280000 // 4min 40s - buffer de 20s para cleanup
         };
 
         const openaiResponse = await axios.post('https://api.openai.com/v1/images/edits', formData, requestConfig);

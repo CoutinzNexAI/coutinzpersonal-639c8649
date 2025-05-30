@@ -24,6 +24,7 @@ interface TransformationStudioProps extends Omit<UseImageProcessingResult,
   showStepZeroContent: boolean;
   onStartClickForCarousel: () => void;
   onResetToStepZero: () => void;
+  simulatedProgress: number;
 }
 
 const Step3Preview: React.FC<{ imageUrl: string | undefined; styleName: string | undefined }> = ({ imageUrl, styleName }) => {
@@ -57,6 +58,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
   activeStep,
   isLoading,
   errorMessage,
+  simulatedProgress,
   availableStyles,
   stylesLoading,
   stylesError,
@@ -194,7 +196,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
               <ProcessingState
                 uploadedImageUrl={uploadedImage?.preview || ''} 
                 selectedStyle={selectedStyle} 
-                progressValue={0} 
+                progressValue={simulatedProgress} 
               />
             </div>
           </div>

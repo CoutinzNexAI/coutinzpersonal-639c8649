@@ -129,7 +129,6 @@ async function handleGetComments(
       .eq('is_hidden_by_admin', false); // Only show non-hidden comments
 
     if (countError) {
-      console.error(`${endpointName} ❌ Count error:`, countError.message);
       return res.status(500).json({ 
         error: COMMUNITY_ERROR_MESSAGES.SERVER_ERROR
       });
@@ -167,7 +166,6 @@ async function handleGetComments(
       .range(offset, offset + validatedQuery.limit - 1);
 
     if (fetchError) {
-      console.error(`${endpointName} ❌ Fetch error:`, fetchError.message);
       return res.status(500).json({ 
         error: COMMUNITY_ERROR_MESSAGES.SERVER_ERROR
       });

@@ -34,7 +34,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (error) {
-      console.error('RPC error:', error);
       return res.status(500).json({ message: 'Internal Server Error' });
     }
 

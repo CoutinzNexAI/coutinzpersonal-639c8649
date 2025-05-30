@@ -84,41 +84,41 @@ const Index = () => {
       </Head>
 
       {/* Container principal da página com layout flexível vertical e cor de fundo */}
-      <div className="min-h-screen bg-ghibli-cream flex flex-col">
-        {/* Renderiza o cabeçalho */}
-        <Header />
+    <div className="min-h-screen bg-ghibli-cream flex flex-col">
+      {/* Renderiza o cabeçalho */}
+      <Header />
 
-        {/* Conteúdo principal da página */}
-        {/* flex-grow garante que ocupa o espaço disponível, empurrando o footer para baixo */}
-        {/* pt-* adiciona padding no topo para compensar a altura do header fixo */}
-        <main className="flex-grow pt-16 md:pt-20">
+      {/* Conteúdo principal da página */}
+      {/* flex-grow garante que ocupa o espaço disponível, empurrando o footer para baixo */}
+      {/* pt-* adiciona padding no topo para compensar a altura do header fixo */}
+      <main className="flex-grow pt-16 md:pt-20">
 
-          {/* Renderiza a secção principal (Hero + Estúdio Interativo) */}
-          {/* Toda a lógica de passos (upload, estilo, pagamento, etc.) está encapsulada aqui */}
-          <GhibliHero />
+        {/* Renderiza a secção principal (Hero + Estúdio Interativo) */}
+        {/* Toda a lógica de passos (upload, estilo, pagamento, etc.) está encapsulada aqui */}
+        <GhibliHero />
 
-          {/* Renderiza as secções inferiores da página */}
+        {/* Renderiza as secções inferiores da página */}
 
-          {/* Separador visual customizado (assume que a classe ghibli-divider está definida no CSS global) */}
-          <div className="ghibli-divider my-12 md:my-16 lg:my-20" />
+        {/* Separador visual customizado (assume que a classe ghibli-divider está definida no CSS global) */}
+        <div className="ghibli-divider my-12 md:my-16 lg:my-20" />
 
-          {/* Renderiza a secção da galeria interativa */}
-          <InteractiveGallery />
+        {/* Renderiza a secção da galeria interativa */}
+        <InteractiveGallery />
 
-          {/* Outro separador visual */}
-          <div className="ghibli-divider my-12 md:my-16 lg:my-20" />
+        {/* Outro separador visual */}
+        <div className="ghibli-divider my-12 md:my-16 lg:my-20" />
 
-          {/* Renderiza a secção "Como Funciona" */}
-          <HowItWorks />
+        {/* Renderiza a secção "Como Funciona" */}
+        <HowItWorks />
 
-          {/* Renderiza a secção de Perguntas Frequentes */}
-          <FAQSection />
+        {/* Renderiza a secção de Perguntas Frequentes */}
+        <FAQSection />
 
-        </main> {/* Fim do conteúdo principal */}
+      </main> {/* Fim do conteúdo principal */}
 
-        {/* Renderiza o rodpé */}
-        <Footer />
-      </div> // Fim do container principal
+      {/* Renderiza o rodpé */}
+      <Footer />
+    </div> // Fim do container principal
     </>
   );
 };

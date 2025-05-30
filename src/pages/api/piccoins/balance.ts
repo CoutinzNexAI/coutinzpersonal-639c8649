@@ -18,8 +18,6 @@ function getManuallyParsedCookie(cookieString: string, cookieName: string): stri
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   
-  const rawCookieHeaderFromRequest = req.headers.cookie ?? '';
-
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
@@ -81,12 +79,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .single();
 
     if (error) {
-      console.error('[Balance API] ❌ Error fetching balance from DB:', error);
       return res.status(500).json({ message: 'Internal Server Error fetching balance' });
     }
 
     if (!data) {
-      console.error('[Balance API] ❌ No data returned from users query for user ID:', user.id);
       return res.status(404).json({ message: 'User profile not found in database' });
     }
 

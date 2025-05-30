@@ -66,7 +66,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .limit(50);
 
     if (error) {
-      console.error('Error fetching history:', error);
       return res.status(500).json({ message: 'Internal Server Error' });
     }
 

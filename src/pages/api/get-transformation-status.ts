@@ -179,14 +179,14 @@ console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUs
     // --- Início da Lógica de Self-Healing ---
     let selfHealActionTaken = "None";
 
-    // Self-heal NOVO: Job 'processing' por >90s (stuck due to Vercel timeout)
-    const JOB_STUCK_THRESHOLD_MS = 90 * 1000; // 90 segundos (59s Vercel + buffer)
+    // Self-heal NOVO: Job 'processing' por >5min 20s (stuck due to Vercel Pro timeout)
+    const JOB_STUCK_THRESHOLD_MS = 320 * 1000; // 5min 20s (300s Vercel Pro + buffer)
 
     if (jobDetails.status === 'processing' && 
         jobDetails.processing_started_at && 
         (Date.now() - new Date(jobDetails.processing_started_at as string).getTime() > JOB_STUCK_THRESHOLD_MS)) {
           
-      console.warn(`${endpointName} JobId: ${jobId}. 🔍 SELF-HEAL (STUCK >90s): Job status is 'processing' for too long. Assuming timeout.`);
+      console.warn(`${endpointName} JobId: ${jobId}. 🔍 SELF-HEAL (STUCK >5min 20s): Job status is 'processing' for too long. Assuming timeout.`);
       
       // Tenta verificar no storage uma última vez, caso o processador tenha conseguido guardar antes de morrer
       let foundInStorage = false;
@@ -207,15 +207,15 @@ console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUs
                 error_message: 'Recovered by self-heal (was stuck processing, found in storage)' 
             }).eq('id', jobId);
             // Retorna 'completed' para o cliente
-            return res.status(200).json({ status: 'completed', output_url: storageUrl, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: "Recovered stuck >90s job (found in storage)" });
+            return res.status(200).json({ status: 'completed', output_url: storageUrl, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: "Recovered stuck >5min 20s job (found in storage)" });
           }
         }
       } catch (e) {
-        console.error(`${endpointName} JobId: ${jobId}. SELF-HEAL (STUCK >90s): Error checking storage.`, e);
+        console.error(`${endpointName} JobId: ${jobId}. SELF-HEAL (STUCK >5min 20s): Error checking storage.`, e);
       }
 
       if (!foundInStorage) {
-        console.warn(`${endpointName} JobId: ${jobId}. SELF-HEAL (STUCK >90s): Updating DB to 'failed_timeout'.`);
+        console.warn(`${endpointName} JobId: ${jobId}. SELF-HEAL (STUCK >5min 20s): Updating DB to 'failed_timeout'.`);
         const failureMessage = 'O processamento da imagem excedeu o tempo limite no servidor.';
         await supabaseAdmin.from('transformations').update({ 
             status: 'failed_timeout_server', // ou outro status de erro que definas
@@ -223,7 +223,7 @@ console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUs
             completed_at: new Date().toISOString() 
         }).eq('id', jobId);
         // Retorna o erro para o cliente
-        return res.status(200).json({ status: 'failed_timeout_server', error_message: failureMessage, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: "Marked stuck >90s job as failed_timeout_server" });
+        return res.status(200).json({ status: 'failed_timeout_server', error_message: failureMessage, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: "Marked stuck >5min 20s job as failed_timeout_server" });
       }
     }
 
@@ -305,13 +305,13 @@ console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUs
       }
     }
     
-    // Self-heal 3: Job 'stuck' (processing, paid, pending_payment) por >2 mins
-    const STUCK_JOB_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutos
+    // Self-heal 3: Job 'stuck' (processing, paid, pending_payment) por >10 mins  
+    const STUCK_JOB_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutos - mais generoso para Vercel Pro
     if (['processing', 'paid', 'pending_payment'].includes(jobDetails.status || '') && 
         jobDetails.created_at && // Usar created_at como fallback se processing_started_at não existir
         (Date.now() - new Date(jobDetails.processing_started_at || jobDetails.created_at as string).getTime() > STUCK_JOB_THRESHOLD_MS)) {
-      console.warn(`${endpointName} JobId: ${jobId}. 🔍 SELF-HEAL CHECK 3: Job is '${jobDetails.status}' for >2 mins. Attempting to fix...`);
-      selfHealActionTaken = `Checked stuck job >2min (status: ${jobDetails.status})`;
+      console.warn(`${endpointName} JobId: ${jobId}. 🔍 SELF-HEAL CHECK 3: Job is '${jobDetails.status}' for >10 mins. Attempting to fix...`);
+      selfHealActionTaken = `Checked stuck job >10min (status: ${jobDetails.status})`;
       try {
         const { data: files } = await supabaseAdmin.storage.from('results').list(`public/${jobDetails.user_id}/${jobId}`, { limit: 1, sortBy: { column: 'name', order: 'desc' } });
         if (files && files.length > 0) {

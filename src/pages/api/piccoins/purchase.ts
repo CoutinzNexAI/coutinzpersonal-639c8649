@@ -37,7 +37,6 @@ type PackageId = keyof typeof PICCOIN_PACKAGES;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const endpointName = '[API /api/piccoins/purchase]';
-  console.log(`${endpointName} Handler started. Method: ${req.method}`);
 
   if (req.method !== 'POST') {
     console.warn(`${endpointName} Method not allowed: ${req.method}`);
@@ -46,7 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    console.log(`${endpointName} Attempting to create Supabase client for auth...`);
     // 1. Validate authentication using Supabase SSR client with robust cookie parsing
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -59,7 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const originalValue = parsedCookiesObjectOriginal[name];
             
             if (name.startsWith('sb-') && name.includes('-auth-token') && originalValue === undefined) {
-              // console.log(`${endpointName} Cookie '${name}': Original parse failed, trying manual.`);
               return getManuallyParsedCookie(cookieStrToParse, name);
             }
             return originalValue;
@@ -86,25 +83,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     );
 
-    console.log(`${endpointName} Authenticating user...`);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      console.error(`${endpointName} Authentication failed:`, authError?.message || 'No user session.');
       return res.status(401).json({ message: 'Unauthorized', detail: authError?.message || 'User not authenticated.' });
     }
     // Se chegou aqui, o user está autenticado. AGORA aplicamos o rate limit.
-    console.log(`${endpointName} User authenticated: ${user.id}. Applying rate limit...`);
     const permitted = await applyRateLimit(req, res, purchaseApiRateLimiter, user.id);
     if (!permitted) {
       console.warn(`${endpointName} Rate limit exceeded for user: ${user.id}`);
       return; 
     }
-    console.log(`${endpointName} Rate limit check passed for user: ${user.id}`);
 
     // 2. Get packageId from request body
     const { packageId } = req.body;
-    console.log(`${endpointName} Received packageId: ${packageId}`);
 
     if (!packageId || typeof packageId !== 'string' || !PICCOIN_PACKAGES[packageId as PackageId]) {
       console.warn(`${endpointName} Invalid packageId received: ${packageId}`);
@@ -112,19 +104,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const selectedPackage = PICCOIN_PACKAGES[packageId as PackageId];
-    console.log(`${endpointName} Selected package: ${selectedPackage.name}, Coins: ${selectedPackage.coins}, Price: ${selectedPackage.price}`);
 
     // 3. Get the application URL from environment variables
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl) {
-      console.error(`${endpointName} CRITICAL: NEXT_PUBLIC_APP_URL environment variable is not defined. Cannot create Stripe session URLs.`);
       return res.status(500).json({ message: 'Server configuration error: Application URL is not set.' });
     }
-    console.log(`${endpointName} Using appUrl for redirect URLs: ${appUrl}`);
 
 
     // 4. Create Stripe Checkout Session
-    console.log(`${endpointName} Creating Stripe Checkout session...`);
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -160,11 +148,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // },
     });
 
-    console.log(`${endpointName} Stripe session created successfully. Session ID: ${session.id}`);
     return res.status(200).json({ sessionId: session.id });
 
   } catch (error: unknown) { // <<< Alterado de 'any' para 'unknown'
-    console.error(`${endpointName} Error during purchase process:`, error);
     let errorMessage = 'An unknown error occurred.';
     let errorDetail: string | undefined = undefined;
     let statusCode = 500;
@@ -174,7 +160,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (error instanceof Stripe.errors.StripeError) {
       // Se for um erro específico do Stripe SDK
-      console.log(`${endpointName} StripeError detected. Type: ${error.type}, Code: ${error.code}`);
       statusCode = error.statusCode || 500;
       errorMessage = error.message || 'An error occurred with the payment provider.';
       type = error.type;
@@ -190,7 +175,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Tentativa de lidar com outros objetos de erro que possam ter propriedades do Stripe
       const potentialStripeError = error as { type?: unknown, statusCode?: unknown, message?: unknown, code?: unknown, param?: unknown };
       if (typeof potentialStripeError.type === 'string' && potentialStripeError.type.startsWith('Stripe')) {
-        console.log(`${endpointName} Duck-typed StripeError detected. Type: ${potentialStripeError.type}`);
         statusCode = typeof potentialStripeError.statusCode === 'number' ? potentialStripeError.statusCode : 500;
         errorMessage = typeof potentialStripeError.message === 'string' ? potentialStripeError.message : 'An error occurred with the payment provider.';
         type = potentialStripeError.type;
@@ -209,11 +193,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     } else if (error instanceof Error) {
       // Se for uma instância de Error padrão do JavaScript
-      console.log(`${endpointName} Generic Error instance detected.`);
       errorDetail = error.message;
     } else {
       // Se for outra coisa (ex: uma string foi lançada)
-      console.log(`${endpointName} Non-Error type thrown:`, error);
       errorDetail = String(error);
     }
     
