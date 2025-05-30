@@ -52,26 +52,21 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
   const fetchPrivateTransformations = async () => {
     try {
       setLoading(true);
-      console.log('🔍 DEBUG - Fetching private transformations...');
       
       const response = await fetch('/api/community/get-my-private-transformations?page=1&limit=20');
-      console.log('🔍 DEBUG - Response status:', response.status);
-      console.log('🔍 DEBUG - Response ok:', response.ok);
-      
       const data = await response.json();
-      console.log('🔍 DEBUG - Response data:', data);
-      console.log('🔍 DEBUG - data.success:', data.success);
-      console.log('🔍 DEBUG - data.transformations:', data.transformations);
-      console.log('🔍 DEBUG - data.transformations.length:', data.transformations?.length);
 
       if (data.success) {
-        console.log('🔍 DEBUG - Setting transformations:', data.transformations);
         setPrivateTransformations(data.transformations || []);
       } else {
-        console.error('🔍 DEBUG - API returned error:', data.error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('API returned error:', data.error);
+        }
       }
     } catch (error) {
-      console.error('🔍 DEBUG - Fetch error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Fetch error:', error);
+      }
     } finally {
       setLoading(false);
     }

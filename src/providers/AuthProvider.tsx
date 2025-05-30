@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .upsert({
           id: authUser.id,
           email: authUser.email,
-          name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || null,
+          full_name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || null,
           avatar_url: authUser.user_metadata?.avatar_url || null,
           updated_at: new Date().toISOString()
         }, { onConflict: 'id' });

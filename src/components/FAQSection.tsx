@@ -184,7 +184,7 @@ const faqData: FaqItem[] = [
           <li><strong>Portfolios:</strong> Use como exemplos do seu trabalho criativo</li>
         </ul>
         <p className="text-sm text-amber-700">
-          📝 <strong>Apenas pedimos:</strong> Se partilhar publicamente, mencione @PicTuz - ajuda-nos a crescer! 🙏
+          📝 <strong>Apenas pedimos:</strong> Se partilhar publicamente, mencione @pictuz.ia - ajuda-nos a crescer! 🙏
         </p>
       </div>
     ),

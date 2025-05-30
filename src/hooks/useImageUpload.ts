@@ -72,7 +72,6 @@ const isValidFileSignature = (headerHex: string, browserMimeType: string): boole
   
   // ✅ NOVA ABORDAGEM: Aceita se o conteúdo é uma imagem válida
   // Não importa se a extensão não coincide com o MIME type do browser
-  console.log(`[isValidFileSignature] ✅ Imagem válida detectada: ${actualImageType} (browser MIME: ${browserMimeType})`);
   return true;
 };
 

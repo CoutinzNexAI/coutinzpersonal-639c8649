@@ -37,16 +37,6 @@ type ProcessingState =
   | 'completed'
   | 'error';
 
-type StatusResponse = {
-  status?: string;
-  output_url?: string | null;
-  error_message?: string | null;
-  message?: string;
-  // Campos de debug que podem vir da API get-transformation-status
-  debug_db_read_at?: string;
-  debug_self_heal_triggered?: string;
-};
-
 type TransformationInsert = {
   user_id: string;
   style_requested: string;
@@ -74,7 +64,7 @@ export function useImageProcessing() {
 
   const [availableStyles, setAvailableStyles] = useState<Style[]>([]);
   const [stylesLoading, setStylesLoading] = useState<boolean>(true);
-  const [stylesError, setStylesError] = useState<string | null>(null);
+  const [stylesError] = useState<string | null>(null);
 
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const initialLoadAttempted = useRef(false);
