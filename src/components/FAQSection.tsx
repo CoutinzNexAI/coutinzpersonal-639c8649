@@ -1,6 +1,6 @@
 // src/components/FAQSection.tsx
 import React from 'react';
-import { AnimatePresence, motion } from 'framer-motion'; // Importa framer-motion para animações
+import { motion } from 'framer-motion'; // Importa framer-motion para animações
 import {
   Accordion,
   AccordionContent,
@@ -20,106 +20,212 @@ interface FaqItem {
 const faqData: FaqItem[] = [
   {
     id: "item-1",
-    question: "O que é o PicTuz?",
-    answer: "O PicTuz é uma plataforma online inovadora que utiliza inteligência artificial para transformar as suas fotografias em obras de arte únicas. Explore uma variedade de estilos e dê uma nova vida às suas imagens!",
+    question: "O que é o PicTuz e como funciona a magia?",
+    answer: (
+      <div className="space-y-3">
+        <p>
+          O <strong>PicTuz</strong> é a plataforma portuguesa mais avançada para transformar as suas fotografias em obras de arte únicas usando inteligência artificial de última geração!
+        </p>
+        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-3">
+          <p className="text-amber-800 text-sm">
+            ✨ <strong>A nossa IA foi treinada</strong> com milhares de obras de arte clássicas e modernas, permitindo criar transformações que rivalizam com artistas profissionais!
+          </p>
+        </div>
+        <p>
+          Simplesmente carregue a sua foto, escolha entre os nossos <strong>+15 estilos únicos</strong> (desde Ghibli mágico até Azulejo Português), e veja a magia acontecer em segundos!
+        </p>
+      </div>
+    ),
   },
   {
     id: "item-2",
-    question: "Como funciona o PicTuz?",
+    question: "Como começar? É realmente grátis?",
     answer: (
-      <div className="space-y-2">
-        <p>É muito simples transformar as suas fotos em arte connosco!</p>
-        <ol className="list-decimal list-inside space-y-1 pl-2">
+      <div className="space-y-3">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-green-800 font-medium">
+            🎁 <strong>SIM! Completamente grátis para começar!</strong>
+          </p>
+        </div>
+        <ol className="list-decimal list-inside space-y-2 pl-2">
           <li>
-            Crie a sua conta ou faça login (pode usar a sua conta Google). 
-            <strong> Ao registar-se, recebe 2 PicCoins para as suas primeiras transformações gratuitas!</strong>
+            <strong>Registe-se gratuitamente</strong> (pode usar o Google) e receba <strong>2 PicCoins</strong> de bónus!
           </li>
           <li>
-            Carregue a fotografia que deseja transformar (aceitamos JPG, PNG, WEBP, até 10MB).
+            <strong>Carregue a sua foto</strong> (JPG, PNG, WEBP até 10MB) - sem marcas de água!
           </li>
           <li>
-            Navegue pela nossa galeria de estilos e escolha o seu favorito.
+            <strong>Escolha o seu estilo favorito</strong> da nossa galeria curada
           </li>
           <li>
-            Utilize as suas PicCoins para realizar a transformação. As suas primeiras são por nossa conta!
+            <strong>Use as suas PicCoins</strong> para transformar - as primeiras são por nossa conta!
+          </li>
+          <li>
+            <strong>Descarregue em alta qualidade</strong> e partilhe na nossa comunidade
           </li>
         </ol>
-        <p>
-          A nossa IA entra em ação e, em pouco tempo, a sua imagem transformada estará pronta para ver e descarregar no seu perfil! Se precisar de mais PicCoins, pode adquiri-las facilmente na secção "Preço".
+        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+          💡 <strong>Dica:</strong> Explore a nossa comunidade - utilizadores ativos descobrem formas secretas de ganhar PicCoins extra! 🪙
         </p>
       </div>
     ),
   },
   {
     id: "item-3",
-    question: "O PicTuz é gratuito?",
-    answer: (
-      <div className="space-y-2">
-        <p>
-          Para dar as boas-vindas e permitir que experimente a magia, <strong>o PicTuz oferece 2 PicCoins (equivalente a 2 transformações de imagem) gratuitamente a todos os novos utilizadores</strong> no momento do registo!
-        </p>
-        <p>
-          Após utilizar as suas transformações gratuitas, cada nova transformação é realizada utilizando PicCoins. Pode adquirir pacotes de PicCoins de forma conveniente na nossa plataforma, com descontos progressivos para pacotes maiores.
-        </p>
-        <p>
-          Este sistema de PicCoins ajuda-nos a cobrir os custos computacionais da inteligência artificial e a continuar a desenvolver e melhorar o PicTuz. Fique atento às nossas redes sociais e plataforma para possíveis promoções e formas de ganhar mais PicCoins!
-        </p>
-      </div>
-    ),
-  },
-  {
-    id: "item-4",
-    question: "As minhas fotos são armazenadas nos servidores do PicTuz?",
-    answer: "Para processar a sua imagem, precisamos de a carregar temporariamente para os nossos servidores seguros. A imagem original é usada para a transformação e depois guardamos a imagem transformada no seu histórico pessoal para que a possa descarregar. Levamos a sua privacidade muito a sério. Consulte a nossa Política de Privacidade para mais detalhes.",
-  },
-  {
-    id: "item-5",
-    question: "É seguro fazer pagamentos no PicTuz?",
-    answer: "Sim, completamente! Todos os pagamentos são processados através do Stripe, uma das plataformas de pagamento mais seguras e reconhecidas mundialmente. O PicTuz não armazena os dados do seu cartão.",
-  },
-  // Adiciona mais perguntas aqui...
-  {
-    id: "item-6",
-    question: "Quais estilos artísticos estão disponíveis?",
-    answer: "Oferecemos uma coleção crescente de estilos, desde inspirações clássicas como Ghibli e Cartoon, até estéticas mais abstratas ou temáticas como Azulejo Português. Explore a nossa galeria de estilos para ver todas as opções!",
-   },
-   {
-    id: "item-7",
-    question: "Preciso de uma conta para usar o serviço?",
-    answer: "Sim, é necessário criar uma conta (pode usar o login Google) para transformar imagens, aceder ao seu histórico e descarregar os seus resultados.",
-   },
-   {
-    id: "item-8",
     question: "Quanto tempo demora para transformar uma imagem?",
-    answer: "O tempo de processamento pode variar dependendo da complexidade do estilo e da carga atual nos nossos servidores, mas geralmente leva apenas alguns instantes a poucos minutos.",
-   },
-   {
-    id: "item-9",
-    question: "Como posso obter mais PicCoins?",
     answer: (
       <div className="space-y-2">
         <p>
-          Existem várias formas de obteres PicCoins para as tuas transformações mágicas:
+          <strong>A magia acontece rapidamente!</strong>
         </p>
         <ul className="list-disc list-inside space-y-1 pl-2">
-          <li>
-            <strong>🎁 Bónus de Registo:</strong> Quando te registas, recebes automaticamente 2 PicCoins gratuitas para começares!
-          </li>
-          <li>
-            <strong>💳 Compra Direta:</strong> Podes adquirir pacotes de PicCoins na nossa secção "Preço" com descontos progressivos.
-          </li>
-          <li>
-            <strong>🌟 Explora a Comunidade:</strong> Participa ativamente na nossa comunidade... quem sabe que surpresas te aguardam? 😉
-          </li>
+          <li><strong>Fotos simples:</strong> 30-60 segundos ⚡</li>
+          <li><strong>Fotos complexas:</strong> 1-3 minutos 🎨</li>
+          <li><strong>Estilos detalhados:</strong> até 5 minutos para perfeição máxima ✨</li>
         </ul>
-        <div className="mt-3 p-3 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
-          <p className="text-amber-700 text-sm">
-            💡 <strong>Dica secreta:</strong> Utilizadores ativos na comunidade têm descoberto formas especiais de ganhar PicCoins extra... vale a pena explorares! ✨
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-blue-800 text-sm">
+            🚀 <strong>Novidade:</strong> Agora com processamento até 5x mais rápido! O nosso sistema de monitorização garante que nunca perde uma transformação.
           </p>
         </div>
       </div>
     ),
-   },
+  },
+  {
+    id: "item-5",
+    question: "As minhas fotos ficam seguras? E a privacidade?",
+    answer: (
+      <div className="space-y-2">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-green-800 font-medium">
+            🔒 <strong>100% Seguro e Privado!</strong>
+          </p>
+        </div>
+        <ul className="list-disc list-inside space-y-1 pl-2">
+          <li><strong>Encriptação total:</strong> As suas fotos são protegidas durante todo o processo</li>
+          <li><strong>Servidores europeus:</strong> Dados processados em infraestrutura GDPR-compliant</li>
+          <li><strong>Retenção limitada:</strong> Fotos originais removidas após processamento</li>
+          <li><strong>Controlo total:</strong> Pode eliminar as suas transformações a qualquer momento</li>
+          <li><strong>Não vendemos dados:</strong> A sua privacidade é sagrada para nós</li>
+        </ul>
+        <p className="text-sm">
+          Consulte a nossa <strong>Política de Privacidade</strong> para detalhes completos sobre proteção de dados.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: "item-6",
+    question: "Como funciona o sistema de PicCoins?",
+    answer: (
+      <div className="space-y-3">
+        <p>
+          As <strong>PicCoins 🪙</strong> são a nossa moeda digital que torna tudo justo e transparente:
+        </p>
+        <div className="space-y-2">
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+            <p className="text-yellow-800">
+              <strong>🎁 Bónus de Registo:</strong> 2 PicCoins gratuitas (2 transformações!)
+            </p>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded p-3">
+            <p className="text-blue-800">
+              <strong>💰 Pacotes Económicos:</strong> Descontos até 40% em pacotes maiores
+            </p>
+          </div>
+          <div className="bg-purple-50 border border-purple-200 rounded p-3">
+            <p className="text-purple-800">
+              <strong>🌟 Bónus da Comunidade:</strong> Ganhe PicCoins participando ativamente!
+            </p>
+          </div>
+        </div>
+        <p className="text-sm text-amber-700">
+          💡 <strong>Segredo:</strong> Comentários úteis, likes genuínos e partilhas na comunidade podem render PicCoins surprise! 🎁
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: "item-8",
+    question: "Pagamentos são seguros? Que métodos aceitem?",
+    answer: (
+      <div className="space-y-2">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-green-800 font-medium">
+            🛡️ <strong>Pagamentos 100% Seguros via Stripe!</strong>
+          </p>
+        </div>
+        <p>
+          Usamos o <strong>Stripe</strong>, a plataforma de pagamentos mais confiável do mundo, utilizada por empresas como Spotify, Uber e Shopify.
+        </p>
+        <p className="text-sm font-medium">
+          🔐 <strong>O PicTuz nunca vê ou armazena dados do seu cartão</strong> - tudo processado diretamente pelo Stripe.
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: "item-9",
+    question: "Posso usar as imagens comercialmente?",
+    answer: (
+      <div className="space-y-2">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-green-800 font-medium">
+            ✅ <strong>Sim! Uso comercial permitido!</strong>
+          </p>
+        </div>
+        <p>
+          As transformações criadas no PicTuz são <strong>suas</strong> para usar como desejar:
+        </p>
+        <ul className="list-disc list-inside space-y-1 pl-2">
+          <li><strong>Redes sociais:</strong> Instagram, Facebook, TikTok - sem restrições</li>
+          <li><strong>Uso comercial:</strong> Marketing, produtos, vendas online</li>
+          <li><strong>Impressões:</strong> Posters, merchandising, arte física</li>
+          <li><strong>Portfolios:</strong> Use como exemplos do seu trabalho criativo</li>
+        </ul>
+        <p className="text-sm text-amber-700">
+          📝 <strong>Apenas pedimos:</strong> Se partilhar publicamente, mencione @PicTuz - ajuda-nos a crescer! 🙏
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: "item-10",
+    question: "Que tipos de fotos funcionam melhor?",
+    answer: (
+      <div className="space-y-3">
+        <p>
+          A nossa IA é <strong>inteligente e versátil</strong>, mas algumas dicas garantem resultados incríveis:
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="bg-green-50 border border-green-200 rounded p-3">
+            <span className="font-medium text-green-800">✅ Funciona MUITO bem:</span>
+            <ul className="text-sm mt-1 space-y-1">
+              <li>• Retratos nítidos</li>
+              <li>• Paisagens detalhadas</li>
+              <li>• Animais de estimação</li>
+              <li>• Arquitetura</li>
+              <li>• Fotos com boa iluminação</li>
+            </ul>
+          </div>
+          <div className="bg-orange-50 border border-orange-200 rounded p-3">
+            <span className="font-medium text-orange-800">⚠️ Resultados variáveis:</span>
+            <ul className="text-sm mt-1 space-y-1">
+              <li>• Fotos muito escuras</li>
+              <li>• Imagens muito pequenas</li>
+              <li>• Múltiplas pessoas</li>
+              <li>• Movimento/blur</li>
+            </ul>
+          </div>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-blue-800 text-sm">
+            💡 <strong>Dica profissional:</strong> Fotos quadradas (1:1) ou verticais (4:5) tendem a ter os melhores resultados para redes sociais!
+          </p>
+        </div>
+      </div>
+    ),
+  }
 ];
 
 // Variantes de animação para o conteúdo da resposta
@@ -142,94 +248,75 @@ const contentVariants = {
 export const FAQSection: React.FC = () => {
   return (
     // Secção que envolve o FAQ
-    <section id="faq" className="py-16 md:py-24 bg-ghibli-paper"> {/* ADICIONADO: id="faq" */}
-      <div className="container mx-auto px-4 max-w-5xl"> {/* Aumentada largura máxima */}
+    <section id="faq" className="py-12 md:py-20 bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50">
+      <div className="container mx-auto px-4 max-w-6xl">
         {/* Título da Secção FAQ */}
-        <h2 className="section-title text-center mb-10 md:mb-16"> {/* Aumentada margem inferior */}
-          Perguntas Frequentes
-        </h2>
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="section-title mb-4">
+            Perguntas Frequentes
+          </h2>
+          <p className="text-ghibli-earth text-lg max-w-2xl mx-auto">
+            Tudo o que precisa de saber sobre o <strong>PicTuz</strong> e como transformar as suas fotos em arte incrível! ✨
+          </p>
+        </div>
 
-        {/* Componente Acordeão com layout em 2 colunas em desktop */}
-        {/* Aplicado grid e gap */}
+        {/* Componente Acordeão com layout responsivo */}
         <Accordion
           type="single"
           collapsible
-          className="w-full grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" // Grid layout
+          className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6"
         >
-          {faqData.map((item) => (
+          {faqData.map((item, index) => (
             <AccordionItem
               key={item.id}
               value={item.id}
-              // Estilo de cada item: fundo subtil, borda temática, sombra no hover
-              className="border border-ghibli-sand/30 bg-gradient-to-br from-white/80 to-ghibli-cream/30 backdrop-blur-sm rounded-xl shadow-sm transition-all duration-300 hover:shadow-lg hover:border-ghibli-sand/50"
+              // Estilo de cada item: fundo mais atrativo, bordas melhoradas
+              className={`border border-ghibli-sand/40 bg-gradient-to-br from-white/95 to-ghibli-cream/40 backdrop-blur-sm rounded-2xl shadow-sm transition-all duration-300 hover:shadow-xl hover:border-amber-400/50 hover:scale-[1.02] ${
+                index < 2 ? 'lg:col-span-2' : '' // Primeiras 2 perguntas ocupam largura total no desktop
+              }`}
             >
-              {/* Usar um div interno para motion.div não interferir com AccordionItem */}
               <div>
                 <AccordionTrigger
-                  // Estilo do trigger: padding, fontes, cores, hover
-                  className="w-full flex justify-between items-center text-left p-4 md:p-5 font-medium text-ghibli-wood hover:no-underline group rounded-t-xl data-[state=open]:text-ghibli-moss data-[state=open]:bg-ghibli-cream/40"
+                  // Estilo melhorado do trigger
+                  className="w-full flex justify-between items-center text-left p-4 md:p-6 font-semibold text-ghibli-wood hover:no-underline group rounded-t-2xl data-[state=open]:text-amber-700 data-[state=open]:bg-gradient-to-r data-[state=open]:from-amber-50/80 data-[state=open]:to-yellow-50/80 transition-all duration-300"
                 >
                   {/* Animação de hover no texto */}
                   <motion.span
-                    whileHover={{ x: 2, transition: { duration: 0.2 } }} // Leve deslocamento no hover
-                    className="flex-1 text-base md:text-lg pr-4" // Padding à direita para espaço do ícone
+                    whileHover={{ x: 2, transition: { duration: 0.2 } }}
+                    className="flex-1 text-sm md:text-base lg:text-lg pr-4 leading-relaxed"
                   >
                     {item.question}
                   </motion.span>
-                  {/* Ícone Plus/Minus com animação */}
-                  <div className="relative h-5 w-5 shrink-0 text-ghibli-moss">
-                    {/* Minus (visível quando aberto) */}
-                    <motion.div
-                       initial={false} // Não animar na montagem
-                       animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                       exit={{ scale: 0.5, opacity: 0, rotate: -90 }}
-                       transition={{ duration: 0.2, ease: "easeInOut" }}
-                       className="absolute inset-0"
-                       // A visibilidade é controlada pelo data-state do pai (AccordionTrigger)
-                       // Usamos classes do grupo para mostrar/esconder baseado no estado
-                       // Nota: O Accordion do Shadcn pode não expor o estado diretamente para animação fácil aqui.
-                       // Uma abordagem mais simples é usar a classe data-[state=open] no pai.
-                       // Vamos usar a rotação no ícone abaixo.
-                    >
-                      {/* Simplificado: Usar rotação no ícone */}
-                    </motion.div>
-                    {/* Ícone Chevron (ou Plus/Minus) que roda */}
+                  {/* Ícone Plus/Minus com animação melhorada */}
+                  <div className="relative h-5 w-5 md:h-6 md:w-6 shrink-0 text-amber-600">
                      <motion.div
                        initial={false}
-                       animate={{ rotate: 0 }} // Estado fechado
-                       // A rotação será controlada pela classe data-[state=open] no Trigger
                        className="transition-transform duration-300 group-data-[state=open]:rotate-180"
                      >
-                       <Plus className="h-5 w-5 group-data-[state=open]:hidden" />
-                       <Minus className="h-5 w-5 hidden group-data-[state=open]:block" />
+                       <Plus className="h-5 w-5 md:h-6 md:w-6 group-data-[state=open]:hidden" />
+                       <Minus className="h-5 w-5 md:h-6 md:w-6 hidden group-data-[state=open]:block" />
                      </motion.div>
                   </div>
                 </AccordionTrigger>
-                {/* AnimatePresence para animar a entrada/saída do conteúdo */}
-                <AnimatePresence initial={false}>
-                  {/* O AccordionContent do Shadcn já tem animação, mas podemos envolvê-lo */}
-                  {/* para adicionar mais efeitos se necessário, ou usar o próprio AccordionContent */}
-                  {/* como motion component se ele aceitar a prop 'as'. Por simplicidade, */}
-                  {/* vamos confiar na animação padrão do Shadcn por agora. */}
-                   <AccordionContent
-                     // Estilo da área da resposta
-                     className="p-4 md:p-5 pt-2 text-ghibli-earth text-sm md:text-base leading-relaxed bg-white/40 rounded-b-xl overflow-hidden" // overflow-hidden ajuda na animação
-                   >
-                     {/* Adicionar um motion.div para animar o conteúdo interno */}
-                      <motion.div
-                        variants={contentVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit" // Nota: AnimatePresence precisa estar fora do AccordionItem para exit funcionar corretamente
-                      >
-                         {item.answer}
-                      </motion.div>
-                   </AccordionContent>
-                </AnimatePresence>
+                
+                <AccordionContent
+                  // Estilo melhorado da área da resposta
+                  className="p-4 md:p-6 pt-2 text-ghibli-earth text-sm md:text-base leading-relaxed bg-white/60 rounded-b-2xl border-t border-ghibli-sand/20"
+                >
+                  <motion.div
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="prose prose-sm md:prose-base max-w-none prose-amber"
+                  >
+                     {item.answer}
+                  </motion.div>
+                </AccordionContent>
               </div>
             </AccordionItem>
           ))}
-        </Accordion>
+        </Accordion>  
       </div>
     </section>
   );

@@ -48,6 +48,7 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
   const [showComments, setShowComments] = useState(true);
   const [showPicCoinAnimation, setShowPicCoinAnimation] = useState(false);
   const [picCoinMessage, setPicCoinMessage] = useState('');
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const commentsEndRef = useRef<HTMLDivElement>(null);
 
   // EFFECTS
@@ -62,6 +63,23 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
       commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [comments]);
+
+  // Mobile keyboard detection
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        const viewportHeight = window.visualViewport?.height || window.innerHeight;
+        const screenHeight = window.screen.height;
+        const isKeyboardOpen = viewportHeight < screenHeight * 0.75;
+        setKeyboardOpen(isKeyboardOpen);
+      }
+    };
+
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      return () => window.visualViewport?.removeEventListener('resize', handleResize);
+    }
+  }, []);
 
   // HANDLERS
   const handleSubmitComment = async (e: React.FormEvent) => {
@@ -165,25 +183,31 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
             onClick={onClose}
           />
 
-          {/* Modal - Mobile Optimized */}
+          {/* Modal - Mobile Optimized with Keyboard Support */}
           <motion.div
-            className="relative w-full max-w-7xl h-[95vh] sm:h-[90vh] bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden"
+            className={`relative w-full max-w-7xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden ${
+              keyboardOpen 
+                ? 'h-screen max-h-screen' // Full screen when keyboard is open
+                : 'h-[95vh] sm:h-[90vh]'  // Normal height
+            }`}
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
           >
-            {/* Close Button - Mobile Optimized */}
+            {/* Close Button - High z-index for mobile */}
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 sm:top-6 sm:right-6 z-10 p-2 sm:p-2.5 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all shadow-lg touch-manipulation"
+              className="absolute top-3 right-3 sm:top-6 sm:right-6 z-50 p-2 sm:p-2.5 bg-white/95 backdrop-blur-sm rounded-full hover:bg-white transition-all shadow-lg touch-manipulation"
             >
               <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-ghibli-wood" />
             </button>
 
-            <div className="flex flex-col lg:flex-row h-full">
+            <div className={`flex flex-col lg:flex-row h-full ${keyboardOpen ? 'lg:flex-col' : ''}`}>
               {/* Image Section - Mobile First with Overlay Info */}
-              <div className="lg:w-3/5 relative bg-ghibli-sand/10 flex items-center justify-center h-1/2 lg:h-full">
+              <div className={`lg:w-3/5 relative bg-ghibli-sand/10 flex items-center justify-center ${
+                keyboardOpen ? 'h-1/3 lg:h-1/3' : 'h-1/2 lg:h-full'
+              }`}>
                 <div className="relative w-full h-full max-w-[600px] max-h-[600px] aspect-square mx-auto p-2 sm:p-4">
                   <Image
                     src={transformation.output_url}
@@ -197,52 +221,60 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                   {/* Mobile Overlay Info */}
                   <div className="lg:hidden absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40 rounded-xl sm:rounded-2xl">
                     {/* Top Info */}
-                    <div className="absolute top-3 left-3 right-3">
+                    <div className="absolute top-3 left-3 right-12 z-40">
                       <div className="flex items-center justify-between">
                         {/* User & Date */}
-                        <div className="flex items-center space-x-2">
-                          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1">
-                            <span className="text-ghibli-wood text-xs font-medium">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <div className="bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 max-w-xs">
+                            <span className="text-ghibli-wood text-xs font-medium truncate block">
                               {transformation.user_full_name || 'Utilizador'}
                             </span>
                           </div>
                         </div>
                         
-                        {/* Like Button */}
+                        {/* Like Button - Fixed position, high z-index */}
                         <motion.button
-                          onClick={() => onLike(transformation.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onLike(transformation.id);
+                          }}
                           disabled={isTogglingLike}
-                          className={`flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 touch-manipulation backdrop-blur-sm ${
+                          className={`flex items-center px-3 py-2 rounded-full text-xs font-medium transition-all duration-300 touch-manipulation backdrop-blur-sm z-50 ml-2 flex-shrink-0 ${
                             isLiked
                               ? 'bg-red-500 text-white shadow-lg'
-                              : 'bg-white/90 text-red-500 hover:bg-red-50'
+                              : 'bg-white/95 text-red-500 hover:bg-red-50'
                           } ${isTogglingLike ? 'opacity-50 cursor-not-allowed' : ''}`}
                           whileHover={{ scale: isTogglingLike ? 1 : 1.05 }}
                           whileTap={{ scale: isTogglingLike ? 1 : 0.95 }}
+                          style={{ 
+                            position: 'relative',
+                            zIndex: 50,
+                            pointerEvents: 'auto'
+                          }}
                         >
                           {isLiked ? (
-                            <HeartIconSolid className="w-3 h-3 mr-1 animate-pulse" />
+                            <HeartIconSolid className="w-4 h-4 mr-1 animate-pulse" />
                           ) : (
-                            <HeartIcon className="w-3 h-3 mr-1" />
+                            <HeartIcon className="w-4 h-4 mr-1" />
                           )}
                           <span>{formatCount(transformation.like_count)}</span>
                         </motion.button>
                       </div>
                     </div>
 
-                    {/* Bottom Info */}
-                    <div className="absolute bottom-3 left-3 right-3">
+                    {/* Bottom Info - Sticky when keyboard is open */}
+                    <div className={`absolute bottom-3 left-3 right-3 ${keyboardOpen ? 'relative mt-auto' : ''}`}>
                       {/* Title */}
-                      {transformation.public_title && (
-                        <h2 className="text-white text-lg font-bold mb-2 drop-shadow-lg">
+                      {transformation.public_title && !keyboardOpen && (
+                        <h2 className="text-white text-lg font-bold mb-2 drop-shadow-lg line-clamp-2">
                           {transformation.public_title}
                         </h2>
                       )}
                       
                       <div className="flex items-center justify-between">
                         {/* Style Tag & Stats */}
-                        <div className="flex items-center space-x-2">
-                          <div className="px-2 py-1 bg-amber-500/90 backdrop-blur-sm rounded-full text-xs font-medium text-white">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <div className="px-2 py-1 bg-amber-500/90 backdrop-blur-sm rounded-full text-xs font-medium text-white flex-shrink-0">
                             {transformation.style_name || transformation.style_requested}
                           </div>
                           
@@ -255,7 +287,7 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                         </div>
                         
                         {/* Date */}
-                        <div className="text-white/60 text-xs">
+                        <div className="text-white/60 text-xs flex-shrink-0">
                           {formatTimeAgo(transformation.published_at)}
                         </div>
                       </div>
@@ -265,7 +297,9 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
               </div>
 
               {/* Content Section - Mobile Optimized for Comments */}
-              <div className="lg:w-2/5 flex flex-col h-1/2 lg:h-full">
+              <div className={`lg:w-2/5 flex flex-col ${
+                keyboardOpen ? 'h-2/3 lg:h-2/3' : 'h-1/2 lg:h-full'
+              }`}>
                 {/* Header - Desktop Only */}
                 <div className="hidden lg:block p-6 border-b border-ghibli-sand/30 flex-shrink-0">
                   {/* User Info - No Avatar */}
@@ -339,10 +373,10 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                   </div>
                 </div>
 
-                {/* Comments Section - Mobile Optimized with More Space */}
+                {/* Comments Section - Mobile Optimized with Keyboard Support */}
                 <div className="flex-1 flex flex-col min-h-0">
-                  {/* Comments Header - Simplified for Mobile */}
-                  <div className="px-3 py-2 lg:px-6 lg:py-3 border-b border-ghibli-sand/30 flex-shrink-0">
+                  {/* Comments Header - Sticky */}
+                  <div className="sticky top-0 z-30 px-3 py-2 lg:px-6 lg:py-3 border-b border-ghibli-sand/30 bg-white/95 backdrop-blur-sm">
                     <button
                       onClick={() => setShowComments(!showComments)}
                       className="flex items-center text-ghibli-wood font-semibold text-sm lg:text-base"
@@ -354,12 +388,12 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
 
                   {showComments && (
                     <>
-                      {/* Comments List - Much More Space on Mobile */}
+                      {/* Comments List - Optimized for keyboard */}
                       <div 
                         className="flex-1 overflow-y-auto px-3 py-3 lg:px-6 lg:py-4 space-y-3 min-h-0" 
                         style={{ 
-                          height: 'calc(50vh - 80px)', // Much more space on mobile
-                          maxHeight: 'calc(90vh - 200px)' // Larger on desktop
+                          height: keyboardOpen ? 'calc(35vh - 40px)' : 'calc(50vh - 80px)',
+                          maxHeight: keyboardOpen ? 'calc(40vh - 40px)' : 'calc(90vh - 200px)'
                         }}
                       >
                         {isLoadingComments ? (
@@ -415,8 +449,8 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                         )}
                       </div>
 
-                      {/* Comment Form - Compact for Mobile */}
-                      <div className="border-t border-ghibli-sand/30 p-3 lg:p-4 flex-shrink-0 bg-white">
+                      {/* Comment Form - Sticky bottom */}
+                      <div className="sticky bottom-0 z-30 border-t border-ghibli-sand/30 p-3 lg:p-4 bg-white/95 backdrop-blur-sm">
                         <form onSubmit={handleSubmitComment} className="space-y-2">
                           <textarea
                             value={newComment}
@@ -424,7 +458,7 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                             onKeyDown={handleKeyDown}
                             placeholder="Escreve um comentário..."
                             className="w-full px-3 py-2 lg:px-4 lg:py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all text-sm"
-                            rows={2}
+                            rows={keyboardOpen ? 1 : 2}
                             disabled={isSubmittingComment}
                           />
                           <div className="flex items-center justify-between">

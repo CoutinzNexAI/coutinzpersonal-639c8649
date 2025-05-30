@@ -361,7 +361,7 @@ export function useImageProcessing() {
                 pollingIntervalRef.current = null;
               }
               setIsLoading(false);
-              return;
+              return; 
             }
         }
         } catch (finalStorageError) {
@@ -501,7 +501,7 @@ export function useImageProcessing() {
     setTransformedImage(null); 
     setCurrentJobId(null); 
     setSimulatedProgress(0); // Reset progresso para nova transformação
-    pollCountRef.current = 0;
+    pollCountRef.current = 0; 
 
     let tempUploadedFilePath: string | null = null;
     let tempNewJobId: string | null = null;

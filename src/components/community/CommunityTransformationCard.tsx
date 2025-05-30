@@ -68,20 +68,25 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
         {/* Quick Actions - Mobile Optimized */}
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute top-3 right-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 z-40">
           <motion.button
             onClick={(e) => {
               e.stopPropagation();
               onLike(transformation.id);
             }}
             disabled={isTogglingLike}
-            className={`p-2 sm:p-2.5 rounded-full backdrop-blur-md transition-all touch-manipulation ${
+            className={`p-2.5 sm:p-2.5 rounded-full backdrop-blur-md transition-all touch-manipulation relative z-50 ${
               isLiked
                 ? 'bg-red-500 text-white shadow-lg'
-                : 'bg-white/80 text-red-500 hover:bg-red-500 hover:text-white'
+                : 'bg-white/90 text-red-500 hover:bg-red-500 hover:text-white'
             } ${isTogglingLike ? 'opacity-50 cursor-not-allowed' : ''}`}
             whileHover={{ scale: isTogglingLike ? 1 : 1.1 }}
             whileTap={{ scale: isTogglingLike ? 1 : 0.9 }}
+            style={{ 
+              position: 'relative',
+              zIndex: 50,
+              pointerEvents: 'auto'
+            }}
           >
             {isLiked ? (
               <HeartIconSolid className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -92,7 +97,7 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
         </div>
 
         {/* View Indicator - Mobile Optimized */}
-        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30">
           <div className="px-2 py-1 sm:px-3 sm:py-1.5 bg-black/60 backdrop-blur-md rounded-full text-white text-xs font-medium">
             👆 Toca para ver
           </div>

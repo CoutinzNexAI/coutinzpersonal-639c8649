@@ -118,7 +118,7 @@ const Index = () => {
 
       {/* Renderiza o rodpé */}
       <Footer />
-    </div> // Fim do container principal
+    </div> {/* Fim do container principal */}
     </>
   );
 };
