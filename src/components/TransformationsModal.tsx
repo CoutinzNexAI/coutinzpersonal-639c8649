@@ -69,6 +69,7 @@ const TransformationsModal: React.FC = () => {
 
   const fetchTransformations = useCallback(async (page: number, isPageChange: boolean = false) => {
     if (isAuthLoading || !userInfo) {
+        console.log("[TransformationsModal] Auth loading or no user info, skipping fetch.");
         return;
     }
 
@@ -77,6 +78,9 @@ const TransformationsModal: React.FC = () => {
       setIsFetchingPage(true);
     } else {
       setIsLoading(true);
+      // Limpa items apenas no carregamento inicial da primeira página para evitar piscar
+      // ao mudar de página se a lógica de append/replace for diferente.
+      // Se cada página substitui a anterior, limpar sempre é ok.
       if (page === 0) {
         setGridItems([]); 
       }
@@ -86,6 +90,8 @@ const TransformationsModal: React.FC = () => {
       const from = page * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
 
+      console.log(`[TransformationsModal] Fetching transformations for user ${userInfo.id}, page ${page}, range ${from}-${to}, statuses: ${RELEVANT_STATUSES.join(', ')}`);
+
       const { data, error: dbError, count } = await supabase
         .from('transformations')
         .select(`
@@ -93,11 +99,13 @@ const TransformationsModal: React.FC = () => {
           styles ( name )
         `, { count: 'exact' })
         .eq('user_id', userInfo.id)
-        .in('status', RELEVANT_STATUSES)
-        .order('created_at', { ascending: false })
+        .in('status', RELEVANT_STATUSES) // Busca apenas os status relevantes
+        .order('created_at', { ascending: false }) // Ordena pelos mais recentes primeiro
         .range(from, to);
 
       if (dbError) throw dbError;
+      
+      console.log(`[TransformationsModal] Fetched data:`, data, `Count:`, count);
 
       const itemsWithState = (data || []).map(item => ({
           ...(item as unknown as FetchedTransformation), 
@@ -107,38 +115,47 @@ const TransformationsModal: React.FC = () => {
       setTotalCount(count || 0);
 
     } catch (err: unknown) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[TransformationsModal] Error fetching transformations:', err);
-      }
+      console.error('[TransformationsModal] Error fetching transformations:', err);
       const errorMsg = err instanceof Error ? err.message : 'Falha ao carregar o histórico de transformações.';
       setError(errorMsg);
-      setGridItems([]);
+      setGridItems([]); // Limpa em caso de erro
       setTotalCount(0);
       toast.error("Erro no Histórico", { description: errorMsg });
     } finally {
       setIsLoading(false);
       setIsFetchingPage(false);
     }
-  }, [userInfo, isAuthLoading]);
+  }, [userInfo, isAuthLoading]); // currentPage não precisa estar aqui, pois é o gatilho do outro useEffect
 
   // Efeito para buscar dados quando o modal abre ou o utilizador muda
   useEffect(() => {
     if (isOpen && userInfo && !isAuthLoading) {
-      setCurrentPage(0);
+      console.log("[TransformationsModal] Modal open and user ready. Fetching initial transformations (page 0).");
+      setCurrentPage(0); // Reseta para a primeira página ao abrir ou mudar de user
       fetchTransformations(0, false); 
     } else if (!isOpen) {
+      // Limpa os dados e reseta a página se o modal estiver fechado
+      console.log("[TransformationsModal] Modal closed. Clearing data.");
       setGridItems([]);
       setTotalCount(0);
       setCurrentPage(0); 
       setError(null);
+      // Não chamar fetchTransformations aqui
     }
-  }, [isOpen, userInfo, isAuthLoading, fetchTransformations]);
+  }, [isOpen, userInfo, isAuthLoading, fetchTransformations]); // fetchTransformations está aqui como dep
 
  useEffect(() => {
+    // Este useEffect é para quando o utilizador clica nos botões de paginação.
+    // Não deve buscar na montagem inicial se isOpen for false ou user não estiver pronto.
     if (isOpen && userInfo && !isAuthLoading) {
-        fetchTransformations(currentPage, true);
+        // Apenas faz fetch se não for o fetch inicial já coberto pelo outro useEffect
+        // Este fetch é acionado pela MUDANÇA de currentPage.
+        // O fetchTransformations em si não deve estar na dependência se currentPage for o único gatilho que queremos para *este* efeito.
+        // No entanto, para segurança, mantemos.
+        console.log(`[TransformationsModal] currentPage changed to ${currentPage}. Fetching page.`);
+        fetchTransformations(currentPage, true); // true indica que é uma mudança de página
     }
-}, [currentPage]);
+}, [currentPage]); // Dependência principal aqui é currentPage
 
 
   const handleViewClick = useCallback((url: string | null) => {

@@ -109,6 +109,17 @@ export interface StyleExample {
         { before: "/morambappenormal.webp", after: "/morambappemine.png" },
         { before: "/montenegronormal.jpg", after: "/montemine.png" }
       ],
+    },
+    {
+      id: "Rei Portugal",
+      name: "Estilo Rei Portugal",
+      description: "Transforme-se no Rei Portugal, inspirado no século XVI!",
+      examples: [
+        { before: "/marcelonormal.jpg", after: "/reiportugal/marcelo.png" },
+        { before: "/montenegronormal.jpg", after: "/reiportugal/monte.png" },
+        { before: "/yamalnormal.webp", after: "/reiportugal/yamal.png" },
+        
+      ]
     }
   ];
   

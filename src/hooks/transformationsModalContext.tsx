@@ -11,10 +11,12 @@ export const TransformationsModalProvider: React.FC<TransformationsModalProvider
 
   // Use useCallback for stable function references
   const openTransformationsModal = useCallback(() => {
+    console.log("[TransformationsModalContext] Opening modal.");
     setIsOpen(true);
   }, []);
 
   const closeTransformationsModal = useCallback(() => {
+    console.log("[TransformationsModalContext] Closing modal.");
     setIsOpen(false);
   }, []);
 

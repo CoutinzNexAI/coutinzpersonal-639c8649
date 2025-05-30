@@ -50,8 +50,9 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
   const [showComments, setShowComments] = useState(true);
   const [showPicCoinAnimation, setShowPicCoinAnimation] = useState(false);
   const [picCoinMessage, setPicCoinMessage] = useState('');
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const commentsEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
   const { userInfo } = useAuth();
 
@@ -68,20 +69,32 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
     }
   }, [comments]);
 
-  // Mobile keyboard detection
+  // Mobile input focus handling
   useEffect(() => {
-    const handleResize = () => {
-      if (typeof window !== 'undefined') {
-        const viewportHeight = window.visualViewport?.height || window.innerHeight;
-        const screenHeight = window.screen.height;
-        const isKeyboardOpen = viewportHeight < screenHeight * 0.75;
-        setKeyboardOpen(isKeyboardOpen);
-      }
+    const handleFocus = () => {
+      setIsInputFocused(true);
+      // Scroll input into view on mobile after a small delay
+      setTimeout(() => {
+        textareaRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }, 300);
+    };
+    
+    const handleBlur = () => {
+      setIsInputFocused(false);
     };
 
-    if (typeof window !== 'undefined' && window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize);
-      return () => window.visualViewport?.removeEventListener('resize', handleResize);
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.addEventListener('focus', handleFocus);
+      textarea.addEventListener('blur', handleBlur);
+      
+      return () => {
+        textarea.removeEventListener('focus', handleFocus);
+        textarea.removeEventListener('blur', handleBlur);
+      };
     }
   }, []);
 
@@ -204,23 +217,16 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
           {/* Modal - Mobile Optimized with Better Keyboard Support */}
           <motion.div
             className={`relative w-full max-w-7xl bg-white shadow-2xl overflow-hidden ${
-              keyboardOpen 
-                ? 'h-screen max-h-screen rounded-none' // Full screen, no border radius when keyboard is open
-                : 'h-[95vh] sm:h-[90vh] rounded-2xl sm:rounded-3xl'  // Normal height with border radius
+              isInputFocused 
+                ? 'fixed inset-0 rounded-none z-[60]' // Full screen overlay when input is focused
+                : 'h-[95vh] sm:h-[90vh] rounded-2xl sm:rounded-3xl'
             }`}
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            style={{
-              position: 'fixed',
-              top: keyboardOpen ? 0 : 'auto',
-              left: keyboardOpen ? 0 : 'auto',
-              right: keyboardOpen ? 0 : 'auto',
-              bottom: keyboardOpen ? 0 : 'auto',
-            }}
           >
-            {/* Close Button - High z-index for mobile */}
+            {/* Close Button - Always visible */}
             <button
               onClick={onClose}
               className="absolute top-3 right-3 sm:top-6 sm:right-6 z-50 p-2 sm:p-2.5 bg-white/95 backdrop-blur-sm rounded-full hover:bg-white transition-all shadow-lg touch-manipulation"
@@ -228,10 +234,12 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
               <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-ghibli-wood" />
             </button>
 
-            <div className={`flex flex-col lg:flex-row h-full ${keyboardOpen ? 'lg:flex-col' : ''}`}>
-              {/* Image Section - Mobile First with Better Keyboard Handling */}
-              <div className={`lg:w-3/5 relative bg-ghibli-sand/10 flex items-center justify-center ${
-                keyboardOpen ? 'h-[30vh] lg:h-[30vh] flex-shrink-0' : 'h-1/2 lg:h-full'
+            <div className={`flex flex-col ${isInputFocused ? 'h-screen' : 'lg:flex-row h-full'}`}>
+              {/* Image Section - Adaptive based on input focus */}
+              <div className={`relative bg-ghibli-sand/10 flex items-center justify-center ${
+                isInputFocused 
+                  ? 'h-[30vh] flex-shrink-0' // Fixed height when keyboard is open
+                  : 'lg:w-3/5 h-1/2 lg:h-full'
               }`}>
                 <div className="relative w-full h-full max-w-[600px] max-h-[600px] aspect-square mx-auto p-2 sm:p-4">
                   <Image
@@ -243,8 +251,10 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                     priority
                   />
                   
-                  {/* Mobile Overlay Info */}
-                  <div className="lg:hidden absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40 rounded-xl sm:rounded-2xl">
+                  {/* Mobile Overlay Info - Hide when input focused for more space */}
+                  <div className={`lg:hidden absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40 rounded-xl sm:rounded-2xl ${
+                    isInputFocused ? 'opacity-50' : ''
+                  }`}>
                     {/* Top Info */}
                     <div className="absolute top-3 left-3 right-12 z-40">
                       <div className="flex items-center justify-between">
@@ -291,9 +301,9 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                     </div>
 
                     {/* Bottom Info - Sticky when keyboard is open */}
-                    <div className={`absolute bottom-3 left-3 right-3 ${keyboardOpen ? 'relative mt-auto' : ''}`}>
+                    <div className={`absolute bottom-3 left-3 right-3 ${isInputFocused ? 'relative mt-auto' : ''}`}>
                       {/* Title */}
-                      {transformation.public_title && !keyboardOpen && (
+                      {transformation.public_title && !isInputFocused && (
                         <h2 className="text-white text-lg font-bold mb-2 drop-shadow-lg line-clamp-2">
                           {transformation.public_title}
                         </h2>
@@ -324,12 +334,16 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                 </div>
               </div>
 
-              {/* Content Section - Mobile Optimized for Comments with Fixed Heights */}
-              <div className={`lg:w-2/5 flex flex-col ${
-                keyboardOpen ? 'h-[70vh] lg:h-[70vh] flex-shrink-0' : 'h-1/2 lg:h-full'
+              {/* Content Section - Adaptive layout */}
+              <div className={`flex flex-col ${
+                isInputFocused 
+                  ? 'h-[70vh] flex-shrink-0' // Fixed height when input focused
+                  : 'lg:w-2/5 h-1/2 lg:h-full'
               }`}>
-                {/* Header - Desktop Only */}
-                <div className="hidden lg:block p-6 border-b border-ghibli-sand/30 flex-shrink-0">
+                {/* Header - Desktop Only (hide on mobile when input focused) */}
+                <div className={`hidden lg:block p-6 border-b border-ghibli-sand/30 flex-shrink-0 ${
+                  isInputFocused ? 'lg:hidden' : ''
+                }`}>
                   {/* User Info - No Avatar */}
                   <div className="flex items-center space-x-3 mb-4">
                     <div>
@@ -407,10 +421,12 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                   </div>
                 </div>
 
-                {/* Comments Section - Mobile Optimized with Keyboard Support */}
+                {/* Comments Section - Simplified for mobile keyboard */}
                 <div className="flex-1 flex flex-col min-h-0">
-                  {/* Comments Header - Sticky */}
-                  <div className="sticky top-0 z-30 px-3 py-2 lg:px-6 lg:py-3 border-b border-ghibli-sand/30 bg-white/95 backdrop-blur-sm">
+                  {/* Comments Header - Simplified when input focused */}
+                  <div className={`sticky top-0 z-30 px-3 py-2 lg:px-6 lg:py-3 border-b border-ghibli-sand/30 bg-white/95 backdrop-blur-sm ${
+                    isInputFocused ? 'py-1' : ''
+                  }`}>
                     <button
                       onClick={() => setShowComments(!showComments)}
                       className="flex items-center text-ghibli-wood font-semibold text-sm lg:text-base"
@@ -422,19 +438,15 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
 
                   {showComments && (
                     <>
-                      {/* Comments List - Fixed height for keyboard */}
+                      {/* Comments List - Adaptive height */}
                       <div 
                         className={`flex-1 overflow-y-auto px-3 py-3 lg:px-6 lg:py-4 space-y-3 ${
-                          keyboardOpen ? 'h-[35vh] max-h-[35vh]' : 'min-h-0'
+                          isInputFocused ? 'flex-shrink' : ''
                         }`}
-                        style={keyboardOpen ? {
-                          height: '35vh',
-                          maxHeight: '35vh',
-                          overflowY: 'auto'
-                        } : { 
-                          height: 'calc(50vh - 80px)',
-                          maxHeight: 'calc(90vh - 200px)'
-                        }}
+                        style={isInputFocused ? {
+                          maxHeight: 'calc(70vh - 120px)', // Reserve space for comment form
+                          minHeight: '200px'
+                        } : {}}
                       >
                         {isLoadingComments ? (
                           <div className="flex justify-center py-8">
@@ -489,16 +501,17 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                         )}
                       </div>
 
-                      {/* Comment Form - Sticky bottom */}
+                      {/* Comment Form - Always sticky, better mobile optimization */}
                       <div className="sticky bottom-0 z-30 border-t border-ghibli-sand/30 p-3 lg:p-4 bg-white/95 backdrop-blur-sm">
                         <form onSubmit={handleSubmitComment} className="space-y-2">
                           <textarea
+                            ref={textareaRef}
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Escreve um comentário..."
                             className="w-full px-3 py-2 lg:px-4 lg:py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all text-sm"
-                            rows={keyboardOpen ? 1 : 2}
+                            rows={isInputFocused ? 3 : 2} // More rows when focused
                             disabled={isSubmittingComment}
                           />
                           <div className="flex items-center justify-between">

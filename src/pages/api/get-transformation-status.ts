@@ -36,22 +36,31 @@ export default async function handler(
   res: NextApiResponse<ResponseData>
 ) {
   const endpointName = '[API get-transformation-status]';
-  let authenticatedUserIdFromSession: string | null = null;
-  let usingExplicitUserIdAsFallback = false;
+  const requestStartTime = Date.now();
+  const rawCookieHeaderFromRequest = req.headers.cookie ?? '';
+  // console.log(`${endpointName} RAW COOKIE HEADER:`, rawCookieHeaderFromRequest); // Log muito verboso, comentado
 
   if (req.method !== 'GET') {
+    console.warn(`${endpointName} ❌ Method not allowed: ${req.method}`);
     res.setHeader('Allow', 'GET');
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  const { jobId, userId: userIdFromQuery, successPageFlow } = req.query;
-  const explicitUserId = typeof userIdFromQuery === 'string' ? userIdFromQuery : null;
-
+  const { jobId, userId: userIdFromQuery } = req.query; 
   if (!jobId || typeof jobId !== 'string') {
-    return res.status(400).json({ message: 'Missing or invalid jobId query parameter.' });
+    console.error(`${endpointName} ❌ Missing or invalid jobId query parameter.`);
+    return res.status(400).json({ message: 'Missing or invalid jobId query parameter' });
   }
+  
+  const successPageFlow = req.headers['x-from-success-page'] === 'true';
+  const explicitUserId = typeof userIdFromQuery === 'string' ? userIdFromQuery : null;
+  
+  let authenticatedUserIdFromSession: string | null = null;
+  let usingExplicitUserIdAsFallback = false;
+
 
   try {
+    // console.log(`${endpointName} 🔧 Creating Supabase SSR client...`); // Log menos crítico
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -60,15 +69,21 @@ export default async function handler(
           get: (name: string) => {
             const cookieStrToParse = req.headers.cookie ?? '';
             const parsedCookiesObjectOriginal = parseCookieHeader(cookieStrToParse);
+            // console.log(`${endpointName} 🍪 Cookie Getter - Attempting to get (original parse): "${name}"`);
+            // console.log(`${endpointName} 🍪 Cookie Getter - Result of parseCookieHeader (keys found):`, Object.keys(parsedCookiesObjectOriginal).join(', ') || 'No keys parsed');
             const originalValue = parsedCookiesObjectOriginal[name];
+            // console.log(`${endpointName} 🍪 Cookie Getter - Value for "${name}" (original parse): ${originalValue !== undefined ? `Found` : 'Not found (undefined)'}`);
 
             if (name.startsWith('sb-') && name.includes('-auth-token') && originalValue === undefined) {
+              // console.log(`${endpointName} 🍪 Cookie Getter - Original parse failed for Supabase token "${name}". Attempting manual parse.`);
               const manualValue = getManuallyParsedCookie(cookieStrToParse, name);
+              // console.log(`${endpointName} 🍪 Cookie Getter - Value for "${name}" (manual parse): ${manualValue !== undefined ? `Found (length: ${String(manualValue).length})` : 'Not found (undefined)'}`);
               return manualValue;
             }
             return originalValue;
           },
           set: (name: string, value: string, options) => {
+            // console.log(`${endpointName} 🍪 Setting cookie:`, name);
             const cookie = serializeCookieHeader(name, value, options);
             let setCookieHeader = res.getHeader('Set-Cookie') ?? [];
             if (typeof setCookieHeader === 'string') setCookieHeader = [setCookieHeader];
@@ -76,6 +91,7 @@ export default async function handler(
             res.setHeader('Set-Cookie', [...setCookieHeader, cookie]);
           },
           remove: (name: string, options) => {
+            // console.log(`${endpointName} 🍪 Removing cookie:`, name);
             const cookieHeader = serializeCookieHeader(name, '', { ...options, maxAge: 0 });
             let existingSetCookie = res.getHeader('Set-Cookie') ?? [];
             if (typeof existingSetCookie === 'string') existingSetCookie = [existingSetCookie];
@@ -85,15 +101,15 @@ export default async function handler(
         },
       }
     );
+    // console.log(`${endpointName} ✅ Supabase client created successfully`);
+    // console.log(`${endpointName} 🔐 Getting user authentication...`);
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (user) {
       authenticatedUserIdFromSession = user.id;
     } else {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(`${endpointName} Primary authentication failed:`, userError?.message || 'No user from session');
-      }
+      console.warn(`${endpointName} Primary authentication failed:`, userError?.message || 'No user from session');
       if (successPageFlow && explicitUserId) {
         authenticatedUserIdFromSession = explicitUserId;
         usingExplicitUserIdAsFallback = true;
@@ -101,11 +117,15 @@ export default async function handler(
         return res.status(401).json({ message: 'Not authenticated. Please log in.', detail: userError?.message });
       }
     }
-  } catch (authException) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`${endpointName} ❌ Exception during authentication:`, authException);
+  } catch (authCatchError) {
+    const errorMsg = authCatchError instanceof Error ? authCatchError.message : 'Unknown auth block error';
+    console.error(`${endpointName} 💥 Catch block during authentication: ${errorMsg}`);
+    if (successPageFlow && explicitUserId) {
+      authenticatedUserIdFromSession = explicitUserId;
+      usingExplicitUserIdAsFallback = true;
+    } else {
+      return res.status(500).json({ message: 'Authentication error occurred.', detail: errorMsg });
     }
-    return res.status(500).json({ message: 'Authentication error.' });
   }
 
   if (!authenticatedUserIdFromSession) {
@@ -325,7 +345,7 @@ console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUs
     }
     // --- Fim da Lógica de Self-Healing ---
     
-    const timeTaken = Date.now() - Date.now();
+    const timeTaken = Date.now() - requestStartTime;
     console.log(`${endpointName} JobId: ${jobId}. ✅ NO SELF-HEAL TRIGGERED or self-heal did not return. Returning original DB status: ${jobDetails.status}. Total time: ${timeTaken}ms.`);
     return res.status(200).json({
       status: jobDetails.status,
@@ -338,7 +358,7 @@ console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUs
   } catch (error) {
     const genericErrorMessage = error instanceof Error ? error.message : 'Unknown server error.';
     console.error(`${endpointName} JobId: ${jobId}. 💥 Critical error in main try-catch:`, genericErrorMessage, error);
-    const timeTaken = Date.now() - Date.now();
-    return res.status(500).json({ message: 'Failed to get transformation status due to a server error.', detail: genericErrorMessage, debug_self_heal_triggered: `Exception: ${genericErrorMessage.substring(0,100)}`, debug_db_read_at: new Date(Date.now()).toISOString() });
+    const timeTaken = Date.now() - requestStartTime;
+    return res.status(500).json({ message: 'Failed to get transformation status due to a server error.', detail: genericErrorMessage, debug_self_heal_triggered: `Exception: ${genericErrorMessage.substring(0,100)}`, debug_db_read_at: new Date(requestStartTime).toISOString() });
   }
 }

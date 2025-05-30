@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { 
@@ -46,27 +46,34 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
   const [step, setStep] = useState<'select' | 'details' | 'success'>('select');
   const [showPicCoinAnimation, setShowPicCoinAnimation] = useState(false);
   const [picCoinMessage, setPicCoinMessage] = useState('');
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // FETCH PRIVATE TRANSFORMATIONS
   const fetchPrivateTransformations = async () => {
     try {
       setLoading(true);
+      console.log('🔍 DEBUG - Fetching private transformations...');
       
       const response = await fetch('/api/community/get-my-private-transformations?page=1&limit=20');
+      console.log('🔍 DEBUG - Response status:', response.status);
+      console.log('🔍 DEBUG - Response ok:', response.ok);
+      
       const data = await response.json();
+      console.log('🔍 DEBUG - Response data:', data);
+      console.log('🔍 DEBUG - data.success:', data.success);
+      console.log('🔍 DEBUG - data.transformations:', data.transformations);
+      console.log('🔍 DEBUG - data.transformations.length:', data.transformations?.length);
 
       if (data.success) {
+        console.log('🔍 DEBUG - Setting transformations:', data.transformations);
         setPrivateTransformations(data.transformations || []);
       } else {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('API returned error:', data.error);
-        }
+        console.error('🔍 DEBUG - API returned error:', data.error);
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Fetch error:', error);
-      }
+      console.error('🔍 DEBUG - Fetch error:', error);
     } finally {
       setLoading(false);
     }
@@ -137,24 +144,33 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
     }
   }, [isOpen]);
 
-  // Mobile keyboard detection
+  // Mobile input focus handling
   useEffect(() => {
-    const handleResize = () => {
-      if (typeof window !== 'undefined') {
-        const viewportHeight = window.visualViewport?.height || window.innerHeight;
-        const screenHeight = window.screen.height;
-        const isKeyboardOpen = viewportHeight < screenHeight * 0.75;
-        setKeyboardOpen(isKeyboardOpen);
-      }
+    const handleFocus = () => {
+      setIsInputFocused(true);
+    };
+    
+    const handleBlur = () => {
+      setIsInputFocused(false);
     };
 
-    if (typeof window !== 'undefined' && window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize);
+    const titleInput = titleInputRef.current;
+    const descriptionTextarea = descriptionTextareaRef.current;
+    
+    if (titleInput && descriptionTextarea) {
+      titleInput.addEventListener('focus', handleFocus);
+      titleInput.addEventListener('blur', handleBlur);
+      descriptionTextarea.addEventListener('focus', handleFocus);
+      descriptionTextarea.addEventListener('blur', handleBlur);
+      
       return () => {
-        window.visualViewport?.removeEventListener('resize', handleResize);
+        titleInput.removeEventListener('focus', handleFocus);
+        titleInput.removeEventListener('blur', handleBlur);
+        descriptionTextarea.removeEventListener('focus', handleFocus);
+        descriptionTextarea.removeEventListener('blur', handleBlur);
       };
     }
-  }, []);
+  }, [step]);
 
   // FORMATAÇÃO
   const formatTimeAgo = (dateString: string) => {
@@ -185,24 +201,17 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
             onClick={handleClose}
           />
 
-          {/* Modal - Mobile Optimized with Keyboard Support */}
+          {/* Modal - Simplified for better mobile keyboard handling */}
           <motion.div
-            className={`relative w-full max-w-4xl bg-white shadow-2xl overflow-hidden ${
-              keyboardOpen 
-                ? 'h-screen max-h-screen rounded-none' // Full screen when keyboard is open
+            className={`relative w-full max-w-4xl bg-white shadow-2xl overflow-hidden transition-all duration-300 ${
+              isInputFocused 
+                ? 'fixed inset-0 rounded-none z-[60]' 
                 : 'max-h-[95vh] sm:max-h-[90vh] rounded-2xl sm:rounded-3xl'
             }`}
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            style={keyboardOpen ? {
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            } : {}}
           >
             {/* Close Button - Mobile Optimized */}
             <button
@@ -286,11 +295,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
 
             {/* STEP: DETAILS */}
             {step === 'details' && selectedTransformation && (
-              <div className={`overflow-y-auto ${
-                keyboardOpen 
-                  ? 'h-screen p-4' // Full screen height with padding when keyboard is open
-                  : 'max-h-[95vh] sm:max-h-[90vh] p-4 sm:p-6 lg:p-8'
-              }`}>
+              <div className="overflow-y-auto h-full p-4 sm:p-6 lg:p-8">
                 {/* Header */}
                 <div className="text-center mb-6 sm:mb-8">
                   <h2 className="text-xl sm:text-2xl font-ghibli font-bold text-ghibli-wood mb-2">
@@ -301,11 +306,9 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                   </p>
                 </div>
 
-                <div className={`grid gap-6 sm:gap-8 ${
-                  keyboardOpen ? 'grid-cols-1' : 'lg:grid-cols-2'
-                }`}>
-                  {/* Preview */}
-                  <div className={keyboardOpen ? 'hidden' : ''}>
+                <div className={`grid gap-6 sm:gap-8 ${isInputFocused ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
+                  {/* Preview - Hide on mobile when input focused */}
+                  <div className={isInputFocused ? 'hidden lg:block' : ''}>
                     <h3 className="font-semibold text-ghibli-wood mb-3 sm:mb-4 text-sm sm:text-base">Pré-visualização</h3>
                     <div className="aspect-square rounded-xl sm:rounded-2xl overflow-hidden border border-ghibli-sand/30">
                       <Image
@@ -319,13 +322,14 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Form - Mobile Optimized */}
+                  {/* Form - Optimized for mobile */}
                   <div className="space-y-4 sm:space-y-6">
                     <div>
                       <label className="block text-sm font-medium text-ghibli-wood mb-2">
                         Título Público (opcional)
                       </label>
                       <input
+                        ref={titleInputRef}
                         type="text"
                         value={publicTitle}
                         onChange={(e) => setPublicTitle(e.target.value)}
@@ -341,11 +345,12 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                         Descrição (opcional)
                       </label>
                       <textarea
+                        ref={descriptionTextareaRef}
                         value={publicDescription}
                         onChange={(e) => setPublicDescription(e.target.value)}
                         placeholder="Conta a história por trás desta transformação..."
                         className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all text-sm sm:text-base"
-                        rows={3}
+                        rows={isInputFocused ? 4 : 3} // More rows when focused
                         maxLength={500}
                       />
                       <p className="text-xs text-ghibli-earth mt-1">{publicDescription.length}/500 caracteres</p>
@@ -358,7 +363,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                       </p>
                     </div>
 
-                    {/* Actions - Mobile Optimized */}
+                    {/* Actions - Always at bottom */}
                     <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-4">
                       <button
                         onClick={() => setStep('select')}

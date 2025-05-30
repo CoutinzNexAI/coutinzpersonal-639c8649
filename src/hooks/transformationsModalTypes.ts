@@ -10,8 +10,8 @@ export interface TransformationsModalContextType {
 // Default State
 export const defaultModalValue: TransformationsModalContextType = {
   isOpen: false,
-  openTransformationsModal: () => { },
-  closeTransformationsModal: () => { },
+  openTransformationsModal: () => { console.warn("TransformationsModalProvider not yet initialized"); },
+  closeTransformationsModal: () => { console.warn("TransformationsModalProvider not yet initialized"); },
 };
 
 // Context
