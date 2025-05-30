@@ -615,16 +615,53 @@ export function useImageProcessing() {
     handleNewImage();
   }, [handleNewImage]);
 
-  const handleDownload = useCallback(() => {
-    if (transformedImage) {
-      // Abre a imagem numa nova aba para visualização/download manual
-      window.open(transformedImage, '_blank', 'noopener,noreferrer');
-      toast.success("Imagem aberta em novo separador!");
-    } else {
-      toast.error("Nenhuma imagem transformada para abrir.");
+  const handleDownload = useCallback(async () => {
+    if (!transformedImage) {
+      toast.error("Nenhuma imagem transformada para baixar.");
       console.warn('[handleDownload] No transformed image available');
+      return;
     }
-  }, [transformedImage]);
+
+    try {
+      // Fazer fetch da imagem
+      const response = await fetch(transformedImage);
+      if (!response.ok) {
+        throw new Error('Falha ao baixar imagem');
+      }
+      
+      // Converter para blob
+      const blob = await response.blob();
+      
+      // Criar URL temporário
+      const url = window.URL.createObjectURL(blob);
+      
+      // Criar elemento de link temporário para download
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Gerar nome do arquivo com timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const styleName = selectedStyle?.name?.replace(/[^a-zA-Z0-9]/g, '_') || 'transformacao';
+      link.download = `pictuz_${styleName}_${timestamp}.jpg`;
+      
+      // Adicionar ao DOM, clicar e remover
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Limpar URL temporário
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("✅ Imagem baixada com sucesso!");
+    } catch (error) {
+      console.error('[handleDownload] Erro ao baixar imagem:', error);
+      toast.error("❌ Erro ao baixar imagem. Tente novamente.");
+      
+      // Fallback - abrir em nova aba se download direto falhar
+      window.open(transformedImage, '_blank', 'noopener,noreferrer');
+      toast.info("📱 Imagem aberta em nova aba para download manual");
+    }
+  }, [transformedImage, selectedStyle]);
 
   return {
     uploadedImage, isStyleModalOpen, selectedStyle, processingState, transformedImage,
