@@ -111,7 +111,6 @@ export function useImageProcessing() {
   useEffect(() => {
     const fetchStylesHandler = async () => {
       if (availableStyles.length > 0 && !stylesLoading) return;
-      console.log("[useImageProcessing] Fetching styles...");
       setStylesLoading(true);
       setStylesError(null);
       try {
@@ -122,7 +121,6 @@ export function useImageProcessing() {
           .order('order', { ascending: true });
         if (fetchError) throw fetchError;
         setAvailableStyles(data || []);
-        console.log("[useImageProcessing] Styles fetched successfully:", data?.length || 0);
       } catch (err: unknown) {
         console.error("❌ [useImageProcessing] Erro ao buscar estilos:", err);
         const errorMessageText = err instanceof Error ? err.message : 'Falha ao carregar estilos.';
@@ -140,7 +138,6 @@ export function useImageProcessing() {
   useEffect(() => {
     const currentUserId = userInfo?.id;
     if (prevUserId.current !== undefined && prevUserId.current !== currentUserId) {
-      console.log("[useImageProcessing] User changed. Resetting state.");
         setUploadedImage(null);
         setSelectedStyle(null);
         setProcessingState('idle');
@@ -164,7 +161,6 @@ export function useImageProcessing() {
   useEffect(() => {
     if (initialLoadAttempted.current || stylesLoading || !availableStyles.length) return;
     initialLoadAttempted.current = true;
-    console.log("[useImageProcessing] Attempting to restore state from localStorage.");
     try {
         const savedState = localStorage.getItem('studioState');
         if (savedState) {
@@ -174,10 +170,8 @@ export function useImageProcessing() {
                 const style = availableStyles.find(s => s.id === restoredStyleId);
                 if (style) {
                     setSelectedStyle(style);
-            console.log("[useImageProcessing] Restored selected style:", style.name);
                 } else {
                     localStorage.removeItem('studioState');
-            console.log("[useImageProcessing] Restored style ID not found in available styles. Cleared saved state.");
             }
         }
         }
@@ -216,24 +210,20 @@ export function useImageProcessing() {
       }
 
       if (isAuthLoading) {
-        console.log("[useImageProcessing - Polling] checkStatus: Auth is loading, skipping poll attempt.");
         return;
       }
 
       pollCountRef.current++;
-      console.log(`[useImageProcessing - Polling] Attempt ${pollCountRef.current}/${MAX_POLL_ATTEMPTS_CONST} for jobId: ${currentJobId}`);
 
       // Atualizar progresso simulado
       const newProgress = calculateSimulatedProgress(pollCountRef.current);
       setSimulatedProgress(newProgress);
-      console.log(`[useImageProcessing - Progress] Poll ${pollCountRef.current}: ${newProgress.toFixed(1)}%`);
 
       const shouldDirectCheck = (pollCountRef.current <= 3) || // Primeiras 3 tentativas (0-30s)
                                 (pollCountRef.current > 3 && pollCountRef.current <= 12 && pollCountRef.current % 2 === 0) || // A cada 20s até 2min
                                 (pollCountRef.current > 12 && pollCountRef.current % 3 === 0); // A cada 30s depois dos 2min
 
       if (shouldDirectCheck) {
-        console.log(`[useImageProcessing - DirectCheck] Attempt ${pollCountRef.current}: Checking Supabase storage directly...`);
       try {
           const storagePath = `public/${userInfo.id}/${currentJobId}`;
           const { data: files, error: listError } = await supabase.storage.from('results').list(storagePath, {
@@ -245,11 +235,9 @@ export function useImageProcessing() {
             console.error(`[useImageProcessing - DirectCheck] Error listing files in ${storagePath}:`, listError.message);
           } else if (files && files.length > 0) {
             const fileName = files[0].name;
-            console.log(`🎯 [useImageProcessing - DirectCheck] FOUND image in storage: ${fileName}`);
             const { data: urlData } = supabase.storage.from('results').getPublicUrl(`${storagePath}/${fileName}`);
             
             if (urlData?.publicUrl) {
-              console.log(`🎯 [useImageProcessing - DirectCheck] Generated URL: ${urlData.publicUrl}`);
               setTransformedImage(urlData.publicUrl); 
               setProcessingState('completed'); 
               setActiveStep(3); 
@@ -264,8 +252,6 @@ export function useImageProcessing() {
             } else {
               console.warn(`[useImageProcessing - DirectCheck] Could not get public URL for ${fileName}`);
             }
-          } else {
-            console.log(`[useImageProcessing - DirectCheck] No files found in storage path: ${storagePath}`);
           }
         } catch (storageError) {
           console.error(`[useImageProcessing - DirectCheck] Storage check failed:`, storageError instanceof Error ? storageError.message : String(storageError));
@@ -276,10 +262,8 @@ export function useImageProcessing() {
         const cacheParam = pollCountRef.current > 18 ? `&_t=${Date.now()}` : '';
         const userParam = userInfo?.id ? `&userId=${userInfo.id}` : '';
         const apiUrl = `/api/get-transformation-status?jobId=${currentJobId}${userParam}${cacheParam}`;
-        console.log(`[useImageProcessing - Polling] Fetching API: ${apiUrl}`);
         
         const response = await fetch(apiUrl);
-        console.log(`[useImageProcessing - Polling] Response for ${currentJobId} - Status: ${response.status}, OK: ${response.ok}`);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ message: `Erro HTTP ${response.status} ao buscar status. Sem corpo JSON.` }));
@@ -288,11 +272,9 @@ export function useImageProcessing() {
         }
 
         const data: StatusResponse = await response.json();
-        console.log(`[useImageProcessing - Polling] Data received from API for ${currentJobId}:`, JSON.stringify(data, null, 2));
         
         if (data.status === 'error' || data.status?.startsWith('failed')) {
           const backendErrorMessage = data.error_message || 'Falha desconhecida no backend.';
-          console.log(`[useImageProcessing - Polling] Job FAILED via API. Status: ${data.status}, Backend Msg: ${backendErrorMessage}`);
 
           setErrorMessage(STANDARD_ERROR_MESSAGE); // <<< USA A MENSAGEM PADRÃO
             setProcessingState('error');
@@ -305,7 +287,6 @@ export function useImageProcessing() {
           }
           setIsLoading(false);
         } else if (data.status === 'completed' && data.output_url) {
-          console.log(`[useImageProcessing - Polling] JOB COMPLETED via API! Output URL: ${data.output_url}`);
           setTransformedImage(data.output_url);
           setProcessingState('completed');
           setActiveStep(3);
@@ -317,7 +298,6 @@ export function useImageProcessing() {
           }
           setIsLoading(false);
         } else if (['processing', 'processing_queued'].includes(data.status || '')) {
-          console.log(`[useImageProcessing - Polling] Job still PROCESSING via API. Status: ${data.status}`);
           if (processingState !== 'processing') { 
             setProcessingState('processing'); 
           }
@@ -346,11 +326,9 @@ export function useImageProcessing() {
             console.error(`[useImageProcessing - FinalCheck] Error listing files in ${finalStoragePath}:`, finalLisError.message);
           } else if (files && files.length > 0) {
             const fileName = files[0].name;
-            console.log(`🎯 [useImageProcessing - FinalCheck] FOUND image in final check: ${fileName}`);
             const { data: urlData } = supabase.storage.from('results').getPublicUrl(`${finalStoragePath}/${fileName}`);
             
             if (urlData?.publicUrl) {
-              console.log(`🎯 [useImageProcessing - FinalCheck] Success in final check: ${urlData.publicUrl}`);
               setTransformedImage(urlData.publicUrl); 
               setProcessingState('completed'); 
             setActiveStep(3); 
@@ -388,7 +366,6 @@ export function useImageProcessing() {
         !isAuthLoading && 
         (processingState === 'polling_status' || processingState === 'processing')) { // <<< CONDIÇÃO CORRIGIDA AQUI
       if (!pollingIntervalRef.current) {
-        console.log(`[useImageProcessing - PollingEffect] Starting polling for job ${currentJobId} (State: ${processingState}). First check immediate.`);
         pollCountRef.current = 0; 
         checkStatus(); 
         pollingIntervalRef.current = setInterval(checkStatus, POLLING_INTERVAL_MS);
@@ -396,12 +373,10 @@ export function useImageProcessing() {
     } 
     else if (pollingIntervalRef.current && 
              !(processingState === 'polling_status' || processingState === 'processing')) { // <<< CONDIÇÃO CORRIGIDA AQUI
-      console.log(`[useImageProcessing - PollingEffect] Clearing polling interval. State is ${processingState} (not 'polling_status' or 'processing'). JobId: ${currentJobId}`);
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
       }
     else if (!currentJobId && pollingIntervalRef.current) {
-        console.log(`[useImageProcessing - PollingEffect] Clearing polling interval because currentJobId is now null.`);
         clearInterval(pollingIntervalRef.current); 
         pollingIntervalRef.current = null;
     }
@@ -416,7 +391,6 @@ export function useImageProcessing() {
 
 
   const resetAllLocalStates = useCallback(() => {
-    console.log("[useImageProcessing] resetAllLocalStates called.");
     setUploadedImage(null);
     setSelectedStyle(null);
     setProcessingState('idle');
@@ -440,10 +414,8 @@ export function useImageProcessing() {
     if (newFile) {
       setUploadedImage(newFile);
         setActiveStep(2);
-      console.log("[useImageProcessing] File changed, new file set. Active step: 2");
     } else {
         setActiveStep(1);
-      console.log("[useImageProcessing] File removed. Active step: 1");
     }
   }, [resetAllLocalStates, setActiveStep, setUploadedImage]); 
 
@@ -456,7 +428,6 @@ export function useImageProcessing() {
   }, [uploadedImage, setIsStyleModalOpen]); 
 
   const handleStyleSelect = useCallback((style: Style) => {
-    console.log('[useImageProcessing - handleStyleSelect] Style selected:', style.name);
     setSelectedStyle(style);
     setActiveStep(3); 
     setIsStyleModalOpen(false);
@@ -507,7 +478,6 @@ export function useImageProcessing() {
     let tempNewJobId: string | null = null;
 
     try {
-      console.log('[useImageProcessing - handleStartTransformation] Step: Checking balance...');
       await refetchBalance(); 
       
       const balanceResponse = await fetch('/api/piccoins/balance');
@@ -517,13 +487,11 @@ export function useImageProcessing() {
       }
       const currentBalanceData = await balanceResponse.json();
       const currentFreshBalance = currentBalanceData.balance;
-      console.log(`[useImageProcessing - handleStartTransformation] Fresh balance: ${currentFreshBalance}`);
 
       if (currentFreshBalance >= PICCOINS_PER_TRANSFORMATION) {
         toast.info("💰 Usando PicCoins...", { description: `A preparar a sua transformação. Saldo: ${currentFreshBalance}` });
         
         setProcessingState('uploading_image');
-        console.log('[useImageProcessing - handleStartTransformation] Step: Uploading image...');
         const imageFile = uploadedImage.file;
         const fileExt = imageFile.name.split('.').pop()?.toLowerCase() || 'tmp';
       const filePath = `public/${userInfo.id}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
@@ -533,10 +501,8 @@ export function useImageProcessing() {
         if (uploadError) throw new Error(uploadError.message || "Falha ao fazer upload da imagem para o storage.");
       if (!uploadData?.path) throw new Error("Falha ao obter o caminho da imagem após upload.");
       tempUploadedFilePath = uploadData.path;
-        console.log(`[useImageProcessing - handleStartTransformation] Image uploaded to: ${tempUploadedFilePath}`);
       
         setProcessingState('creating_job_record');
-        console.log('[useImageProcessing - handleStartTransformation] Step: Creating job record...');
       const transformationData: TransformationInsert = { 
           user_id: userInfo.id, 
           style_requested: selectedStyle.id, 
@@ -554,15 +520,11 @@ export function useImageProcessing() {
           throw new Error(jobError?.message || "Falha ao criar o registo da transformação na base de dados.");
       }
       tempNewJobId = jobData.id;
-        console.log(`[useImageProcessing - handleStartTransformation] Job record created. Job ID: ${tempNewJobId}`);
         
         setProcessingState('spending_coins');
-        console.log('[useImageProcessing - handleStartTransformation] Step: Spending PicCoins...');
         await spendCoins(PICCOINS_PER_TRANSFORMATION, tempNewJobId); 
-        console.log(`[useImageProcessing - handleStartTransformation] PicCoins spent for Job ID: ${tempNewJobId}`);
         
         setProcessingState('triggering_processing');
-        console.log('[useImageProcessing - handleStartTransformation] Step: Triggering backend processing...');
         
         // A CHAMADA AO /api/process-image NÃO ENVIA MAIS O X-Internal-Secret
         const processImageResponse = await fetch('/api/process-image', {
@@ -581,7 +543,6 @@ export function useImageProcessing() {
             .eq('id', tempNewJobId);
           throw new Error(`Falha ao iniciar o processamento no backend: ${errorBody.message}`);
         }
-        console.log(`[useImageProcessing - handleStartTransformation] Backend processing triggered for Job ID: ${tempNewJobId}. API Response: ${processImageResponse.status}`);
       
       localStorage.setItem('currentJobId', tempNewJobId);
       setCurrentJobId(tempNewJobId); 
@@ -628,7 +589,6 @@ export function useImageProcessing() {
           else if (errorMsg.toLowerCase().includes('job') || errorMsg.toLowerCase().includes('registo')) failureStatus = 'failed_db_update';
           else if (errorMsg.toLowerCase().includes('trigger') || errorMsg.toLowerCase().includes('backend')) failureStatus = 'failed_trigger';
           
-          console.log(`[useImageProcessing - handleStartTransformation] Updating job ${tempNewJobId} to status ${failureStatus} due to error: ${errorMsg.substring(0,100)}`);
           await supabase.from('transformations')
             .update({ status: failureStatus, error_message: errorMsg.substring(0,500), completed_at: new Date().toISOString() }) 
             .eq('id', tempNewJobId);
@@ -660,7 +620,6 @@ export function useImageProcessing() {
       // Abre a imagem numa nova aba para visualização/download manual
       window.open(transformedImage, '_blank', 'noopener,noreferrer');
       toast.success("Imagem aberta em novo separador!");
-      console.log('[handleDownload] Opened image in new tab:', transformedImage);
     } else {
       toast.error("Nenhuma imagem transformada para abrir.");
       console.warn('[handleDownload] No transformed image available');

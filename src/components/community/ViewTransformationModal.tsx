@@ -201,17 +201,24 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
             onClick={onClose}
           />
 
-          {/* Modal - Mobile Optimized with Keyboard Support */}
+          {/* Modal - Mobile Optimized with Better Keyboard Support */}
           <motion.div
-            className={`relative w-full max-w-7xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden ${
+            className={`relative w-full max-w-7xl bg-white shadow-2xl overflow-hidden ${
               keyboardOpen 
-                ? 'h-screen max-h-screen' // Full screen when keyboard is open
-                : 'h-[95vh] sm:h-[90vh]'  // Normal height
+                ? 'h-screen max-h-screen rounded-none' // Full screen, no border radius when keyboard is open
+                : 'h-[95vh] sm:h-[90vh] rounded-2xl sm:rounded-3xl'  // Normal height with border radius
             }`}
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            style={{
+              position: 'fixed',
+              top: keyboardOpen ? 0 : 'auto',
+              left: keyboardOpen ? 0 : 'auto',
+              right: keyboardOpen ? 0 : 'auto',
+              bottom: keyboardOpen ? 0 : 'auto',
+            }}
           >
             {/* Close Button - High z-index for mobile */}
             <button
@@ -222,9 +229,9 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
             </button>
 
             <div className={`flex flex-col lg:flex-row h-full ${keyboardOpen ? 'lg:flex-col' : ''}`}>
-              {/* Image Section - Mobile First with Overlay Info */}
+              {/* Image Section - Mobile First with Better Keyboard Handling */}
               <div className={`lg:w-3/5 relative bg-ghibli-sand/10 flex items-center justify-center ${
-                keyboardOpen ? 'h-1/3 lg:h-1/3' : 'h-1/2 lg:h-full'
+                keyboardOpen ? 'h-[30vh] lg:h-[30vh] flex-shrink-0' : 'h-1/2 lg:h-full'
               }`}>
                 <div className="relative w-full h-full max-w-[600px] max-h-[600px] aspect-square mx-auto p-2 sm:p-4">
                   <Image
@@ -317,9 +324,9 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                 </div>
               </div>
 
-              {/* Content Section - Mobile Optimized for Comments */}
+              {/* Content Section - Mobile Optimized for Comments with Fixed Heights */}
               <div className={`lg:w-2/5 flex flex-col ${
-                keyboardOpen ? 'h-2/3 lg:h-2/3' : 'h-1/2 lg:h-full'
+                keyboardOpen ? 'h-[70vh] lg:h-[70vh] flex-shrink-0' : 'h-1/2 lg:h-full'
               }`}>
                 {/* Header - Desktop Only */}
                 <div className="hidden lg:block p-6 border-b border-ghibli-sand/30 flex-shrink-0">
@@ -415,12 +422,18 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
 
                   {showComments && (
                     <>
-                      {/* Comments List - Optimized for keyboard */}
+                      {/* Comments List - Fixed height for keyboard */}
                       <div 
-                        className="flex-1 overflow-y-auto px-3 py-3 lg:px-6 lg:py-4 space-y-3 min-h-0" 
-                        style={{ 
-                          height: keyboardOpen ? 'calc(35vh - 40px)' : 'calc(50vh - 80px)',
-                          maxHeight: keyboardOpen ? 'calc(40vh - 40px)' : 'calc(90vh - 200px)'
+                        className={`flex-1 overflow-y-auto px-3 py-3 lg:px-6 lg:py-4 space-y-3 ${
+                          keyboardOpen ? 'h-[35vh] max-h-[35vh]' : 'min-h-0'
+                        }`}
+                        style={keyboardOpen ? {
+                          height: '35vh',
+                          maxHeight: '35vh',
+                          overflowY: 'auto'
+                        } : { 
+                          height: 'calc(50vh - 80px)',
+                          maxHeight: 'calc(90vh - 200px)'
                         }}
                       >
                         {isLoadingComments ? (

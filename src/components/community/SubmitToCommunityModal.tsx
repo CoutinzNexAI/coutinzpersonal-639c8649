@@ -46,6 +46,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
   const [step, setStep] = useState<'select' | 'details' | 'success'>('select');
   const [showPicCoinAnimation, setShowPicCoinAnimation] = useState(false);
   const [picCoinMessage, setPicCoinMessage] = useState('');
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   // FETCH PRIVATE TRANSFORMATIONS
   const fetchPrivateTransformations = async () => {
@@ -141,6 +142,25 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
     }
   }, [isOpen]);
 
+  // Mobile keyboard detection
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        const viewportHeight = window.visualViewport?.height || window.innerHeight;
+        const screenHeight = window.screen.height;
+        const isKeyboardOpen = viewportHeight < screenHeight * 0.75;
+        setKeyboardOpen(isKeyboardOpen);
+      }
+    };
+
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      return () => {
+        window.visualViewport?.removeEventListener('resize', handleResize);
+      };
+    }
+  }, []);
+
   // FORMATAÇÃO
   const formatTimeAgo = (dateString: string) => {
     const now = new Date();
@@ -170,13 +190,24 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
             onClick={handleClose}
           />
 
-          {/* Modal - Mobile Optimized */}
+          {/* Modal - Mobile Optimized with Keyboard Support */}
           <motion.div
-            className="relative w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden"
+            className={`relative w-full max-w-4xl bg-white shadow-2xl overflow-hidden ${
+              keyboardOpen 
+                ? 'h-screen max-h-screen rounded-none' // Full screen when keyboard is open
+                : 'max-h-[95vh] sm:max-h-[90vh] rounded-2xl sm:rounded-3xl'
+            }`}
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            style={keyboardOpen ? {
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            } : {}}
           >
             {/* Close Button - Mobile Optimized */}
             <button
@@ -260,7 +291,11 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
 
             {/* STEP: DETAILS */}
             {step === 'details' && selectedTransformation && (
-              <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto max-h-[95vh] sm:max-h-[90vh]">
+              <div className={`overflow-y-auto ${
+                keyboardOpen 
+                  ? 'h-screen p-4' // Full screen height with padding when keyboard is open
+                  : 'max-h-[95vh] sm:max-h-[90vh] p-4 sm:p-6 lg:p-8'
+              }`}>
                 {/* Header */}
                 <div className="text-center mb-6 sm:mb-8">
                   <h2 className="text-xl sm:text-2xl font-ghibli font-bold text-ghibli-wood mb-2">
@@ -271,9 +306,11 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                   </p>
                 </div>
 
-                <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
+                <div className={`grid gap-6 sm:gap-8 ${
+                  keyboardOpen ? 'grid-cols-1' : 'lg:grid-cols-2'
+                }`}>
                   {/* Preview */}
-                  <div>
+                  <div className={keyboardOpen ? 'hidden' : ''}>
                     <h3 className="font-semibold text-ghibli-wood mb-3 sm:mb-4 text-sm sm:text-base">Pré-visualização</h3>
                     <div className="aspect-square rounded-xl sm:rounded-2xl overflow-hidden border border-ghibli-sand/30">
                       <Image

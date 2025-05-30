@@ -234,11 +234,11 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.8, duration: 0.8 }}
-                className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4"
+                className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4 max-w-2xl mx-auto"
               >
-                <Link href="/">
+                <Link href="/" className="w-full sm:w-auto">
                   <motion.button
-                    className={`ghibli-button inline-flex items-center font-semibold w-full sm:w-auto ${
+                    className={`ghibli-button inline-flex items-center justify-center font-semibold w-full sm:w-auto ${
                       // Smaller padding and text on mobile
                       'px-3 py-2 text-sm sm:px-6 sm:py-3 sm:text-base'
                     }`}
@@ -253,7 +253,7 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
 
                 <motion.button
                   onClick={() => setIsPublishModalOpen(true)}
-                  className={`inline-flex items-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto ${
+                  className={`inline-flex items-center justify-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto ${
                     // Smaller padding and text on mobile
                     'px-3 py-2 text-sm sm:px-6 sm:py-3 sm:text-base'
                   }`}

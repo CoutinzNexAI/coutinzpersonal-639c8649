@@ -8,24 +8,18 @@ export const usePicCoins = () => {
 
   const fetchBalance = useCallback(async () => {
     if (!userInfo) {
-      console.log('[usePicCoins] No userInfo, setting balance to 0');
       setBalance(0);
       setLoading(false);
       return;
     }
 
-    console.log('[usePicCoins] Fetching balance for user:', userInfo.id);
 
     try {
       const response = await fetch('/api/piccoins/balance');
-      console.log('[usePicCoins] Response status:', response.status);
-      console.log('[usePicCoins] Response ok:', response.ok);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('[usePicCoins] Response data:', JSON.stringify(data, null, 2));
-        console.log('[usePicCoins] Balance from API:', data.balance);
-        console.log('[usePicCoins] Type of balance:', typeof data.balance);
+
         setBalance(data.balance);
       } else {
         const errorText = await response.text();
