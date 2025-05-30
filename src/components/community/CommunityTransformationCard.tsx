@@ -1,12 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 import { 
   HeartIcon, 
   ChatBubbleLeftIcon 
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { CommunityTransformation } from '@/hooks/useCommunity';
+import { useAuth } from '@/hooks/useAuth';
 
 // =====================================================
 // COMMUNITY TRANSFORMATION CARD
@@ -28,6 +30,9 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
   onLike,
   onView
 }) => {
+  const { userInfo } = useAuth();
+  const router = useRouter();
+
   // FORMATAÇÃO
   const formatTimeAgo = (dateString: string) => {
     const now = new Date();
@@ -44,6 +49,18 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
     if (count < 1000) return count.toString();
     if (count < 1000000) return `${(count / 1000).toFixed(1)}K`;
     return `${(count / 1000000).toFixed(1)}M`;
+  };
+
+  // HANDLERS
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!userInfo) {
+      router.push('/auth/login');
+      return;
+    }
+    
+    onLike(transformation.id);
   };
 
   return (
@@ -70,15 +87,14 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
         {/* Quick Actions - Mobile Optimized */}
         <div className="absolute top-3 right-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 z-40">
           <motion.button
-            onClick={(e) => {
-              e.stopPropagation();
-              onLike(transformation.id);
-            }}
+            onClick={handleLikeClick}
             disabled={isTogglingLike}
             className={`p-2.5 sm:p-2.5 rounded-full backdrop-blur-md transition-all touch-manipulation relative z-50 ${
               isLiked
                 ? 'bg-red-500 text-white shadow-lg'
-                : 'bg-white/90 text-red-500 hover:bg-red-500 hover:text-white'
+                : userInfo 
+                  ? 'bg-white/90 text-red-500 hover:bg-red-500 hover:text-white'
+                  : 'bg-white/90 text-gray-400 hover:bg-amber-500 hover:text-white'
             } ${isTogglingLike ? 'opacity-50 cursor-not-allowed' : ''}`}
             whileHover={{ scale: isTogglingLike ? 1 : 1.1 }}
             whileTap={{ scale: isTogglingLike ? 1 : 0.9 }}
@@ -87,6 +103,7 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
               zIndex: 50,
               pointerEvents: 'auto'
             }}
+            title={!userInfo ? 'Faça login para gostar' : isLiked ? 'Remover like' : 'Gostar'}
           >
             {isLiked ? (
               <HeartIconSolid className="w-4 h-4 sm:w-5 sm:h-5" />

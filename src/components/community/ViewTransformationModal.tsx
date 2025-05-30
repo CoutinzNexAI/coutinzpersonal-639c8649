@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 import { 
   XMarkIcon,
   HeartIcon, 
@@ -10,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { CommunityTransformation, CommunityComment } from '@/hooks/useCommunity';
+import { useAuth } from '@/hooks/useAuth';
 import PicCoinAnimation from './PicCoinAnimation';
 
 // =====================================================
@@ -50,6 +52,8 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
   const [picCoinMessage, setPicCoinMessage] = useState('');
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const commentsEndRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { userInfo } = useAuth();
 
   // EFFECTS
   useEffect(() => {
@@ -86,6 +90,11 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
     e.preventDefault();
     if (!newComment.trim() || !transformation) return;
 
+    if (!userInfo) {
+      router.push('/auth/login');
+      return;
+    }
+
     try {
       const result = await onAddComment(transformation.id, newComment.trim());
       setNewComment('');
@@ -98,6 +107,15 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
     } catch (error) {
       console.error('Error submitting comment:', error);
     }
+  };
+
+  const handleLikeClick = (transformationId: string) => {
+    if (!userInfo) {
+      router.push('/auth/login');
+      return;
+    }
+    
+    onLike(transformationId);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -236,13 +254,15 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                         <motion.button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onLike(transformation.id);
+                            handleLikeClick(transformation.id);
                           }}
                           disabled={isTogglingLike}
                           className={`flex items-center px-3 py-2 rounded-full text-xs font-medium transition-all duration-300 touch-manipulation backdrop-blur-sm z-50 ml-2 flex-shrink-0 ${
                             isLiked
                               ? 'bg-red-500 text-white shadow-lg'
-                              : 'bg-white/95 text-red-500 hover:bg-red-50'
+                              : userInfo
+                                ? 'bg-white/95 text-red-500 hover:bg-red-50'
+                                : 'bg-white/95 text-gray-400 hover:bg-amber-500 hover:text-white'
                           } ${isTogglingLike ? 'opacity-50 cursor-not-allowed' : ''}`}
                           whileHover={{ scale: isTogglingLike ? 1 : 1.05 }}
                           whileTap={{ scale: isTogglingLike ? 1 : 0.95 }}
@@ -251,6 +271,7 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
                             zIndex: 50,
                             pointerEvents: 'auto'
                           }}
+                          title={!userInfo ? 'Faça login para gostar' : isLiked ? 'Remover like' : 'Gostar'}
                         >
                           {isLiked ? (
                             <HeartIconSolid className="w-4 h-4 mr-1 animate-pulse" />
@@ -350,25 +371,31 @@ const ViewTransformationModal: React.FC<ViewTransformationModalProps> = ({
 
                     {/* Like Button */}
                     <motion.button
-                      onClick={() => onLike(transformation.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLikeClick(transformation.id);
+                      }}
                       disabled={isTogglingLike}
                       className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                         isLiked
                           ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg scale-105'
-                          : 'bg-gray-100 text-red-500 hover:bg-red-50 border border-red-200'
+                          : userInfo
+                            ? 'bg-gray-100 text-red-500 hover:bg-red-50 border border-red-200'
+                            : 'bg-gray-100 text-gray-400 hover:bg-amber-50 border border-amber-200 hover:text-amber-600'
                       } ${isTogglingLike ? 'opacity-50 cursor-not-allowed' : ''}`}
                       whileHover={{ scale: isTogglingLike ? 1 : (isLiked ? 1.05 : 1.02) }}
                       whileTap={{ scale: isTogglingLike ? 1 : 0.98 }}
                       animate={isLiked ? { 
                         boxShadow: "0 0 20px rgba(239, 68, 68, 0.4)",
                       } : {}}
+                      title={!userInfo ? 'Faça login para gostar' : isLiked ? 'Remover like' : 'Gostar'}
                     >
                       {isLiked ? (
                         <HeartIconSolid className="w-4 h-4 mr-1 animate-pulse" />
                       ) : (
                         <HeartIcon className="w-4 h-4 mr-1" />
                       )}
-                      {isLiked ? 'Gostaste' : 'Gostar'}
+                      {!userInfo ? 'Faça Login' : isLiked ? 'Gostaste' : 'Gostar'}
                     </motion.button>
                   </div>
                 </div>

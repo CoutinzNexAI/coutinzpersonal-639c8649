@@ -95,15 +95,20 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
       const data = await response.json();
 
       if (data.success) {
-        setStep('success');
-        
         // Show PicCoin animation if earned
         if (data.earned_piccoin) {
-          setPicCoinMessage(data.message || 'Primeira publicação da semana! Ganhaste 2 PicCoins! 🪙🪙');
+          setPicCoinMessage(data.message || 'Publicado na comunidade e ganhaste 1 PicCoin! 🎉');
           setShowPicCoinAnimation(true);
+          
+          // Wait for animation to start, then show success
+          setTimeout(() => {
+            setStep('success');
+          }, 1000);
+        } else {
+          setStep('success');
         }
         
-        onSuccess(data.message || 'Submetido com sucesso!');
+        onSuccess(data.message || 'Publicado na comunidade com sucesso!');
       } else {
         alert(`Erro: ${data.error}`);
       }
@@ -314,10 +319,10 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                       <p className="text-xs text-ghibli-earth mt-1">{publicDescription.length}/500 caracteres</p>
                     </div>
 
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4">
-                      <h4 className="font-medium text-amber-800 mb-2 text-sm sm:text-base">🎉 Submissão com Recompensa</h4>
-                      <p className="text-amber-700 text-xs sm:text-sm">
-                        Ao submeter para aprovação, podes ganhar <strong>1 PicCoin</strong> como recompensa semanal!
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 sm:p-4">
+                      <h4 className="font-medium text-green-800 mb-2 text-sm sm:text-base">🎉 Publicação Direta na Comunidade</h4>
+                      <p className="text-green-700 text-xs sm:text-sm">
+                        A tua arte será <strong>publicada imediatamente</strong> na comunidade! Podes ganhar <strong>1 PicCoin</strong> por semana.
                       </p>
                     </div>
 
@@ -340,12 +345,12 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                         {submitting ? (
                           <>
                             <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                            A submeter...
+                            A publicar...
                           </>
                         ) : (
                           <>
                             <PaperAirplaneIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                            Submeter para Aprovação
+                            Publicar na Comunidade
                           </>
                         )}
                       </motion.button>
@@ -357,31 +362,54 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
 
             {/* STEP: SUCCESS */}
             {step === 'success' && (
-              <div className="p-8 text-center">
+              <div className="p-6 sm:p-8 text-center">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", damping: 15, stiffness: 300 }}
                   className="mb-6"
                 >
-                  <CheckCircleIcon className="w-20 h-20 mx-auto text-green-500 mb-4" />
+                  <div className="relative">
+                    <CheckCircleIcon className="w-16 h-16 sm:w-20 sm:h-20 mx-auto text-green-500 mb-4" />
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ delay: 0.3, type: "spring", damping: 15, stiffness: 300 }}
+                      className="absolute -top-2 -right-2 text-2xl"
+                    >
+                      🎉
+                    </motion.div>
+                  </div>
                 </motion.div>
 
-                <h2 className="text-3xl font-ghibli font-bold text-ghibli-wood mb-4">
-                  🎉 Submetido com Sucesso!
-                </h2>
-                <p className="text-ghibli-earth text-lg mb-6">
-                  A tua transformação foi enviada para moderação.<br />
-                  Receberás uma notificação quando for aprovada!
-                </p>
+                <motion.h2 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-2xl sm:text-3xl font-ghibli font-bold text-ghibli-wood mb-4"
+                >
+                  🎨 Publicado na Comunidade!
+                </motion.h2>
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-ghibli-earth text-base sm:text-lg mb-6"
+                >
+                  A tua arte está agora disponível para toda a comunidade ver!<br />
+                  <span className="text-green-600 font-medium">✨ Partilha e inspira outros criadores!</span>
+                </motion.p>
 
                 <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
                   onClick={handleClose}
-                  className="ghibli-button px-8 py-3 font-semibold"
+                  className="ghibli-button px-6 py-3 sm:px-8 sm:py-3 font-semibold text-sm sm:text-base"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  Continuar a Explorar
+                  Explorar Comunidade
                 </motion.button>
               </div>
             )}

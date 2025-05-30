@@ -202,14 +202,15 @@ export default async function handler(
       can_earn_bonus: canEarnBonus
     });
 
-    // 7. ATUALIZAR TRANSFORMAÇÃO PARA PENDING_APPROVAL
-    // =================================================
+    // 7. ATUALIZAR TRANSFORMAÇÃO PARA APPROVED (DIRETO NA COMUNIDADE)
+    // ===============================================================
     const { error: updateError } = await supabaseAdmin
       .from('transformations')
       .update({
-        community_status: 'pending_approval',
+        community_status: 'approved', // 🎉 Direto na comunidade!
         public_title: validatedData.public_title?.trim() || null,
         public_description: validatedData.public_description?.trim() || null,
+        published_at: new Date().toISOString(), // 📅 Data de publicação
         updated_at: new Date().toISOString(),
       })
       .eq('id', validatedData.transformationId)
@@ -237,14 +238,14 @@ export default async function handler(
             p_amount: 1,
             p_type: 'earned',
             p_reference_id: validatedData.transformationId,
-            p_description: 'Publicação submetida para aprovação'
+            p_description: 'Publicação na comunidade'
           });
 
         if (rewardError) {
           console.warn(`${endpointName} ⚠️ Failed to grant PicCoin:`, rewardError.message);
         } else {
           earnedPiccoin = true;
-          console.log(`${endpointName} 🪙 Granted 1 PicCoin to user ${user.id} for publication submission`);
+          console.log(`${endpointName} 🪙 Granted 1 PicCoin to user ${user.id} for community publication`);
         }
       } catch (incentiveError) {
         console.warn(`${endpointName} ⚠️ Incentive error:`, incentiveError);
@@ -273,15 +274,15 @@ export default async function handler(
       // Don't fail the submission for this
     }
 
-    console.log(`${endpointName} ✅ Transformation ${validatedData.transformationId} submitted for publication by user ${user.id}. Earned PicCoin: ${earnedPiccoin}`);
+    console.log(`${endpointName} ✅ Transformation ${validatedData.transformationId} published directly to community by user ${user.id}. Earned PicCoin: ${earnedPiccoin}`);
 
     return res.status(200).json({
       success: true,
       transformation_id: validatedData.transformationId,
       earned_piccoin: earnedPiccoin,
       message: earnedPiccoin 
-        ? 'Transformação submetida para aprovação e 1 PicCoin ganho!' 
-        : 'Transformação submetida para aprovação. Aguarda moderação.'
+        ? 'Transformação publicada na comunidade e 1 PicCoin ganho! 🎉' 
+        : 'Transformação publicada na comunidade com sucesso!'
     });
 
   } catch (error) {
