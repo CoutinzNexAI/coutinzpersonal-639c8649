@@ -140,17 +140,22 @@ export default function PricingPage() {
       return;
     }
 
-    const selectedPackage = packages.find(pkg => pkg.id === packageId);
-    if (!selectedPackage) return;
+    // Se é primeira compra e clica no pacote popular (5€), aplicar desconto
+    if (isFirstPurchase && packageId === 'popular') {
+      // Marcar primeira compra como usada
+      const success = await markFirstPurchaseAsUsed();
+      if (!success) {
+        toast.error('Erro ao processar promoção');
+        return;
+      }
 
-    // Se é primeira compra, mostrar modal promocional
-    if (isFirstPurchase) {
-      setSelectedPackageForPurchase(selectedPackage);
-      setIsPromoModalOpen(true);
+      // Usar ID promocional para obter desconto
+      const promoPackageId = `${packageId}_first_purchase_promo`;
+      await executeStripeCheckout(promoPackageId);
       return;
     }
 
-    // Continuar com compra normal
+    // Continuar com compra normal para outros casos
     await executeStripeCheckout(packageId);
   };
 
@@ -193,14 +198,6 @@ export default function PricingPage() {
     
     // Executar checkout com preço promocional (o backend vai identificar pelo ID especial)
     await executeStripeCheckout(promoPackageId);
-  };
-
-  // Quando recusa a promoção
-  const handleDeclinePromo = async (originalPackageId: string) => {
-    setIsPromoModalOpen(false);
-    
-    // Continuar com compra normal
-    await executeStripeCheckout(originalPackageId);
   };
 
   const handleClosePromoModal = () => {
@@ -544,7 +541,6 @@ export default function PricingPage() {
           isOpen={isPromoModalOpen}
           onClose={handleClosePromoModal}
           onAcceptPromo={handleAcceptPromo}
-          onDeclinePromo={handleDeclinePromo}
           originalPackage={selectedPackageForPurchase}
         />
       )}
