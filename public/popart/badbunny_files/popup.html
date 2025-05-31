@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<!-- saved from url=(0070)chrome-extension://pgccoaecgcgnhffkjjcaonjoockggmng/adSaver/popup.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <title>AD FINDER</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="./css2" rel="stylesheet">
+
+
+  <style>
+    .header {
+      height: 88px;
+      width: 100%;
+      padding: 16px 24px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .button-switch {
+      border: 1px solid #F2F3F8;
+      width: 0;
+      height: 32px;
+    }
+
+    .s1-tooltip {
+      margin-left: 8px;
+      position: relative;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .s1-tooltip svg path {
+      transition: all .3s ease;
+    }
+
+    .s1-tooltip:after {
+      display: none;
+      position: absolute;
+      left: -58px;
+      width: 150px;
+      bottom: -75px;
+      border-radius: 6px;
+      background: #151E3A;
+      content: attr(data-text);
+      font-size: 12px;
+      line-height: 16px;
+      color: #FFFFFF;
+      padding: 6px;
+      z-index: 1;
+    }
+
+    .s2-tooltip:after {
+      left: -190px;
+      width: 230px;
+      bottom: -107px;
+    }
+
+    .s1-tooltip:hover svg path {
+      fill: #225AEA;
+    }
+
+    .s1-tooltip:hover::after  {
+      display: block;
+    }
+
+    #gotoFacebookLabel {
+      font-family: 'Inter', sans-serif;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 16px;
+      line-height: 24px;
+
+      color: #151E3A;
+      text-align: center;
+    }
+
+    #facebookLink {
+      text-decoration: none;
+      color: #225AEA;
+    }
+
+    .tutorialLink {
+      display: flex;
+      align-items: center;
+
+      text-decoration: none;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      line-height: 16px;
+      height: 16px;
+      color: #225AEA;
+    }
+
+    #idText {
+      width: 100%;
+      text-align: center;
+      padding: 12px 24px 16px;
+
+      font-family: 'Inter', sans-serif;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 20px;
+      color: #707BA0;
+    }
+
+    #seeCollectedAdsText {
+      font-family: 'Inter', sans-serif;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 16px;
+      margin: 0;
+      color: white;
+    }
+
+    #secondThing {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      padding: 16px 24px;
+      text-align: center;
+      text-decoration: none;
+
+      width: 452px;
+      height: 48px;
+      background-color: #225AEA;
+      border-radius: 6px;
+    }
+
+    #metrics_container {
+      width: 100%;
+      padding: 12px 24px;
+    }
+
+    .metrics_block {
+      padding: 15px 16px;
+      border-radius: 6px;
+      border: 1px solid #F2F3F8;
+      background: #FFF;
+    }
+
+    .metrics_block_stat {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #F2F3F8;
+      padding-top: 11px;
+    }
+
+    .metrics_count {
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      line-height: 24px;
+      color: #151E3A;
+      text-align: center;
+    }
+
+    .metrics_label {
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      line-height: 20px;
+      color: #707BA0;
+    }
+
+    #lifeTimeActivityTitle {
+      text-align: center;
+      margin: 0 0 8px;
+      border-radius: 0;
+      font-family: 'Inter', sans-serif;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 16px;
+      line-height: 24px;
+      color: #151E3A;
+    }
+
+    #todaysActivityTitle {
+      text-align: center;
+      margin: 0 0 8px;
+      border-radius: 0;
+      font-family: 'Inter', sans-serif;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 16px;
+      line-height: 24px;
+      color: #151E3A;
+    }
+
+    #errorField{
+      display: none;
+      align-items: center;
+      flex-direction: row;
+      color: #151E3A;
+      width: 452px;
+      height: 48px;
+      margin-top: 16px;
+
+      border-radius: 6px;
+      border: 1px solid #F6B60E;
+      background:  #FFF9E8;
+    }
+
+    @supports (-webkit-appearance: none) or (-moz-appearance: none) {
+      input[type='checkbox'], input[type='radio'] {
+        --active: #275efe;
+        --active-inner: #fff;
+        --border: #fff;
+        --border-hover: #275efe;
+        --background: #bbc1e1;
+        --disabled: #f6f8ff;
+        --disabled-inner: #e1e6f9;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        height: 32px;
+        outline: none;
+        display: inline-block;
+        vertical-align: top;
+        position: relative;
+        margin: 0;
+        cursor: pointer;
+        background: var(--b, var(--background));
+        transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+      }
+
+      input[type='checkbox']:after, input[type='radio']:after {
+        content: '';
+        display: block;
+        left: 0;
+        top: 0;
+        position: absolute;
+        transition: transform var(--d-t, 0.3s) var(--d-t-e, ease), opacity var(--d-o, 0.2s);
+      }
+
+      input[type='checkbox']:checked, input[type='radio']:checked {
+        --b: var(--active);
+        --bc: var(--active);
+        --d-o: 0.3s;
+        --d-t: 0.6s;
+        --d-t-e: cubic-bezier(0.2, 0.85, 0.32, 1.2);
+      }
+
+      input[type='checkbox']:disabled, input[type='radio']:disabled {
+        --b: var(--disabled);
+        cursor: not-allowed;
+        opacity: 0.9;
+      }
+
+      input[type='checkbox']:disabled:checked, input[type='radio']:disabled:checked {
+        --b: var(--disabled-inner);
+        --bc: var(--border);
+      }
+
+      input[type='checkbox']:disabled + label, input[type='radio']:disabled + label {
+        cursor: not-allowed;
+      }
+
+      input[type='checkbox']:hover:not(:checked):not(:disabled), input[type='radio']:hover:not(:checked):not(:disabled) {
+        --bc: var(--border-hover);
+      }
+
+      input[type='checkbox']:focus, input[type='radio']:focus {
+        box-shadow: 0 0 0 var(--focus);
+      }
+
+      input[type='checkbox']:not(.switch), input[type='radio']:not(.switch) {
+        width: 32px;
+      }
+
+      input[type='checkbox']:not(.switch):after, input[type='radio']:not(.switch):after {
+        opacity: var(--o, 0);
+      }
+
+      input[type='checkbox']:not(.switch):checked, input[type='radio']:not(.switch):checked {
+        --o: 1;
+      }
+
+      input[type='checkbox'] + label, input[type='radio'] + label {
+        color: #151E3A;
+        font-family: 'Inter', sans-serif;
+        font-style: normal;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 24px;
+        display: inline-block;
+        vertical-align: top;
+        cursor: pointer;
+        margin-left: 8px;
+      }
+
+      input[type='checkbox']:not(.switch) {
+        border-radius: 7px;
+      }
+
+      input[type='checkbox']:not(.switch):after {
+        width: 27px;
+        height: 20px;
+        border: 2px solid var(--active-inner);
+        border-top: 0;
+        border-left: 0;
+        left: 7px;
+        top: 4px;
+        transform: rotate(var(--r, 20deg));
+      }
+
+      input[type='checkbox']:not(.switch):checked {
+        --r: 43deg;
+      }
+
+      input[type='checkbox'].switch {
+        width: 56px;
+        border-radius: 16px;
+      }
+
+      input[type='checkbox'].switch:after {
+        left: 3px;
+        top: 3px;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        background: var(--ab, var(--border));
+        transform: translateX(var(--x, 0));
+      }
+
+      input[type='checkbox'].switch:checked {
+        --ab: var(--active-inner);
+        --x: 24px;
+      }
+
+      input[type='checkbox'].switch:disabled:not(:checked):after {
+        opacity: 0.6;
+      }
+
+      input[type='radio'] {
+        border-radius: 50%;
+      }
+
+      input[type='radio']:after {
+        width: 36px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--active-inner);
+        opacity: 0;
+        transform: scale(var(--s, 0.7));
+      }
+
+      input[type='radio']:checked {
+        --s: 0.5;
+      }
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      width: 100%;
+
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    ul li {
+      margin: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    html {
+      box-sizing: border-box;
+    }
+
+    * {
+      box-sizing: inherit;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    *:before, *:after {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin: 0;
+      width: 500px;
+      min-height: 576px;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 6px;
+      background: white;
+    }
+
+    .rate-us {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .rate-us h3 {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 20px;
+      color: #707ba0;
+      margin: 0;
+    }
+
+    .rate-us .stars-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .rate-us .stars-wrapper span {
+      cursor: pointer;
+    }
+
+    .rate-us .stars-wrapper * {
+      transition: all .3s ease;
+    }
+
+    .rate-us .stars-wrapper .star.active svg path {
+      fill: #225aea;
+    }
+
+    .modal, .modal-block {
+      width: 452px;
+      height: 391px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      position: relative;
+      top: 0;
+      transition: all .3s ease;
+      transition-delay: .3s;
+    }
+
+    .modal-bg.hidden .modal {
+      top: -600px;
+    }
+
+    .modal-bg-block.hidden .modal-block {
+      top: -600px;
+    }
+
+    .modal-bg {
+      animation: slideIn .3s forwards;
+      animation-delay: 0s;
+      background: rgba(6, 61, 140, .3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 595px;
+      position: absolute;
+      top: 0;
+    }
+
+    .modal-bg-block {
+      animation: slideIn .3s forwards;
+      animation-delay: 0s;
+      background: rgba(6, 61, 140, .3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 595px;
+      position: absolute;
+      top: 0;
+    }
+
+    .modal-bg.hidden {
+      background: transparent;
+      top: -100%;
+      animation: slideOut .3s forwards;
+      animation-delay: 0s;
+    }
+
+    .modal-bg-block.hidden {
+      background: transparent;
+      top: -100%;
+      animation: slideOut .3s forwards;
+      animation-delay: 0s;
+    }
+
+    .modal-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 32px 0;
+      background: white;
+      border-radius: 0 0 6px 6px;
+    }
+
+    .modal-content-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      padding: 20px 0 32px;
+      background: white;
+      border-radius: 0 0 6px 6px;
+    }
+
+    .modal-content h3 {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 20px;
+      margin: 0;
+      color: #707ba0;
+    }
+
+    .modal-content-block h3 {
+      font-family: 'Inter', sans-serif;
+      font-size: 18px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 24px;
+      color: #151E3A;
+      margin: 0 0 20px;
+    }
+
+    .modal-content-block p {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 20px;
+      color: #707BA0;
+      text-align: left;
+    }
+
+    .modal-content-block p:last-of-type {
+      margin-top: 10px;
+    }
+
+    .modal-content button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      width: 204px;
+      border-radius: 6px;
+      background: #225aea;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      transition: all .3s ease;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 16px;
+    }
+
+    .modal-content-block button {
+      display: flex;
+      margin-top: 30px;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      width: 204px;
+      border-radius: 6px;
+      background: #225aea;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      transition: all .3s ease;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 16px;
+    }
+
+    .modal-content button:hover {
+      background: #1448CB;
+    }
+
+    .modal-content-block button:hover {
+      background: #1448CB;
+    }
+
+    .modal-img {
+      padding-top: 24px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 256px;
+      width: 100%;
+      border-radius: 6px 6px 0 0;
+      background: #F2F6FF;
+    }
+
+    .modal-img-block {
+      padding-top: 24px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 256px;
+      width: 100%;
+      border-radius: 6px 6px 0 0;
+      background: #F2F6FF;
+    }
+
+    #close_modal, #close_modal-block {
+      position: absolute;
+      cursor: pointer;
+      top: 24px;
+      right: 24px;
+    }
+
+    @keyframes slideIn {
+      0% {
+        background: transparent;
+        top: -100%;
+      }
+
+      50% {
+        background: transparent;
+        top: 0;
+      }
+
+      100% {
+        background: rgba(6, 61, 140, .3);
+        top: 0;
+      }
+    }
+
+    @keyframes slideOut {
+      0% {
+        background: rgba(6, 61, 140, .3);
+        top: 0;
+      }
+
+      50% {
+        background: transparent;
+        top: 0;
+      }
+
+      100% {
+        background: transparent;
+        top: -100%;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <img src="chrome-extension://pgccoaecgcgnhffkjjcaonjoockggmng/adSaver/logo.svg" id="logo" alt="logo">
+
+<!--  <a class="tutorialLink" href="https://www.youtube.com/watch?v=SaL0W9Lq1To" target="_blank">-->
+<!--    <img src="video.svg" alt="video" style="margin-right: 8px"/> Watch Tutorial-->
+<!--  </a>-->
+</div>
+
+<div style="display: flex; width: 100%; height: 60px; padding: 12px 24px; background: #F2F3F8; align-items: center; justify-content: center">
+
+  <p id="gotoFacebookLabel" style="display: block;">
+    Go to <a id="facebookLink" target="_blank" href="https://www.facebook.com/">Facebook.com</a> to start finding
+    ads
+  </p>
+
+  <ul id="firstThing" style="display: none;">
+    <li>
+      <input id="s1" type="checkbox" class="switch">
+      <label for="s1" id="showAdsLabel" style="display: none;">Show Only Ads</label>
+      <span class="s1-tooltip" data-text="This toggle reveals only sponsored ads, while regular posts remain hidden"><svg width="24" height="24" fill="#C5CCE3" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M7.99992 1.33331C4.31826 1.33331 1.33325 4.31832 1.33325 7.99998C1.33325 11.6816 4.31826 14.6666 7.99992 14.6666C11.6816 14.6666 14.6666 11.6816 14.6666 7.99998C14.6666 4.31832 11.6816 1.33331 7.99992 1.33331ZM9.38881 11.6662C9.04489 11.8007 8.77152 11.9043 8.5665 11.9748C8.36147 12.0454 8.12558 12.0807 7.85442 12.0807C7.43995 12.0807 7.11588 11.9793 6.8844 11.7764C6.65512 11.5758 6.54048 11.3179 6.54048 11.0048C6.54048 10.8836 6.5493 10.7601 6.56694 10.6345C6.58237 10.5066 6.61103 10.3655 6.64851 10.2046L7.0784 8.68781C7.11588 8.54231 7.14895 8.40562 7.1754 8.27555C7.20186 8.14548 7.21288 8.02643 7.21288 7.91841C7.21288 7.72661 7.1732 7.58993 7.09383 7.51497C7.01226 7.43781 6.86015 7.40033 6.63528 7.40033C6.52505 7.40033 6.41041 7.41797 6.29357 7.45104C6.17673 7.48631 6.07752 7.51938 5.99375 7.55024L6.10838 7.08287C6.38837 6.96823 6.65733 6.87123 6.91526 6.78966C7.17099 6.70809 7.4157 6.66621 7.64278 6.66621C8.05503 6.66621 8.3747 6.76762 8.59736 6.96603C8.82002 7.16444 8.93246 7.42458 8.93246 7.74204C8.93246 7.80818 8.92584 7.92502 8.91041 8.09037C8.89498 8.25571 8.86632 8.40783 8.82443 8.54892L8.39674 10.0613C8.36147 10.1825 8.33061 10.3214 8.30195 10.4757C8.27549 10.6301 8.26226 10.7491 8.26226 10.8285C8.26226 11.0291 8.30636 11.168 8.39674 11.2407C8.48493 11.3135 8.64145 11.3487 8.86412 11.3487C8.96773 11.3487 9.08457 11.3311 9.21685 11.2958C9.34692 11.2584 9.44172 11.2275 9.50124 11.1988L9.38881 11.6662ZM9.31165 5.52644C9.11323 5.71162 8.87293 5.80421 8.59295 5.80421C8.31297 5.80421 8.07047 5.71162 7.86985 5.52644C7.66923 5.34125 7.57002 5.11638 7.57002 4.85404C7.57002 4.59169 7.67144 4.36462 7.86985 4.17723C8.07047 3.98984 8.31297 3.89725 8.59295 3.89725C8.87293 3.89725 9.11323 3.98984 9.31165 4.17723C9.51226 4.36462 9.61147 4.59169 9.61147 4.85404C9.61147 5.11638 9.51226 5.34125 9.31165 5.52644Z"></path></svg></span>
+    </li>
+    <li>
+      <input id="s2" type="checkbox" class="switch">
+      <label for="s2" id="autoScrollLabel" style="display: none;">Auto Scroll</label>
+      <span class="s1-tooltip s2-tooltip" data-text="This feature is designed to function with a single Facebook tab open at a time. It is automatically disabled across all the Chrome tabs and windows when you open a new Facebook tab."><svg width="24" height="24" fill="#C5CCE3" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M7.99992 1.33331C4.31826 1.33331 1.33325 4.31832 1.33325 7.99998C1.33325 11.6816 4.31826 14.6666 7.99992 14.6666C11.6816 14.6666 14.6666 11.6816 14.6666 7.99998C14.6666 4.31832 11.6816 1.33331 7.99992 1.33331ZM9.38881 11.6662C9.04489 11.8007 8.77152 11.9043 8.5665 11.9748C8.36147 12.0454 8.12558 12.0807 7.85442 12.0807C7.43995 12.0807 7.11588 11.9793 6.8844 11.7764C6.65512 11.5758 6.54048 11.3179 6.54048 11.0048C6.54048 10.8836 6.5493 10.7601 6.56694 10.6345C6.58237 10.5066 6.61103 10.3655 6.64851 10.2046L7.0784 8.68781C7.11588 8.54231 7.14895 8.40562 7.1754 8.27555C7.20186 8.14548 7.21288 8.02643 7.21288 7.91841C7.21288 7.72661 7.1732 7.58993 7.09383 7.51497C7.01226 7.43781 6.86015 7.40033 6.63528 7.40033C6.52505 7.40033 6.41041 7.41797 6.29357 7.45104C6.17673 7.48631 6.07752 7.51938 5.99375 7.55024L6.10838 7.08287C6.38837 6.96823 6.65733 6.87123 6.91526 6.78966C7.17099 6.70809 7.4157 6.66621 7.64278 6.66621C8.05503 6.66621 8.3747 6.76762 8.59736 6.96603C8.82002 7.16444 8.93246 7.42458 8.93246 7.74204C8.93246 7.80818 8.92584 7.92502 8.91041 8.09037C8.89498 8.25571 8.86632 8.40783 8.82443 8.54892L8.39674 10.0613C8.36147 10.1825 8.33061 10.3214 8.30195 10.4757C8.27549 10.6301 8.26226 10.7491 8.26226 10.8285C8.26226 11.0291 8.30636 11.168 8.39674 11.2407C8.48493 11.3135 8.64145 11.3487 8.86412 11.3487C8.96773 11.3487 9.08457 11.3311 9.21685 11.2958C9.34692 11.2584 9.44172 11.2275 9.50124 11.1988L9.38881 11.6662ZM9.31165 5.52644C9.11323 5.71162 8.87293 5.80421 8.59295 5.80421C8.31297 5.80421 8.07047 5.71162 7.86985 5.52644C7.66923 5.34125 7.57002 5.11638 7.57002 4.85404C7.57002 4.59169 7.67144 4.36462 7.86985 4.17723C8.07047 3.98984 8.31297 3.89725 8.59295 3.89725C8.87293 3.89725 9.11323 3.98984 9.31165 4.17723C9.51226 4.36462 9.61147 4.59169 9.61147 4.85404C9.61147 5.11638 9.51226 5.34125 9.31165 5.52644Z"></path></svg></span>
+    </li>
+  </ul>
+</div>
+
+<div id="metrics_container">
+
+  <div class="metrics_block" style="margin-bottom: 12px">
+    <h3 id="todaysActivityTitle">Today's Saved Ads</h3>
+    <div class="metrics_block_stat">
+      <div>
+        <p id="ads_found_today_metric" class="metrics_count">7</p>
+        <p id="ads_found_today_label" class="metrics_label">Ads Found</p>
+      </div>
+      <div>
+        <p id="advertisers_found_today_metric" class="metrics_count">6</p>
+        <p id="advertisers_found_today_label" class="metrics_label">Advertisers Found</p>
+      </div>
+      <div>
+        <p id="favorite_ads_today_metric" class="metrics_count">0</p>
+        <p id="favorite_ads_today_label" class="metrics_label">Favorite Ads</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics_block">
+    <h3 id="lifeTimeActivityTitle">Lifetime Activity</h3>
+    <div class="metrics_block_stat">
+      <div>
+        <p id="ads_found_metric" class="metrics_count">479</p>
+        <p id="ads_found_label" class="metrics_label">Ads Found</p>
+      </div>
+      <div>
+        <p id="advertisers_found_metric" class="metrics_count">420</p>
+        <p id="advertisers_found_label" class="metrics_label">Advertisers Found</p>
+      </div>
+      <div>
+        <p id="favorite_ads_metric" class="metrics_count">0</p>
+        <p id="favorite_ads_label" class="metrics_label">Favorite Ads</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a target="_blank" id="secondThing" style="width: 452px;height: 48px;" href="https://ads.dropship.io/?user_token=100394419169465704322">
+  <p id="seeCollectedAdsText">See Collected Ads</p>
+</a>
+
+<div id="errorField">
+  <img src="chrome-extension://pgccoaecgcgnhffkjjcaonjoockggmng/adSaver/info.svg" style="margin-left: 16px; width:24px; height:24px;" alt="info">Something went wrong.. Refresh the popup..</img>
+  <p id="errorFieldText" style="font-size: 14px; font-family: &#39;Inter&#39;, serif; margin-left: 8px;"></p>
+</div>
+
+<div class="button-switch" id="button-switch" style="display:  none; position: fixed; left: 250px; top: 97px;"></div>
+
+<div class="rate-us">
+  <h3>
+    Rate Us!
+  </h3>
+  <div class="stars-wrapper" id="stars-wrapper">
+    <span class="star" data-id="1">
+      <svg xmlns="http://www.w3.org/2000/svg" width="33" height="32" viewBox="0 0 33 32" fill="none">
+        <path d="M14.4796 3.91777C15.1529 2.24876 17.5158 2.24876 18.1891 3.91777L20.7721 10.3206C20.8665 10.5545 21.0848 10.7151 21.3362 10.7356L27.8243 11.265C29.5836 11.4086 30.3079 13.5945 28.9825 14.7602L24.0592 19.0904C23.877 19.2507 23.7963 19.4973 23.8484 19.7343L25.4228 26.8904C25.8161 28.6779 23.8005 30.0109 22.3095 28.9493L16.721 24.9702C16.4896 24.8054 16.1791 24.8054 15.9476 24.9702L10.3592 28.9493C8.86819 30.0109 6.8526 28.6779 7.24588 26.8904L8.82025 19.7343C8.87239 19.4973 8.79164 19.2507 8.60943 19.0904L3.68591 14.7602C2.3605 13.5945 3.08485 11.4086 4.84409 11.265L11.3325 10.7356C11.5839 10.7151 11.8022 10.5545 11.8965 10.3206L14.4796 3.91777Z" fill="#F2F6FF"></path>
+      </svg>
+    </span>
+    <span class="star" data-id="2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="33" height="32" viewBox="0 0 33 32" fill="none">
+        <path d="M14.4796 3.91777C15.1529 2.24876 17.5158 2.24876 18.1891 3.91777L20.7721 10.3206C20.8665 10.5545 21.0848 10.7151 21.3362 10.7356L27.8243 11.265C29.5836 11.4086 30.3079 13.5945 28.9825 14.7602L24.0592 19.0904C23.877 19.2507 23.7963 19.4973 23.8484 19.7343L25.4228 26.8904C25.8161 28.6779 23.8005 30.0109 22.3095 28.9493L16.721 24.9702C16.4896 24.8054 16.1791 24.8054 15.9476 24.9702L10.3592 28.9493C8.86819 30.0109 6.8526 28.6779 7.24588 26.8904L8.82025 19.7343C8.87239 19.4973 8.79164 19.2507 8.60943 19.0904L3.68591 14.7602C2.3605 13.5945 3.08485 11.4086 4.84409 11.265L11.3325 10.7356C11.5839 10.7151 11.8022 10.5545 11.8965 10.3206L14.4796 3.91777Z" fill="#F2F6FF"></path>
+      </svg>
+    </span>
+    <span class="star" data-id="3">
+      <svg xmlns="http://www.w3.org/2000/svg" width="33" height="32" viewBox="0 0 33 32" fill="none">
+        <path d="M14.4796 3.91777C15.1529 2.24876 17.5158 2.24876 18.1891 3.91777L20.7721 10.3206C20.8665 10.5545 21.0848 10.7151 21.3362 10.7356L27.8243 11.265C29.5836 11.4086 30.3079 13.5945 28.9825 14.7602L24.0592 19.0904C23.877 19.2507 23.7963 19.4973 23.8484 19.7343L25.4228 26.8904C25.8161 28.6779 23.8005 30.0109 22.3095 28.9493L16.721 24.9702C16.4896 24.8054 16.1791 24.8054 15.9476 24.9702L10.3592 28.9493C8.86819 30.0109 6.8526 28.6779 7.24588 26.8904L8.82025 19.7343C8.87239 19.4973 8.79164 19.2507 8.60943 19.0904L3.68591 14.7602C2.3605 13.5945 3.08485 11.4086 4.84409 11.265L11.3325 10.7356C11.5839 10.7151 11.8022 10.5545 11.8965 10.3206L14.4796 3.91777Z" fill="#F2F6FF"></path>
+      </svg>
+    </span>
+    <span class="star" data-id="4">
+      <svg xmlns="http://www.w3.org/2000/svg" width="33" height="32" viewBox="0 0 33 32" fill="none">
+        <path d="M14.4796 3.91777C15.1529 2.24876 17.5158 2.24876 18.1891 3.91777L20.7721 10.3206C20.8665 10.5545 21.0848 10.7151 21.3362 10.7356L27.8243 11.265C29.5836 11.4086 30.3079 13.5945 28.9825 14.7602L24.0592 19.0904C23.877 19.2507 23.7963 19.4973 23.8484 19.7343L25.4228 26.8904C25.8161 28.6779 23.8005 30.0109 22.3095 28.9493L16.721 24.9702C16.4896 24.8054 16.1791 24.8054 15.9476 24.9702L10.3592 28.9493C8.86819 30.0109 6.8526 28.6779 7.24588 26.8904L8.82025 19.7343C8.87239 19.4973 8.79164 19.2507 8.60943 19.0904L3.68591 14.7602C2.3605 13.5945 3.08485 11.4086 4.84409 11.265L11.3325 10.7356C11.5839 10.7151 11.8022 10.5545 11.8965 10.3206L14.4796 3.91777Z" fill="#F2F6FF"></path>
+      </svg>
+    </span>
+    <span class="star" data-id="5">
+      <svg xmlns="http://www.w3.org/2000/svg" width="33" height="32" viewBox="0 0 33 32" fill="none">
+        <path d="M14.4796 3.91777C15.1529 2.24876 17.5158 2.24876 18.1891 3.91777L20.7721 10.3206C20.8665 10.5545 21.0848 10.7151 21.3362 10.7356L27.8243 11.265C29.5836 11.4086 30.3079 13.5945 28.9825 14.7602L24.0592 19.0904C23.877 19.2507 23.7963 19.4973 23.8484 19.7343L25.4228 26.8904C25.8161 28.6779 23.8005 30.0109 22.3095 28.9493L16.721 24.9702C16.4896 24.8054 16.1791 24.8054 15.9476 24.9702L10.3592 28.9493C8.86819 30.0109 6.8526 28.6779 7.24588 26.8904L8.82025 19.7343C8.87239 19.4973 8.79164 19.2507 8.60943 19.0904L3.68591 14.7602C2.3605 13.5945 3.08485 11.4086 4.84409 11.265L11.3325 10.7356C11.5839 10.7151 11.8022 10.5545 11.8965 10.3206L14.4796 3.91777Z" fill="#F2F6FF"></path>
+      </svg>
+    </span>
+  </div>
+</div>
+
+<p id="idText">ID: 100394419169465704322</p>
+
+<div class="modal-bg hidden" id="modal-bg">
+  <div class="modal">
+    <span id="close_modal">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <path d="M17.8782 15.9924L23.606 10.2779C23.8568 10.027 23.9977 9.68685 23.9977 9.33213C23.9977 8.9774 23.8568 8.6372 23.606 8.38637C23.3552 8.13554 23.015 7.99463 22.6602 7.99463C22.3055 7.99463 21.9653 8.13554 21.7145 8.38637L16 14.1142L10.2855 8.38637C10.0347 8.13554 9.6945 7.99463 9.33977 7.99463C8.98504 7.99463 8.64485 8.13554 8.39402 8.38637C8.14319 8.6372 8.00227 8.9774 8.00227 9.33213C8.00227 9.68685 8.14319 10.027 8.39402 10.2779L14.1218 15.9924L8.39402 21.7068C8.26917 21.8307 8.17007 21.978 8.10244 22.1403C8.03482 22.3026 8 22.4767 8 22.6526C8 22.8284 8.03482 23.0025 8.10244 23.1649C8.17007 23.3272 8.26917 23.4745 8.39402 23.5983C8.51785 23.7232 8.66517 23.8223 8.8275 23.8899C8.98982 23.9575 9.16392 23.9924 9.33977 23.9924C9.51562 23.9924 9.68972 23.9575 9.85204 23.8899C10.0144 23.8223 10.1617 23.7232 10.2855 23.5983L16 17.8705L21.7145 23.5983C21.8383 23.7232 21.9856 23.8223 22.148 23.8899C22.3103 23.9575 22.4844 23.9924 22.6602 23.9924C22.8361 23.9924 23.0102 23.9575 23.1725 23.8899C23.3348 23.8223 23.4822 23.7232 23.606 23.5983C23.7308 23.4745 23.8299 23.3272 23.8976 23.1649C23.9652 23.0025 24 22.8284 24 22.6526C24 22.4767 23.9652 22.3026 23.8976 22.1403C23.8299 21.978 23.7308 21.8307 23.606 21.7068L17.8782 15.9924Z" fill="#707BA0"></path>
+      </svg>
+    </span>
+    <div class="modal-img">
+      <svg xmlns="http://www.w3.org/2000/svg" width="202" height="232" viewBox="0 0 202 232" fill="none">
+        <path d="M92.512 227.151C92.6549 227.831 92.8107 228.454 92.9794 229.031L106.724 226.652C106.537 225.686 106.382 224.629 106.288 223.475C106.232 222.846 106.201 222.197 106.188 221.517V221.381V221.199V221.096V220.908V220.797C106.194 219.28 106.313 217.918 106.519 216.673C106.611 216.116 106.718 215.591 106.836 215.078C107.024 214.274 107.247 213.516 107.497 212.789C107.877 211.687 108.314 210.669 108.768 209.684C108.974 209.23 109.192 208.789 109.404 208.348C109.404 208.348 109.667 207.855 110.041 206.999C110.59 205.748 111.381 203.712 111.942 201.313C112.036 200.911 112.123 200.502 112.198 200.081C112.209 200.035 112.216 199.996 112.222 199.951C112.297 199.536 112.365 199.108 112.421 198.674V198.667C112.54 197.733 112.615 196.768 112.615 195.788V195.672V195.555V195.425C112.615 195.335 112.609 195.25 112.609 195.16C112.59 194.304 112.541 193.493 112.466 192.721C112.391 191.93 112.284 191.185 112.16 190.484C111.332 185.835 109.68 183.242 109.68 183.242H95.3813C95.3813 183.242 96.465 184.934 97.3133 188.047L97.4257 188.474C97.4574 188.598 97.4878 188.727 97.5195 188.863C97.8557 190.257 98.1299 191.892 98.2482 193.746V193.753L98.2509 193.803C98.2747 194.247 98.2988 194.698 98.3045 195.166C98.3103 195.374 98.3103 195.581 98.3103 195.795C98.3103 197.228 98.1545 198.635 97.912 199.958C97.5945 201.695 97.127 203.297 96.6654 204.619C96.4099 205.352 96.1545 205.994 95.9296 206.538C95.4562 207.68 95.0942 208.354 95.0942 208.354L95.038 208.471C94.813 208.937 94.5822 209.411 94.3643 209.89C94.0398 210.611 93.7223 211.349 93.4294 212.128C92.9115 213.496 92.4815 214.981 92.2073 216.673C91.9953 217.95 91.877 219.351 91.877 220.907V221.108C91.8828 222.658 92.007 224.084 92.1945 225.368C92.287 225.997 92.3936 226.593 92.512 227.151Z" fill="#072F94"></path>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M67.5624 113.309H75.5275C85.2269 113.309 93.0898 121.172 93.0898 130.871V148.798C93.0898 158.498 85.2269 166.361 75.5275 166.361H67.5624C57.863 166.361 50 158.498 50 148.798V130.871C50 121.172 57.8629 113.309 67.5624 113.309ZM67.5624 124.485C64.0353 124.485 61.1761 127.344 61.1761 130.871V148.798C61.1761 152.325 64.0353 155.185 67.5624 155.185H75.5275C79.0545 155.185 81.9138 152.325 81.9138 148.798V130.871C81.9138 127.344 79.0545 124.485 75.5275 124.485H67.5624Z" fill="#1448CB"></path>
+        <path d="M153.689 70.2736C152.434 73.5072 150.886 75.8489 149.581 77.484C143.242 85.4258 135.73 85.3377 130.135 93.1748C128.331 95.7027 127.345 98.1882 126.775 100.053C121.517 95.2946 116.259 90.5373 111 85.7791C111.345 83.617 112.048 81.3285 113.372 79.1274C118.234 71.0442 127 71.5662 133.806 63.2104C135.851 60.7008 137.109 58.1388 137.915 56C143.173 60.7581 148.43 65.5163 153.689 70.2736Z" fill="#C5CCE3"></path>
+        <path d="M162.878 55.067C159.939 53.2234 157.931 51.2615 156.572 49.6715C149.967 41.9469 151.467 34.5848 144.825 27.6111C142.682 25.3618 140.427 23.9237 138.703 23.0134C144.365 18.7461 150.026 14.4791 155.688 10.2119C157.746 10.9583 159.861 12.0806 161.773 13.796C168.794 20.0964 166.632 28.6078 173.556 36.8701C175.636 39.3512 177.915 41.0701 179.863 42.2655C174.202 46.5332 168.54 50.8004 162.878 55.067Z" fill="#E2E6F3"></path>
+        <path d="M197.006 119.215C193.567 119.657 190.772 119.417 188.714 119.051C178.712 117.277 175.198 110.633 165.644 109.464C162.563 109.086 159.909 109.408 158 109.799C159.662 102.903 161.326 96.0071 162.988 89.1117C165.051 88.3811 167.395 87.9047 169.961 88.0161C179.38 88.4243 183.113 96.3778 193.702 98.3645C196.882 98.9614 199.732 98.8425 201.994 98.5283C200.332 105.424 198.67 112.32 197.006 119.215Z" fill="#E2E6F3"></path>
+        <path d="M36 79.168C38.381 81.6901 40.6964 83.2753 42.5199 84.2978C51.3826 89.2645 58.3079 86.351 66.4412 91.5015C69.0648 93.1632 70.9141 95.0933 72.1436 96.6062C75.2224 90.2172 78.3021 83.8273 81.381 77.4382C80.2478 75.5654 78.7349 73.7108 76.6796 72.1705C69.1329 66.5163 61.209 70.3035 51.7581 65.1297C48.9193 63.5761 46.7892 61.6767 45.2382 60C42.1577 66.3899 39.0788 72.779 36 79.168Z" fill="#E2E6F3"></path>
+        <path d="M45.5714 29.1215C42.1113 28.8681 39.3328 29.2617 37.296 29.7383C27.4028 32.0563 24.2595 38.8802 14.7799 40.5698C11.7225 41.1152 9.05394 40.9396 7.12537 40.6537C9.1669 47.4449 11.2084 54.236 13.25 61.0272C15.3509 61.6436 17.7194 61.9907 20.2761 61.7391C29.6633 60.8158 32.953 52.6745 43.421 50.111C46.565 49.3415 49.4188 49.3045 51.6964 49.4942C49.6545 42.7038 47.613 35.9127 45.5714 29.1215Z" fill="#C5CCE3"></path>
+        <path d="M126.823 223.376H78.1504V231.573H126.823V223.376Z" fill="#000E58"></path>
+        <path d="M10.8924 95.7522C9.94635 95.1991 9.07832 94.351 8.28059 93.5844C8.25483 93.5597 8.22937 93.5357 8.20439 93.5107C7.86766 93.1686 7.54173 92.8268 7.22507 92.5063C5.45923 90.7184 3.72921 88.7851 1.75234 87.4398C1.62086 87.3503 1.48766 87.2632 1.35228 87.1797C1.07768 87.0097 0.902004 86.7188 0.868926 86.3978C0.775117 85.4783 1.83184 84.887 2.55834 85.4584C3.0242 85.8248 3.47334 86.2237 3.90644 86.6226C5.47242 88.0648 6.92386 89.7064 8.45052 91.2167C9.69113 92.4436 11.1 93.8948 12.71 94.175C13.0185 94.229 13.3291 94.2518 13.6412 94.2491C13.6476 94.2493 13.6528 94.249 13.6591 94.2492C16.1757 94.2221 18.7971 92.5439 21.291 91.8516C22.4217 91.5376 23.6301 91.3628 24.6773 91.8691C25.8201 92.4209 26.388 93.7849 27.1488 94.9375C27.1843 94.9914 27.2205 95.0451 27.2559 95.0991C27.4923 95.4537 27.5179 95.908 27.3202 96.2846C26.8959 97.0957 25.7392 97.1226 25.2849 96.3284C25.2201 96.2154 25.1568 96.1018 25.094 95.9872C24.3589 94.6477 23.2987 94.0081 21.998 94.0137C19.106 94.0256 16.1731 96.2723 13.2855 96.3432C13.2795 96.3437 13.2731 96.3436 13.2676 96.343C12.9562 96.35 12.6445 96.3312 12.3341 96.2815C11.838 96.2019 11.3572 96.0137 10.8924 95.7522Z" fill="#F6B60E"></path>
+        <path d="M60.9443 15.9332C60.5597 14.7004 60.4342 13.3313 60.3096 12.0819C60.3055 12.042 60.3013 12.0021 60.298 11.9622C60.2581 11.4219 60.2265 10.8916 60.1875 10.3853C59.9732 7.55819 59.8843 4.66124 59.2072 1.95216C59.1565 1.7485 59.1017 1.54484 59.0419 1.34202C58.9497 1.02697 59.012 0.687813 59.2072 0.424303C59.7455 -0.300557 60.8845 -0.0520102 61.0756 0.83079C61.2534 1.65457 61.3689 2.49498 61.4669 3.31543C61.7527 5.7236 61.8142 8.16667 62.0227 10.5865C62.1922 12.5532 62.3475 14.8259 63.4416 16.4643C63.651 16.7785 63.8828 17.0728 64.1328 17.3505C64.1378 17.3554 64.142 17.3613 64.147 17.3662C66.1674 19.604 69.3709 20.7844 71.8175 22.5384C72.9266 23.3339 74.0041 24.2948 74.5009 25.5858C75.0425 26.9948 74.5865 28.4528 74.4236 29.9374C74.422 29.9524 74.4203 29.9673 74.4186 29.9823C74.3597 30.5226 73.9642 30.9657 73.4325 31.0762C72.5793 31.255 71.8075 30.526 71.9421 29.6648C71.9861 29.3838 72.0343 29.1037 72.0883 28.8252C72.3957 27.2333 71.9778 25.8385 70.9394 24.6764C68.6298 22.092 64.8 21.0271 62.4547 18.4876C62.4497 18.4826 62.4447 18.4768 62.4406 18.4718C62.188 18.1975 61.9529 17.9049 61.7386 17.5924C61.3971 17.0944 61.1404 16.5325 60.9443 15.9332Z" fill="#BBD7FF"></path>
+        <path d="M122.801 22.1278C122.513 22.9291 122.059 23.6947 121.649 24.3972C121.636 24.4196 121.623 24.442 121.609 24.4645C121.426 24.7621 121.242 25.0522 121.071 25.3315C120.113 26.8934 119.074 28.4396 118.365 30.1312C118.308 30.2684 118.252 30.408 118.199 30.5493C118.132 30.7305 117.985 30.8702 117.8 30.9259C117.298 31.0788 116.842 30.5726 117.053 30.0905C117.295 29.5352 117.583 28.999 117.87 28.4861C118.64 27.1129 119.522 25.8145 120.331 24.467C120.988 23.3722 121.766 22.1237 121.89 20.8169C121.914 20.5667 121.921 20.3173 121.913 20.0688C121.913 20.0638 121.913 20.0596 121.913 20.0546C121.849 18.0521 120.868 16.1111 120.436 14.1851C120.24 13.3114 120.121 12.3655 120.381 11.4868C120.666 10.5284 121.411 9.95814 122.036 9.25157C122.038 9.2499 122.039 9.24824 122.04 9.24741C122.271 8.98723 122.652 8.92322 122.952 9.09861L123.014 9.13519C123.422 9.37376 123.5 9.92988 123.176 10.274C123.007 10.4536 122.834 10.6281 122.658 10.7977C121.929 11.5001 121.594 12.3996 121.623 13.4345C121.685 15.7371 122.987 17.8767 123.081 20.171C123.081 20.176 123.081 20.1802 123.082 20.1852C123.092 20.4329 123.087 20.6822 123.066 20.9341C123.033 21.3356 122.938 21.7346 122.801 22.1278Z" fill="#A07401"></path>
+        <path d="M188.213 75.1643C187.033 75.6598 185.679 75.9017 184.446 76.1328C184.407 76.1402 184.367 76.1477 184.327 76.1544C183.791 76.24 183.264 76.3165 182.762 76.3979C179.959 76.8526 177.069 77.1843 174.452 78.1004C174.264 78.166 174.076 78.2359 173.888 78.3107C173.571 78.437 173.213 78.4054 172.921 78.2284C172.118 77.7388 172.266 76.5259 173.166 76.2516C173.932 76.018 174.72 75.8393 175.491 75.6789C177.863 75.1868 180.303 74.9208 182.698 74.506C184.645 74.1693 186.901 73.8218 188.384 72.5675C188.668 72.3272 188.93 72.0662 189.173 71.7869C189.178 71.7819 189.182 71.7761 189.187 71.7711C191.137 69.5201 191.857 66.1493 193.26 63.5042C193.896 62.3047 194.704 61.1243 195.926 60.5092C197.259 59.8384 198.787 60.1833 200.299 60.2266C200.329 60.2274 200.358 60.2282 200.388 60.2291C200.918 60.2432 201.385 60.579 201.561 61.0786C201.87 61.9523 201.173 62.8484 200.25 62.7744C200.008 62.7553 199.765 62.732 199.523 62.7054C197.883 62.5242 196.546 63.067 195.531 64.2241C193.276 66.7985 192.763 70.8002 190.558 73.4087C190.553 73.4137 190.548 73.4195 190.543 73.4245C190.305 73.7055 190.046 73.9698 189.763 74.215C189.311 74.6057 188.785 74.915 188.213 75.1643Z" fill="#4182FF"></path>
+        <path d="M68.8224 104L123.131 104L123.131 190.586L83.3939 190.586C75.3463 190.586 68.8224 177.897 68.8224 162.245L68.8224 104Z" fill="#225AEA"></path>
+        <path d="M109.296 104L136.963 104L136.963 163.36C136.963 178.397 130.77 190.586 123.13 190.586C115.49 190.586 109.296 178.397 109.296 163.36L109.296 104Z" fill="#F6B60E"></path>
+        <path d="M105.825 57.1939C105.757 57.9221 105.446 58.7217 105.169 59.4516C105.16 59.4749 105.152 59.4981 105.143 59.5214C105.012 59.8365 104.878 60.1465 104.757 60.4416C104.079 62.0925 103.283 63.7808 103.001 65.3752C102.984 65.4708 102.969 65.5664 102.957 65.662C102.926 65.898 102.791 66.1067 102.591 66.2347C101.957 66.6395 101.162 66.0377 101.378 65.317C101.459 65.0501 101.549 64.7841 101.641 64.5215C102.138 63.1125 102.821 61.6894 103.381 60.2754C103.837 59.1266 104.396 57.7999 104.029 56.8173C103.96 56.6286 103.866 56.4516 103.754 56.2828C103.752 56.2795 103.749 56.2762 103.747 56.2737C102.835 54.9171 100.681 54.144 99.2915 53.0584C98.6618 52.5654 98.106 51.9777 98.1035 51.213C98.101 50.3784 98.8944 49.5429 99.466 48.6826C99.5183 48.6045 99.5698 48.5255 99.6205 48.4473C99.7509 48.2462 99.9661 48.1148 100.205 48.0882L100.243 48.0841C100.949 48.0043 101.41 48.8156 100.973 49.3767C100.969 49.3817 100.966 49.3867 100.961 49.3917C100.245 50.3094 100.155 51.1323 100.619 51.8364C101.653 53.4025 104.332 54.1249 105.408 55.6652C105.41 55.6685 105.412 55.6718 105.414 55.6743C105.53 55.8406 105.626 56.0168 105.7 56.2047C105.817 56.5064 105.85 56.8406 105.825 57.1939Z" fill="#000E58"></path>
+        <path d="M79.1312 137.272L75.4824 141.474L82.9485 150.072L86.5973 145.87L79.1312 137.272Z" fill="white"></path>
+        <path d="M98.9852 127.567L81.1973 148.052L84.846 152.254L102.634 131.769L98.9852 127.567Z" fill="white"></path>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M130.183 113.309H138.149C147.848 113.309 155.711 121.172 155.711 130.871V148.798C155.711 158.498 147.848 166.361 138.149 166.361H130.183C120.484 166.361 112.621 158.498 112.621 148.798V130.871C112.621 121.172 120.484 113.309 130.183 113.309ZM130.183 124.485C126.656 124.485 123.797 127.344 123.797 130.871V148.798C123.797 152.325 126.656 155.185 130.183 155.185H138.149C141.676 155.185 144.535 152.325 144.535 148.798V130.871C144.535 127.344 141.676 124.485 138.149 124.485H130.183Z" fill="#A07401"></path>
+      </svg>
+    </div>
+    <div class="modal-content">
+      <h3>
+        Thank You!
+      </h3>
+      <button id="thank_you_btn">
+        Done
+      </button>
+    </div>
+  </div>
+</div>
+<div class="modal-bg-block hidden" id="modal-bg-block">
+  <div class="modal-block">
+    <span id="close_modal-block">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <path d="M17.8782 15.9924L23.606 10.2779C23.8568 10.027 23.9977 9.68685 23.9977 9.33213C23.9977 8.9774 23.8568 8.6372 23.606 8.38637C23.3552 8.13554 23.015 7.99463 22.6602 7.99463C22.3055 7.99463 21.9653 8.13554 21.7145 8.38637L16 14.1142L10.2855 8.38637C10.0347 8.13554 9.6945 7.99463 9.33977 7.99463C8.98504 7.99463 8.64485 8.13554 8.39402 8.38637C8.14319 8.6372 8.00227 8.9774 8.00227 9.33213C8.00227 9.68685 8.14319 10.027 8.39402 10.2779L14.1218 15.9924L8.39402 21.7068C8.26917 21.8307 8.17007 21.978 8.10244 22.1403C8.03482 22.3026 8 22.4767 8 22.6526C8 22.8284 8.03482 23.0025 8.10244 23.1649C8.17007 23.3272 8.26917 23.4745 8.39402 23.5983C8.51785 23.7232 8.66517 23.8223 8.8275 23.8899C8.98982 23.9575 9.16392 23.9924 9.33977 23.9924C9.51562 23.9924 9.68972 23.9575 9.85204 23.8899C10.0144 23.8223 10.1617 23.7232 10.2855 23.5983L16 17.8705L21.7145 23.5983C21.8383 23.7232 21.9856 23.8223 22.148 23.8899C22.3103 23.9575 22.4844 23.9924 22.6602 23.9924C22.8361 23.9924 23.0102 23.9575 23.1725 23.8899C23.3348 23.8223 23.4822 23.7232 23.606 23.5983C23.7308 23.4745 23.8299 23.3272 23.8976 23.1649C23.9652 23.0025 24 22.8284 24 22.6526C24 22.4767 23.9652 22.3026 23.8976 22.1403C23.8299 21.978 23.7308 21.8307 23.606 21.7068L17.8782 15.9924Z" fill="#707BA0"></path>
+      </svg>
+    </span>
+    <div class="modal-img-block">
+      <svg xmlns="http://www.w3.org/2000/svg" width="308" height="250" viewBox="0 0 308 307" fill="none">
+        <path opacity="0.35" d="M307.5 153.5C307.5 238.276 238.776 307 154 307C69.2243 307 0.5 238.276 0.5 153.5C0.5 68.7243 69.2243 0 154 0C238.776 0 307.5 68.7243 307.5 153.5Z" fill="#FFF4F4"></path>
+        <circle opacity="0.05" cx="153.84" cy="153.341" r="109.293" fill="#D71313"></circle>
+        <circle opacity="0.05" cx="153.996" cy="151.883" r="69.9475" fill="#D71313"></circle>
+        <path d="M213.398 80.7544V69.4087C213.398 69.4087 201.348 70.0868 194.044 68.0739C186.402 65.9679 181.221 64.716 176.024 58.7305C170.621 52.5071 169.281 46.9504 169.35 38.7087C169.453 26.4567 174.689 20.0218 185.368 14.0153C196.046 8.00872 217.402 8.67612 217.402 8.67612C217.402 8.67612 237.22 9.42625 245.433 18.0196C253.077 26.0181 255.156 33.0337 254.109 44.0479C252.083 65.3586 213.398 80.7544 213.398 80.7544Z" fill="#D71313" stroke="white" stroke-width="4"></path>
+        <path d="M219.406 32.0348L218.738 24.6935C218.738 24.6935 221.447 22.984 223.41 22.6913C225.488 22.3815 226.794 22.5892 228.749 23.3587C232.538 24.8496 234.321 27.4482 235.423 31.3674C236.491 35.1643 235.717 37.7864 234.088 41.3783C232.336 45.2423 230.024 46.6923 226.747 49.387C221.975 53.3112 212.732 56.7283 212.732 56.7283L217.404 46.05L212.064 38.7087L219.406 32.0348Z" fill="white"></path>
+        <path d="M204.667 38.838L209.338 30.162C209.338 30.162 206.669 26.1576 205.334 24.8228C203.999 23.4881 200.505 22.2881 197.325 22.8207C193.31 23.4932 190.986 25.7811 189.317 29.4946C187.382 33.8 187.579 38.5913 190.039 42.0457C192.5 45.5 198.716 51.3892 208.727 55.3935L211.341 44.8446L204.667 38.838Z" fill="white"></path>
+        <path opacity="0.5" d="M150.5 139L96.5 168.5L90.5 182.5V242.5C90.5 242.5 95.9189 245.965 99.5 248C103.145 250.071 105.198 251.234 109 253C120.264 258.23 127.181 260.429 139.5 262C151.709 263.557 158.845 263.436 171 261.5C180.776 259.943 186.329 258.227 195.5 254.5C205.305 250.516 219 241 219 241V194.5L209 174.5L150.5 139Z" fill="white"></path>
+        <mask id="mask0_29295_426639" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="44" y="44" width="220" height="219">
+          <circle cx="153.84" cy="153.341" r="109.293" fill="#225AEA"></circle>
+        </mask>
+        <g mask="url(#mask0_29295_426639)">
+          <path d="M210.691 165.207L173.958 138.789C161.641 129.928 145.035 129.928 132.71 138.789L95.9696 165.207C86.7512 171.839 81.2812 182.499 81.2812 193.855V239.95C81.2812 251.305 86.7434 261.965 95.9696 268.597L132.702 295.015C145.019 303.876 161.625 303.876 173.95 295.015L210.683 268.597C219.901 261.965 225.371 251.305 225.371 239.95V193.855C225.371 182.499 219.909 171.839 210.691 165.207ZM140.958 150.246C148.353 144.928 158.315 144.928 165.702 150.246L196.667 172.512C198.905 174.123 198.905 177.447 196.667 179.058L165.702 201.323C158.307 206.641 148.345 206.641 140.958 201.323L109.993 179.058C107.755 177.447 107.755 174.123 109.993 172.512L140.958 150.246ZM211.254 239.942C211.254 246.754 207.975 253.151 202.442 257.132L165.71 283.55C158.315 288.868 148.353 288.868 140.966 283.55L104.233 257.132C98.7007 253.151 95.4218 246.754 95.4218 239.942V193.847C95.4218 193.823 95.4218 193.8 95.4218 193.776C95.4296 190.515 99.1467 188.638 101.792 190.539L132.718 212.781C145.035 221.642 161.641 221.642 173.966 212.781L204.892 190.539C207.545 188.63 211.254 190.507 211.262 193.776C211.262 193.8 211.262 193.823 211.262 193.847V239.942H211.254Z" fill="#D71313"></path>
+          <path d="M173.758 243.377C167.615 242.173 163.538 237.316 160.51 231.732C159.618 230.09 159.68 228.025 161.066 226.922C162.091 226.109 163.445 226.156 164.438 227.008C168.241 230.246 172.679 232.076 175.55 232.702C178.422 233.328 183.141 233.5 187.719 232.092C188.924 231.724 190.192 232.256 190.881 233.437C191.82 235.048 191.194 236.972 189.848 238.145C184.949 242.407 179.995 244.605 173.758 243.377Z" fill="#D71313"></path>
+          <path d="M132.961 243.377C139.104 242.173 143.181 237.316 146.21 231.732C147.102 230.09 147.039 228.025 145.654 226.922C144.629 226.109 143.275 226.156 142.282 227.008C138.478 230.246 134.041 232.076 131.169 232.702C128.297 233.328 123.579 233.5 119.001 232.092C117.796 231.724 116.528 232.256 115.839 233.437C114.9 235.048 115.526 236.972 116.872 238.145C121.771 242.407 126.725 244.605 132.961 243.377Z" fill="#D71313"></path>
+        </g>
+      </svg>
+    </div>
+    <div class="modal-content-block">
+      <h3>
+        Disable Ad Blocker
+      </h3>
+      <p>
+        We noticed you have an ad blocker enabled.
+      </p>
+      <p>
+        To keep using the Dropship Extension, please disable the adblocker.
+      </p>
+      <button id="thank_you_btn-block">
+        Got it!
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="chrome-extension://pgccoaecgcgnhffkjjcaonjoockggmng/adSaver/config.js"></script>
+<script src="chrome-extension://pgccoaecgcgnhffkjjcaonjoockggmng/adSaver/popup.js"></script>
+
+
+</body></html>

@@ -318,7 +318,7 @@ export default function PricingPage() {
 
           {/* Packages Grid */}
           <motion.div 
-            className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto mb-20 mt-12"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 sm:gap-8 max-w-7xl mx-auto mb-20 mt-16 sm:mt-12 px-2"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -326,17 +326,17 @@ export default function PricingPage() {
             {packages.map((pkg) => {
               const IconComponent = pkg.icon;
               return (
-                <motion.div key={pkg.id} variants={cardVariants} className="relative">
+                <motion.div key={pkg.id} variants={cardVariants} className="relative pt-8 sm:pt-4">
                   {/* Floating Badges - Outside and Above Cards */}
                   <AnimatePresence>
                     {pkg.popular && (
                       <motion.div
                         initial={{ scale: 0, opacity: 0, y: 10 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
-                        className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20"
+                        className="absolute -top-6 sm:-top-8 left-1/2 transform -translate-x-1/2 z-20"
                       >
-                        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap">
-                          <Sparkles className="w-4 h-4" />
+                        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                          <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
                           Mais Popular
                           <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-purple-600"></div>
                         </div>
@@ -348,29 +348,31 @@ export default function PricingPage() {
                       <motion.div
                         initial={{ scale: 0, opacity: 0, y: 10 }}
                         animate={{ 
-                          scale: [1, 1.05, 1], 
+                          scale: [1, 1.03, 1], 
                           opacity: 1, 
                           y: 0,
-                          rotateZ: [-1, 1, -1, 0]
+                          rotateZ: [-0.5, 0.5, -0.5, 0]
                         }}
                         transition={{ 
-                          scale: { repeat: Infinity, duration: 2, ease: "easeInOut" },
-                          rotateZ: { repeat: Infinity, duration: 3, ease: "easeInOut" }
+                          scale: { repeat: Infinity, duration: 3, ease: "easeInOut", repeatDelay: 1 },
+                          rotateZ: { repeat: Infinity, duration: 4, ease: "easeInOut", repeatDelay: 1 }
                         }}
-                        className="absolute -top-10 left-1/2 transform -translate-x-1/2 z-30"
+                        className="absolute -top-12 sm:-top-10 left-1/2 transform -translate-x-1/2 z-30"
                       >
                         <div className="relative">
                           {/* Glow effect */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-red-500 blur-lg opacity-75 scale-110"></div>
+                          <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-red-500 blur-lg opacity-60 scale-110"></div>
                           
-                          <div className="relative bg-gradient-to-r from-pink-500 to-red-600 text-white px-6 py-3 rounded-full shadow-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap border-2 border-white">
+                          <div className="relative bg-gradient-to-r from-pink-500 to-red-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-xl text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 whitespace-nowrap border-2 border-white">
                             <motion.div
                               animate={{ rotate: 360 }}
-                              transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                              transition={{ repeat: Infinity, duration: 3, ease: "linear", repeatDelay: 1 }}
                             >
                               🎉
                             </motion.div>
-                            PRIMEIRA COMPRA -{getDiscountPercentage(pkg)}%
+                            <span className="hidden sm:inline">PRIMEIRA COMPRA</span>
+                            <span className="sm:hidden">1ª COMPRA</span>
+                            -{getDiscountPercentage(pkg)}%
                             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-600"></div>
                           </div>
                         </div>
@@ -381,10 +383,10 @@ export default function PricingPage() {
                       <motion.div
                         initial={{ scale: 0, opacity: 0, y: 10 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
-                        className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20"
+                        className="absolute -top-6 sm:-top-8 left-1/2 transform -translate-x-1/2 z-20"
                       >
-                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap">
-                          <Crown className="w-4 h-4" />
+                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                          <Crown className="w-3 h-3 sm:w-4 sm:h-4" />
                           Melhor Valor
                           <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-amber-600"></div>
                         </div>
@@ -394,8 +396,8 @@ export default function PricingPage() {
 
                   <Card 
                     className={`relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-2 overflow-hidden group ${
-                      isEligibleForFirstPurchase(pkg) ? 'border-pink-300 shadow-pink-200/50 shadow-2xl scale-105 animate-pulse' :
-                      pkg.popular ? 'border-purple-300 shadow-lg scale-105' : 
+                      isEligibleForFirstPurchase(pkg) ? 'border-pink-300 shadow-pink-200/50 shadow-xl sm:shadow-2xl scale-[1.02] sm:scale-105' :
+                      pkg.popular ? 'border-purple-300 shadow-lg scale-[1.01] sm:scale-105' : 
                       pkg.bestValue ? 'border-amber-300 shadow-lg' : 'border-ghibli-sand/30 hover:border-ghibli-moss/50'
                     }`}
                   >
@@ -410,32 +412,32 @@ export default function PricingPage() {
                     {isEligibleForFirstPurchase(pkg) && (
                       <div className="absolute inset-0 pointer-events-none">
                         <motion.div
-                          className="absolute top-4 left-4 text-pink-400"
+                          className="absolute top-4 left-4 text-pink-400 text-sm sm:text-base"
                           animate={{ 
-                            scale: [1, 1.2, 1],
-                            opacity: [0.5, 1, 0.5]
+                            scale: [1, 1.1, 1],
+                            opacity: [0.4, 0.8, 0.4]
                           }}
-                          transition={{ repeat: Infinity, duration: 2, delay: 0 }}
+                          transition={{ repeat: Infinity, duration: 3, delay: 0, repeatDelay: 1 }}
                         >
                           ✨
                         </motion.div>
                         <motion.div
-                          className="absolute top-6 right-6 text-red-400"
+                          className="absolute top-6 right-6 text-red-400 text-sm sm:text-base"
                           animate={{ 
-                            scale: [1, 1.3, 1],
-                            opacity: [0.3, 1, 0.3]
+                            scale: [1, 1.2, 1],
+                            opacity: [0.3, 0.7, 0.3]
                           }}
-                          transition={{ repeat: Infinity, duration: 2.5, delay: 0.5 }}
+                          transition={{ repeat: Infinity, duration: 3.5, delay: 0.8, repeatDelay: 1 }}
                         >
                           💥
                         </motion.div>
                         <motion.div
-                          className="absolute bottom-8 left-6 text-pink-300"
+                          className="absolute bottom-8 left-6 text-pink-300 text-sm sm:text-base"
                           animate={{ 
-                            scale: [1, 1.1, 1],
-                            opacity: [0.4, 1, 0.4]
+                            scale: [1, 1.05, 1],
+                            opacity: [0.4, 0.7, 0.4]
                           }}
-                          transition={{ repeat: Infinity, duration: 3, delay: 1 }}
+                          transition={{ repeat: Infinity, duration: 4, delay: 1.5, repeatDelay: 1 }}
                         >
                           🎉
                         </motion.div>
@@ -490,7 +492,7 @@ export default function PricingPage() {
                             color: ['#dc2626', '#ef4444', '#dc2626']
                           } : {}}
                           transition={{ 
-                            color: { repeat: Infinity, duration: 2 },
+                            color: { repeat: Infinity, duration: 3, repeatDelay: 1 },
                             scale: { type: "spring", stiffness: 300 }
                           }}
                         >
@@ -524,30 +526,29 @@ export default function PricingPage() {
                         onClick={() => handlePurchase(pkg.id)}
                         disabled={loading === pkg.id}
                         className={`w-full relative overflow-hidden group ${
+                          isEligibleForFirstPurchase(pkg) ? 'bg-red-600 hover:bg-red-700' :
                           pkg.popular ? 'bg-purple-600 hover:bg-purple-700' : 
                           pkg.bestValue ? 'bg-amber-600 hover:bg-amber-700' :
                           'ghibli-button'
-                        } ${
-                          pkg.popular || pkg.bestValue ? 'py-3 px-6 text-base' : 'py-2.5 px-5 text-sm'
-                        } ${
-                          'max-md:py-2 max-md:px-4 max-md:text-sm'
-                        }`}
+                        } py-2.5 sm:py-3 px-4 sm:px-6 text-sm sm:text-base font-medium`}
                       >
-                        <div className="relative z-10 flex items-center justify-center gap-2">
+                        <div className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2">
                           {loading === pkg.id ? (
                             <>
                               <motion.div
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                               >
-                                <Sparkles className="w-4 h-4" />
+                                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </motion.div>
-                              Processando...
+                              <span className="hidden sm:inline">Processando...</span>
+                              <span className="sm:hidden">...</span>
                             </>
                           ) : (
                             <>
-                              <Zap className="w-4 h-4" />
-                              Comprar Agora
+                              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              <span className="hidden sm:inline">Comprar Agora</span>
+                              <span className="sm:hidden">Comprar</span>
                             </>
                           )}
                         </div>
@@ -571,7 +572,7 @@ export default function PricingPage() {
             <h2 className="section-title text-ghibli-wood mb-12">
               Porquê escolher PicCoins?
             </h2>
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto px-4">
               {[
                 {
                   icon: "🚀",
@@ -591,20 +592,20 @@ export default function PricingPage() {
               ].map((benefit, index) => (
                 <motion.div 
                   key={index}
-                  className="ghibli-card p-8 text-center group hover:shadow-lg transition-all duration-300"
+                  className="ghibli-card p-6 sm:p-8 text-center group hover:shadow-lg transition-all duration-300"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.2 }}
                   whileHover={{ y: -5 }}
                 >
-                  <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="text-4xl sm:text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
                     {benefit.icon}
                   </div>
-                  <h3 className="font-ghibli text-xl font-semibold text-ghibli-wood mb-3">
+                  <h3 className="font-ghibli text-lg sm:text-xl font-semibold text-ghibli-wood mb-3">
                     {benefit.title}
                   </h3>
-                  <p className="text-ghibli-earth leading-relaxed">
+                  <p className="text-sm sm:text-base text-ghibli-earth leading-relaxed">
                     {benefit.description}
                   </p>
                 </motion.div>
