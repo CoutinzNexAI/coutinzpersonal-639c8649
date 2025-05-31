@@ -25,15 +25,23 @@ function getManuallyParsedCookie(cookieString: string, cookieName: string): stri
 
 // Define your PicCoin packages
 // Ensure prices are in the smallest currency unit (e.g., cents for EUR)
-const PICCOIN_PACKAGES = {
-  starter: { coins: 1, price: 200, name: 'STARTER' }, // 2 EUR = 200 cents
-  popular: { coins: 3, price: 500, name: 'POPULAR' }, // 5 EUR = 500 cents
-  premium: { coins: 7, price: 1000, name: 'PREMIUM' }, // 10 EUR = 1000 cents
-  mega: { coins: 15, price: 5000, name: 'MEGA' },     // 20 EUR = 2000 cents
-  ultimate: { coins: 50, price: 5000, name: 'ULTIMATE' } // 50 EUR = 5000 cents
+type PicCoinPackage = {
+  coins: number;
+  price: number;
+  name: string;
+  firstPurchasePrice?: number;
 };
 
+const PICCOIN_PACKAGES: Record<string, PicCoinPackage> = {
+  starter: { coins: 1, price: 200, name: 'STARTER' }, // 2 EUR = 200 cents
+  popular: { coins: 3, price: 500, name: 'POPULAR', firstPurchasePrice: 200 }, // 5 EUR = 500 cents, primeira compra 2 EUR = 200 cents
+  premium: { coins: 7, price: 1000, name: 'PREMIUM' }, // 10 EUR = 1000 cents
+  mega: { coins: 15, price: 2000, name: 'MEGA' },     // 20 EUR = 2000 cents
+  ultimate: { coins: 50, price: 5000, name: 'ULTIMATE' } // 50 EUR = 5000 cents
+} as const;
+
 type PackageId = keyof typeof PICCOIN_PACKAGES;
+type PackageType = typeof PICCOIN_PACKAGES[PackageId] & { firstPurchasePrice?: number };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const endpointName = '[API /api/piccoins/purchase]';
@@ -105,26 +113,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const selectedPackage = PICCOIN_PACKAGES[packageId as PackageId];
 
-    // 3. Get the application URL from environment variables
+    // 3. Verificar se é primeira compra para aplicar desconto
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('first_purchase_used')
+      .eq('id', user.id)
+      .single();
+
+    if (userError) {
+      console.error(`${endpointName} Error fetching user data:`, userError);
+      return res.status(500).json({ message: 'Error checking user purchase history.' });
+    }
+
+    // Determinar preço final (com ou sem desconto)
+    const isFirstPurchase = !userData?.first_purchase_used;
+    const hasFirstPurchaseDiscount = isFirstPurchase && selectedPackage.firstPurchasePrice;
+    const finalPrice = hasFirstPurchaseDiscount ? selectedPackage.firstPurchasePrice! : selectedPackage.price;
+
+    // 4. Get the application URL from environment variables
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl) {
       return res.status(500).json({ message: 'Server configuration error: Application URL is not set.' });
     }
 
 
-    // 4. Create Stripe Checkout Session
+    // 5. Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: `PicCoins ${selectedPackage.name}`,
-              description: `${selectedPackage.coins} PicCoins para transformações de imagem no PicTuz`,
+              name: hasFirstPurchaseDiscount ? 
+                `PicCoins ${selectedPackage.name} - PRIMEIRA COMPRA DESCONTO!` : 
+                `PicCoins ${selectedPackage.name}`,
+              description: hasFirstPurchaseDiscount ?
+                `${selectedPackage.coins} PicCoins para transformações de imagem no PicTuz - Oferta especial primeira compra (era €${(selectedPackage.price / 100).toFixed(2)})` :
+                `${selectedPackage.coins} PicCoins para transformações de imagem no PicTuz`,
               // You can add images here if you have URLs for them
               // images: ['https://example.com/your-product-image.png'],
             },
-            unit_amount: selectedPackage.price, // Price in cents
+            unit_amount: finalPrice, // Price in cents
           },
           quantity: 1,
         },
@@ -139,7 +168,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         packageId: packageId,
         piccoinsAmount: selectedPackage.coins.toString(), // Store amount of PicCoins
         packageName: selectedPackage.name,
-        purchaseType: 'piccoin_package' // General type for this transaction
+        purchaseType: 'piccoin_package', // General type for this transaction
+        firstPurchaseUsed: isFirstPurchase.toString(),
+        firstPurchaseDiscount: hasFirstPurchaseDiscount.toString()
       },
       // To collect billing addresses if needed for tax or other reasons
       // billing_address_collection: 'required', 

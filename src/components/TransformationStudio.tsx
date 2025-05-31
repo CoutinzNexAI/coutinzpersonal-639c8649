@@ -25,6 +25,8 @@ interface TransformationStudioProps extends Omit<UseImageProcessingResult,
   onStartClickForCarousel: () => void;
   onResetToStepZero: () => void;
   simulatedProgress: number;
+  currentJobId: string | null;
+  currentRating: number;
 }
 
 const Step3Preview: React.FC<{ imageUrl: string | undefined; styleName: string | undefined }> = ({ imageUrl, styleName }) => {
@@ -69,6 +71,8 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
   handleStartTransformation, // <<< NOVO: Usar o nome da função do hook atualizado
   handleDownload,
   setActiveStep,
+  currentJobId,
+  currentRating,
 }) => {
 
   if (showStepZeroContent) {
@@ -211,6 +215,8 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
                 transformedImageUrl={transformedImage}
                 selectedStyle={selectedStyle}
                 onDownload={handleDownload}
+                transformationId={currentJobId}
+                initialRating={currentRating}
               />
             </div>
             <div className="p-4 pt-2 flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-gray-200">

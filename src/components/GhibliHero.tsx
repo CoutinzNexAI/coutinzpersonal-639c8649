@@ -339,6 +339,9 @@ const GhibliHero = () => {
                 showStepZeroContent={showStepZeroInStudio}
                 onStartClickForCarousel={handleTriggerStudio} // <<< Ação do carrossel também aqui
                 onResetToStepZero={resetStudioToStepZero}
+                simulatedProgress={imageProcessingProps.simulatedProgress}
+                currentJobId={currentJobId}
+                currentRating={imageProcessingProps.currentRating}
               />
             </div>
           </motion.div>

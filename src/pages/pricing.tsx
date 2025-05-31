@@ -11,8 +11,24 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { Star, Sparkles, Zap, Crown, Infinity as InfinityIcon } from 'lucide-react';
+import { userInfo } from 'os';
 
-const packages = [
+// Tipo para os pacotes
+type Package = {
+  id: string;
+  name: string;
+  coins: number;
+  price: number;
+  popular?: boolean;
+  bestValue?: boolean;
+  firstPurchaseSpecial?: boolean;
+  discountPrice?: number;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  gradient: string;
+};
+
+const packages: Package[] = [
   { 
     id: 'starter', 
     name: 'STARTER', 
@@ -28,20 +44,22 @@ const packages = [
     name: 'POPULAR', 
     coins: 3, 
     price: 5, 
-    popular: true, 
+    popular: false,
+    firstPurchaseSpecial: true,
+    discountPrice: 2,
     description: 'Escolha favorita dos criadores',
     icon: Sparkles,
-    gradient: 'from-purple-400 to-purple-600'
+    gradient: 'from-amber-400 to-amber-600'
   },
   { 
     id: 'premium', 
     name: 'PREMIUM', 
     coins: 7, 
     price: 10, 
-    popular: false, 
+    popular: true,
     description: 'Valor excepcional para criadores',
     icon: Zap,
-    gradient: 'from-emerald-400 to-emerald-600'
+    gradient: 'from-purple-400 to-purple-600'
   },
   { 
     id: 'mega', 
@@ -51,7 +69,7 @@ const packages = [
     bestValue: true, 
     description: 'Máximo poder criativo',
     icon: Crown,
-    gradient: 'from-amber-400 to-amber-600'
+    gradient: 'from-emerald-400 to-emerald-600'
   },
   { 
     id: 'ultimate', 
@@ -69,7 +87,7 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const { userInfo, signInWithGoogle } = useAuth();
+  const { userInfo, signInWithGoogle, refreshUserInfo } = useAuth();
   const { balance, purchaseCoins, refetchBalance } = usePicCoins();
   const router = useRouter();
 
@@ -80,6 +98,7 @@ export default function PricingPage() {
         description: 'Os teus PicCoins foram adicionados à conta e estão prontos para usar.'
       });
       refetchBalance();
+      refreshUserInfo(); // Refresh dados do usuário para atualizar first_purchase_used
       // Clean URL
       router.replace('/pricing', undefined, { shallow: true });
     }
@@ -101,7 +120,7 @@ export default function PricingPage() {
       // Clean URL
       router.replace('/pricing', undefined, { shallow: true });
     }
-  }, [router.query, refetchBalance, router]);
+  }, [router.query, refetchBalance, router, refreshUserInfo]);
 
   const handleLogin = async () => {
     setIsLoggingIn(true);
@@ -139,6 +158,28 @@ export default function PricingPage() {
     } finally {
       setLoading(null);
     }
+  };
+
+  // Função para verificar se é elegível para desconto de primeira compra
+  const isEligibleForFirstPurchase = (pkg: Package) => {
+    return userInfo && !userInfo.first_purchase_used && pkg.firstPurchaseSpecial;
+  };
+
+  // Função para calcular preço final (com ou sem desconto)
+  const getFinalPrice = (pkg: Package) => {
+    if (isEligibleForFirstPurchase(pkg)) {
+      return pkg.discountPrice || pkg.price;
+    }
+    return pkg.price;
+  };
+
+  // Função para calcular desconto percentual
+  const getDiscountPercentage = (pkg: Package) => {
+    if (isEligibleForFirstPurchase(pkg)) {
+      const discountPrice = pkg.discountPrice || pkg.price;
+      return Math.round((1 - discountPrice / pkg.price) * 100);
+    }
+    return 0;
   };
 
   const containerVariants = {
@@ -301,6 +342,41 @@ export default function PricingPage() {
                         </div>
                       </motion.div>
                     )}
+                    
+                    {/* NOVO: Badge especial para primeira compra com animação chamativa */}
+                    {isEligibleForFirstPurchase(pkg) && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0, y: 10 }}
+                        animate={{ 
+                          scale: [1, 1.05, 1], 
+                          opacity: 1, 
+                          y: 0,
+                          rotateZ: [-1, 1, -1, 0]
+                        }}
+                        transition={{ 
+                          scale: { repeat: Infinity, duration: 2, ease: "easeInOut" },
+                          rotateZ: { repeat: Infinity, duration: 3, ease: "easeInOut" }
+                        }}
+                        className="absolute -top-10 left-1/2 transform -translate-x-1/2 z-30"
+                      >
+                        <div className="relative">
+                          {/* Glow effect */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-red-500 blur-lg opacity-75 scale-110"></div>
+                          
+                          <div className="relative bg-gradient-to-r from-pink-500 to-red-600 text-white px-6 py-3 rounded-full shadow-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap border-2 border-white">
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                            >
+                              🎉
+                            </motion.div>
+                            PRIMEIRA COMPRA -{getDiscountPercentage(pkg)}%
+                            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-600"></div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                    
                     {pkg.bestValue && (
                       <motion.div
                         initial={{ scale: 0, opacity: 0, y: 10 }}
@@ -318,13 +394,54 @@ export default function PricingPage() {
 
                   <Card 
                     className={`relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-2 overflow-hidden group ${
+                      isEligibleForFirstPurchase(pkg) ? 'border-pink-300 shadow-pink-200/50 shadow-2xl scale-105 animate-pulse' :
                       pkg.popular ? 'border-purple-300 shadow-lg scale-105' : 
                       pkg.bestValue ? 'border-amber-300 shadow-lg' : 'border-ghibli-sand/30 hover:border-ghibli-moss/50'
                     }`}
                   >
                     {/* Glowing Background Effect */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${pkg.gradient} opacity-5 group-hover:opacity-10 transition-opacity duration-300`} />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${
+                      isEligibleForFirstPurchase(pkg) ? 'from-pink-100 to-red-100' : pkg.gradient
+                    } ${
+                      isEligibleForFirstPurchase(pkg) ? 'opacity-20 group-hover:opacity-30' : 'opacity-5 group-hover:opacity-10'
+                    } transition-opacity duration-300`} />
                     
+                    {/* Sparkles animation para primeira compra */}
+                    {isEligibleForFirstPurchase(pkg) && (
+                      <div className="absolute inset-0 pointer-events-none">
+                        <motion.div
+                          className="absolute top-4 left-4 text-pink-400"
+                          animate={{ 
+                            scale: [1, 1.2, 1],
+                            opacity: [0.5, 1, 0.5]
+                          }}
+                          transition={{ repeat: Infinity, duration: 2, delay: 0 }}
+                        >
+                          ✨
+                        </motion.div>
+                        <motion.div
+                          className="absolute top-6 right-6 text-red-400"
+                          animate={{ 
+                            scale: [1, 1.3, 1],
+                            opacity: [0.3, 1, 0.3]
+                          }}
+                          transition={{ repeat: Infinity, duration: 2.5, delay: 0.5 }}
+                        >
+                          💥
+                        </motion.div>
+                        <motion.div
+                          className="absolute bottom-8 left-6 text-pink-300"
+                          animate={{ 
+                            scale: [1, 1.1, 1],
+                            opacity: [0.4, 1, 0.4]
+                          }}
+                          transition={{ repeat: Infinity, duration: 3, delay: 1 }}
+                        >
+                          🎉
+                        </motion.div>
+                      </div>
+                    )}
+
                     <CardHeader className="text-center pb-3 pt-6 relative z-10">
                       <div className="flex justify-center mb-3">
                         <div className={`p-3 rounded-full bg-gradient-to-br ${pkg.gradient} text-white shadow-lg`}>
@@ -352,15 +469,52 @@ export default function PricingPage() {
                       
                       {/* Price */}
                       <div className="space-y-2">
-                        <div className="text-3xl font-bold text-ghibli-wood">
-                          €{pkg.price}
-                        </div>
+                        {/* Mostrar preço original cortado se há desconto */}
+                        {isEligibleForFirstPurchase(pkg) && (
+                          <motion.div 
+                            className="text-lg text-gray-500 line-through"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            €{pkg.price}
+                          </motion.div>
+                        )}
+                        
+                        <motion.div 
+                          className={`text-3xl font-bold ${
+                            isEligibleForFirstPurchase(pkg) ? 'text-red-600' : 'text-ghibli-wood'
+                          }`}
+                          whileHover={{ scale: 1.05 }}
+                          animate={isEligibleForFirstPurchase(pkg) ? {
+                            color: ['#dc2626', '#ef4444', '#dc2626']
+                          } : {}}
+                          transition={{ 
+                            color: { repeat: Infinity, duration: 2 },
+                            scale: { type: "spring", stiffness: 300 }
+                          }}
+                        >
+                          €{getFinalPrice(pkg)}
+                        </motion.div>
+                        
                         <div className="text-sm text-ghibli-earth">
-                          €{(pkg.price / pkg.coins).toFixed(2)} por PicCoin
+                          €{(getFinalPrice(pkg) / pkg.coins).toFixed(2)} por PicCoin
                         </div>
-                        {pkg.coins > 1 && (
+                        
+                        {isEligibleForFirstPurchase(pkg) && (
+                          <motion.div 
+                            className="text-sm text-red-600 font-bold bg-red-50 px-3 py-1 rounded-full"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                          >
+                            💰 Poupas €{pkg.price - (pkg.discountPrice || pkg.price)}!
+                          </motion.div>
+                        )}
+                        
+                        {pkg.coins > 1 && !isEligibleForFirstPurchase(pkg) && (
                           <div className="text-sm text-emerald-600 font-medium">
-                            Poupa {Math.round((1 - (pkg.price / pkg.coins) / 2) * 100)}%
+                            Poupa {getDiscountPercentage(pkg)}%
                           </div>
                         )}
                       </div>

@@ -71,6 +71,7 @@ export function useImageProcessing() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
   const [simulatedProgress, setSimulatedProgress] = useState<number>(0); // Nova state para progresso simulado
+  const [currentRating, setCurrentRating] = useState<number>(0); // Novo estado para o rating da transformação atual
 
   const [availableStyles, setAvailableStyles] = useState<Style[]>([]);
   const [stylesLoading, setStylesLoading] = useState<boolean>(true);
@@ -106,6 +107,26 @@ export function useImageProcessing() {
       return Math.min(95, 90 + ((pollCount - 30) * 0.5));
     }
   }, []);
+
+  // Função para buscar o rating da transformação
+  const fetchTransformationRating = useCallback(async (jobId: string) => {
+    if (!userInfo?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('transformations')
+        .select('user_rating')
+        .eq('id', jobId)
+        .eq('user_id', userInfo.id)
+        .single();
+      
+      if (!error && data) {
+        setCurrentRating(data.user_rating || 0);
+      }
+    } catch (error) {
+      console.error('[useImageProcessing] Error fetching rating:', error);
+    }
+  }, [userInfo?.id]);
 
   // Fetch available styles
   useEffect(() => {
@@ -248,6 +269,7 @@ export function useImageProcessing() {
                 pollingIntervalRef.current = null;
               }
               setIsLoading(false); 
+              fetchTransformationRating(currentJobId); // Buscar rating da transformação
                 return;
             } else {
               console.warn(`[useImageProcessing - DirectCheck] Could not get public URL for ${fileName}`);
@@ -297,6 +319,7 @@ export function useImageProcessing() {
             pollingIntervalRef.current = null;
           }
           setIsLoading(false);
+          fetchTransformationRating(currentJobId); // Buscar rating da transformação
         } else if (['processing', 'processing_queued'].includes(data.status || '')) {
           if (processingState !== 'processing') { 
             setProcessingState('processing'); 
@@ -339,7 +362,8 @@ export function useImageProcessing() {
                 pollingIntervalRef.current = null;
               }
               setIsLoading(false);
-              return; 
+              fetchTransformationRating(currentJobId); // Buscar rating da transformação
+              return;
             }
         }
         } catch (finalStorageError) {
@@ -387,7 +411,7 @@ export function useImageProcessing() {
         pollingIntervalRef.current = null;
       }
     };
-  }, [currentJobId, processingState, userInfo, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage]);
+  }, [currentJobId, processingState, userInfo, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage, fetchTransformationRating]);
 
 
   const resetAllLocalStates = useCallback(() => {
@@ -400,6 +424,7 @@ export function useImageProcessing() {
     setActiveStep(1);
     setIsLoading(false);
     setSimulatedProgress(0); // Reset do progresso simulado
+    setCurrentRating(0); // Reset do rating
     localStorage.removeItem('studioState');
     localStorage.removeItem('currentJobId');
     if (pollingIntervalRef.current) {
@@ -407,7 +432,7 @@ export function useImageProcessing() {
         pollingIntervalRef.current = null;
     }
     pollCountRef.current = 0; 
-  }, [setActiveStep, setErrorMessage, setIsLoading, setCurrentJobId, setProcessingState, setSelectedStyle, setTransformedImage, setUploadedImage]); 
+  }, [setActiveStep, setErrorMessage, setIsLoading, setCurrentJobId, setProcessingState, setSelectedStyle, setTransformedImage]); 
 
   const handleFileChange = useCallback((newFile: UploadedFile | null) => {
     resetAllLocalStates();
@@ -665,7 +690,7 @@ export function useImageProcessing() {
 
   return {
     uploadedImage, isStyleModalOpen, selectedStyle, processingState, transformedImage,
-    activeStep, isLoading, errorMessage, currentJobId, simulatedProgress,
+    activeStep, isLoading, errorMessage, currentJobId, simulatedProgress, currentRating,
     availableStyles, stylesLoading, stylesError,
     setIsStyleModalOpen, setActiveStep, 
     handleFileChange, openStyleSelector, handleStyleSelect,

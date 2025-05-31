@@ -3,7 +3,7 @@
   <!-- Página Principal -->
   <url>
     <loc>https://pictuz.com</loc>
-    <lastmod>2024-12-01</lastmod>
+    <lastmod>2024-12-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -11,7 +11,7 @@
   <!-- Preços -->
   <url>
     <loc>https://pictuz.com/pricing</loc>
-    <lastmod>2024-12-01</lastmod>
+    <lastmod>2024-12-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -19,7 +19,7 @@
   <!-- Comunidade -->
   <url>
     <loc>https://pictuz.com/community</loc>
-    <lastmod>2024-12-01</lastmod>
+    <lastmod>2024-12-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
@@ -27,7 +27,7 @@
   <!-- Política de Privacidade -->
   <url>
     <loc>https://pictuz.com/politica-privacidade</loc>
-    <lastmod>2024-12-01</lastmod>
+    <lastmod>2024-12-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -35,7 +35,7 @@
   <!-- Termos de Serviço -->
   <url>
     <loc>https://pictuz.com/termos-servicos</loc>
-    <lastmod>2024-12-01</lastmod>
+    <lastmod>2024-12-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -43,7 +43,7 @@
   <!-- Página de Sucesso -->
   <url>
     <loc>https://pictuz.com/success</loc>
-    <lastmod>2024-12-01</lastmod>
+    <lastmod>2024-12-29</lastmod>
     <changefreq>never</changefreq>
     <priority>0.1</priority>
   </url>
