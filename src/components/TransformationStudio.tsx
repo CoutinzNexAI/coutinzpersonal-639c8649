@@ -163,7 +163,6 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
         </div>
       );
       case 3: // "Pagamento" com PicCoins / Processamento / Resultado
-      console.log('[TransformationStudio] Step 3, processingState:', processingState);
       
       // Estados que mostram o PaymentState (antes de iniciar o processamento real)
       if (['idle', 'checking_balance', 'spending_coins', 'uploading_image', 'creating_job_record', 'triggering_processing'].includes(processingState)) {

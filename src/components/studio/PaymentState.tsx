@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LoaderCircle, CreditCard, Coins } from 'lucide-react';
+import { LoaderCircle, Coins } from 'lucide-react';
 
 interface PaymentStateProps {
   selectedStyleName: string; 
@@ -28,9 +28,9 @@ const PaymentState: React.FC<PaymentStateProps> = ({
       case 'creating_job':
         return { icon: LoaderCircle, text: "A preparar transformação...", color: "text-purple-600" };
       case 'redirecting_to_payment':
-        return { icon: CreditCard, text: "A redirecionar para pagamento...", color: "text-orange-600" };
+        return { icon: LoaderCircle, text: "A redirecionar para pagamento...", color: "text-orange-600" };
       default:
-        return { icon: CreditCard, text: "Pronto para pagar", color: "text-gray-600" };
+        return { icon: LoaderCircle, text: "Pronto para transformar", color: "text-gray-600" };
     }
   };
 
@@ -76,8 +76,7 @@ const PaymentState: React.FC<PaymentStateProps> = ({
             className="w-full ghibli-button"
           disabled={isRedirecting}
           >
-            <CreditCard className="mr-2 h-4 w-4" />
-            Pagar e Transformar
+            Transformar
         </Button>
       </div>
       )}
