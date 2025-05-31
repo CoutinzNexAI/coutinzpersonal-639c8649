@@ -11,7 +11,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { Star, Sparkles, Zap, Crown, Infinity as InfinityIcon } from 'lucide-react';
-import { userInfo } from 'os';
 
 // Tipo para os pacotes
 type Package = {

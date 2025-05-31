@@ -112,6 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const selectedPackage = PICCOIN_PACKAGES[packageId as PackageId];
+    console.log(`${endpointName} Processing package:`, packageId, selectedPackage);
 
     // 3. Verificar se é primeira compra para aplicar desconto
     const { data: userData, error: userError } = await supabase
@@ -120,22 +121,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .eq('id', user.id)
       .single();
 
-    if (userError) {
-      console.error(`${endpointName} Error fetching user data:`, userError);
-      return res.status(500).json({ message: 'Error checking user purchase history.' });
+    // Se o utilizador não existe na tabela users, considerar primeira compra
+    // Se há erro na consulta (ex: coluna não existe), também considerar primeira compra
+    let isFirstPurchase = true;
+    
+    if (!userError && userData) {
+      isFirstPurchase = !userData.first_purchase_used;
+    } else if (userError && userError.code !== 'PGRST116') {
+      // PGRST116 = not found (esperado para novos utilizadores)
+      // Outros erros podem indicar problemas de schema (ex: coluna não existe)
+      console.warn(`${endpointName} Warning fetching user data (assuming first purchase):`, userError);
     }
 
     // Determinar preço final (com ou sem desconto)
-    const isFirstPurchase = !userData?.first_purchase_used;
     const hasFirstPurchaseDiscount = isFirstPurchase && selectedPackage.firstPurchasePrice;
     const finalPrice = hasFirstPurchaseDiscount ? selectedPackage.firstPurchasePrice! : selectedPackage.price;
+    
+    console.log(`${endpointName} Pricing details:`, {
+      packageId,
+      isFirstPurchase,
+      hasFirstPurchaseDiscount,
+      originalPrice: selectedPackage.price,
+      finalPrice,
+      firstPurchasePrice: selectedPackage.firstPurchasePrice
+    });
 
     // 4. Get the application URL from environment variables
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl) {
+      console.error(`${endpointName} NEXT_PUBLIC_APP_URL not set`);
       return res.status(500).json({ message: 'Server configuration error: Application URL is not set.' });
     }
 
+    console.log(`${endpointName} Creating Stripe session...`);
 
     // 5. Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
