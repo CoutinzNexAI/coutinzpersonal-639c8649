@@ -25,23 +25,30 @@ function getManuallyParsedCookie(cookieString: string, cookieName: string): stri
 
 // Define your PicCoin packages
 // Ensure prices are in the smallest currency unit (e.g., cents for EUR)
-type PicCoinPackage = {
-  coins: number;
-  price: number;
-  name: string;
-  firstPurchasePrice?: number;
-};
-
-const PICCOIN_PACKAGES: Record<string, PicCoinPackage> = {
+const PICCOIN_PACKAGES = {
   starter: { coins: 1, price: 200, name: 'STARTER' }, // 2 EUR = 200 cents
-  popular: { coins: 3, price: 500, name: 'POPULAR', firstPurchasePrice: 200 }, // 5 EUR = 500 cents, primeira compra 2 EUR = 200 cents
+  popular: { coins: 3, price: 500, name: 'POPULAR' }, // 5 EUR = 500 cents
   premium: { coins: 7, price: 1000, name: 'PREMIUM' }, // 10 EUR = 1000 cents
   mega: { coins: 15, price: 2000, name: 'MEGA' },     // 20 EUR = 2000 cents
   ultimate: { coins: 50, price: 5000, name: 'ULTIMATE' } // 50 EUR = 5000 cents
-} as const;
+};
 
 type PackageId = keyof typeof PICCOIN_PACKAGES;
-type PackageType = typeof PICCOIN_PACKAGES[PackageId] & { firstPurchasePrice?: number };
+
+// Função para verificar se é um pacote promocional de primeira compra
+const isFirstPurchasePromo = (packageId: string): boolean => {
+  return packageId.endsWith('_first_purchase_promo');
+};
+
+// Função para obter o pacote base de um ID promocional
+const getBasePackageId = (promoPackageId: string): string => {
+  return promoPackageId.replace('_first_purchase_promo', '') as keyof typeof PICCOIN_PACKAGES;
+};
+
+// Função para calcular preço promocional (50% de desconto)
+const getPromoPrice = (basePrice: number): number => {
+  return Math.ceil(basePrice * 0.5);
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const endpointName = '[API /api/piccoins/purchase]';
@@ -106,73 +113,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 2. Get packageId from request body
     const { packageId } = req.body;
 
-    if (!packageId || typeof packageId !== 'string' || !PICCOIN_PACKAGES[packageId as PackageId]) {
+    if (!packageId || typeof packageId !== 'string') {
       console.warn(`${endpointName} Invalid packageId received: ${packageId}`);
       return res.status(400).json({ message: 'Invalid package ID provided.' });
     }
 
-    const selectedPackage = PICCOIN_PACKAGES[packageId as PackageId];
-    console.log(`${endpointName} Processing package:`, packageId, selectedPackage);
-
-    // 3. Verificar se é primeira compra APENAS para o pacote 'popular'
-    let isFirstPurchase = false;
-    let hasFirstPurchaseDiscount = false;
-    let finalPrice = selectedPackage.price; // Default price
+    // Verificar se é um pacote promocional ou normal
+    const isPromo = isFirstPurchasePromo(packageId);
+    const basePackageId = isPromo ? getBasePackageId(packageId) : packageId;
     
-    if (packageId === 'popular' && selectedPackage.firstPurchasePrice) {
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('first_purchase_used')
-        .eq('id', user.id)
-        .single();
-
-      // Se utilizador não existe ou first_purchase_used é false/null, é primeira compra
-      if (!userError && userData) {
-        isFirstPurchase = !userData.first_purchase_used;
-      } else if (userError && userError.code === 'PGRST116') {
-        // Utilizador não encontrado = primeira compra
-        isFirstPurchase = true;
-      } else if (userError) {
-        // Outros erros (ex: coluna não existe) = assumir primeira compra
-        console.warn(`${endpointName} Warning fetching user data for popular package:`, userError);
-        isFirstPurchase = true;
-      }
-      
-      hasFirstPurchaseDiscount = isFirstPurchase;
-      finalPrice = hasFirstPurchaseDiscount ? selectedPackage.firstPurchasePrice : selectedPackage.price;
+    if (!PICCOIN_PACKAGES[basePackageId as PackageId]) {
+      console.warn(`${endpointName} Invalid base packageId: ${basePackageId}`);
+      return res.status(400).json({ message: 'Invalid package ID provided.' });
     }
-    
-    console.log(`${endpointName} Pricing details:`, {
-      packageId,
-      isFirstPurchase,
-      hasFirstPurchaseDiscount,
-      originalPrice: selectedPackage.price,
-      finalPrice,
-      firstPurchasePrice: selectedPackage.firstPurchasePrice
-    });
 
-    // 4. Get the application URL from environment variables
+    const selectedPackage = PICCOIN_PACKAGES[basePackageId as PackageId];
+    const finalPrice = isPromo ? getPromoPrice(selectedPackage.price) : selectedPackage.price;
+    const packageDisplayName = isPromo ? `${selectedPackage.name} (PRIMEIRA COMPRA -50%)` : selectedPackage.name;
+
+    // 3. Get the application URL from environment variables
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl) {
-      console.error(`${endpointName} NEXT_PUBLIC_APP_URL not set`);
       return res.status(500).json({ message: 'Server configuration error: Application URL is not set.' });
     }
 
-    console.log(`${endpointName} Creating Stripe session...`);
 
-    // 5. Create Stripe Checkout Session
+    // 4. Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: hasFirstPurchaseDiscount ? 
-                `PicCoins ${selectedPackage.name} - PRIMEIRA COMPRA DESCONTO!` : 
-                `PicCoins ${selectedPackage.name}`,
-              description: hasFirstPurchaseDiscount ?
-                `${selectedPackage.coins} PicCoins para transformações de imagem no PicTuz - Oferta especial primeira compra (era €${(selectedPackage.price / 100).toFixed(2)})` :
-                `${selectedPackage.coins} PicCoins para transformações de imagem no PicTuz`,
+              name: `PicCoins ${packageDisplayName}`,
+              description: `${selectedPackage.coins} PicCoins para transformações de imagem no PicTuz`,
               // You can add images here if you have URLs for them
               // images: ['https://example.com/your-product-image.png'],
             },
@@ -188,12 +162,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customer_email: user.email, // Pre-fill customer email if available
       metadata: {
         userId: user.id, // Comes from authenticated user session
-        packageId: packageId,
+        packageId: basePackageId, // Use o ID base para processamento
+        originalPackageId: packageId, // Manter o ID original para logging
         piccoinsAmount: selectedPackage.coins.toString(), // Store amount of PicCoins
         packageName: selectedPackage.name,
         purchaseType: 'piccoin_package', // General type for this transaction
-        firstPurchaseUsed: isFirstPurchase.toString(),
-        firstPurchaseDiscount: hasFirstPurchaseDiscount.toString()
+        isFirstPurchasePromo: isPromo.toString(), // Flag para identificar se é promoção
+        originalPrice: selectedPackage.price.toString(), // Preço original
+        finalPrice: finalPrice.toString(), // Preço final pago
+        discountPercent: isPromo ? '50' : '0' // Percentagem de desconto
       },
       // To collect billing addresses if needed for tax or other reasons
       // billing_address_collection: 'required', 

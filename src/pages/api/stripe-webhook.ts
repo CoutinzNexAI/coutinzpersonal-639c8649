@@ -28,8 +28,6 @@ interface WebhookMetadata {
   piccoinsAmount: string;
   packageName: string;
   purchaseType: string;
-  firstPurchaseUsed?: string;
-  firstPurchaseDiscount?: string;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -137,21 +135,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ message: 'Failed to credit PicCoins', detail: earnResult?.error });
       }
 
-      // 8. Marcar primeira compra como usada se aplicável
-      if (metadata.firstPurchaseUsed === 'true') {
-        const { error: updateError } = await supabaseAdmin
-          .from('users')
-          .update({ first_purchase_used: true })
-          .eq('id', userId);
-
-        if (updateError) {
-          console.error(`${endpointName} ⚠️ Error marking first purchase as used:`, updateError.message);
-          // Não falhar a transação por causa disto, apenas logar
-        } else {
-          console.log(`${endpointName} ✅ First purchase marked as used for user ${userId}`);
-        }
-      }
-
       
       return res.status(200).json({ 
         success: true,
@@ -159,8 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sessionId: session.id,
         userId: userId,
         coinsAdded: coinsAmount,
-        newBalance: earnResult.newBalance,
-        firstPurchaseProcessed: metadata.firstPurchaseUsed === 'true'
+        newBalance: earnResult.newBalance
       });
 
     } else {

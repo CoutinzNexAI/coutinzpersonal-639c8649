@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useAuth } from '@/hooks/useAuth';
 import { usePicCoins } from '@/hooks/usePicCoins';
+import { useFirstPurchaseCheck } from '@/hooks/useFirstPurchaseCheck';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/sonner';
@@ -10,24 +11,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoginPromptModal from '@/components/LoginPromptModal';
+import { FirstPurchasePromoModal } from '@/components/FirstPurchasePromoModal';
 import { Star, Sparkles, Zap, Crown, Infinity as InfinityIcon } from 'lucide-react';
 
-// Tipo para os pacotes
-type Package = {
-  id: string;
-  name: string;
-  coins: number;
-  price: number;
-  popular?: boolean;
-  bestValue?: boolean;
-  firstPurchaseSpecial?: boolean;
-  discountPrice?: number;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  gradient: string;
-};
-
-const packages: Package[] = [
+const packages = [
   { 
     id: 'starter', 
     name: 'STARTER', 
@@ -43,22 +30,20 @@ const packages: Package[] = [
     name: 'POPULAR', 
     coins: 3, 
     price: 5, 
-    popular: false,
-    firstPurchaseSpecial: true,
-    discountPrice: 2,
+    popular: true, 
     description: 'Escolha favorita dos criadores',
     icon: Sparkles,
-    gradient: 'from-amber-400 to-amber-600'
+    gradient: 'from-purple-400 to-purple-600'
   },
   { 
     id: 'premium', 
     name: 'PREMIUM', 
     coins: 7, 
     price: 10, 
-    popular: true,
+    popular: false, 
     description: 'Valor excepcional para criadores',
     icon: Zap,
-    gradient: 'from-purple-400 to-purple-600'
+    gradient: 'from-emerald-400 to-emerald-600'
   },
   { 
     id: 'mega', 
@@ -68,7 +53,7 @@ const packages: Package[] = [
     bestValue: true, 
     description: 'Máximo poder criativo',
     icon: Crown,
-    gradient: 'from-emerald-400 to-emerald-600'
+    gradient: 'from-amber-400 to-amber-600'
   },
   { 
     id: 'ultimate', 
@@ -86,8 +71,11 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const { userInfo, signInWithGoogle, refreshUserInfo } = useAuth();
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+  const [selectedPackageForPurchase, setSelectedPackageForPurchase] = useState<typeof packages[0] | null>(null);
+  const { userInfo, signInWithGoogle } = useAuth();
   const { balance, purchaseCoins, refetchBalance } = usePicCoins();
+  const { isFirstPurchase, markFirstPurchaseAsUsed } = useFirstPurchaseCheck();
   const router = useRouter();
 
   useEffect(() => {
@@ -97,8 +85,6 @@ export default function PricingPage() {
         description: 'Os teus PicCoins foram adicionados à conta e estão prontos para usar.'
       });
       refetchBalance();
-      // Refresh imediato da informação do utilizador
-      refreshUserInfo();
       // Clean URL
       router.replace('/pricing', undefined, { shallow: true });
     }
@@ -120,7 +106,7 @@ export default function PricingPage() {
       // Clean URL
       router.replace('/pricing', undefined, { shallow: true });
     }
-  }, [router.query, refetchBalance, router, refreshUserInfo]);
+  }, [router.query, refetchBalance, router]);
 
   const handleLogin = async () => {
     setIsLoggingIn(true);
@@ -137,7 +123,23 @@ export default function PricingPage() {
       setIsLoginModalOpen(true);
       return;
     }
-    
+
+    const selectedPackage = packages.find(pkg => pkg.id === packageId);
+    if (!selectedPackage) return;
+
+    // Se é primeira compra, mostrar modal promocional
+    if (isFirstPurchase) {
+      setSelectedPackageForPurchase(selectedPackage);
+      setIsPromoModalOpen(true);
+      return;
+    }
+
+    // Continuar com compra normal
+    await executeStripeCheckout(packageId);
+  };
+
+  // Função para executar o checkout do Stripe
+  const executeStripeCheckout = async (packageId: string) => {
     setLoading(packageId);
     try {
       const sessionId = await purchaseCoins(packageId);
@@ -160,26 +162,34 @@ export default function PricingPage() {
     }
   };
 
-  // Função para verificar se é elegível para desconto de primeira compra
-  const isEligibleForFirstPurchase = (pkg: Package) => {
-    return userInfo && !userInfo.first_purchase_used && pkg.firstPurchaseSpecial;
+  // Quando aceita a promoção
+  const handleAcceptPromo = async (promoPackageId: string) => {
+    if (!selectedPackageForPurchase) return;
+
+    // Marcar primeira compra como usada
+    const success = await markFirstPurchaseAsUsed();
+    if (!success) {
+      toast.error('Erro ao processar promoção');
+      return;
+    }
+
+    setIsPromoModalOpen(false);
+    
+    // Executar checkout com preço promocional (o backend vai identificar pelo ID especial)
+    await executeStripeCheckout(promoPackageId);
   };
 
-  // Função para calcular preço final (com ou sem desconto)
-  const getFinalPrice = (pkg: Package) => {
-    if (isEligibleForFirstPurchase(pkg)) {
-      return pkg.discountPrice || pkg.price;
-    }
-    return pkg.price;
+  // Quando recusa a promoção
+  const handleDeclinePromo = async (originalPackageId: string) => {
+    setIsPromoModalOpen(false);
+    
+    // Continuar com compra normal
+    await executeStripeCheckout(originalPackageId);
   };
 
-  // Função para calcular desconto percentual
-  const getDiscountPercentage = (pkg: Package) => {
-    if (isEligibleForFirstPurchase(pkg)) {
-      const discountPrice = pkg.discountPrice || pkg.price;
-      return Math.round((1 - discountPrice / pkg.price) * 100);
-    }
-    return 0;
+  const handleClosePromoModal = () => {
+    setIsPromoModalOpen(false);
+    setSelectedPackageForPurchase(null);
   };
 
   const containerVariants = {
@@ -318,7 +328,7 @@ export default function PricingPage() {
 
           {/* Packages Grid */}
           <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 sm:gap-8 max-w-7xl mx-auto mb-20 mt-16 sm:mt-12 px-2"
+            className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto mb-20 mt-12"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -326,67 +336,30 @@ export default function PricingPage() {
             {packages.map((pkg) => {
               const IconComponent = pkg.icon;
               return (
-                <motion.div key={pkg.id} variants={cardVariants} className="relative pt-8 sm:pt-4">
+                <motion.div key={pkg.id} variants={cardVariants} className="relative">
                   {/* Floating Badges - Outside and Above Cards */}
                   <AnimatePresence>
                     {pkg.popular && (
                       <motion.div
                         initial={{ scale: 0, opacity: 0, y: 10 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
-                        className="absolute -top-6 sm:-top-8 left-1/2 transform -translate-x-1/2 z-20"
+                        className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20"
                       >
-                        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 whitespace-nowrap">
-                          <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap">
+                          <Sparkles className="w-4 h-4" />
                           Mais Popular
                           <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-purple-600"></div>
                         </div>
                       </motion.div>
                     )}
-                    
-                    {/* NOVO: Badge especial para primeira compra com animação chamativa */}
-                    {isEligibleForFirstPurchase(pkg) && (
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0, y: 10 }}
-                        animate={{ 
-                          scale: [1, 1.03, 1], 
-                          opacity: 1, 
-                          y: 0,
-                          rotateZ: [-0.5, 0.5, -0.5, 0]
-                        }}
-                        transition={{ 
-                          scale: { repeat: Infinity, duration: 3, ease: "easeInOut", repeatDelay: 1 },
-                          rotateZ: { repeat: Infinity, duration: 4, ease: "easeInOut", repeatDelay: 1 }
-                        }}
-                        className="absolute -top-12 sm:-top-10 left-1/2 transform -translate-x-1/2 z-30"
-                      >
-                        <div className="relative">
-                          {/* Glow effect */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-red-500 blur-lg opacity-60 scale-110"></div>
-                          
-                          <div className="relative bg-gradient-to-r from-pink-500 to-red-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-xl text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 whitespace-nowrap border-2 border-white">
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ repeat: Infinity, duration: 3, ease: "linear", repeatDelay: 1 }}
-                            >
-                              🎉
-                            </motion.div>
-                            <span className="hidden sm:inline">PRIMEIRA COMPRA</span>
-                            <span className="sm:hidden">1ª COMPRA</span>
-                            -{getDiscountPercentage(pkg)}%
-                            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-600"></div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                    
                     {pkg.bestValue && (
                       <motion.div
                         initial={{ scale: 0, opacity: 0, y: 10 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
-                        className="absolute -top-6 sm:-top-8 left-1/2 transform -translate-x-1/2 z-20"
+                        className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-20"
                       >
-                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 whitespace-nowrap">
-                          <Crown className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap">
+                          <Crown className="w-4 h-4" />
                           Melhor Valor
                           <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-amber-600"></div>
                         </div>
@@ -396,54 +369,13 @@ export default function PricingPage() {
 
                   <Card 
                     className={`relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-2 overflow-hidden group ${
-                      isEligibleForFirstPurchase(pkg) ? 'border-pink-300 shadow-pink-200/50 shadow-xl sm:shadow-2xl scale-[1.02] sm:scale-105' :
-                      pkg.popular ? 'border-purple-300 shadow-lg scale-[1.01] sm:scale-105' : 
+                      pkg.popular ? 'border-purple-300 shadow-lg scale-105' : 
                       pkg.bestValue ? 'border-amber-300 shadow-lg' : 'border-ghibli-sand/30 hover:border-ghibli-moss/50'
                     }`}
                   >
                     {/* Glowing Background Effect */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${
-                      isEligibleForFirstPurchase(pkg) ? 'from-pink-100 to-red-100' : pkg.gradient
-                    } ${
-                      isEligibleForFirstPurchase(pkg) ? 'opacity-20 group-hover:opacity-30' : 'opacity-5 group-hover:opacity-10'
-                    } transition-opacity duration-300`} />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${pkg.gradient} opacity-5 group-hover:opacity-10 transition-opacity duration-300`} />
                     
-                    {/* Sparkles animation para primeira compra */}
-                    {isEligibleForFirstPurchase(pkg) && (
-                      <div className="absolute inset-0 pointer-events-none">
-                        <motion.div
-                          className="absolute top-4 left-4 text-pink-400 text-sm sm:text-base"
-                          animate={{ 
-                            scale: [1, 1.1, 1],
-                            opacity: [0.4, 0.8, 0.4]
-                          }}
-                          transition={{ repeat: Infinity, duration: 3, delay: 0, repeatDelay: 1 }}
-                        >
-                          ✨
-                        </motion.div>
-                        <motion.div
-                          className="absolute top-6 right-6 text-red-400 text-sm sm:text-base"
-                          animate={{ 
-                            scale: [1, 1.2, 1],
-                            opacity: [0.3, 0.7, 0.3]
-                          }}
-                          transition={{ repeat: Infinity, duration: 3.5, delay: 0.8, repeatDelay: 1 }}
-                        >
-                          💥
-                        </motion.div>
-                        <motion.div
-                          className="absolute bottom-8 left-6 text-pink-300 text-sm sm:text-base"
-                          animate={{ 
-                            scale: [1, 1.05, 1],
-                            opacity: [0.4, 0.7, 0.4]
-                          }}
-                          transition={{ repeat: Infinity, duration: 4, delay: 1.5, repeatDelay: 1 }}
-                        >
-                          🎉
-                        </motion.div>
-                      </div>
-                    )}
-
                     <CardHeader className="text-center pb-3 pt-6 relative z-10">
                       <div className="flex justify-center mb-3">
                         <div className={`p-3 rounded-full bg-gradient-to-br ${pkg.gradient} text-white shadow-lg`}>
@@ -471,52 +403,15 @@ export default function PricingPage() {
                       
                       {/* Price */}
                       <div className="space-y-2">
-                        {/* Mostrar preço original cortado se há desconto */}
-                        {isEligibleForFirstPurchase(pkg) && (
-                          <motion.div 
-                            className="text-lg text-gray-500 line-through"
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                          >
-                            €{pkg.price}
-                          </motion.div>
-                        )}
-                        
-                        <motion.div 
-                          className={`text-3xl font-bold ${
-                            isEligibleForFirstPurchase(pkg) ? 'text-red-600' : 'text-ghibli-wood'
-                          }`}
-                          whileHover={{ scale: 1.05 }}
-                          animate={isEligibleForFirstPurchase(pkg) ? {
-                            color: ['#dc2626', '#ef4444', '#dc2626']
-                          } : {}}
-                          transition={{ 
-                            color: { repeat: Infinity, duration: 3, repeatDelay: 1 },
-                            scale: { type: "spring", stiffness: 300 }
-                          }}
-                        >
-                          €{getFinalPrice(pkg)}
-                        </motion.div>
-                        
-                        <div className="text-sm text-ghibli-earth">
-                          €{(getFinalPrice(pkg) / pkg.coins).toFixed(2)} por PicCoin
+                        <div className="text-3xl font-bold text-ghibli-wood">
+                          €{pkg.price}
                         </div>
-                        
-                        {isEligibleForFirstPurchase(pkg) && (
-                          <motion.div 
-                            className="text-sm text-red-600 font-bold bg-red-50 px-3 py-1 rounded-full"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-                          >
-                            💰 Poupas €{pkg.price - (pkg.discountPrice || pkg.price)}!
-                          </motion.div>
-                        )}
-                        
-                        {pkg.coins > 1 && !isEligibleForFirstPurchase(pkg) && (
+                        <div className="text-sm text-ghibli-earth">
+                          €{(pkg.price / pkg.coins).toFixed(2)} por PicCoin
+                        </div>
+                        {pkg.coins > 1 && (
                           <div className="text-sm text-emerald-600 font-medium">
-                            Poupa {getDiscountPercentage(pkg)}%
+                            Poupa {Math.round((1 - (pkg.price / pkg.coins) / 2) * 100)}%
                           </div>
                         )}
                       </div>
@@ -526,29 +421,30 @@ export default function PricingPage() {
                         onClick={() => handlePurchase(pkg.id)}
                         disabled={loading === pkg.id}
                         className={`w-full relative overflow-hidden group ${
-                          isEligibleForFirstPurchase(pkg) ? 'bg-red-600 hover:bg-red-700' :
                           pkg.popular ? 'bg-purple-600 hover:bg-purple-700' : 
                           pkg.bestValue ? 'bg-amber-600 hover:bg-amber-700' :
                           'ghibli-button'
-                        } py-2.5 sm:py-3 px-4 sm:px-6 text-sm sm:text-base font-medium`}
+                        } ${
+                          pkg.popular || pkg.bestValue ? 'py-3 px-6 text-base' : 'py-2.5 px-5 text-sm'
+                        } ${
+                          'max-md:py-2 max-md:px-4 max-md:text-sm'
+                        }`}
                       >
-                        <div className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2">
+                        <div className="relative z-10 flex items-center justify-center gap-2">
                           {loading === pkg.id ? (
                             <>
                               <motion.div
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                               >
-                                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                <Sparkles className="w-4 h-4" />
                               </motion.div>
-                              <span className="hidden sm:inline">Processando...</span>
-                              <span className="sm:hidden">...</span>
+                              Processando...
                             </>
                           ) : (
                             <>
-                              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                              <span className="hidden sm:inline">Comprar Agora</span>
-                              <span className="sm:hidden">Comprar</span>
+                              <Zap className="w-4 h-4" />
+                              Comprar Agora
                             </>
                           )}
                         </div>
@@ -572,7 +468,7 @@ export default function PricingPage() {
             <h2 className="section-title text-ghibli-wood mb-12">
               Porquê escolher PicCoins?
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto px-4">
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {[
                 {
                   icon: "🚀",
@@ -592,20 +488,20 @@ export default function PricingPage() {
               ].map((benefit, index) => (
                 <motion.div 
                   key={index}
-                  className="ghibli-card p-6 sm:p-8 text-center group hover:shadow-lg transition-all duration-300"
+                  className="ghibli-card p-8 text-center group hover:shadow-lg transition-all duration-300"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.2 }}
                   whileHover={{ y: -5 }}
                 >
-                  <div className="text-4xl sm:text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
                     {benefit.icon}
                   </div>
-                  <h3 className="font-ghibli text-lg sm:text-xl font-semibold text-ghibli-wood mb-3">
+                  <h3 className="font-ghibli text-xl font-semibold text-ghibli-wood mb-3">
                     {benefit.title}
                   </h3>
-                  <p className="text-sm sm:text-base text-ghibli-earth leading-relaxed">
+                  <p className="text-ghibli-earth leading-relaxed">
                     {benefit.description}
                   </p>
                 </motion.div>
@@ -625,6 +521,17 @@ export default function PricingPage() {
         onLogin={handleLogin}
         isLoggingIn={isLoggingIn}
       />
+
+      {/* First Purchase Promo Modal */}
+      {selectedPackageForPurchase && (
+        <FirstPurchasePromoModal
+          isOpen={isPromoModalOpen}
+          onClose={handleClosePromoModal}
+          onAcceptPromo={handleAcceptPromo}
+          onDeclinePromo={handleDeclinePromo}
+          originalPackage={selectedPackageForPurchase}
+        />
+      )}
     </div>
     </>
   );

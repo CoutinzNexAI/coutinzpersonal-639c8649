@@ -45,9 +45,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserInfo(userData); // Atualiza UI com dados básicos primeiro
 
       // Check if this is a new user by checking if they exist in database
-      const { data: existingUser, error: checkError } = await supabase
+      const { error: checkError } = await supabase
         .from('users')
-        .select('id, created_at, first_purchase_used')
+        .select('id, created_at')
         .eq('id', userData.id)
         .single();
 
@@ -69,13 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         console.log("[syncUserWithDatabase] ✅ User profile synced/updated successfully in DB.");
         
-        // Atualizar userData com informação da base de dados
-        if (existingUser) {
-          userData.first_purchase_used = existingUser.first_purchase_used || false;
-        }
-        setUserInfo(userData); // Atualiza com dados completos da BD
-
-        // Award welcome bonus for new users        if (isNewUser) {          try {            console.log("[syncUserWithDatabase] 🎁 New user detected, awarding welcome bonus...");                        const { error: bonusError } = await supabase.rpc('earn_piccoins', {              p_user_id: userData.id,              p_amount: 2,              p_type: 'bonus_first_login',              p_reference_id: `welcome_bonus_${userData.id}_${Date.now()}`,              p_description: 'Bónus de boas-vindas - Bem-vindo ao PicTuz!'            });            if (bonusError) {              console.error("[syncUserWithDatabase] Error awarding welcome bonus:", bonusError);              console.error("[syncUserWithDatabase] Full bonus error details:", JSON.stringify(bonusError));            } else {              console.log("[syncUserWithDatabase] ✅ Welcome bonus awarded successfully!");              setTimeout(() => {                toast.success("🎁 Bem-vindo ao PicTuz!", {                  description: "Recebeste 2 PicCoins grátis para começares a transformar as tuas fotos!"                });              }, 1500);            }          } catch (bonusError) {            console.error("[syncUserWithDatabase] Exception during welcome bonus:", bonusError);          }        }
+                // Award welcome bonus for new users        if (isNewUser) {          try {            console.log("[syncUserWithDatabase] 🎁 New user detected, awarding welcome bonus...");                        const { error: bonusError } = await supabase.rpc('earn_piccoins', {              p_user_id: userData.id,              p_amount: 2,              p_type: 'bonus_first_login',              p_reference_id: `welcome_bonus_${userData.id}_${Date.now()}`,              p_description: 'Bónus de boas-vindas - Bem-vindo ao PicTuz!'            });            if (bonusError) {              console.error("[syncUserWithDatabase] Error awarding welcome bonus:", bonusError);              console.error("[syncUserWithDatabase] Full bonus error details:", JSON.stringify(bonusError));            } else {              console.log("[syncUserWithDatabase] ✅ Welcome bonus awarded successfully!");              setTimeout(() => {                toast.success("🎁 Bem-vindo ao PicTuz!", {                  description: "Recebeste 2 PicCoins grátis para começares a transformar as tuas fotos!"                });              }, 1500);            }          } catch (bonusError) {            console.error("[syncUserWithDatabase] Exception during welcome bonus:", bonusError);          }        }
       }
     } catch (error) {
       console.error('[syncUserWithDatabase] Exception:', error);
@@ -241,29 +235,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithGoogle,
     signOut,
     session, // Adicionado para debugging
-    refreshUserInfo: useCallback(async () => {
-      // Refresh rápido apenas dos dados do utilizador sem toda a lógica de sessão
-      if (!userInfo?.id) return;
-      
-      try {
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('first_purchase_used, full_name, avatar_url')
-          .eq('id', userInfo.id)
-          .single();
-          
-        if (!error && userData) {
-          setUserInfo(prev => prev ? {
-            ...prev,
-            first_purchase_used: userData.first_purchase_used || false,
-            full_name: userData.full_name || prev.full_name,
-            avatar_url: userData.avatar_url || prev.avatar_url
-          } : null);
-        }
-      } catch (error) {
-        console.warn('[refreshUserInfo] Error refreshing user data:', error);
-      }
-    }, [userInfo?.id]), // Nova função para forçar refresh
   };
 
   return (
