@@ -78,6 +78,22 @@ export default function PricingPage() {
   const { isFirstPurchase, markFirstPurchaseAsUsed } = useFirstPurchaseCheck();
   const router = useRouter();
 
+  // Auto mostrar modal promocional para primeira compra
+  useEffect(() => {
+    if (userInfo && isFirstPurchase === true) {
+      // Aguardar um pouco para a página carregar completamente
+      const timer = setTimeout(() => {
+        const popularPackage = packages.find(pkg => pkg.id === 'popular');
+        if (popularPackage) {
+          setSelectedPackageForPurchase(popularPackage);
+          setIsPromoModalOpen(true);
+        }
+      }, 1000); // 1 segundo delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [userInfo, isFirstPurchase]);
+
   useEffect(() => {
     // Check for success message
     if (router.query.success === 'true') {

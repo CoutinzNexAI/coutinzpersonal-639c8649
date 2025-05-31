@@ -26,8 +26,9 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
 }) => {
   const [isAccepting, setIsAccepting] = useState(false);
 
-  // Oferta especial: 50% de desconto no pacote selecionado
-  const promoPrice = Math.ceil(originalPackage.price * 0.5);
+  // Oferta especial: 60% de desconto no pacote popular (5€ -> 2€)
+  const isPopularPackage = originalPackage.id === 'popular';
+  const promoPrice = isPopularPackage ? 2 : Math.ceil(originalPackage.price * 0.4); // 60% desconto
   const savings = originalPackage.price - promoPrice;
   const discountPercent = Math.round((savings / originalPackage.price) * 100);
 
@@ -119,11 +120,14 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.3, type: "spring" }}
               >
-                🎉 Primeira Compra Mágica!
+                🎉 Oferta de Boas-Vindas!
               </motion.h2>
               
               <p className="text-lg text-ghibli-earth">
-                Bem-vindo à nossa comunidade de artistas digitais!
+                {isPopularPackage 
+                  ? "Pacote Popular por apenas 2€ - 60% de desconto!" 
+                  : "Bem-vindo à nossa comunidade de artistas digitais!"
+                }
               </p>
             </motion.div>
 
