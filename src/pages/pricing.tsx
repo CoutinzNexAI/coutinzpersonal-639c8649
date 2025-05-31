@@ -97,7 +97,8 @@ export default function PricingPage() {
         description: 'Os teus PicCoins foram adicionados à conta e estão prontos para usar.'
       });
       refetchBalance();
-      refreshUserInfo(); // Refresh dados do usuário para atualizar first_purchase_used
+      // Refresh imediato da informação do utilizador
+      refreshUserInfo();
       // Clean URL
       router.replace('/pricing', undefined, { shallow: true });
     }

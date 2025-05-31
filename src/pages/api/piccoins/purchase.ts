@@ -114,28 +114,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const selectedPackage = PICCOIN_PACKAGES[packageId as PackageId];
     console.log(`${endpointName} Processing package:`, packageId, selectedPackage);
 
-    // 3. Verificar se é primeira compra para aplicar desconto
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('first_purchase_used')
-      .eq('id', user.id)
-      .single();
-
-    // Se o utilizador não existe na tabela users, considerar primeira compra
-    // Se há erro na consulta (ex: coluna não existe), também considerar primeira compra
-    let isFirstPurchase = true;
+    // 3. Verificar se é primeira compra APENAS para o pacote 'popular'
+    let isFirstPurchase = false;
+    let hasFirstPurchaseDiscount = false;
+    let finalPrice = selectedPackage.price; // Default price
     
-    if (!userError && userData) {
-      isFirstPurchase = !userData.first_purchase_used;
-    } else if (userError && userError.code !== 'PGRST116') {
-      // PGRST116 = not found (esperado para novos utilizadores)
-      // Outros erros podem indicar problemas de schema (ex: coluna não existe)
-      console.warn(`${endpointName} Warning fetching user data (assuming first purchase):`, userError);
-    }
+    if (packageId === 'popular' && selectedPackage.firstPurchasePrice) {
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('first_purchase_used')
+        .eq('id', user.id)
+        .single();
 
-    // Determinar preço final (com ou sem desconto)
-    const hasFirstPurchaseDiscount = isFirstPurchase && selectedPackage.firstPurchasePrice;
-    const finalPrice = hasFirstPurchaseDiscount ? selectedPackage.firstPurchasePrice! : selectedPackage.price;
+      // Se utilizador não existe ou first_purchase_used é false/null, é primeira compra
+      if (!userError && userData) {
+        isFirstPurchase = !userData.first_purchase_used;
+      } else if (userError && userError.code === 'PGRST116') {
+        // Utilizador não encontrado = primeira compra
+        isFirstPurchase = true;
+      } else if (userError) {
+        // Outros erros (ex: coluna não existe) = assumir primeira compra
+        console.warn(`${endpointName} Warning fetching user data for popular package:`, userError);
+        isFirstPurchase = true;
+      }
+      
+      hasFirstPurchaseDiscount = isFirstPurchase;
+      finalPrice = hasFirstPurchaseDiscount ? selectedPackage.firstPurchasePrice : selectedPackage.price;
+    }
     
     console.log(`${endpointName} Pricing details:`, {
       packageId,

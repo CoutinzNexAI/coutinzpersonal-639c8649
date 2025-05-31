@@ -241,7 +241,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithGoogle,
     signOut,
     session, // Adicionado para debugging
-    refreshUserInfo: () => refreshSession(true), // Nova função para forçar refresh
+    refreshUserInfo: useCallback(async () => {
+      // Refresh rápido apenas dos dados do utilizador sem toda a lógica de sessão
+      if (!userInfo?.id) return;
+      
+      try {
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('first_purchase_used, full_name, avatar_url')
+          .eq('id', userInfo.id)
+          .single();
+          
+        if (!error && userData) {
+          setUserInfo(prev => prev ? {
+            ...prev,
+            first_purchase_used: userData.first_purchase_used || false,
+            full_name: userData.full_name || prev.full_name,
+            avatar_url: userData.avatar_url || prev.avatar_url
+          } : null);
+        }
+      } catch (error) {
+        console.warn('[refreshUserInfo] Error refreshing user data:', error);
+      }
+    }, [userInfo?.id]), // Nova função para forçar refresh
   };
 
   return (
