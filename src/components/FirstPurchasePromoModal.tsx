@@ -54,7 +54,7 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl p-0 bg-transparent border-none overflow-hidden">
+      <DialogContent className="max-w-xl md:max-w-2xl p-0 bg-transparent border-none overflow-hidden mx-4">
         <motion.div
           initial={{ scale: 0.8, opacity: 0, rotate: -5 }}
           animate={{ scale: 1, opacity: 1, rotate: 0 }}
@@ -66,7 +66,7 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
           {floatingElements.map((element, index) => (
             <motion.div
               key={index}
-              className="absolute text-2xl pointer-events-none z-10"
+              className="absolute text-lg md:text-2xl pointer-events-none z-10"
               style={{ left: `${element.x}%`, top: `${element.y}%` }}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ 
@@ -89,7 +89,7 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
           {/* Fundo decorativo */}
           <div className="absolute inset-0 bg-gradient-to-r from-amber-200/20 to-yellow-300/20" />
           
-          <div className="relative z-20 p-8">
+          <div className="relative z-20 p-6 md:p-8">
             {/* Header com badge especial */}
             <motion.div 
               className="text-center mb-6"
@@ -115,7 +115,7 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
               </motion.div>
               
               <motion.h2 
-                className="text-3xl md:text-4xl font-ghibli font-bold text-ghibli-wood mb-2"
+                className="text-2xl md:text-3xl lg:text-4xl font-ghibli font-bold text-ghibli-wood mb-2"
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.3, type: "spring" }}
@@ -123,7 +123,7 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
                 🎉 Oferta de Boas-Vindas!
               </motion.h2>
               
-              <p className="text-lg text-ghibli-earth">
+              <p className="text-base md:text-lg text-ghibli-earth">
                 {isPopularPackage 
                   ? "Pacote Popular por apenas 2€ - 60% de desconto!" 
                   : "Bem-vindo à nossa comunidade de artistas digitais!"
@@ -133,17 +133,17 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
 
             {/* Comparação de preços */}
             <motion.div 
-              className="bg-white/80 rounded-2xl p-6 mb-6 border-2 border-amber-200"
+              className="bg-white/80 rounded-2xl p-4 md:p-6 mb-6 border-2 border-amber-200"
               initial={{ x: -50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
               <div className="text-center">
-                <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="flex items-center justify-center gap-2 md:gap-4 mb-4">
                   <div className="text-center">
-                    <p className="text-sm text-gray-500 mb-1">Preço Normal</p>
+                    <p className="text-xs md:text-sm text-gray-500 mb-1">Preço Normal</p>
                     <div className="relative">
-                      <span className="text-2xl font-bold text-gray-400 line-through">€{originalPackage.price}</span>
+                      <span className="text-lg md:text-2xl font-bold text-gray-400 line-through">€{originalPackage.price}</span>
                       <motion.div
                         className="absolute inset-0 bg-red-500/20"
                         initial={{ scaleX: 0 }}
@@ -153,12 +153,12 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
                     </div>
                   </div>
                   
-                  <Zap className="text-amber-500 w-8 h-8" />
+                  <Zap className="text-amber-500 w-6 h-6 md:w-8 md:h-8" />
                   
                   <div className="text-center">
-                    <p className="text-sm text-amber-600 mb-1 font-semibold">Preço Especial</p>
+                    <p className="text-xs md:text-sm text-amber-600 mb-1 font-semibold">Preço Especial</p>
                     <motion.div
-                      className="text-4xl font-bold text-amber-600"
+                      className="text-2xl md:text-4xl font-bold text-amber-600"
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ duration: 1, repeat: Infinity }}
                     >
@@ -168,70 +168,40 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
                 </div>
                 
                 <motion.div
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full inline-block"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 md:px-4 py-2 rounded-full inline-block"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.6, type: "spring" }}
                 >
-                  <span className="font-bold">POUPAS €{savings} ({discountPercent}% OFF)</span>
+                  <span className="font-bold text-sm md:text-base">POUPAS €{savings} ({discountPercent}% OFF)</span>
                 </motion.div>
               </div>
             </motion.div>
 
             {/* Detalhes do pacote */}
             <motion.div 
-              className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl p-4 mb-6"
+              className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl p-4 mb-8"
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
               <div className="flex items-center justify-center gap-3">
-                <Star className="text-amber-500 w-8 h-8" />
+                <Star className="text-amber-500 w-6 h-6 md:w-8 md:h-8" />
                 <div className="text-center">
-                  <p className="text-lg font-semibold text-ghibli-wood">
+                  <p className="text-base md:text-lg font-semibold text-ghibli-wood">
                     Pacote {originalPackage.name}
                   </p>
-                  <p className="text-sm text-ghibli-earth">
+                  <p className="text-xs md:text-sm text-ghibli-earth">
                     {originalPackage.coins} {originalPackage.coins === 1 ? 'PicCoin' : 'PicCoins'} para transformações mágicas
                   </p>
                 </div>
-                <Sparkles className="text-purple-500 w-8 h-8" />
+                <Sparkles className="text-purple-500 w-6 h-6 md:w-8 md:h-8" />
               </div>
             </motion.div>
 
-            {/* Benefícios exclusivos */}
+            {/* Botão de ação único */}
             <motion.div 
-              className="mb-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-            >
-              <h3 className="text-lg font-semibold text-ghibli-wood mb-3 text-center">
-                ✨ Benefícios da Primeira Compra:
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {[
-                  "🎨 Acesso a todos os estilos premium",
-                  "🚀 Processamento prioritário",
-                  "💫 Suporte premium incluído", 
-                  "🎁 Surpresas futuras reservadas"
-                ].map((benefit, index) => (
-                  <motion.div
-                    key={index}
-                    className="bg-white/60 rounded-lg p-3 text-sm font-medium text-ghibli-wood"
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.7 + index * 0.1 }}
-                  >
-                    {benefit}
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Botões de ação */}
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-3"
+              className="flex justify-center"
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.8 }}
@@ -239,7 +209,7 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
               <Button
                 onClick={handleAccept}
                 disabled={isAccepting}
-                className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105"
+                className="w-full max-w-sm bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 text-base md:text-lg"
               >
                 <div className="flex items-center justify-center gap-2">
                   {isAccepting ? (
@@ -259,14 +229,6 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
                     </>
                   )}
                 </div>
-              </Button>
-              
-              <Button
-                onClick={handleDecline}
-                variant="outline"
-                className="flex-1 border-2 border-ghibli-moss text-ghibli-wood hover:bg-ghibli-moss/10 py-4 px-6 rounded-xl font-semibold"
-              >
-                Continuar com preço normal (€{originalPackage.price})
               </Button>
             </motion.div>
 
