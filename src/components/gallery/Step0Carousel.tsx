@@ -26,19 +26,19 @@ const EXAMPLES_DATA: CarouselExample[] = [
   },
   {
     id: 2,
+    beforeSrc: '/marcelonormal.jpg',
+    afterSrc: '/reiportugal/marcelo.png',
+    altBefore: 'Imagem original de uma paisagem urbana com grafitti',
+    altAfter: 'Paisagem urbana com grafitti transformada para o estilo Azulejo',
+    ariaLabel: 'Exemplo de transformação: Paisagem urbana para estilo Azulejo Português',
+  },
+  {
+    id: 3,
     beforeSrc: '/camoesnormal.jpg',
     afterSrc: '/camoeslego.png',
     altBefore: 'Estátua original de Luís de Camões',
     altAfter: 'Estátua de Luís de Camões transformada em estilo Lego',
     ariaLabel: 'Exemplo de transformação: Estátua de Camões para estilo Lego',
-  },
-  {
-    id: 3,
-    beforeSrc: '/yamalnormal.webp',
-    afterSrc: '/yamalazulejo.png',
-    altBefore: 'Imagem original de uma paisagem urbana com grafitti',
-    altAfter: 'Paisagem urbana com grafitti transformada para o estilo Azulejo',
-    ariaLabel: 'Exemplo de transformação: Paisagem urbana para estilo Azulejo Português',
   },
 ];
 

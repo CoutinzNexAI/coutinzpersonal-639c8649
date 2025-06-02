@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useAuth } from '@/hooks/useAuth';
 import { usePicCoins } from '@/hooks/usePicCoins';
-import { useFirstPurchaseCheck } from '@/hooks/useFirstPurchaseCheck';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/sonner';
@@ -11,7 +10,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoginPromptModal from '@/components/LoginPromptModal';
-import { FirstPurchasePromoModal } from '@/components/FirstPurchasePromoModal';
 import { Star, Sparkles, Zap, Crown, Infinity as InfinityIcon } from 'lucide-react';
 
 const packages = [
@@ -71,28 +69,9 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
-  const [selectedPackageForPurchase, setSelectedPackageForPurchase] = useState<typeof packages[0] | null>(null);
   const { userInfo, signInWithGoogle } = useAuth();
   const { balance, purchaseCoins, refetchBalance } = usePicCoins();
-  const { isFirstPurchase, markFirstPurchaseAsUsed } = useFirstPurchaseCheck();
   const router = useRouter();
-
-  // Auto mostrar modal promocional para primeira compra
-  useEffect(() => {
-    if (userInfo && isFirstPurchase === true) {
-      // Aguardar um pouco para a página carregar completamente
-      const timer = setTimeout(() => {
-        const popularPackage = packages.find(pkg => pkg.id === 'popular');
-        if (popularPackage) {
-          setSelectedPackageForPurchase(popularPackage);
-          setIsPromoModalOpen(true);
-        }
-      }, 1000); // 1 segundo delay
-
-      return () => clearTimeout(timer);
-    }
-  }, [userInfo, isFirstPurchase]);
 
   useEffect(() => {
     // Check for success message
@@ -140,22 +119,7 @@ export default function PricingPage() {
       return;
     }
 
-    // Se é primeira compra e clica no pacote popular (5€), aplicar desconto
-    if (isFirstPurchase && packageId === 'popular') {
-      // Marcar primeira compra como usada
-      const success = await markFirstPurchaseAsUsed();
-      if (!success) {
-        toast.error('Erro ao processar promoção');
-        return;
-      }
-
-      // Usar ID promocional para obter desconto
-      const promoPackageId = `${packageId}_first_purchase_promo`;
-      await executeStripeCheckout(promoPackageId);
-      return;
-    }
-
-    // Continuar com compra normal para outros casos
+    // Compra normal sem promoções automáticas
     await executeStripeCheckout(packageId);
   };
 
@@ -181,28 +145,6 @@ export default function PricingPage() {
     } finally {
       setLoading(null);
     }
-  };
-
-  // Quando aceita a promoção
-  const handleAcceptPromo = async (promoPackageId: string) => {
-    if (!selectedPackageForPurchase) return;
-
-    // Marcar primeira compra como usada
-    const success = await markFirstPurchaseAsUsed();
-    if (!success) {
-      toast.error('Erro ao processar promoção');
-      return;
-    }
-
-    setIsPromoModalOpen(false);
-    
-    // Executar checkout com preço promocional (o backend vai identificar pelo ID especial)
-    await executeStripeCheckout(promoPackageId);
-  };
-
-  const handleClosePromoModal = () => {
-    setIsPromoModalOpen(false);
-    setSelectedPackageForPurchase(null);
   };
 
   const containerVariants = {
@@ -534,16 +476,6 @@ export default function PricingPage() {
         onLogin={handleLogin}
         isLoggingIn={isLoggingIn}
       />
-
-      {/* First Purchase Promo Modal */}
-      {selectedPackageForPurchase && (
-        <FirstPurchasePromoModal
-          isOpen={isPromoModalOpen}
-          onClose={handleClosePromoModal}
-          onAcceptPromo={handleAcceptPromo}
-          originalPackage={selectedPackageForPurchase}
-        />
-      )}
     </div>
     </>
   );

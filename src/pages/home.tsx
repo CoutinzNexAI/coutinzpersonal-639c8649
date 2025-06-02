@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Header from '@/components/Header';
 import GhibliHero from '@/components/GhibliHero'; // Componente principal com texto e área interativa
@@ -6,10 +6,70 @@ import InteractiveGallery from '@/components/InteractiveGallery'; // Secção da
 import HowItWorks from '@/components/HowItWorks'; // Secção "Como Funciona"
 import Footer from '@/components/Footer'; // Rodapé
 import { FAQSection } from '@/components/FAQSection'; // Ajusta o caminho se necessário
-
+import { FirstPurchasePromoModal } from '@/components/FirstPurchasePromoModal';
+import { useAuth } from '@/hooks/useAuth';
+import { usePicCoins } from '@/hooks/usePicCoins';
+import { useFirstPurchaseCheck } from '@/hooks/useFirstPurchaseCheck';
+import { toast } from '@/components/ui/sonner';
 
 // Componente funcional para a página inicial (rota '/')
 const Index = () => {
+  const { userInfo } = useAuth();
+  const { balance, purchaseCoins } = usePicCoins();
+  const { isFirstPurchase, markFirstPurchaseAsUsed } = useFirstPurchaseCheck();
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+
+  // Mostrar modal quando utilizador tem 0 coins e é primeira compra
+  useEffect(() => {
+    if (userInfo && balance === 0 && isFirstPurchase === true) {
+      // Aguardar um pouco para a página carregar completamente
+      const timer = setTimeout(() => {
+        setIsPromoModalOpen(true);
+      }, 1500); // 1.5 segundos delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [userInfo, balance, isFirstPurchase]);
+
+  // Função para executar o checkout do Stripe
+  const executeStripeCheckout = async (packageId: string) => {
+    try {
+      const sessionId = await purchaseCoins(packageId);
+      
+      // Redirect to Stripe Checkout
+      const stripe = await import('@stripe/stripe-js').then(m => 
+        m.loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+      );
+      
+      if (stripe) {
+        await stripe.redirectToCheckout({ sessionId });
+      }
+    } catch (error) {
+      console.error('Purchase error:', error);
+      toast.error('Erro na compra', {
+        description: error instanceof Error ? error.message : 'Tenta novamente'
+      });
+    }
+  };
+
+  // Quando aceita a promoção
+  const handleAcceptPromo = async (promoPackageId: string) => {
+    // Marcar primeira compra como usada
+    const success = await markFirstPurchaseAsUsed();
+    if (!success) {
+      toast.error('Erro ao processar promoção');
+      return;
+    }
+
+    setIsPromoModalOpen(false);
+    
+    // Executar checkout com preço promocional
+    await executeStripeCheckout(promoPackageId);
+  };
+
+  const handleClosePromoModal = () => {
+    setIsPromoModalOpen(false);
+  };
 
   return (
     <>
@@ -118,6 +178,13 @@ const Index = () => {
 
       {/* Renderiza o rodpé */}
       <Footer />
+
+      {/* Modal de promoção primeira compra */}
+      <FirstPurchasePromoModal
+        isOpen={isPromoModalOpen}
+        onClose={handleClosePromoModal}
+        onAcceptPromo={handleAcceptPromo}
+      />
     </div> {/* Fim do container principal */}
     </>
   );
