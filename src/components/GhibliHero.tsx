@@ -7,6 +7,7 @@ import { useImageProcessing, UseImageProcessingResult } from '@/hooks/useImagePr
 import { motion, Variants } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth'; // <<< NOVO: Importar useAuth
 import { toast } from '@/components/ui/sonner'; // <<< NOVO: Para feedback de autenticação
+import { trackEvent } from '@/lib/posthog'; // <<< NOVO: Import tracking
 
 import { StyleExamplesModal } from './gallery/StyleExamplsModal'; // Mantido
 import { TransformationStudio } from './TransformationStudio';
@@ -76,12 +77,25 @@ const GhibliHero = () => {
 
   // --- NOVO: Lógica modificada para handleTriggerStudio ---
   const handleTriggerStudio = () => {
+    // 🔥 TRACKING: CTA button click
+    trackEvent('cta_button_click', {
+      button_type: 'transform_photo',
+      location: 'hero',
+      user_logged_in: !!userInfo
+    });
+
     if (isAuthLoading) {
       toast.info("A verificar autenticação...", { duration: 2000 });
       return;
     }
 
     if (userInfo) {
+      // 🔥 TRACKING: Studio access (logged in user)
+      trackEvent('transformation_studio_enter', {
+        method: 'hero_button',
+        user_id: userInfo.id
+      });
+
       // Utilizador está logado, prossegue para o estúdio
       setShowStepZeroInStudio(false);
       if (imageProcessingProps.activeStep !== 1 && processingState === 'idle') {
@@ -99,6 +113,12 @@ const GhibliHero = () => {
         }, 100);
       }
     } else {
+      // 🔥 TRACKING: Login prompt shown
+      trackEvent('login_prompt_shown', {
+        trigger: 'studio_enter',
+        button_location: 'hero'
+      });
+
       // Utilizador não está logado, abre o pop-up de login
       setIsLoginPromptOpen(true);
     }
@@ -106,23 +126,28 @@ const GhibliHero = () => {
 
   // --- NOVO: Função para ser chamada pelo LoginPromptModal ---
   const handleLoginRequestFromModal = async () => {
+    // 🔥 TRACKING: Login attempt
+    trackEvent('login_attempt', {
+      method: 'google',
+      trigger: 'hero_cta'
+    });
+
     setIsSubmittingLogin(true);
     try {
       await signInWithGoogle();
       // O AuthProvider tratará da atualização do userInfo.
-      // O modal será fechado pelo onOpenChange ou o utilizador será redirecionado pelo OAuth.
-      // Não é preciso fechar o modal aqui explicitamente se o fluxo OAuth redirecionar.
-      // Se o OAuth não redirecionar (ex: popup), então setIsLoginPromptOpen(false) seria útil aqui.
-      // Por agora, vamos assumir que o fluxo OAuth trata do fecho/redirecionamento.
     } finally {
       setIsSubmittingLogin(false);
-      // Considerar fechar o modal aqui se o login falhar e o fluxo OAuth não redirecionar
-      // setIsLoginPromptOpen(false);
     }
   };
 
-
   const handleOpenExamples = () => {
+    // 🔥 TRACKING: Examples button click
+    trackEvent('examples_button_click', {
+      location: 'hero',
+      user_logged_in: !!userInfo
+    });
+
     setIsExamplesOpen(true);
   };
 
@@ -306,7 +331,14 @@ const GhibliHero = () => {
 
                 {/* Botão "Ver Comunidade" */}
                 <motion.button
-                  onClick={() => window.location.href = '/community'}
+                  onClick={() => {
+                    // 🔥 TRACKING: Community button click
+                    trackEvent('community_button_click', {
+                      location: 'hero_desktop',
+                      user_logged_in: !!userInfo
+                    });
+                    window.location.href = '/community';
+                  }}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white rounded-lg border border-blue-400 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"

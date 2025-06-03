@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import { 
@@ -20,6 +20,7 @@ import ViewTransformationModal from '@/components/community/ViewTransformationMo
 import SubmitToCommunityModal from '@/components/community/SubmitToCommunityModal';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
+import { trackEvent } from '@/lib/posthog';
 
 // =====================================================
 // PICTUZ COMMUNITY - GALERIA PRINCIPAL
@@ -81,6 +82,15 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
       transition: { duration: 0.5, ease: "easeOut" }
     }
   };
+
+  // 🔥 TRACKING: Community page visit
+  useEffect(() => {
+    trackEvent('community_page_visit', {
+      user_logged_in: !!userInfo,
+      user_id: userInfo?.id || null,
+      timestamp: new Date().toISOString()
+    });
+  }, [userInfo]);
 
   // HANDLERS
   const handleViewTransformation = (transformation: CommunityTransformation) => {

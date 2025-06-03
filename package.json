@@ -64,6 +64,7 @@
     "next-themes": "^0.3.0",
     "node-fetch": "^2.7.0",
     "openai": "^4.96.2",
+    "posthog-js": "^1.249.2",
     "react": "^18.3.1",
     "react-compare-slider": "^3.1.0",
     "react-day-picker": "^8.10.1",

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, Zap, Gift } from 'lucide-react';
+import { trackEvent } from '@/lib/posthog';
 
 interface FirstPurchasePromoModalProps {
   isOpen: boolean;
@@ -24,14 +25,44 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
   const discountPercent = Math.round((savings / originalPrice) * 100);
   const coins = 3;
 
+  // 🔥 TRACKING: Modal opened (trigger from parent)
+  React.useEffect(() => {
+    if (isOpen) {
+      trackEvent('first_purchase_promo_shown', {
+        original_price: originalPrice,
+        promo_price: promoPrice,
+        discount_percent: discountPercent,
+        coins_offered: coins,
+        savings_amount: savings
+      });
+    }
+  }, [isOpen, originalPrice, promoPrice, discountPercent, coins, savings]);
+
+  const handleClose = () => {
+    // 🔥 TRACKING: Modal closed without purchase
+    trackEvent('first_purchase_promo_dismissed', {
+      promo_price: promoPrice,
+      time_on_modal: Date.now() // Parent should track open time
+    });
+    onClose();
+  };
+
   const handleAccept = async () => {
+    // 🔥 TRACKING: User accepted promo
+    trackEvent('first_purchase_promo_accepted', {
+      promo_price: promoPrice,
+      original_price: originalPrice,
+      savings_amount: savings,
+      coins_purchased: coins
+    });
+
     setIsAccepting(true);
     const promoPackageId = 'popular_first_purchase_promo';
     onAcceptPromo(promoPackageId);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md p-0 bg-transparent border-none overflow-hidden">
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -43,7 +74,7 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
           {/* Header */}
           <div className="relative bg-gradient-to-r from-amber-400 to-amber-500 px-6 py-4">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="absolute right-4 top-4 p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
             >
               <X className="w-4 h-4 text-white" />

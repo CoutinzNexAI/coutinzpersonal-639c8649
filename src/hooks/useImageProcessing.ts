@@ -235,7 +235,7 @@ export function useImageProcessing() {
 
       pollCountRef.current += 1;
       setSimulatedProgress(calculateSimulatedProgress(pollCountRef.current));
-
+      
       try {
         const cacheParam = pollCountRef.current > 18 ? `&_t=${Date.now()}` : '';
         const userParam = userInfo?.id ? `&userId=${userInfo.id}` : '';
@@ -253,10 +253,10 @@ export function useImageProcessing() {
         
         if (data.status === 'error' || data.status?.startsWith('failed')) {
           console.log(`[useImageProcessing] Error detected, initiating refund for job ${currentJobId}`);
-          
+
           setErrorMessage(STANDARD_ERROR_MESSAGE);
-          setProcessingState('error');
-          setActiveStep(3);
+            setProcessingState('error');
+            setActiveStep(3);
           toast.error("Falha na Transformação", {description: SIMPLE_ERROR_TOAST_MESSAGE});
 
           // Process refund automatically
@@ -313,7 +313,7 @@ export function useImageProcessing() {
             if (urlData?.publicUrl) {
               setTransformedImage(urlData.publicUrl); 
               setProcessingState('completed'); 
-              setActiveStep(3); 
+            setActiveStep(3); 
               setSimulatedProgress(100);
               toast.success("Transformação encontrada após verificação final!");
               if (pollingIntervalRef.current) {
@@ -324,7 +324,7 @@ export function useImageProcessing() {
               fetchTransformationRating(currentJobId);
               return;
             }
-          }
+        }
         } catch (finalStorageError) {
           console.error(`[useImageProcessing - FinalCheck] Final storage check failed:`, finalStorageError instanceof Error ? finalStorageError.message : String(finalStorageError));
         }
@@ -563,12 +563,12 @@ export function useImageProcessing() {
         setErrorMessage(STANDARD_ERROR_MESSAGE);
         toast.error("Erro no Processo", { description: SIMPLE_ERROR_TOAST_MESSAGE });
       } else {
-        setErrorMessage(errorMsg);
-        toast.error("Erro no Processo", { description: errorMsg });
+      setErrorMessage(errorMsg);
+      toast.error("Erro no Processo", { description: errorMsg });
       }
 
       setProcessingState('error'); 
-      setActiveStep(3);
+      setActiveStep(3); 
       
       // ... (lógica para atualizar job na BD para erro, se tempNewJobId existir) ...
       if (tempNewJobId) {

@@ -15,6 +15,7 @@ import FallingElements from '@/components/effects/FallingElements';
 import Script from 'next/script';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import PostHogProvider from '@/providers/PostHogProvider'; // <<< NOVO: Import PostHog Provider
 
 const queryClient = new QueryClient();
 
@@ -86,25 +87,27 @@ function MyApp({ Component, pageProps }: AppProps) {
           `,
         }}
       />
-      <TooltipProvider>
-        <AuthProvider>
-          <TransformationsModalProvider>
-            <AccountSettingsModalProvider>
-              
-              <FallingElements />
-              
-              <Component {...pageProps} />
+      <PostHogProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <TransformationsModalProvider>
+              <AccountSettingsModalProvider>
+                
+                <FallingElements />
+                
+                <Component {...pageProps} />
 
-              <Sonner richColors position="top-right" />
+                <Sonner richColors position="top-right" />
 
-              <TransformationsModal />
-              <AccountSettingsModal />
-              <Analytics /> {/* Adiciona o componente Analytics aqui */}
+                <TransformationsModal />
+                <AccountSettingsModal />
+                <Analytics /> {/* Adiciona o componente Analytics aqui */}
 
-            </AccountSettingsModalProvider>
-          </TransformationsModalProvider>
-        </AuthProvider>
-      </TooltipProvider>
+              </AccountSettingsModalProvider>
+            </TransformationsModalProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </PostHogProvider>
     </QueryClientProvider>
   );
 }

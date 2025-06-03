@@ -45,7 +45,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ uploadedImageUrl, _errorMessage
             </p>
             <p>
               Tente novamente com outra imagem ou estilo diferente.
-            </p>
+          </p>
           </div>
           
           <Button 

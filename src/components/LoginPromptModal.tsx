@@ -81,8 +81,8 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
           <DialogHeader className="text-center mb-6">
             <motion.div variants={itemVariants}>
               <DialogTitle className="text-3xl md:text-4xl font-ghibli flex items-center justify-center text-ghibli-wood">
-                <motion.div
-                  animate={{ 
+          <motion.div
+            animate={{ 
                     rotate: [0, -10, 10, -10, 0],
                     scale: [1, 1.1, 1, 1.1, 1]
                   }}
@@ -90,7 +90,7 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
                     duration: 2, 
                     repeat: Infinity, 
                     repeatType: "reverse" 
-                  }}
+            }}
                   className="mr-2"
                 >
                   ✨
@@ -102,9 +102,9 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
             <motion.div variants={itemVariants}>
               <DialogDescription className="text-ghibli-slate text-xl md:text-2xl font-medium mt-2">
                 Liga-te para não perderes nada!
-              </DialogDescription>
-            </motion.div>
-          </DialogHeader>
+            </DialogDescription>
+          </motion.div>
+        </DialogHeader>
 
           <motion.div className="space-y-3 mb-6">
             {[
@@ -126,24 +126,24 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
           </motion.div>
 
           <motion.div variants={itemVariants}>
-            <Button
-              onClick={onLogin}
-              disabled={isLoggingIn}
+          <Button
+            onClick={onLogin}
+            disabled={isLoggingIn}
               className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white font-semibold py-4 md:py-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] text-lg md:text-xl"
-              size="lg"
-            >
-              {isLoggingIn ? (
+            size="lg"
+          >
+            {isLoggingIn ? (
                 <>
                   <Loader2 className="mr-2 h-6 w-6 md:h-7 md:w-7 animate-spin" />
                   A entrar...
                 </>
-              ) : (
+            ) : (
                 <>
                   <LogIn className="mr-2 h-6 w-6 md:h-7 md:w-7" />
                   Entrar com Google
                 </>
-              )}
-            </Button>
+            )}
+          </Button>
           </motion.div>
         </motion.div>
       </DialogContent>
