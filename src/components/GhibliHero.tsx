@@ -194,7 +194,7 @@ const GhibliHero = () => {
             className="w-full lg:w-5/12 xl:w-4/12 mb-10 lg:mb-0 flex flex-col items-center lg:items-start order-2 lg:order-1"
           >
             {/* Subtítulo estilizado com cards animados (mantido) */}
-            <div className="mb-10 w-full">
+            <div className="mb-10 w-full hidden md:block">
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -239,47 +239,10 @@ const GhibliHero = () => {
             </div>
 
             {/* Botões com design aprimorado (mantidos) */}
-            <div className="flex flex-col space-y-4 justify-center lg:justify-start w-full">
+            <div className="flex flex-col space-y-4 items-center justify-center lg:justify-start w-full">
+              {/* Botão "Veja exemplos!" - agora é o único botão aqui no mobile */}
               <motion.div
-                className="w-full relative group"
-                whileHover={{
-                  scale: 1.03,
-                  transition: { duration: 0.2 }
-                }}
-                whileTap={{ scale: 0.98 }}
-                animate={{
-                  y: [0, -4, 0],
-                  transition: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: titleParts.length * 0.1 + 1.3}
-                }}
-              >
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-200 to-yellow-300 rounded-lg blur opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-                <Button
-                  variant="ghost"
-                  className={`relative w-full inline-flex items-center justify-center
-                                  rounded-lg border-2 border-amber-100 hover:border-amber-200 transition-all duration-300
-                                  shadow-md hover:shadow-lg bg-gradient-to-br from-amber-50 to-yellow-50 text-ghibli-wood font-medium
-                                  ${
-                                    // Primary CTA - larger
-                                    'text-lg px-6 py-3 md:px-7 md:py-3.5'
-                                  } ${
-                                    // Mobile - more compact
-                                    'max-md:text-base max-md:px-5 max-md:py-2.5'
-                                  }`}
-                  onClick={handleTriggerStudio} // <<< Ação principal aqui
-                >
-                  <motion.span
-                    animate={{ rotate: [0, -1, 1, -1, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-                    className="mr-2"
-                  >
-                    ✨
-                  </motion.span>
-                  Transforme já a sua foto!
-                </Button>
-              </motion.div>
-              
-              <motion.div
-                className="w-full"
+                className="w-auto"
                 whileHover={{
                   scale: 1.03,
                   transition: { duration: 0.2 }
@@ -288,7 +251,7 @@ const GhibliHero = () => {
               >
                 <Button
                   variant="outline"
-                  className={`w-full inline-flex items-center justify-center transition-all duration-300
+                  className={`inline-flex items-center justify-center transition-all duration-300
                                   rounded-lg shadow-sm hover:shadow-md text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
                                   hover:border-ghibli-moss
                                   ${
@@ -307,6 +270,39 @@ const GhibliHero = () => {
                     <Images className="h-5 w-5 text-ghibli-moss" />
                   </motion.span>
                   Veja exemplos!
+                </Button>
+              </motion.div>
+
+              {/* Botão principal apenas no desktop */}
+              <motion.div
+                className="w-auto relative group hidden md:block"
+                whileHover={{
+                  scale: 1.03,
+                  transition: { duration: 0.2 }
+                }}
+                whileTap={{ scale: 0.98 }}
+                animate={{
+                  y: [0, -4, 0],
+                  transition: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: titleParts.length * 0.1 + 1.3}
+                }}
+              >
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-200 to-yellow-300 rounded-lg blur opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                <Button
+                  variant="ghost"
+                  className={`relative inline-flex items-center justify-center
+                                  rounded-lg border-2 border-amber-100 hover:border-amber-200 transition-all duration-300
+                                  shadow-md hover:shadow-lg bg-gradient-to-br from-amber-50 to-yellow-50 text-ghibli-wood font-medium
+                                  text-lg px-6 py-3 md:px-7 md:py-3.5`}
+                  onClick={handleTriggerStudio}
+                >
+                  <motion.span
+                    animate={{ rotate: [0, -1, 1, -1, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+                    className="mr-2"
+                  >
+                    ✨
+                  </motion.span>
+                  Transforme já a sua foto!
                 </Button>
               </motion.div>
             </div>
@@ -332,6 +328,47 @@ const GhibliHero = () => {
                 <span className="mr-2">👥</span>
                 <p className="text-sm font-medium">Ver Comunidade</p>
               </motion.button>
+            </motion.div>
+
+            {/* Botão principal destacado - APENAS NO MOBILE, posicionado abaixo */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ 
+                opacity: 1, 
+                y: [0, -4, 0],
+              }}
+              transition={{ 
+                opacity: { delay: titleParts.length * 0.1 + 1.7, duration: 0.7 },
+                y: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: titleParts.length * 0.1 + 2}
+              }}
+              className="mt-8 w-auto relative group md:hidden flex justify-center"
+              whileHover={{
+                scale: 1.03,
+                transition: { duration: 0.2 }
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="absolute -inset-1 bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 rounded-xl blur opacity-70 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+              <Button
+                variant="ghost"
+                className="relative inline-flex items-center justify-center
+                                rounded-xl border-3 border-amber-200 hover:border-amber-300 transition-all duration-300
+                                shadow-lg hover:shadow-xl bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50 text-ghibli-wood font-bold
+                                text-lg px-6 py-3 transform hover:scale-102"
+                onClick={handleTriggerStudio}
+              >
+                <motion.span
+                  animate={{ 
+                    rotate: [0, -2, 2, -2, 0],
+                    scale: [1, 1.1, 1, 1.1, 1]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+                  className="mr-3 text-xl"
+                >
+                  ✨
+                </motion.span>
+                Transforme já a sua foto!
+              </Button>
             </motion.div>
           </motion.div>
 

@@ -81,6 +81,19 @@ export interface StyleExample {
       ]
     },
     {
+      id: "Rei Portugal",
+      name: "Estilo Rei Portugal",
+      description: "Transforme-se no Rei Portugal, inspirado no século XVI!",
+      examples: [
+        { before: "/foto/madalenaaragao.png", after: "/reiportugal/madalena.png" },
+        { before: "/marcelonormal.jpg", after: "/reiportugal/marcelo.png" },
+        { before: "/montenegronormal.jpg", after: "/reiportugal/monte.png" },
+        { before: "/yamalnormal.webp", after: "/reiportugal/yamal.png" },
+        { before: "/foto/badbuny.jpg", after: "/reiportugal/badbunny.png" },
+        { before: "/barbarabandeiranormal.webp", after: "/reiportugal/barbarainha.png" },
+      ],
+    },
+    {
       id: "cartoon",
       name: "Estilo Cartoon",
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.",
@@ -116,19 +129,6 @@ export interface StyleExample {
         { before: "/wbgnormal.jpg", after: "/wbgminevdd.png" },
         { before: "/morambappenormal.webp", after: "/morambappemine.png" },
         { before: "/montenegronormal.jpg", after: "/montemine.png" }
-      ],
-    },
-    {
-      id: "Rei Portugal",
-      name: "Estilo Rei Portugal",
-      description: "Transforme-se no Rei Portugal, inspirado no século XVI!",
-      examples: [
-        { before: "/foto/madalenaaragao.png", after: "/reiportugal/madalena.png" },
-        { before: "/marcelonormal.jpg", after: "/reiportugal/marcelo.png" },
-        { before: "/montenegronormal.jpg", after: "/reiportugal/monte.png" },
-        { before: "/yamalnormal.webp", after: "/reiportugal/yamal.png" },
-        { before: "/foto/badbuny.jpg", after: "/reiportugal/badbunny.png" },
-        { before: "/barbarabandeiranormal.webp", after: "/reiportugal/barbarainha.png" },
       ],
     },
   ];

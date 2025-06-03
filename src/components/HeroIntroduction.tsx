@@ -123,7 +123,7 @@ export const HeroIntroduction: React.FC<HeroIntroductionProps> = ({
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-ghibli font-bold text-ghibli-wood leading-tight mb-6">
             Transforme as suas Fotos em Obras de Arte!
           </h1>
-          <p className="text-lg text-ghibli-earth mb-8 max-w-md leading-relaxed">
+          <p className="text-lg text-ghibli-earth mb-8 max-w-md leading-relaxed hidden md:block">
             🪄 Transforme fotografias comuns em arte verdadeiramente mágica.<br />
             👍 O processo é simples: envie a foto, escolha o estilo e está feito!<br />
             🖼️ Crie imagens fantásticas, prontas para partilhar onde quiser!
