@@ -10,21 +10,22 @@ import { FirstPurchasePromoModal } from '@/components/FirstPurchasePromoModal';
 import { useAuth } from '@/hooks/useAuth';
 import { usePicCoins } from '@/hooks/usePicCoins';
 import { useFirstPurchaseCheck } from '@/hooks/useFirstPurchaseCheck';
+import { useTransformationCount } from '@/hooks/useTransformationCount';
 import { toast } from '@/components/ui/sonner';
 
 // Componente funcional para a página inicial (rota '/')
 const Index = () => {
   const { userInfo } = useAuth();
-  const { balance, purchaseCoins, loading: balanceLoading } = usePicCoins();
-  const { isFirstPurchase, markFirstPurchaseAsUsed, isLoading: firstPurchaseLoading } = useFirstPurchaseCheck();
+  const { purchaseCoins } = usePicCoins();
+  const { isFirstPurchase, markFirstPurchaseAsUsed } = useFirstPurchaseCheck();
+  const { count: transformationCount, isLoading: countLoading } = useTransformationCount();
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
 
-  // Flag combinada - só quando TODOS os dados estão carregados
-  const allDataLoaded = userInfo && !balanceLoading && !firstPurchaseLoading;
-
-  // Mostrar modal só quando tudo carregou E condições são verdadeiras
+  // Mostrar modal quando:
+  // 1. first_purchase_used = false (isFirstPurchase = true)
+  // 2. Fez 2 ou 3 transformações (pode ter ganho 1 na comunidade)
   useEffect(() => {
-    if (allDataLoaded && balance === 0 && isFirstPurchase === true) {
+    if (userInfo && !countLoading && isFirstPurchase === true && (transformationCount === 2 || transformationCount === 3)) {
       // Aguardar um pouco para a página carregar completamente
       const timer = setTimeout(() => {
         setIsPromoModalOpen(true);
@@ -32,7 +33,7 @@ const Index = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [allDataLoaded, balance, isFirstPurchase]);
+  }, [userInfo, isFirstPurchase, transformationCount, countLoading]);
 
   // Função para executar o checkout do Stripe
   const executeStripeCheckout = async (packageId: string) => {
