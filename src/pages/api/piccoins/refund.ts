@@ -112,7 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: refundResult, error: refundError } = await supabaseAdmin.rpc('earn_piccoins', {
       p_user_id: user.id,
       p_amount: amount,
-      p_type: 'refund',
+      p_type: 'earned',
       p_reference_id: transformationId,
       p_description: `Reembolso de ${amount} PicCoin(s) por falha na transformação`
     });

@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Validar tipos permitidos
-    const allowedTypes = ['purchase', 'bonus_first_login', 'earned', 'refund'];
+    const allowedTypes = ['purchase', 'bonus_first_login', 'earned']; // TEMPORARY: removed 'refund' until DB constraint is updated
     if (!allowedTypes.includes(type)) {
       return res.status(400).json({ message: 'Invalid transaction type' });
     }

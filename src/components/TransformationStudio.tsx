@@ -18,8 +18,7 @@ interface TransformationStudioProps extends Omit<UseImageProcessingResult,
   'handleNewImage' | 
   'currentJobId' | 
   'setIsStyleModalOpen' | 
-  'isStyleModalOpen' |
-  'handlePaymentClick' // Remover se existir, pois foi substituído
+  'isStyleModalOpen'
 > {
   showStepZeroContent: boolean;
   onStartClickForCarousel: () => void;
@@ -28,26 +27,6 @@ interface TransformationStudioProps extends Omit<UseImageProcessingResult,
   currentJobId: string | null;
   currentRating: number;
 }
-
-const Step3Preview: React.FC<{ imageUrl: string | undefined; styleName: string | undefined }> = ({ imageUrl, styleName }) => {
-  if (!imageUrl || !styleName) return null;
-  return (
-    <div className="mb-4 p-3 border rounded-lg bg-white/50 backdrop-blur-sm flex items-center gap-3 w-full max-w-sm mx-auto">
-      <div className="w-12 h-12 relative flex-shrink-0 rounded-md overflow-hidden">
-        <Image
-          src={imageUrl}
-          alt="Pré-visualização da imagem carregada"
-          fill
-          style={{ objectFit: "cover" }}
-        />
-      </div>
-      <div className="text-sm overflow-hidden">
-        <p className="text-muted-foreground text-xs">A transformar:</p>
-        <p className="font-medium truncate" title={styleName}>Estilo: {styleName}</p>
-      </div>
-    </div>
-  );
-};
 
 export const TransformationStudio: React.FC<TransformationStudioProps> = ({
   showStepZeroContent,
@@ -67,8 +46,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
   handleFileChange,
   openStyleSelector,
   handleStyleSelect,
-  //  handlePaymentClick: initiatePayment, // <<< LINHA ANTIGA
-  handleStartTransformation, // <<< NOVO: Usar o nome da função do hook atualizado
+  handleStartTransformation,
   handleDownload,
   setActiveStep,
   currentJobId,
@@ -154,7 +132,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
           </div>
           <Button
             className="w-full max-w-xs ghibli-button mt-2"
-            disabled={!uploadedImage || stylesLoading || !availableStyles.length} // Adicionado !availableStyles.length
+            disabled={!uploadedImage || stylesLoading || !availableStyles.length}
             onClick={openStyleSelector}
           >
             {selectedStyle ? `Estilo: ${selectedStyle.name}` : (stylesLoading ? 'Carregando...' : 'Ver Todos / Escolher')}
@@ -168,7 +146,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
       if (['idle', 'checking_balance', 'spending_coins', 'uploading_image', 'creating_job_record', 'triggering_processing'].includes(processingState)) {
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
-            <div className="w-full flex-grow relative"> {/* Mantém flex-grow para que PaymentState possa usar o espaço */}
+            <div className="w-full flex-grow relative">
               <PaymentState
                 selectedStyleName={selectedStyle?.name || 'Estilo não definido'}
                 onPaymentClick={handleStartTransformation}
@@ -194,7 +172,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
         }
         // Renderiza APENAS o ProcessingState, centrado
         return (
-          <div className="w-full h-full flex flex-col items-center justify-center p-4"> {/* Container pai que centra */}
+          <div className="w-full h-full flex flex-col items-center justify-center p-4">
             <div className="w-full flex-1 flex items-center justify-center"> 
               <ProcessingState
                 uploadedImageUrl={uploadedImage?.preview || ''} 
@@ -230,8 +208,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
       else if (processingState === 'error') {
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
-            {/* <Step3Preview imageUrl={uploadedImage?.preview} styleName={selectedStyle?.name} />  // <<< REMOVIDO/COMENTADO PARA MELHOR CENTRAMENTO DO ERRO */}
-            <div className="w-full flex-grow flex items-center justify-center"> {/* Para centrar o ErrorState */}
+            <div className="w-full flex-grow flex items-center justify-center">
               <ErrorState
                 uploadedImageUrl={uploadedImage?.preview || ''}
                 _errorMessage={errorMessage}
