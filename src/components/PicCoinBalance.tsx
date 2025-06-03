@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { trackEvent } from '@/lib/posthog';
 
 export const PicCoinBalance = () => {
   const { balance, loading } = usePicCoins();
@@ -15,17 +16,37 @@ export const PicCoinBalance = () => {
   const digits = balance.toString().length;
   const paddingClass = digits <= 2 ? 'px-2 md:px-3' : digits <= 3 ? 'px-3 md:px-4' : 'px-4 md:px-5';
 
+  const handleBalanceClick = () => {
+    // 🔥 TRACKING: Balance clicked
+    trackEvent('balance_click', {
+      user_id: userInfo.id,
+      current_balance: balance,
+      click_source: 'header_balance_display'
+    });
+  };
+
+  const handleTooltipShow = () => {
+    // 🔥 TRACKING: Balance tooltip shown
+    trackEvent('balance_tooltip_shown', {
+      user_id: userInfo.id,
+      current_balance: balance
+    });
+
+    setShowTooltip(true);
+  };
+
   return (
     <motion.div
       className="relative"
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.2 }}
-      onMouseEnter={() => setShowTooltip(true)}
+      onMouseEnter={handleTooltipShow}
       onMouseLeave={() => setShowTooltip(false)}
     >
       <Link 
         href="/pricing" 
+        onClick={handleBalanceClick}
         className={`
           flex items-center gap-1.5 md:gap-2 transition-all duration-300 text-sm font-medium cursor-pointer
           ${paddingClass} py-2 rounded-xl

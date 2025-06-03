@@ -11,6 +11,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { Star, Sparkles, Zap, Crown, Infinity as InfinityIcon } from 'lucide-react';
+import { trackEvent } from '@/lib/posthog';
 
 const packages = [
   { 
@@ -73,9 +74,29 @@ export default function PricingPage() {
   const { balance, purchaseCoins, refetchBalance } = usePicCoins();
   const router = useRouter();
 
+  // 🔥 TRACKING: Pricing page visit
+  useEffect(() => {
+    trackEvent('pricing_page_visit', {
+      user_id: userInfo?.id || null,
+      is_authenticated: !!userInfo,
+      referrer: document.referrer || 'direct',
+      total_packages: packages.length,
+      current_balance: userInfo ? balance : null,
+      came_from_studio: router.query.from === 'studio',
+      reason: typeof router.query.reason === 'string' ? router.query.reason : null
+    });
+  }, [userInfo, balance, router.query.from, router.query.reason]);
+
   useEffect(() => {
     // Check for success message
     if (router.query.success === 'true') {
+      // 🔥 TRACKING: Purchase success redirect
+      trackEvent('purchase_success_redirect', {
+        user_id: userInfo?.id || null,
+        session_id: typeof router.query.session_id === 'string' ? router.query.session_id : null,
+        package_id: typeof router.query.package_id === 'string' ? router.query.package_id : null
+      });
+
       toast.success('✨ Compra mágica realizada!', {
         description: 'Os teus PicCoins foram adicionados à conta e estão prontos para usar.'
       });
@@ -86,6 +107,12 @@ export default function PricingPage() {
 
     // Check for cancel message
     if (router.query.canceled === 'true') {
+      // 🔥 TRACKING: Purchase cancelled redirect
+      trackEvent('purchase_cancelled_redirect', {
+        user_id: userInfo?.id || null,
+        package_id: typeof router.query.package_id === 'string' ? router.query.package_id : null
+      });
+
       toast.error('Compra cancelada', {
         description: 'Podes tentar novamente quando quiseres.'
       });
@@ -95,26 +122,68 @@ export default function PricingPage() {
 
     // Check if user came from insufficient balance (from studio)
     if (router.query.from === 'studio') {
+      // 🔥 TRACKING: Insufficient balance redirect
+      trackEvent('insufficient_balance_redirect', {
+        user_id: userInfo?.id || null,
+        reason: typeof router.query.reason === 'string' ? router.query.reason : 'insufficient_balance'
+      });
+
       toast.info('💰 Escolhe um pacote', {
         description: 'Seleciona quantos PicCoins queres comprar para continuar.'
       });
       // Clean URL
       router.replace('/pricing', undefined, { shallow: true });
     }
-  }, [router.query, refetchBalance, router]);
+  }, [router.query, refetchBalance, router, userInfo?.id]);
 
   const handleLogin = async () => {
+    // 🔥 TRACKING: Login prompt from pricing
+    trackEvent('pricing_login_prompt', {
+      user_id: null,
+      trigger_action: 'purchase_attempt'
+    });
+
     setIsLoggingIn(true);
     try {
       await signInWithGoogle();
       setIsLoginModalOpen(false);
+
+      // 🔥 TRACKING: Login success from pricing
+      trackEvent('pricing_login_success', {
+        user_id: userInfo?.id || null
+      });
+    } catch (error) {
+      // 🔥 TRACKING: Login error from pricing
+      trackEvent('pricing_login_error', {
+        error_message: error instanceof Error ? error.message : 'Unknown login error'
+      });
     } finally {
       setIsLoggingIn(false);
     }
   };
 
   const handlePurchase = async (packageId: string) => {
+    const selectedPackage = packages.find(p => p.id === packageId);
+
+    // 🔥 TRACKING: Purchase attempt
+    trackEvent('package_purchase_attempt', {
+      user_id: userInfo?.id || null,
+      package_id: packageId,
+      package_name: selectedPackage?.name || null,
+      package_price: selectedPackage?.price || null,
+      package_coins: selectedPackage?.coins || null,
+      is_authenticated: !!userInfo,
+      current_balance: userInfo ? balance : null
+    });
+
     if (!userInfo) {
+      // 🔥 TRACKING: Login required for purchase
+      trackEvent('package_purchase_login_required', {
+        package_id: packageId,
+        package_name: selectedPackage?.name || null,
+        package_price: selectedPackage?.price || null
+      });
+
       setIsLoginModalOpen(true);
       return;
     }

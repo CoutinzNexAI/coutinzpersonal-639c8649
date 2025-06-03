@@ -86,11 +86,13 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   // 🔥 TRACKING: Community page visit
   useEffect(() => {
     trackEvent('community_page_visit', {
+      user_id: userInfo?.id || null,
+      is_authenticated: !!userInfo,
       referrer: document.referrer || 'direct',
       user_agent: navigator.userAgent,
       timestamp: new Date().toISOString()
     });
-  }, []);
+  }, [userInfo]); // Re-track when user authentication state changes
 
   // HANDLERS
   const handleViewTransformation = (transformation: CommunityTransformation) => {
