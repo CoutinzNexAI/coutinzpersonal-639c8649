@@ -15,13 +15,14 @@ import { toast } from '@/components/ui/sonner';
 // Componente funcional para a página inicial (rota '/')
 const Index = () => {
   const { userInfo } = useAuth();
-  const { balance, purchaseCoins } = usePicCoins();
+  const { balance, purchaseCoins, loading: balanceLoading } = usePicCoins();
   const { isFirstPurchase, markFirstPurchaseAsUsed } = useFirstPurchaseCheck();
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
 
   // Mostrar modal quando utilizador tem 0 coins e é primeira compra
+  // IMPORTANTE: Só depois do loading do balance terminar!
   useEffect(() => {
-    if (userInfo && balance === 0 && isFirstPurchase === true) {
+    if (userInfo && !balanceLoading && balance === 0 && isFirstPurchase === true) {
       // Aguardar um pouco para a página carregar completamente
       const timer = setTimeout(() => {
         setIsPromoModalOpen(true);
@@ -29,7 +30,7 @@ const Index = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [userInfo, balance, isFirstPurchase]);
+  }, [userInfo, balance, isFirstPurchase, balanceLoading]);
 
   // Função para executar o checkout do Stripe
   const executeStripeCheckout = async (packageId: string) => {
