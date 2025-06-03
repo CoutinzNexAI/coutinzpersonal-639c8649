@@ -86,11 +86,11 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   // 🔥 TRACKING: Community page visit
   useEffect(() => {
     trackEvent('community_page_visit', {
-      user_logged_in: !!userInfo,
-      user_id: userInfo?.id || null,
+      referrer: document.referrer || 'direct',
+      user_agent: navigator.userAgent,
       timestamp: new Date().toISOString()
     });
-  }, [userInfo]);
+  }, []);
 
   // HANDLERS
   const handleViewTransformation = (transformation: CommunityTransformation) => {

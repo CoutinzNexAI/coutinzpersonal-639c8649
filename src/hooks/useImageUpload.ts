@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from '@/components/ui/sonner'; // Assumindo que está corretamente configurado
+import { trackEvent } from '@/lib/posthog'; // <<< NOVO: Import tracking
 
 // Definindo tipos
 export interface UploadedFile {
@@ -91,11 +92,34 @@ export function useImageUpload() {
 
   // Validar arquivo (agora assíncrono devido à leitura do cabeçalho)
   const validateFile = useCallback(async (file: File): Promise<string | null> => {
+    // 🔥 TRACKING: File validation start
+    trackEvent('file_validation_start', {
+      file_size: file.size,
+      file_type: file.type,
+      file_name: file.name
+    });
+
     if (!ALLOWED_FILE_TYPES_MIME.includes(file.type)) {
+      // 🔥 TRACKING: Invalid file type
+      trackEvent('file_validation_error', {
+        error_type: 'invalid_file_type',
+        file_type: file.type,
+        file_size: file.size,
+        allowed_types: ALLOWED_FILE_TYPES_MIME.join(', ')
+      });
+
       return 'Tipo de ficheiro inválido. Apenas JPG, PNG, ou WEBP são aceites.';
     }
     
     if (file.size > MAX_FILE_SIZE) {
+      // 🔥 TRACKING: File too large
+      trackEvent('file_validation_error', {
+        error_type: 'file_too_large',
+        file_size: file.size,
+        max_allowed_size: MAX_FILE_SIZE,
+        file_type: file.type
+      });
+
       return `Ficheiro muito grande. O tamanho máximo é ${formatFileSize(MAX_FILE_SIZE)}.`;
     }
 
@@ -104,12 +128,36 @@ export function useImageUpload() {
       const headerHex = await getFileHeaderHex(file);
       if (!isValidFileSignature(headerHex, file.type)) {
         console.warn(`Assinatura de ficheiro inválida para ${file.name} (MIME: ${file.type}, Header: ${headerHex})`);
+
+        // 🔥 TRACKING: Invalid file signature
+        trackEvent('file_validation_error', {
+          error_type: 'invalid_file_signature',
+          file_type: file.type,
+          file_size: file.size,
+          header_hex: headerHex
+        });
+
         return 'O conteúdo do ficheiro não parece ser uma imagem válida ou o formato está corrompido.';
       }
     } catch (error) {
       console.error("Erro ao validar assinatura do ficheiro:", error);
+
+      // 🔥 TRACKING: Signature validation exception
+      trackEvent('file_validation_error', {
+        error_type: 'signature_validation_exception',
+        file_type: file.type,
+        file_size: file.size,
+        error_message: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       return 'Não foi possível verificar o conteúdo do ficheiro. Tente novamente.';
     }
+
+    // 🔥 TRACKING: File validation success
+    trackEvent('file_validation_success', {
+      file_size: file.size,
+      file_type: file.type
+    });
     
     return null; // Sem erros de validação
   }, []);

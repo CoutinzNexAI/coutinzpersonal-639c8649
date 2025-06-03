@@ -23,6 +23,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from '@/components/ui/button';
+import { trackEvent } from '@/lib/posthog';
 
 export interface Style {
   id: string;
@@ -79,6 +80,14 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      // 🔥 TRACKING: Style selector modal opened
+      trackEvent('style_selector_modal_open', {
+        total_styles: styles.length,
+        active_styles: styles.filter(s => s.is_active).length,
+        limited_edition_styles: styles.filter(s => s.is_limited_edition).length,
+        currently_selected_style: selectedStyleId
+      });
+
       const initialStyleId = selectedStyleId && styles.find(s => s.id === selectedStyleId)
                              ? selectedStyleId
                              : (styles.length > 0 ? styles[0].id : null);
@@ -91,6 +100,16 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
   };
   
   const handleDirectStyleSelect = (style: Style) => {
+    // 🔥 TRACKING: Style selected from modal
+    trackEvent('style_selected_from_modal', {
+      style_id: style.id,
+      style_name: style.name,
+      is_limited_edition: style.is_limited_edition,
+      selection_method: 'direct_button',
+      search_query: searchQuery || null,
+      total_filtered_styles: filteredStyles.length
+    });
+
     onStyleSelect(style);
     onOpenChange(false); 
   };
@@ -105,7 +124,20 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
     }
   }, [filteredStyles, currentDisplayStyleId, isOpen]);
 
-
+  // 🔥 TRACKING: Style preview/browsing
+  useEffect(() => {
+    if (currentDisplayStyleId && isOpen) {
+      const currentStyle = filteredStyles.find(s => s.id === currentDisplayStyleId);
+      if (currentStyle) {
+        trackEvent('style_preview', {
+          style_id: currentStyle.id,
+          style_name: currentStyle.name,
+          is_limited_edition: currentStyle.is_limited_edition,
+          has_example_image: !!currentStyle.example_image_url
+        });
+      }
+    }
+  }, [currentDisplayStyleId, isOpen, filteredStyles]);
 
   const currentSelectedStyleData = useMemo(() => {
     return filteredStyles.find(s => s.id === currentDisplayStyleId);
@@ -142,6 +174,21 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
     }
   }, [isOpen]);
 
+  // 🔥 TRACKING: Search query changes
+  useEffect(() => {
+    if (searchQuery && isOpen) {
+      const timeoutId = setTimeout(() => {
+        trackEvent('style_search', {
+          search_query: searchQuery,
+          results_count: filteredStyles.length,
+          total_styles: styles.length
+        });
+      }, 500); // Debounce search tracking
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [searchQuery, filteredStyles.length, styles.length, isOpen]);
+
   const MobileStyleSelectorSheet: React.FC = () => (
     <Sheet open={isMobileStyleSheetOpen} onOpenChange={setIsMobileStyleSheetOpen}>
       <SheetTrigger asChild>
@@ -170,6 +217,16 @@ const StyleSelectorModal: React.FC<StyleSelectorModalProps> = ({
                 currentDisplayStyleId === style.id ? "bg-ghibli-moss text-white" : "text-ghibli-wood hover:bg-ghibli-cream/70"
               )}
               onClick={() => {
+                // 🔥 TRACKING: Style selected from mobile sheet
+                trackEvent('style_selected_from_modal', {
+                  style_id: style.id,
+                  style_name: style.name,
+                  is_limited_edition: style.is_limited_edition,
+                  selection_method: 'mobile_sheet',
+                  search_query: searchQuery || null,
+                  total_filtered_styles: filteredStyles.length
+                });
+
                 // Seleção imediata e fechamento da Sheet
                 onStyleSelect(style);
                 setCurrentDisplayStyleId(style.id);
