@@ -5,13 +5,11 @@ import Image from 'next/image';
 
 interface ErrorStateProps {
   uploadedImageUrl: string | null; // Pode ser null se o erro ocorrer antes do upload da imagem
-  errorMessage: string | null;    // Nova prop para a mensagem de erro específica
+  _errorMessage: string | null;    // Nova prop para a mensagem de erro específica
   onReset: () => void;
 }
 
-const ErrorState: React.FC<ErrorStateProps> = ({ uploadedImageUrl, errorMessage, onReset }) => {
-  const displayErrorMessage = errorMessage || "Não foi possível processar sua imagem. Por favor tente novamente.";
-
+const ErrorState: React.FC<ErrorStateProps> = ({ uploadedImageUrl, _errorMessage, onReset }) => {
   return (
     <div className="relative w-full h-full">
       {uploadedImageUrl && (
@@ -27,27 +25,36 @@ const ErrorState: React.FC<ErrorStateProps> = ({ uploadedImageUrl, errorMessage,
       )}
       
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center bg-background/80 backdrop-blur-sm p-6 sm:p-8 rounded-xl w-11/12 sm:w-4/5 max-w-md shadow-lg">
+        <div className="text-center bg-background/95 backdrop-blur-sm p-6 sm:p-8 rounded-xl w-11/12 sm:w-4/5 max-w-md shadow-lg border border-destructive/20">
           <div className="flex items-center justify-center mb-4">
             <div className="rounded-full bg-destructive/10 p-3">
               <AlertTriangle className="h-8 w-8 sm:h-10 sm:w-10 text-destructive" />
             </div>
           </div>
           
-          <p className="font-semibold text-lg sm:text-xl mb-2 text-foreground">
+          <p className="font-semibold text-lg sm:text-xl mb-3 text-foreground">
             Ops! Algo correu mal.
           </p>
-          <p className="text-sm sm:text-base text-muted-foreground mb-6 px-2 whitespace-pre-line">
-            {displayErrorMessage}
-          </p>
+          
+          <div className="text-sm sm:text-base text-muted-foreground mb-6 space-y-2">
+            <p>
+              Pedimos desculpa, não foi possível processar a sua imagem.
+            </p>
+            <p className="font-medium text-green-600">
+              O seu crédito será automaticamente devolvido.
+            </p>
+            <p>
+              Tente novamente com outra imagem ou estilo diferente.
+            </p>
+          </div>
           
           <Button 
             onClick={onReset}
             variant="outline"
             className="w-full py-3 text-base"
-            aria-label="Tentar Novamente ou Escolher Outra Imagem"
+            aria-label="Tente novamente"
           >
-            Tentar Novamente ou Escolher Outra Imagem
+            Tente novamente
           </Button>
         </div>
       </div>

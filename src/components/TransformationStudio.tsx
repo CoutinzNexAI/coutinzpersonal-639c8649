@@ -233,8 +233,8 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
             {/* <Step3Preview imageUrl={uploadedImage?.preview} styleName={selectedStyle?.name} />  // <<< REMOVIDO/COMENTADO PARA MELHOR CENTRAMENTO DO ERRO */}
             <div className="w-full flex-grow flex items-center justify-center"> {/* Para centrar o ErrorState */}
               <ErrorState
-                uploadedImageUrl={uploadedImage?.preview || ''} // Mantido, caso o ErrorState o use para algo internamente
-                errorMessage={errorMessage}
+                uploadedImageUrl={uploadedImage?.preview || ''}
+                _errorMessage={errorMessage}
                 onReset={onResetToStepZero}
               />
             </div>

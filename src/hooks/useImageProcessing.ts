@@ -12,8 +12,8 @@ const MAX_POLL_ATTEMPTS_CONST = 36; // 36 * 10s = 360s = 6 minutos (buffer para 
 const POLLING_INTERVAL_MS = 10000; // Intervalo de polling (10 segundos) - menos agressivo
 
 // Mensagens de erro padronizadas
-const STANDARD_ERROR_MESSAGE = "Ocorreu um erro a processar. Os nossos servidores podem estar com muito tráfego ou a sua imagem demorou demasiado. Por favor, tente novamente mais tarde. O seu crédito será reembolsado ou a fotografia aparecerá no seu perfil em breve. Pedimos desculpa!";
-const SIMPLE_ERROR_TOAST_MESSAGE = "Falha na transformação. Por favor, tente novamente.";
+const STANDARD_ERROR_MESSAGE = "Pedimos desculpa, não foi possível processar a sua imagem.";
+const SIMPLE_ERROR_TOAST_MESSAGE = "Falha na transformação. O seu crédito será devolvido automaticamente.";
 
 // Tipos de status de falha que podem ser definidos na DB
 type FailureStatusDB = 
@@ -58,7 +58,7 @@ export type UseImageProcessingResult = ReturnType<typeof useImageProcessing>;
 
 export function useImageProcessing() {
   const { userInfo, isLoading: isAuthLoading } = useAuth();
-  const { spendCoins, refetchBalance } = usePicCoins();
+  const { spendCoins, refundCoins, refetchBalance } = usePicCoins();
   const router = useRouter();
 
   const [uploadedImage, setUploadedImage] = useState<UploadedFile | null>(null);
@@ -213,73 +213,29 @@ export function useImageProcessing() {
     }
   }, [selectedStyle]);
 
+  // Função para processar reembolso automático
+  const handleRefund = useCallback(async (jobId: string) => {
+    if (!jobId || !userInfo?.id) return;
+    
+    try {
+      console.log(`[useImageProcessing] Attempting refund for job ${jobId}`);
+      await refundCoins(jobId, PICCOINS_PER_TRANSFORMATION);
+      await refetchBalance();
+      console.log(`[useImageProcessing] Refund successful for job ${jobId}`);
+    } catch (refundError) {
+      console.error(`[useImageProcessing] Refund failed for job ${jobId}:`, refundError);
+      // Don't show toast error for refund failures to avoid confusion
+    }
+  }, [refundCoins, refetchBalance, userInfo?.id]);
+
   // Polling Logic useEffect
   useEffect(() => {
     const checkStatus = async () => {
-      if (!currentJobId || !userInfo?.id) {
-        console.warn(`[useImageProcessing - Polling] checkStatus: Conditions not met for polling (JobId: ${currentJobId}, UserInfo: ${!!userInfo?.id}). Clearing interval.`);
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null;
-        }
-        if (!userInfo?.id && currentJobId) {
-            setErrorMessage("Sessão inválida. Por favor, faça login novamente.");
-            setProcessingState('error');
-        setIsLoading(false);
-        }
-        return;
-      }
+      if (!currentJobId || isAuthLoading || !userInfo) return;
 
-      if (isAuthLoading) {
-        return;
-      }
+      pollCountRef.current += 1;
+      setSimulatedProgress(calculateSimulatedProgress(pollCountRef.current));
 
-      pollCountRef.current++;
-
-      // Atualizar progresso simulado
-      const newProgress = calculateSimulatedProgress(pollCountRef.current);
-      setSimulatedProgress(newProgress);
-
-      const shouldDirectCheck = (pollCountRef.current <= 3) || // Primeiras 3 tentativas (0-30s)
-                                (pollCountRef.current > 3 && pollCountRef.current <= 12 && pollCountRef.current % 2 === 0) || // A cada 20s até 2min
-                                (pollCountRef.current > 12 && pollCountRef.current % 3 === 0); // A cada 30s depois dos 2min
-
-      if (shouldDirectCheck) {
-      try {
-          const storagePath = `public/${userInfo.id}/${currentJobId}`;
-          const { data: files, error: listError } = await supabase.storage.from('results').list(storagePath, {
-            limit: 1,
-            sortBy: { column: 'name', order: 'desc' },
-          });
-
-          if (listError) {
-            console.error(`[useImageProcessing - DirectCheck] Error listing files in ${storagePath}:`, listError.message);
-          } else if (files && files.length > 0) {
-            const fileName = files[0].name;
-            const { data: urlData } = supabase.storage.from('results').getPublicUrl(`${storagePath}/${fileName}`);
-            
-            if (urlData?.publicUrl) {
-              setTransformedImage(urlData.publicUrl); 
-              setProcessingState('completed'); 
-              setActiveStep(3); 
-              setSimulatedProgress(100); // Progresso completo!
-              toast.success("Transformação encontrada diretamente no storage!");
-              if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
-                pollingIntervalRef.current = null;
-              }
-              setIsLoading(false); 
-              fetchTransformationRating(currentJobId); // Buscar rating da transformação
-                return;
-            } else {
-              console.warn(`[useImageProcessing - DirectCheck] Could not get public URL for ${fileName}`);
-            }
-          }
-        } catch (storageError) {
-          console.error(`[useImageProcessing - DirectCheck] Storage check failed:`, storageError instanceof Error ? storageError.message : String(storageError));
-        }
-      }
-      
       try {
         const cacheParam = pollCountRef.current > 18 ? `&_t=${Date.now()}` : '';
         const userParam = userInfo?.id ? `&userId=${userInfo.id}` : '';
@@ -296,12 +252,15 @@ export function useImageProcessing() {
         const data: StatusResponse = await response.json();
         
         if (data.status === 'error' || data.status?.startsWith('failed')) {
-          const backendErrorMessage = data.error_message || 'Falha desconhecida no backend.';
+          console.log(`[useImageProcessing] Error detected, initiating refund for job ${currentJobId}`);
+          
+          setErrorMessage(STANDARD_ERROR_MESSAGE);
+          setProcessingState('error');
+          setActiveStep(3);
+          toast.error("Falha na Transformação", {description: SIMPLE_ERROR_TOAST_MESSAGE});
 
-          setErrorMessage(STANDARD_ERROR_MESSAGE); // <<< USA A MENSAGEM PADRÃO
-            setProcessingState('error');
-            setActiveStep(3);
-          toast.error("Falha na Transformação", {description: SIMPLE_ERROR_TOAST_MESSAGE}); // Toast simples
+          // Process refund automatically
+          await handleRefund(currentJobId);
 
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
@@ -312,14 +271,14 @@ export function useImageProcessing() {
           setTransformedImage(data.output_url);
           setProcessingState('completed');
           setActiveStep(3);
-          setSimulatedProgress(100); // Progresso completo!
+          setSimulatedProgress(100);
           toast.success("Transformação concluída!");
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
           }
           setIsLoading(false);
-          fetchTransformationRating(currentJobId); // Buscar rating da transformação
+          fetchTransformationRating(currentJobId);
         } else if (['processing', 'processing_queued'].includes(data.status || '')) {
           if (processingState !== 'processing') { 
             setProcessingState('processing'); 
@@ -354,28 +313,32 @@ export function useImageProcessing() {
             if (urlData?.publicUrl) {
               setTransformedImage(urlData.publicUrl); 
               setProcessingState('completed'); 
-            setActiveStep(3); 
-              setSimulatedProgress(100); // Progresso completo!
+              setActiveStep(3); 
+              setSimulatedProgress(100);
               toast.success("Transformação encontrada após verificação final!");
               if (pollingIntervalRef.current) {
                 clearInterval(pollingIntervalRef.current);
                 pollingIntervalRef.current = null;
               }
               setIsLoading(false);
-              fetchTransformationRating(currentJobId); // Buscar rating da transformação
+              fetchTransformationRating(currentJobId);
               return;
             }
-        }
+          }
         } catch (finalStorageError) {
           console.error(`[useImageProcessing - FinalCheck] Final storage check failed:`, finalStorageError instanceof Error ? finalStorageError.message : String(finalStorageError));
         }
         
         console.warn(`[useImageProcessing - Polling] Max attempts reached (${pollCountRef.current}). Final direct storage check failed or API timed out after 6 minutes.`);
+        console.log(`[useImageProcessing] Timeout detected, initiating refund for job ${currentJobId}`);
 
-        setErrorMessage(STANDARD_ERROR_MESSAGE); // <<< USA A MENSAGEM PADRÃO
+        setErrorMessage(STANDARD_ERROR_MESSAGE);
         setProcessingState('error'); 
         setActiveStep(3);
-        toast.error("Processamento Demorado", { description: "A transformação está a demorar mais que o esperado. A sua imagem pode aparecer no perfil em breve.", duration: 7000 }); // Toast mais informativo
+        toast.error("Processamento Demorado", { description: "A transformação demorou mais que o esperado. O seu crédito será devolvido automaticamente.", duration: 7000 });
+
+        // Process refund for timeout
+        await handleRefund(currentJobId);
 
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current);
@@ -411,7 +374,7 @@ export function useImageProcessing() {
         pollingIntervalRef.current = null;
       }
     };
-  }, [currentJobId, processingState, userInfo, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage, fetchTransformationRating]);
+  }, [currentJobId, processingState, userInfo, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage, fetchTransformationRating, handleRefund]);
 
 
   const resetAllLocalStates = useCallback(() => {
@@ -590,20 +553,22 @@ export function useImageProcessing() {
       const errorMsg = err instanceof Error ? err.message : 'Ocorreu uma falha desconhecida durante o início da transformação.';
       console.error("[useImageProcessing - handleStartTransformation] Error caught:", err);
 
-      // Se o erro ocorreu DEPOIS de tentar gastar moedas ou acionar o backend
-      // (podes verificar o processingState ou se tempNewJobId existe)
-      // OU para simplificar, se já passou da fase de 'checking_balance'
+      // Process refund if job was created and coins were spent
+      if (tempNewJobId && processingState !== 'checking_balance' && processingState !== 'idle') {
+        console.log(`[useImageProcessing] Start error detected, initiating refund for job ${tempNewJobId}`);
+        await handleRefund(tempNewJobId);
+      }
+
       if (processingState !== 'checking_balance' && processingState !== 'idle') {
         setErrorMessage(STANDARD_ERROR_MESSAGE);
         toast.error("Erro no Processo", { description: SIMPLE_ERROR_TOAST_MESSAGE });
       } else {
-        // Para erros antes de gastar moedas, pode ser uma mensagem mais direta
-      setErrorMessage(errorMsg);
-      toast.error("Erro no Processo", { description: errorMsg });
+        setErrorMessage(errorMsg);
+        toast.error("Erro no Processo", { description: errorMsg });
       }
 
       setProcessingState('error'); 
-      setActiveStep(3); 
+      setActiveStep(3);
       
       // ... (lógica para atualizar job na BD para erro, se tempNewJobId existir) ...
       if (tempNewJobId) {
@@ -628,7 +593,7 @@ export function useImageProcessing() {
     }
   }, [
     uploadedImage, selectedStyle, userInfo, isAuthLoading, processingState, 
-    spendCoins, refetchBalance, router, 
+    spendCoins, refetchBalance, router, handleRefund,
     setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setCurrentJobId, setTransformedImage 
   ]);
 

@@ -20,14 +20,29 @@ export interface StyleExample {
    */
   export const STYLE_EXAMPLES_DATA: StyleExample[] = [
     {
+      id: "imperador",
+      name: "Estilo Imperador",
+      description: "Transforme-se no Imperador, inspirado no século XVI!",
+      examples: [
+        { before: "/barbarabandeiranormal.webp", after: "/imperador/barbara.png" },
+        { before: "/gyokeresnormal.jpg", after: "/imperador/gyokers.png" },
+        { before: "/neves.png", after: "/imperador/joaoneves.png" },
+        { before: "/foto/madalenaaragao.png", after: "/imperador/madalena.png" },
+        { before: "/marcelonormal.jpg", after: "/imperador/marcelo.png" },
+        { before: "/ronaldonormal.jpg", after: "/imperador/ronaldo.png" },
+      ]
+    },
+    {
       id: "simpson",
       name: "Estilo Simpson",
       description: "Transforme suas fotos no estilo dos Simpsons, com cores vibrantes e o estilo característico da série.",
       examples: [
         { before: "/wbgnormal.jpg", after: "/wbgsimpson.png" },
-        { before: "/ronaldonormal.jpg", after: "/ronaldosimpson.png" },
+        { before: "/foto/joaomadalena.webp", after: "/simpson/joaomadalena.png" },
         { before: "/profjamnormal.jpg", after: "/profsimpson.png" },
         { before: "/barbarabandeiranormal.webp", after: "/barbarabandeirasimpson.png" },
+        { before: "/mbappenormal.jpg", after: "/simpson/mbappesimpson.png" },
+        { before: "/morambappenormal.webp", after: "/simpson/morasimpson.png" },
       ]
     },
     {
@@ -58,19 +73,11 @@ export interface StyleExample {
       name: "Estilo LEGO",
       description: "Transforme suas fotos em peças LEGO, com o visual de blocos característico.",
       examples: [
+        { before: "/foto/badbuny.jpg", after: "/lego/badbunny.png" },
+        { before: "/foto/joaomadalena.webp", after: "/lego/madalenajoao.png" },
         { before: "/camoesnormal.jpg", after: "/camoeslego.png" },
         { before: "/marcelonormal.jpg", after: "/MarceloLego.png" }, // Nota: imagem 'before' repetida, pode ser intencional
-        { before: "/yamalnormal.webp", after: "/yamallego.png" }
-      ]
-    },
-    {
-      id: "metal",
-      name: "Estilo 3D Metal",
-      description: "Dê às suas fotos um visual metálico, com tons escuros e acabamento metalizado.",
-      examples: [
-        { before: "/wbgnormal.jpg", after: "/wbgmetal.png" },
-        { before: "/ronaldoeuro.webp", after: "/ronaldometal.png" },
-        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeirametal.png" }
+        { before: "/yamalnormal.webp", after: "/yamallego.png" },
       ]
     },
     {
@@ -94,7 +101,8 @@ export interface StyleExample {
         { before: "/profjamnormal.jpg", after: "/profbd.png" },
         { before: "/hermannormal.jpeg", after: "/hermanbd.png" },
         { before: "/casamentonormal.jpg", after: "/casalbd.png" },
-        { before: "/mbappenormal.jpg", after: "/mbappesp.png" }
+        { before: "/mbappenormal.jpg", after: "/mbappesp.png" },
+        { before: "/foto/badbuny.jpg", after: "/bd/badbunny.png" },
       ]
     },
 
@@ -115,11 +123,13 @@ export interface StyleExample {
       name: "Estilo Rei Portugal",
       description: "Transforme-se no Rei Portugal, inspirado no século XVI!",
       examples: [
+        { before: "/foto/madalenaaragao.png", after: "/reiportugal/madalena.png" },
         { before: "/marcelonormal.jpg", after: "/reiportugal/marcelo.png" },
         { before: "/montenegronormal.jpg", after: "/reiportugal/monte.png" },
         { before: "/yamalnormal.webp", after: "/reiportugal/yamal.png" },
-        
-      ]
-    }
+        { before: "/foto/badbuny.jpg", after: "/reiportugal/badbunny.png" },
+        { before: "/barbarabandeiranormal.webp", after: "/reiportugal/barbarainha.png" },
+      ],
+    },
   ];
   

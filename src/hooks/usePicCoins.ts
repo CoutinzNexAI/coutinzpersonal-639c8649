@@ -13,13 +13,11 @@ export const usePicCoins = () => {
       return;
     }
 
-
     try {
       const response = await fetch('/api/piccoins/balance');
 
       if (response.ok) {
         const data = await response.json();
-
         setBalance(data.balance);
       } else {
         const errorText = await response.text();
@@ -42,6 +40,28 @@ export const usePicCoins = () => {
       body: JSON.stringify({
         amount,
         transformationId // userId comes from auth server-side
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+
+    const data = await response.json();
+    setBalance(data.newBalance);
+    return data;
+  };
+
+  const refundCoins = async (transformationId: string, amount: number = 1) => {
+    if (!userInfo) throw new Error('User not authenticated');
+
+    const response = await fetch('/api/piccoins/refund', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transformationId,
+        amount
       })
     });
 
@@ -96,6 +116,7 @@ export const usePicCoins = () => {
     balance,
     loading,
     spendCoins,
+    refundCoins,
     purchaseCoins,
     fetchHistory,
     refetchBalance: fetchBalance
