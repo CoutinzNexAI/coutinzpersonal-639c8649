@@ -239,96 +239,123 @@ const GhibliHero = () => {
             </div>
 
             {/* Botões com design aprimorado (mantidos) */}
-            <div className="flex flex-col space-y-4 items-center justify-center lg:justify-start w-full">
-              {/* Botão "Veja exemplos!" - agora é o único botão aqui no mobile */}
-              <motion.div
-                className="w-auto"
-                whileHover={{
-                  scale: 1.03,
-                  transition: { duration: 0.2 }
-                }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  variant="outline"
-                  className={`inline-flex items-center justify-center transition-all duration-300
-                                  rounded-lg shadow-sm hover:shadow-md text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
-                                  hover:border-ghibli-moss
-                                  ${
-                                    // Secondary button - smaller than primary
-                                    'text-base px-5 py-2.5 md:px-6 md:py-3'
-                                  } ${
-                                    // Mobile - even more compact
-                                    'max-md:text-sm max-md:px-4 max-md:py-2'
-                                  }`}
-                  onClick={handleOpenExamples}
-                >
-                  <motion.span
-                    whileHover={{ rotate: [0, -10, 10, 0], transition: {duration: 0.4}}}
-                    className="bg-ghibli-moss/10 p-1.5 rounded-full mr-2"
-                  >
-                    <Images className="h-5 w-5 text-ghibli-moss" />
-                  </motion.span>
-                  Veja exemplos!
-                </Button>
-              </motion.div>
-
-              {/* Botão principal apenas no desktop */}
+            <div className="flex flex-col space-y-6 items-center justify-center lg:justify-start w-full">
+              {/* Botão principal primeiro - desktop - com mais destaque */}
               <motion.div
                 className="w-auto relative group hidden md:block"
                 whileHover={{
-                  scale: 1.03,
+                  scale: 1.05,
                   transition: { duration: 0.2 }
                 }}
                 whileTap={{ scale: 0.98 }}
                 animate={{
-                  y: [0, -4, 0],
-                  transition: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: titleParts.length * 0.1 + 1.3}
+                  y: [0, -6, 0],
+                  transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: titleParts.length * 0.1 + 1.3}
                 }}
               >
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-200 to-yellow-300 rounded-lg blur opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-300 rounded-xl blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
                 <Button
                   variant="ghost"
                   className={`relative inline-flex items-center justify-center
-                                  rounded-lg border-2 border-amber-100 hover:border-amber-200 transition-all duration-300
-                                  shadow-md hover:shadow-lg bg-gradient-to-br from-amber-50 to-yellow-50 text-ghibli-wood font-medium
-                                  text-lg px-6 py-3 md:px-7 md:py-3.5`}
+                                  rounded-xl border-3 border-amber-200 hover:border-amber-300 transition-all duration-300
+                                  shadow-lg hover:shadow-xl bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50 text-ghibli-wood font-bold
+                                  text-xl px-8 py-4 md:px-10 md:py-5 transform hover:scale-102`}
                   onClick={handleTriggerStudio}
                 >
                   <motion.span
-                    animate={{ rotate: [0, -1, 1, -1, 0] }}
+                    animate={{ 
+                      rotate: [0, -2, 2, -2, 0],
+                      scale: [1, 1.1, 1, 1.1, 1]
+                    }}
                     transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-                    className="mr-2"
+                    className="mr-3 text-2xl"
                   >
                     ✨
                   </motion.span>
                   Transforme já a sua foto!
                 </Button>
               </motion.div>
-            </div>
 
-            {/* Selo de confiança + Botão Comunidade */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: titleParts.length * 0.1 + 1.5, duration: 0.7 }}
-              className="mt-6 pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start w-full gap-3"
-            >
-              <div className="px-4 py-2 bg-white/50 backdrop-blur-sm rounded-full border border-amber-100 inline-flex items-center">
-                <span className="text-amber-600 mr-2">⭐</span>
-                <p className="text-sm text-ghibli-earth font-medium">Já transformámos +100 fotos</p>
+              {/* Botões secundários lado a lado - desktop */}
+              <div className="hidden md:flex flex-row gap-4 items-center justify-center">
+                {/* Botão "Veja exemplos!" */}
+                <motion.div
+                  className="w-auto"
+                  whileHover={{
+                    scale: 1.03,
+                    transition: { duration: 0.2 }
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    variant="outline"
+                    className="inline-flex items-center justify-center transition-all duration-300
+                                    rounded-lg shadow-sm hover:shadow-md text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
+                                    hover:border-ghibli-moss text-base px-5 py-2.5"
+                    onClick={handleOpenExamples}
+                  >
+                    <motion.span
+                      whileHover={{ rotate: [0, -10, 10, 0], transition: {duration: 0.4}}}
+                      className="bg-ghibli-moss/10 p-1.5 rounded-full mr-2"
+                    >
+                      <Images className="h-5 w-5 text-ghibli-moss" />
+                    </motion.span>
+                    Veja exemplos!
+                  </Button>
+                </motion.div>
+
+                {/* Botão "Ver Comunidade" */}
+                <motion.button
+                  onClick={() => window.location.href = '/community'}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white rounded-lg border border-blue-400 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  <span className="mr-2">👥</span>
+                  <p className="text-sm font-medium">Ver Comunidade</p>
+                </motion.button>
               </div>
-              
-              <motion.button
-                onClick={() => window.location.href = '/community'}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-full border border-purple-400 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
-              >
-                <span className="mr-2">👥</span>
-                <p className="text-sm font-medium">Ver Comunidade</p>
-              </motion.button>
-            </motion.div>
+
+              {/* Botões para mobile - mantém layout original */}
+              <div className="md:hidden flex flex-col space-y-4 items-center w-full">
+                {/* Botão "Veja exemplos!" - mobile */}
+                <motion.div
+                  className="w-auto"
+                  whileHover={{
+                    scale: 1.03,
+                    transition: { duration: 0.2 }
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    variant="outline"
+                    className="inline-flex items-center justify-center transition-all duration-300
+                                    rounded-lg shadow-sm hover:shadow-md text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
+                                    hover:border-ghibli-moss text-sm px-4 py-2"
+                    onClick={handleOpenExamples}
+                  >
+                    <motion.span
+                      whileHover={{ rotate: [0, -10, 10, 0], transition: {duration: 0.4}}}
+                      className="bg-ghibli-moss/10 p-1.5 rounded-full mr-2"
+                    >
+                      <Images className="h-5 w-5 text-ghibli-moss" />
+                    </motion.span>
+                    Veja exemplos!
+                  </Button>
+                </motion.div>
+
+                {/* Botão "Ver Comunidade" - mobile */}
+                <motion.button
+                  onClick={() => window.location.href = '/community'}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white rounded-full border border-blue-400 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  <span className="mr-2">👥</span>
+                  <p className="text-sm font-medium">Ver Comunidade</p>
+                </motion.button>
+              </div>
+            </div>
 
             {/* Botão principal destacado - APENAS NO MOBILE, posicionado abaixo */}
             <motion.div
