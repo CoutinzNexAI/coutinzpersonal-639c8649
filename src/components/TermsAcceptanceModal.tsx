@@ -123,12 +123,18 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                     whileHover={{ scale: 1.01 }}
                     className="flex items-start gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-white/60 border border-ghibli-sand/50 hover:bg-white/80 transition-all duration-200"
                   >
-                    <Checkbox
-                      id="terms"
-                      checked={hasReadTerms}
-                      onCheckedChange={handleTermsChange}
-                      className="mt-0.5 h-4 w-4 sm:h-5 sm:w-5 border-2 border-ghibli-wood data-[state=checked]:bg-ghibli-forest data-[state=checked]:border-ghibli-forest data-[state=checked]:text-white"
-                    />
+                    <div className="flex items-center justify-center mt-0.5">
+                      <Checkbox
+                        id="terms"
+                        checked={hasReadTerms}
+                        onCheckedChange={handleTermsChange}
+                        className="h-4 w-4 sm:h-5 sm:w-5 border-2 border-ghibli-wood rounded data-[state=checked]:bg-ghibli-forest data-[state=checked]:border-ghibli-forest"
+                        style={{
+                          backgroundColor: hasReadTerms ? '#10b981' : 'transparent',
+                          borderColor: hasReadTerms ? '#10b981' : '#8B4513'
+                        }}
+                      />
+                    </div>
                     <div className="flex-1">
                       <label htmlFor="terms" className="text-xs sm:text-sm font-medium text-ghibli-wood cursor-pointer leading-relaxed">
                         Li e aceito os{' '}
@@ -149,12 +155,18 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                     whileHover={{ scale: 1.01 }}
                     className="flex items-start gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-white/60 border border-ghibli-sand/50 hover:bg-white/80 transition-all duration-200"
                   >
-                    <Checkbox
-                      id="privacy"
-                      checked={hasReadPrivacy}
-                      onCheckedChange={handlePrivacyChange}
-                      className="mt-0.5 h-4 w-4 sm:h-5 sm:w-5 border-2 border-ghibli-wood data-[state=checked]:bg-ghibli-forest data-[state=checked]:border-ghibli-forest data-[state=checked]:text-white"
-                    />
+                    <div className="flex items-center justify-center mt-0.5">
+                      <Checkbox
+                        id="privacy"
+                        checked={hasReadPrivacy}
+                        onCheckedChange={handlePrivacyChange}
+                        className="h-4 w-4 sm:h-5 sm:w-5 border-2 border-ghibli-wood rounded data-[state=checked]:bg-ghibli-forest data-[state=checked]:border-ghibli-forest"
+                        style={{
+                          backgroundColor: hasReadPrivacy ? '#10b981' : 'transparent',
+                          borderColor: hasReadPrivacy ? '#10b981' : '#8B4513'
+                        }}
+                      />
+                    </div>
                     <div className="flex-1">
                       <label htmlFor="privacy" className="text-xs sm:text-sm font-medium text-ghibli-wood cursor-pointer leading-relaxed">
                         Li e aceito a{' '}
