@@ -18,7 +18,10 @@ export const usePicCoins = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchBalance = useCallback(async () => {
-    if (!userInfo?.id) return;
+    if (!userInfo?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch('/api/piccoins/balance');
@@ -265,6 +268,13 @@ export const usePicCoins = () => {
   useEffect(() => {
     fetchBalance();
   }, [fetchBalance]);
+
+  // Set loading to false when there's no user
+  useEffect(() => {
+    if (!userInfo) {
+      setLoading(false);
+    }
+  }, [userInfo]);
 
   return {
     balance,

@@ -7,12 +7,11 @@ import { trackEvent } from '@/lib/posthog';
 
 export const PicCoinBalance = () => {
   const { balance, loading } = usePicCoins();
-  const { userInfo } = useAuth();
+  const { userInfo, isLoading: authLoading } = useAuth();
   const [showTooltip, setShowTooltip] = useState(false);
 
-  if (!userInfo || loading) return null;
+  if (!userInfo || authLoading) return null;
 
-  // Dynamic padding based on number of digits - more compact for mobile
   const digits = balance.toString().length;
   const paddingClass = digits <= 2 ? 'px-2 md:px-3' : digits <= 3 ? 'px-3 md:px-4' : 'px-4 md:px-5';
 
