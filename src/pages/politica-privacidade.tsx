@@ -79,7 +79,18 @@ const PoliticaPrivacidadePage: React.FC = () => {
                 <strong>Dados de Utilização e Analytics:</strong> Utilizamos Google Analytics para recolher informações agregadas sobre como o Serviço é utilizado, incluindo páginas visitadas, tempo de permanência e interações básicas. Esta recolha é feita de forma anónima e agregada.
               </li>
               <li>
-                <strong>Cookies Técnicos:</strong> Utilizamos cookies essenciais para autenticação (geridos pelo Supabase Auth) e funcionamento básico da plataforma.
+                <strong>Analytics Comportamentais Avançados:</strong> Análise detalhada do comportamento de utilizadores através do PostHog para:
+                <ul className="list-circle list-outside pl-6 mt-2 space-y-1">
+                  <li>Identificar pontos de atrito no processo de transformação</li>
+                  <li>Otimizar interfaces e fluxos de utilizador</li>
+                  <li>Personalizar experiência baseada em padrões de uso</li>
+                  <li>Prevenir abandono através de análise de funnels</li>
+                  <li>Melhorar sistema de PicCoins baseado em comportamento económico</li>
+                  <li>Desenvolver funcionalidades baseadas em necessidades reais identificadas</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Cookies Técnicos:</strong> Utilizamos cookies essenciais para autenticação (geridos pelo Supabase Auth), funcionamento básico da plataforma, e analytics comportamentais (PostHog).
               </li>
             </ul>
           </section>
@@ -148,6 +159,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
                   <li><strong>OpenAI:</strong> Processamento de transformações de imagem via API (imagens enviadas temporariamente para processamento)</li>
                   <li><strong>Vercel:</strong> Hospedagem e deployment da aplicação</li>
                   <li><strong>Google Analytics:</strong> Análise de utilização (dados agregados e anónimos)</li>
+                  <li><strong>PostHog:</strong> Analytics comportamentais avançados, funnels, session recordings e cohort analysis (dados processados na UE)</li>
                 </ul>
                 Todos estes prestadores têm acesso limitado aos dados, apenas para os fins específicos contratados.
               </li>
@@ -283,17 +295,81 @@ const PoliticaPrivacidadePage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">10. Cookies e Tecnologias Similares</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">10. Cookies, Analytics e Session Recordings</h2>
             <p className="text-ghibli-earth mb-4">
-              Utilizamos cookies e tecnologias similares para melhorar o seu experiência:
+              Utilizamos cookies e tecnologias avançadas de analytics para melhorar significativamente o seu experiência na plataforma:
             </p>
-            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Cookies Essenciais:</strong> Necessários para autenticação e funcionamento básico (Supabase Auth)</li>
-              <li><strong>Cookies Analíticos:</strong> Google Analytics para compreender padrões de utilização (pode optar por não participar)</li>
-              <li><strong>Armazenamento Local:</strong> Para manter preferências de utilizador e estado da aplicação</li>
-            </ul>
-            <p className="text-ghibli-earth mt-4">
-              Pode controlar cookies através das configurações do seu navegador. Desativar cookies essenciais pode afetar a funcionalidade do Serviço.
+            
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-semibold text-blue-800 mb-2">🍪 Cookies Essenciais</h4>
+                <p className="text-blue-700 text-sm">
+                  <strong>Obrigatórios para funcionamento:</strong> Cookies de autenticação Supabase, estado da sessão, 
+                  preferências básicas. Estes não podem ser desativados sem afetar funcionalidades core.
+                </p>
+              </div>
+              
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <h4 className="font-semibold text-purple-800 mb-2">📊 Analytics Comportamentais (PostHog)</h4>
+                <p className="text-purple-700 text-sm mb-2">
+                  <strong>O que gravamos:</strong>
+                </p>
+                <ul className="list-disc list-outside pl-4 text-purple-700 text-sm space-y-1">
+                  <li>Cliques, hovers, scroll depth e tempo em cada página</li>
+                  <li>Jornada completa: landing → upload → seleção → transformação → resultado</li>
+                  <li>Padrões de abandono e pontos de atrito</li>
+                  <li>Comportamento económico (compras, gastos PicCoins)</li>
+                  <li>Device info (resolução, browser, OS) para otimização responsiva</li>
+                </ul>
+              </div>
+              
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h4 className="font-semibold text-red-800 mb-2">🎬 Session Recordings</h4>
+                <p className="text-red-700 text-sm mb-2">
+                  <strong>Gravação de Sessões em Tempo Real:</strong>
+                </p>
+                <ul className="list-disc list-outside pl-4 text-red-700 text-sm space-y-1">
+                  <li><strong>O que grava:</strong> Movimentos do rato, cliques, scrolling, navegação entre páginas</li>
+                  <li><strong>Proteção automática:</strong> Passwords, emails, dados de cartão são censurados automaticamente</li>
+                  <li><strong>Finalidade:</strong> Identificar bugs, otimizar UX, resolver problemas reportados</li>
+                  <li><strong>Retenção:</strong> Máximo 30 dias, depois eliminadas automaticamente</li>
+                  <li><strong>Anonimização:</strong> Não associamos recordings com dados pessoais identificáveis</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h4 className="font-semibold text-green-800 mb-2">✅ Base Legal e Consentimento</h4>
+              <p className="text-green-700 text-sm mb-2">
+                <strong>RGPD Compliance:</strong> Session recordings constituem dados pessoais. Bases legais:
+              </p>
+              <ul className="list-disc list-outside pl-4 text-green-700 text-sm space-y-1">
+                <li><strong>Consentimento:</strong> Ao aceitar cookies/termos, consente explicitamente aos recordings</li>
+                <li><strong>Interesse Legítimo:</strong> Melhoramento contínuo da plataforma e resolução de bugs</li>
+                <li><strong>Execução de Contrato:</strong> Otimização do serviço contratado</li>
+              </ul>
+            </div>
+            
+            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <h4 className="font-semibold text-amber-800 mb-2">🔧 Como Controlar</h4>
+              <p className="text-amber-700 text-sm mb-2">
+                <strong>Pode desativar a qualquer momento:</strong>
+              </p>
+              <ul className="list-disc list-outside pl-4 text-amber-700 text-sm space-y-1">
+                <li><strong>Browser:</strong> Configurações → Privacidade → Bloquear cookies de terceiros</li>
+                <li><strong>PostHog Opt-out:</strong> Contacte-nos para opt-out permanente dos analytics avançados</li>
+                <li><strong>Session Recordings:</strong> Pode solicitar desativação mantendo outras funcionalidades</li>
+                <li><strong>Eliminação:</strong> Pode solicitar eliminação de todos os recordings existentes</li>
+              </ul>
+              <p className="text-amber-700 text-sm mt-2">
+                <strong>Impacto:</strong> Desativar pode afetar a qualidade do suporte técnico e otimizações de UX personalizadas.
+              </p>
+            </div>
+            
+            <p className="text-ghibli-earth mt-6">
+              <strong>Transparência Total:</strong> Para consultar que dados específicos recolhemos sobre si ou solicitar 
+              opt-out seletivo, contacte-nos através de <a href={`mailto:${emailContacto}`} className="text-ghibli-sky hover:underline">{emailContacto}</a> 
+              com o assunto "Analytics Data Request".
             </p>
           </section>
 

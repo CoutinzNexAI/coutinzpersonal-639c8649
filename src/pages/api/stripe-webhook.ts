@@ -67,8 +67,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 2. Verify webhook signature
-    let event: Stripe.Event;
-    try {
+  let event: Stripe.Event;
+  try {
       event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET);
       console.log(`${endpointName} ✅ Webhook signature verified. Event type: ${event.type}`);
 
@@ -77,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         event_type: event.type,
         event_id: event.id
       });
-    } catch (err) {
+  } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown verification error';
       console.error(`${endpointName} ❌ Webhook signature verification failed:`, errorMsg);
 
@@ -91,8 +91,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 3. Handle the checkout.session.completed event
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session;
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
 
       // 🔥 TRACKING: Processing checkout session
       trackEvent('stripe_checkout_session_processing', {
@@ -193,7 +193,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         coins_amount: coinsAmount,
         package_id: packageId
       });
-
+      
       const { data: earnResult, error: earnError } = await supabaseAdmin.rpc('earn_piccoins', {
         p_user_id: userId,
         p_amount: coinsAmount,
@@ -243,7 +243,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         amount_paid: session.amount_total,
         currency: session.currency
       });
-
+      
       return res.status(200).json({ 
         success: true,
         message: 'PicCoins credited successfully',
@@ -260,7 +260,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         event_type: event.type,
         event_id: event.id
       });
-
+  
       return res.status(200).json({ message: `Unhandled event type: ${event.type}` });
     }
   } catch (error: unknown) {
@@ -275,7 +275,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (error instanceof Error) {
       errorMessage = 'Webhook processing error';
       errorDetail = error.message;
-    } else {
+  } else {
       errorDetail = String(error);
     }
 

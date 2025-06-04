@@ -7,18 +7,24 @@ import HowItWorks from '@/components/HowItWorks'; // Secção "Como Funciona"
 import Footer from '@/components/Footer'; // Rodapé
 import { FAQSection } from '@/components/FAQSection'; // Ajusta o caminho se necessário
 import { FirstPurchasePromoModal } from '@/components/FirstPurchasePromoModal';
+import { TermsAcceptanceModal } from '@/components/TermsAcceptanceModal';
 import { useAuth } from '@/hooks/useAuth';
 import { usePicCoins } from '@/hooks/usePicCoins';
 import { useFirstPurchaseCheck } from '@/hooks/useFirstPurchaseCheck';
+import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
 import { useTransformationCount } from '@/hooks/useTransformationCount';
+import { trackLandingPageVisit, trackSessionStart, trackTimeOnPage, trackReturnVisit, trackUserLifecycleStage, trackEvent } from '@/lib/posthog';
 import { toast } from '@/components/ui/sonner';
 
 // Componente funcional para a página inicial (rota '/')
-const Index = () => {
-  const { userInfo } = useAuth();
-  const { purchaseCoins } = usePicCoins();
+export default function HomePage() {
+  const { userInfo, isLoading: isAuthLoading } = useAuth();
+  const { balance, purchaseCoins } = usePicCoins();
   const { isFirstPurchase, markFirstPurchaseAsUsed } = useFirstPurchaseCheck();
+  const { acceptTerms, rejectTerms, checkTermsAcceptance, loading: termsLoading } = useTermsAcceptance();
   const { count: transformationCount, isLoading: countLoading } = useTransformationCount();
+  
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
 
   // Mostrar modal quando:
@@ -34,6 +40,74 @@ const Index = () => {
       return () => clearTimeout(timer);
     }
   }, [userInfo, isFirstPurchase, transformationCount, countLoading]);
+
+  // 🔥 FUNNEL TRACKING: Landing page visit and session tracking
+  useEffect(() => {
+    const sessionStartTime = Date.now();
+    
+    // Track landing page visit with funnel context
+    trackLandingPageVisit({
+      user_id: userInfo?.id || null,
+      is_authenticated: !!userInfo,
+      has_transformations: (transformationCount || 0) > 0,
+      is_eligible_for_promo: isFirstPurchase,
+      entry_point: 'homepage'
+    });
+
+    // Track session start
+    trackSessionStart({
+      user_id: userInfo?.id || null,
+      is_authenticated: !!userInfo,
+      user_type: userInfo ? 'returning' : 'anonymous'
+    });
+
+    // Check if returning visitor and track accordingly
+    const lastVisit = localStorage.getItem('last_visit_timestamp');
+    if (lastVisit) {
+      const daysSinceLastVisit = Math.floor((Date.now() - parseInt(lastVisit)) / (1000 * 60 * 60 * 24));
+      trackReturnVisit(daysSinceLastVisit, {
+        user_id: userInfo?.id || null,
+        returning_after_days: daysSinceLastVisit
+      });
+    }
+    localStorage.setItem('last_visit_timestamp', Date.now().toString());
+
+    // Track user lifecycle stage
+    if (userInfo) {
+      let lifecycleStage = 'new_user';
+      if ((transformationCount || 0) > 0) {
+        if ((transformationCount || 0) > 5) {
+          lifecycleStage = 'power_user';
+        } else {
+          lifecycleStage = 'active_user';
+        }
+      }
+      trackUserLifecycleStage(lifecycleStage, {
+        user_id: userInfo.id,
+        transformation_count: transformationCount || 0
+      });
+    }
+
+    // Track time on page when component unmounts
+    return () => {
+      const timeOnPage = Math.floor((Date.now() - sessionStartTime) / 1000);
+      trackTimeOnPage(timeOnPage, 'homepage', {
+        user_id: userInfo?.id || null,
+        session_duration: timeOnPage
+      });
+    };
+  }, [userInfo?.id, transformationCount, isFirstPurchase]);
+
+  // Check terms acceptance after authentication
+  useEffect(() => {
+    if (userInfo && !isAuthLoading) {
+      checkTermsAcceptance().then(hasAccepted => {
+        if (!hasAccepted) {
+          setShowTermsModal(true);
+        }
+      });
+    }
+  }, [userInfo, isAuthLoading, checkTermsAcceptance]);
 
   // Função para executar o checkout do Stripe
   const executeStripeCheckout = async (packageId: string) => {
@@ -73,6 +147,21 @@ const Index = () => {
 
   const handleClosePromoModal = () => {
     setIsPromoModalOpen(false);
+  };
+
+  const handleTermsAccept = async () => {
+    try {
+      await acceptTerms();
+      setShowTermsModal(false);
+    } catch (error) {
+      // Error is handled in the hook
+      console.error('Failed to accept terms:', error);
+    }
+  };
+
+  const handleTermsReject = async () => {
+    await rejectTerms();
+    setShowTermsModal(false);
   };
 
   return (
@@ -189,10 +278,16 @@ const Index = () => {
         onClose={handleClosePromoModal}
         onAcceptPromo={handleAcceptPromo}
       />
+
+      {/* Terms Acceptance Modal */}
+      <TermsAcceptanceModal
+        isOpen={showTermsModal}
+        onAccept={handleTermsAccept}
+        onReject={handleTermsReject}
+        userEmail={userInfo?.email}
+        loading={termsLoading}
+      />
     </div> {/* Fim do container principal */}
     </>
   );
-};
-
-// Exporta o componente como default para ser usado pelo Next.js
-export default Index;
+}

@@ -6,7 +6,22 @@ import { Style } from '@/components/StyleSelectorModal'; // Assuming this path i
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePicCoins } from '@/hooks/usePicCoins';
-import { trackEvent } from '@/lib/posthog'; // <<< NOVO: Import tracking
+import { 
+  trackImageUploadStart, 
+  trackImageUploadSuccess, 
+  trackStyleSelectionStart, 
+  trackStyleSelected,
+  trackTransformationProcessStart,
+  trackTransformationProcessComplete,
+  trackFunnelAbandonment,
+  trackDropOff,
+  trackPicCoinSpending,
+  trackPicCoinBalance,
+  trackPicCoinRefund,
+  trackHover,
+  trackFeatureAdoption,
+  trackEvent 
+} from '@/lib/posthog';
 
 const PICCOINS_PER_TRANSFORMATION = 1;
 const MAX_POLL_ATTEMPTS_CONST = 36; // 36 * 10s = 360s = 6 minutos (buffer para Vercel Pro 5min)
@@ -220,7 +235,7 @@ export function useImageProcessing() {
     
     try {
       console.log(`[useImageProcessing] Attempting refund for job ${jobId}`);
-      await refundCoins(jobId, PICCOINS_PER_TRANSFORMATION);
+      await refundCoins(PICCOINS_PER_TRANSFORMATION, jobId);
       await refetchBalance();
       console.log(`[useImageProcessing] Refund successful for job ${jobId}`);
     } catch (refundError) {
@@ -434,7 +449,7 @@ export function useImageProcessing() {
     
     if (file) {
       // 🔥 TRACKING: Image upload start
-      trackEvent('image_upload_start', {
+      trackImageUploadStart({
         file_size: file.file.size,
         file_type: file.file.type,
         file_name: file.file.name,
@@ -442,24 +457,24 @@ export function useImageProcessing() {
       });
 
       setUploadedImage(file);
-      setActiveStep(2);
+        setActiveStep(2);
       
       // 🔥 TRACKING: Image upload success
-      trackEvent('image_upload_success', {
+      trackImageUploadSuccess({
         file_size: file.file.size,
         file_type: file.file.type,
         user_id: userInfo?.id || null
       });
     } else {
       setUploadedImage(null);
-      setActiveStep(1);
+        setActiveStep(1);
     }
   }, [resetAllLocalStates, setActiveStep, setUploadedImage, userInfo?.id]);
 
   const openStyleSelector = useCallback(() => {
     if (uploadedImage) {
       // 🔥 TRACKING: Style selection modal opened
-      trackEvent('style_selection_open', {
+      trackStyleSelectionStart({
         user_id: userInfo?.id || null,
         has_uploaded_image: !!uploadedImage,
         total_styles_available: availableStyles.length
@@ -473,7 +488,7 @@ export function useImageProcessing() {
 
   const handleStyleSelect = useCallback((style: Style) => {
     // 🔥 TRACKING: Style selected
-    trackEvent('style_selected', {
+    trackStyleSelected({
       style_id: style.id,
       style_name: style.name,
       user_id: userInfo?.id || null,
@@ -481,10 +496,10 @@ export function useImageProcessing() {
     });
 
     setSelectedStyle(style);
-    setActiveStep(3);
+    setActiveStep(3); 
     setIsStyleModalOpen(false);
-    setErrorMessage(null);
-    setProcessingState('idle');
+    setErrorMessage(null); 
+    setProcessingState('idle'); 
     toast.success(`Estilo "${style.name}" selecionado!`);
   }, [setActiveStep, setSelectedStyle, setIsStyleModalOpen, setErrorMessage, setProcessingState, userInfo?.id, uploadedImage]);
 
@@ -500,7 +515,7 @@ export function useImageProcessing() {
     });
 
     // 🔥 TRACKING: Transformation start attempt
-    trackEvent('transformation_start_attempt', {
+    trackTransformationProcessStart({
       user_id: userInfo?.id || null,
       style_id: selectedStyle?.id || null,
       style_name: selectedStyle?.name || null,
@@ -511,7 +526,7 @@ export function useImageProcessing() {
     
     if (!uploadedImage || !selectedStyle) {
       // 🔥 TRACKING: Transformation start validation error
-      trackEvent('transformation_start_validation_error', {
+      trackFunnelAbandonment('transformation_start', 'missing_requirements', {
         error_type: 'missing_requirements',
         has_image: !!uploadedImage,
         has_style: !!selectedStyle,
@@ -523,7 +538,7 @@ export function useImageProcessing() {
     }
     if (isAuthLoading) {
       // 🔥 TRACKING: Auth loading error
-      trackEvent('transformation_start_validation_error', {
+      trackFunnelAbandonment('transformation_start', 'auth_loading', {
         error_type: 'auth_loading',
         user_id: userInfo?.id || null
       });
@@ -531,9 +546,9 @@ export function useImageProcessing() {
       toast.info("Aguarde...", { description: "A verificar autenticação do utilizador." }); 
       return;
     }
-    if (!userInfo?.id) {
+    if (!userInfo?.id) { 
       // 🔥 TRACKING: Authentication required
-      trackEvent('transformation_start_validation_error', {
+      trackFunnelAbandonment('transformation_start', 'auth_required', {
         error_type: 'auth_required',
         user_id: null
       });
@@ -546,7 +561,7 @@ export function useImageProcessing() {
         console.warn(`[useImageProcessing - handleStartTransformation] Transformation already in progress or in a non-startable state: ${processingState}. Aborting.`);
 
         // 🔥 TRACKING: Transformation already in progress
-        trackEvent('transformation_start_validation_error', {
+        trackFunnelAbandonment('transformation_start', 'already_in_progress', {
           error_type: 'already_in_progress',
           current_state: processingState,
           user_id: userInfo?.id
@@ -557,7 +572,7 @@ export function useImageProcessing() {
     }
 
     // 🔥 TRACKING: Transformation start validated
-    trackEvent('transformation_start', {
+    trackTransformationProcessStart({
       user_id: userInfo.id,
       style_id: selectedStyle.id,
       style_name: selectedStyle.name,
@@ -572,7 +587,7 @@ export function useImageProcessing() {
     setTransformedImage(null); 
     setCurrentJobId(null); 
     setSimulatedProgress(0); // Reset progresso para nova transformação
-    pollCountRef.current = 0;
+    pollCountRef.current = 0; 
 
     let tempUploadedFilePath: string | null = null;
     let tempNewJobId: string | null = null;
@@ -589,9 +604,8 @@ export function useImageProcessing() {
       const currentFreshBalance = currentBalanceData.balance;
 
       // 🔥 TRACKING: Credit balance checked
-      trackEvent('credit_balance_checked', {
+      trackPicCoinBalance(currentFreshBalance, {
         user_id: userInfo.id,
-        current_balance: currentFreshBalance,
         required_credits: PICCOINS_PER_TRANSFORMATION,
         has_sufficient_balance: currentFreshBalance >= PICCOINS_PER_TRANSFORMATION
       });
@@ -602,7 +616,7 @@ export function useImageProcessing() {
         setProcessingState('uploading_image');
 
         // 🔥 TRACKING: Image upload to storage start
-        trackEvent('storage_upload_start', {
+        trackImageUploadStart({
           user_id: userInfo.id,
           job_id: null, // Not created yet
           file_size: uploadedImage.file.size,
@@ -617,7 +631,7 @@ export function useImageProcessing() {
           .from('images').upload(filePath, imageFile, { cacheControl: '3600', upsert: false });
         if (uploadError) {
           // 🔥 TRACKING: Image upload to storage failed
-          trackEvent('storage_upload_error', {
+          trackImageUploadSuccess({
             user_id: userInfo.id,
             error_message: uploadError.message,
             file_size: uploadedImage.file.size,
@@ -628,7 +642,7 @@ export function useImageProcessing() {
         }
       if (!uploadData?.path) {
         // 🔥 TRACKING: Upload data path missing
-        trackEvent('storage_upload_error', {
+        trackImageUploadSuccess({
           user_id: userInfo.id,
           error_message: 'Upload data path missing',
           file_size: uploadedImage.file.size,
@@ -640,7 +654,7 @@ export function useImageProcessing() {
       tempUploadedFilePath = uploadData.path;
 
       // 🔥 TRACKING: Image upload to storage success
-      trackEvent('storage_upload_success', {
+      trackImageUploadSuccess({
         user_id: userInfo.id,
         file_path: tempUploadedFilePath,
         file_size: uploadedImage.file.size,
@@ -650,7 +664,7 @@ export function useImageProcessing() {
         setProcessingState('creating_job_record');
 
         // 🔥 TRACKING: Job creation start
-        trackEvent('job_creation_start', {
+        trackTransformationProcessStart({
           user_id: userInfo.id,
           style_id: selectedStyle.id,
           input_file_path: tempUploadedFilePath
@@ -667,7 +681,7 @@ export function useImageProcessing() {
         
       if (jobError || !jobData?.id) {
         // 🔥 TRACKING: Job creation failed
-        trackEvent('job_creation_error', {
+        trackTransformationProcessComplete({
           user_id: userInfo.id,
           error_message: jobError?.message || 'No job ID returned',
           style_id: selectedStyle.id,
@@ -683,7 +697,7 @@ export function useImageProcessing() {
       tempNewJobId = jobData.id;
 
       // 🔥 TRACKING: Job creation success
-      trackEvent('job_creation_success', {
+      trackTransformationProcessComplete({
         user_id: userInfo.id,
         job_id: tempNewJobId,
         style_id: selectedStyle.id,
@@ -693,32 +707,30 @@ export function useImageProcessing() {
         setProcessingState('spending_coins');
 
         // 🔥 TRACKING: Credit spending start
-        trackEvent('credit_spending_start', {
+        trackPicCoinSpending(PICCOINS_PER_TRANSFORMATION, 'transformation', {
           user_id: userInfo.id,
           job_id: tempNewJobId,
-          amount: PICCOINS_PER_TRANSFORMATION,
           balance_before: currentFreshBalance
         });
 
-        await spendCoins(PICCOINS_PER_TRANSFORMATION, tempNewJobId);
+        await spendCoins(PICCOINS_PER_TRANSFORMATION, tempNewJobId); 
 
         // 🔥 TRACKING: Credit spending success
-        trackEvent('credit_spending_success', {
+        trackPicCoinSpending(PICCOINS_PER_TRANSFORMATION, 'transformation_success', {
           user_id: userInfo.id,
           job_id: tempNewJobId,
-          amount: PICCOINS_PER_TRANSFORMATION,
           balance_after: currentFreshBalance - PICCOINS_PER_TRANSFORMATION
         });
         
         setProcessingState('triggering_processing');
         
         // 🔥 TRACKING: Processing trigger start
-        trackEvent('processing_trigger_start', {
+        trackTransformationProcessStart({
           user_id: userInfo.id,
           job_id: tempNewJobId,
           style_id: selectedStyle.id
         });
-
+        
         // A CHAMADA AO /api/process-image NÃO ENVIA MAIS O X-Internal-Secret
         const processImageResponse = await fetch('/api/process-image', {
           method: 'POST', 
@@ -733,7 +745,7 @@ export function useImageProcessing() {
           const errorBody = await processImageResponse.json().catch(() => ({message: "Erro desconhecido ao acionar o processamento da imagem."}));
 
           // 🔥 TRACKING: Processing trigger failed
-          trackEvent('processing_trigger_error', {
+          trackTransformationProcessComplete({
             user_id: userInfo.id,
             job_id: tempNewJobId,
             http_status: processImageResponse.status,
@@ -747,7 +759,7 @@ export function useImageProcessing() {
         }
 
         // 🔥 TRACKING: Processing trigger success
-        trackEvent('processing_trigger_success', {
+        trackTransformationProcessComplete({
           user_id: userInfo.id,
           job_id: tempNewJobId,
           style_id: selectedStyle.id
@@ -759,7 +771,7 @@ export function useImageProcessing() {
         setActiveStep(3); 
 
         // 🔥 TRACKING: Transformation polling start
-        trackEvent('transformation_polling_start', {
+        trackTransformationProcessStart({
           user_id: userInfo.id,
           job_id: tempNewJobId,
           style_id: selectedStyle.id,
@@ -768,9 +780,9 @@ export function useImageProcessing() {
 
         toast.success("✨ Transformação Iniciada!", { description: "A sua imagem está a ser processada. Pode acompanhar aqui ou voltar mais tarde." });
         
-      } else {
+      } else { 
         // 🔥 TRACKING: Insufficient credits
-        trackEvent('transformation_insufficient_credits', {
+        trackFunnelAbandonment('transformation_start', 'insufficient_credits', {
           user_id: userInfo.id,
           current_balance: currentFreshBalance,
           required_credits: PICCOINS_PER_TRANSFORMATION,
@@ -792,7 +804,7 @@ export function useImageProcessing() {
       console.error('[useImageProcessing - handleStartTransformation] ❌ Erro durante a transformação:', errorMsg);
 
       // 🔥 TRACKING: Transformation error
-      trackEvent('transformation_error', {
+      trackTransformationProcessComplete({
         user_id: userInfo?.id || null,
         job_id: tempNewJobId,
         error_message: errorMsg,
@@ -852,7 +864,7 @@ export function useImageProcessing() {
 
   const handleNewImage = useCallback(() => {
     // 🔥 TRACKING: New image action
-    trackEvent('new_image_start', {
+    trackTransformationProcessComplete({
       user_id: userInfo?.id || null,
       previous_job_id: currentJobId,
       previous_state: processingState
@@ -863,7 +875,7 @@ export function useImageProcessing() {
 
   const handleReset = useCallback(() => {
     // 🔥 TRACKING: Reset/restart action
-    trackEvent('transformation_reset', {
+    trackTransformationProcessComplete({
       user_id: userInfo?.id || null,
       previous_job_id: currentJobId,
       previous_state: processingState,
@@ -876,7 +888,7 @@ export function useImageProcessing() {
   const handleDownload = useCallback(async () => {
     if (!transformedImage) {
       // 🔥 TRACKING: Download attempt with no image
-      trackEvent('download_attempt_no_image', {
+      trackTransformationProcessComplete({
         user_id: userInfo?.id || null,
         job_id: currentJobId
       });
@@ -887,7 +899,7 @@ export function useImageProcessing() {
     }
 
     // 🔥 TRACKING: Download start
-    trackEvent('download_start', {
+    trackTransformationProcessComplete({
       user_id: userInfo?.id || null,
       job_id: currentJobId,
       style_name: selectedStyle?.name || null,
@@ -925,20 +937,20 @@ export function useImageProcessing() {
       window.URL.revokeObjectURL(url);
       
       // 🔥 TRACKING: Download success
-      trackEvent('download_success', {
+      trackTransformationProcessComplete({
         user_id: userInfo?.id || null,
         job_id: currentJobId,
         style_name: selectedStyle?.name || null,
         file_name: link.download,
         file_size: blob.size
       });
-
+      
       toast.success("✅ Imagem baixada com sucesso!");
     } catch (error) {
       console.error('[handleDownload] Erro ao baixar imagem:', error);
 
       // 🔥 TRACKING: Download error
-      trackEvent('download_error', {
+      trackTransformationProcessComplete({
         user_id: userInfo?.id || null,
         job_id: currentJobId,
         error_message: error instanceof Error ? error.message : 'Unknown download error',

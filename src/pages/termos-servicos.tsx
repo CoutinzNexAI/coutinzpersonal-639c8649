@@ -72,6 +72,9 @@ const TermosServicosPage: React.FC = () => {
             <p className="text-ghibli-earth">
               O PicTuz é uma plataforma de transformação de imagens que permite aos utilizadores carregar fotografias digitais, selecionar um estilo artístico predefinido e, mediante pagamento em PicCoins, solicitar uma transformação dessas fotografias utilizando algoritmos de inteligência artificial da OpenAI. As transformações são processadas na nuvem e as Imagens Transformadas ficam disponíveis permanentemente no histórico da Conta do utilizador. O Serviço inclui também funcionalidades de comunidade para partilha opcional de criações.
             </p>
+            <p className="text-ghibli-earth mt-4">
+              <strong>Analytics e Melhoramento Contínuo:</strong> Para fornecer a melhor experiência possível, implementamos um sistema avançado de analytics comportamentais que inclui tracking detalhado de utilização, funnels de conversão, e gravação de sessões. Estes dados são utilizados exclusivamente para otimizar a plataforma, identificar problemas e desenvolver funcionalidades baseadas em necessidades reais dos utilizadores.
+            </p>
           </section>
 
           <section className="mb-8">
@@ -85,7 +88,24 @@ const TermosServicosPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">4. Sistema PicCoins</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">4. Analytics, Tracking e Consentimento</h2>
+            <p className="text-ghibli-earth mb-4">
+              Ao criar uma conta e utilizar o Serviço, concorda expressamente com a recolha e processamento de dados através dos nossos sistemas de analytics avançados:
+            </p>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
+              <li><strong>Consentimento para Session Recordings:</strong> Autoriza a gravação das suas sessões (movimentos do rato, cliques, navegação) para fins de otimização de UX e resolução de problemas técnicos. Dados sensíveis são automaticamente censurados.</li>
+              <li><strong>Analytics Comportamentais:</strong> Consente à recolha de dados detalhados sobre a sua interação com a plataforma, incluindo funnels de conversão, padrões de abandono, e comportamento económico relacionado com PicCoins.</li>
+              <li><strong>Finalidade Legítima:</strong> Todos os dados recolhidos são utilizados exclusivamente para melhoramento do Serviço, identificação de bugs, e desenvolvimento de funcionalidades baseadas em necessidades reais.</li>
+              <li><strong>Direito de Retirada:</strong> Pode retirar o consentimento para analytics avançados a qualquer momento contactando-nos, mantendo o acesso às funcionalidades core do Serviço.</li>
+              <li><strong>Conformidade RGPD:</strong> O processamento destes dados está em conformidade com o Regulamento Geral de Proteção de Dados, conforme detalhado na nossa Política de Privacidade.</li>
+            </ul>
+            <p className="text-ghibli-earth mt-4">
+              <strong>Nota:</strong> A desativação de analytics pode afetar a qualidade do suporte técnico e a personalização da sua experiência.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">5. Sistema PicCoins</h2>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
               <li><strong>Moeda Virtual:</strong> PicCoins são a moeda virtual exclusiva do Serviço, utilizada para pagar transformações de imagem. Cada transformação custa 1 PicCoin.</li>
               <li><strong>Aquisição:</strong> PicCoins podem ser adquiridos através do sistema de pagamento Stripe em vários pacotes com preços e quantidades diferentes.</li>
@@ -102,7 +122,7 @@ const TermosServicosPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">5. Utilização Aceitável do Serviço</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">6. Utilização Aceitável do Serviço</h2>
              <p className="mb-4 text-ghibli-earth">Concorda em utilizar o Serviço apenas para fins lícitos e de acordo com estes Termos.</p>
              <p className="mb-2 text-ghibli-earth"><strong>É estritamente proibido:</strong></p>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
@@ -118,7 +138,7 @@ const TermosServicosPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">6. Conteúdo do Utilizador e Imagens Transformadas</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">7. Conteúdo do Utilizador e Imagens Transformadas</h2>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
               <li><strong>Licença para Processamento:</strong> Ao carregar Conteúdo para o Serviço, concede-nos uma licença limitada, não exclusiva e temporária para processar, armazenar e transformar esse Conteúdo exclusivamente para fornecer o Serviço contratado. Esta licença inclui o direito de enviar o conteúdo para a OpenAI API para processamento.</li>
               <li><strong>Armazenamento Permanente:</strong> As suas imagens originais e transformadas são armazenadas permanentemente no Supabase Storage para permitir acesso ao histórico e suporte técnico. Este armazenamento faz parte do valor do serviço prestado.</li>
@@ -134,7 +154,7 @@ const TermosServicosPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">7. Pagamentos, PicCoins e Reembolsos</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">8. Pagamentos, PicCoins e Reembolsos</h2>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
               <li><strong>Sistema de Pagamento:</strong> O acesso às funcionalidades de transformação requer PicCoins, que são adquiridos através de pagamentos processados pelo Stripe. Os preços estão claramente indicados na plataforma e podem ser alterados mediante aviso prévio.</li>
               <li><strong>Processador de Pagamento:</strong> Todos os pagamentos são processados através do Stripe. Ao efetuar um pagamento, aceita os termos e condições do Stripe. Não armazenamos informações completas do cartão de crédito nos nossos servidores.</li>
@@ -150,14 +170,14 @@ const TermosServicosPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">8. Propriedade Intelectual do Serviço PicTuz</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">9. Propriedade Intelectual do Serviço PicTuz</h2>
             <p className="text-ghibli-earth">
               O Serviço e todo o seu conteúdo original (excluindo o Conteúdo do Utilizador e as Imagens Transformadas conforme licenciado acima), características e funcionalidades são e permanecerão propriedade exclusiva de {nomeEmpresaOuSeuNome} e dos seus licenciadores. O Serviço está protegido por direitos de autor, marcas registadas e outras leis de Portugal e de países estrangeiros. As nossas marcas e imagem comercial não podem ser usadas em conexão com qualquer produto ou serviço sem o nosso consentimento prévio por escrito.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">9. Disponibilidade e Limitações do Serviço</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">10. Disponibilidade e Limitações do Serviço</h2>
              <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
                 <li>O Serviço é fornecido "TAL COMO ESTÁ" e "CONFORME DISPONÍVEL", sem garantias de qualquer tipo, expressas ou implícitas.</li>
                 <li>Não garantimos que o Serviço funcionará ininterruptamente, de forma segura ou que estará disponível em qualquer momento ou local específico; que quaisquer erros ou defeitos serão corrigidos; que o Serviço está livre de vírus ou outros componentes prejudiciais; ou que os resultados da utilização do Serviço atenderão às suas expectativas.</li>
@@ -166,42 +186,42 @@ const TermosServicosPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">10. Limitação de Responsabilidade</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">11. Limitação de Responsabilidade</h2>
             <p className="text-ghibli-earth">
               Na máxima extensão permitida pela lei aplicável, em nenhuma circunstância {nomeEmpresaOuSeuNome}, seus diretores, funcionários, parceiros, agentes, fornecedores ou afiliados serão responsáveis por quaisquer danos indiretos, incidentais, especiais, consequenciais ou punitivos, incluindo, sem limitação, perda de lucros, dados, uso, goodwill ou outras perdas intangíveis, resultantes de (i) o seu acesso ou uso ou incapacidade de aceder ou usar o Serviço; (ii) qualquer conduta ou conteúdo de terceiros no Serviço; (iii) qualquer conteúdo obtido do Serviço; e (iv) acesso não autorizado, uso ou alteração das suas transmissões ou conteúdo, seja com base em garantia, contrato, ato ilícito (incluindo negligência) ou qualquer outra teoria legal, quer tenhamos sido informados ou não da possibilidade de tais danos.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">11. Indemnização</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">12. Indemnização</h2>
             <p className="text-ghibli-earth">
               Concorda em defender, indemnizar e isentar {nomeEmpresaOuSeuNome} e os seus licenciados e licenciadores, e os seus funcionários, contratados, agentes, diretores e administradores, de e contra todas e quaisquer reivindicações, danos, obrigações, perdas, responsabilidades, custos ou dívidas, e despesas (incluindo, mas não se limitando a, honorários de advogados), resultantes ou decorrentes de a) sua utilização e acesso ao Serviço, por si ou por qualquer pessoa que utilize a sua conta e palavra-passe; b) uma violação destes Termos, ou c) Conteúdo do Utilizador carregado para o Serviço.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">12. Modificação dos Termos</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">13. Modificação dos Termos</h2>
             <p className="text-ghibli-earth">
               Reservamo-nos o direito, a nosso exclusivo critério, de modificar ou substituir estes Termos a qualquer momento. Se uma revisão for material, tentaremos fornecer um aviso com pelo menos 30 dias de antecedência antes de quaisquer novos termos entrarem em vigor. O que constitui uma alteração material será determinado a nosso exclusivo critério. Ao continuar a aceder ou usar o nosso Serviço após essas revisões entrarem em vigor, concorda em ficar vinculado pelos termos revistos.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">13. Rescisão</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">14. Rescisão</h2>
             <p className="text-ghibli-earth">
              Podemos rescindir ou suspender a sua Conta e o acesso ao Serviço imediatamente, sem aviso prévio ou responsabilidade, por qualquer motivo, incluindo, sem limitação, se violar os Termos. Após a rescisão, o seu direito de usar o Serviço cessará imediatamente. Se desejar rescindir a sua Conta, pode simplesmente deixar de usar o Serviço ou contactar-nos para solicitar a eliminação da conta.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">14. Lei Aplicável e Resolução de Litígios</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">15. Lei Aplicável e Resolução de Litígios</h2>
             <p className="text-ghibli-earth">
               Estes Termos serão regidos e interpretados de acordo com as leis de Portugal, sem consideração pelas suas disposições sobre conflitos de leis. Qualquer litígio decorrente ou relacionado com estes Termos ou com o Serviço será submetido à jurisdição exclusiva dos tribunais da Comarca de Lisboa, Portugal.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">15. Contacto</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">16. Contacto</h2>
             <p className="text-ghibli-earth">
               Se tiver alguma dúvida sobre estes Termos, por favor contacte-nos através do email: <a href={`mailto:${emailContacto}`} className="text-ghibli-sky hover:underline">{emailContacto}</a>
             </p>

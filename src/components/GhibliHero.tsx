@@ -7,7 +7,7 @@ import { useImageProcessing, UseImageProcessingResult } from '@/hooks/useImagePr
 import { motion, Variants } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth'; // <<< NOVO: Importar useAuth
 import { toast } from '@/components/ui/sonner'; // <<< NOVO: Para feedback de autenticação
-import { trackEvent } from '@/lib/posthog'; // <<< NOVO: Import tracking
+import { trackEvent, trackHover, trackFeatureAdoption, trackElementVisible } from '@/lib/posthog'; // <<< NOVO: Import tracking
 
 import { StyleExamplesModal } from './gallery/StyleExamplsModal'; // Mantido
 import { TransformationStudio } from './TransformationStudio';
@@ -77,11 +77,18 @@ const GhibliHero = () => {
 
   // --- NOVO: Lógica modificada para handleTriggerStudio ---
   const handleTriggerStudio = () => {
+    // 🔥 TRACKING: Feature adoption - starting transformation
+    trackFeatureAdoption('transformation_studio', !userInfo, {
+      trigger_location: 'hero_main_button',
+      user_logged_in: !!userInfo
+    });
+
     // 🔥 TRACKING: CTA button click
     trackEvent('cta_button_click', {
-      button_type: 'transform_photo',
+      button_type: 'main_cta',
       location: 'hero',
-      user_logged_in: !!userInfo
+      user_logged_in: !!userInfo,
+      button_text: 'Transforme já a sua foto!'
     });
 
     if (isAuthLoading) {
@@ -142,6 +149,12 @@ const GhibliHero = () => {
   };
 
   const handleOpenExamples = () => {
+    // 🔥 TRACKING: Examples button hover and click
+    trackHover('examples_button', {
+      location: 'hero',
+      user_logged_in: !!userInfo
+    });
+
     // 🔥 TRACKING: Examples button click
     trackEvent('examples_button_click', {
       location: 'hero',
@@ -157,6 +170,22 @@ const GhibliHero = () => {
   };
 
   const titleParts = "Transforme as suas Fotos em Obras de Arte!".split(/(Fotos em Obras)/g);
+
+  // Add hover tracking to main CTA button
+  const handleCTAHover = () => {
+    trackHover('main_cta_button', {
+      location: 'hero',
+      user_logged_in: !!userInfo,
+      button_text: 'Transforme já a sua foto!'
+    });
+  };
+
+  const handleCommunityHover = () => {
+    trackHover('community_button', {
+      location: 'hero',
+      user_logged_in: !!userInfo
+    });
+  };
 
   return (
     <section className="relative pt-2 md:pt-4 pb-16 md:pb-24 overflow-hidden">
@@ -286,6 +315,7 @@ const GhibliHero = () => {
                                   shadow-lg hover:shadow-xl bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50 text-ghibli-wood font-bold
                                   text-xl px-8 py-4 md:px-10 md:py-5 transform hover:scale-102`}
                   onClick={handleTriggerStudio}
+                  onMouseEnter={handleCTAHover}
                 >
                   <motion.span
                     animate={{ 
@@ -300,34 +330,34 @@ const GhibliHero = () => {
                   Transforme já a sua foto!
                 </Button>
               </motion.div>
-
+              
               {/* Botões secundários lado a lado - desktop */}
               <div className="hidden md:flex flex-row gap-4 items-center justify-center">
                 {/* Botão "Veja exemplos!" */}
-                <motion.div
+              <motion.div
                   className="w-auto"
-                  whileHover={{
-                    scale: 1.03,
-                    transition: { duration: 0.2 }
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Button
-                    variant="outline"
+                whileHover={{
+                  scale: 1.03,
+                  transition: { duration: 0.2 }
+                }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  variant="outline"
                     className="inline-flex items-center justify-center transition-all duration-300
-                                    rounded-lg shadow-sm hover:shadow-md text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
+                                  rounded-lg shadow-sm hover:shadow-md text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
                                     hover:border-ghibli-moss text-base px-5 py-2.5"
-                    onClick={handleOpenExamples}
+                  onClick={handleOpenExamples}
+                >
+                  <motion.span
+                    whileHover={{ rotate: [0, -10, 10, 0], transition: {duration: 0.4}}}
+                    className="bg-ghibli-moss/10 p-1.5 rounded-full mr-2"
                   >
-                    <motion.span
-                      whileHover={{ rotate: [0, -10, 10, 0], transition: {duration: 0.4}}}
-                      className="bg-ghibli-moss/10 p-1.5 rounded-full mr-2"
-                    >
-                      <Images className="h-5 w-5 text-ghibli-moss" />
-                    </motion.span>
-                    Veja exemplos!
-                  </Button>
-                </motion.div>
+                    <Images className="h-5 w-5 text-ghibli-moss" />
+                  </motion.span>
+                  Veja exemplos!
+                </Button>
+              </motion.div>
 
                 {/* Botão "Ver Comunidade" */}
                 <motion.button
@@ -339,6 +369,7 @@ const GhibliHero = () => {
                     });
                     window.location.href = '/community';
                   }}
+                  onMouseEnter={handleCommunityHover}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white rounded-lg border border-blue-400 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
@@ -347,7 +378,7 @@ const GhibliHero = () => {
                   <p className="text-sm font-medium">Ver Comunidade</p>
                 </motion.button>
               </div>
-
+              
               {/* Botões para mobile - mantém layout original */}
               <div className="md:hidden flex flex-col space-y-4 items-center w-full">
                 {/* Botão "Veja exemplos!" - mobile */}
@@ -377,15 +408,16 @@ const GhibliHero = () => {
                 </motion.div>
 
                 {/* Botão "Ver Comunidade" - mobile */}
-                <motion.button
-                  onClick={() => window.location.href = '/community'}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
+              <motion.button
+                onClick={() => window.location.href = '/community'}
+                onMouseEnter={handleCommunityHover}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
                   className="px-4 py-2 bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white rounded-full border border-blue-400 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
-                >
-                  <span className="mr-2">👥</span>
-                  <p className="text-sm font-medium">Ver Comunidade</p>
-                </motion.button>
+              >
+                <span className="mr-2">👥</span>
+                <p className="text-sm font-medium">Ver Comunidade</p>
+              </motion.button>
               </div>
             </div>
 
@@ -415,6 +447,7 @@ const GhibliHero = () => {
                                 shadow-lg hover:shadow-xl bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50 text-ghibli-wood font-bold
                                 text-lg px-6 py-3 transform hover:scale-102"
                 onClick={handleTriggerStudio}
+                onMouseEnter={handleCTAHover}
               >
                 <motion.span
                   animate={{ 
