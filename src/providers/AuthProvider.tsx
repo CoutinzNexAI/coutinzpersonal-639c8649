@@ -79,12 +79,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             welcome_bonus: 2 // Note: bonus is automatic via database default value
           });
 
-          // Show welcome message without duplicating piccoins
-          setTimeout(() => {
-            toast.success("🎁 Bem-vindo ao PicTuz!", {
-              description: "Recebeste 2 PicCoins grátis para começares a transformar as tuas fotos!"
-            });
-          }, 1500);
+          // Show welcome message only once per session
+          const welcomeShownKey = `welcome_shown_${userData.id}`;
+          const alreadyShown = sessionStorage.getItem(welcomeShownKey);
+          
+          if (!alreadyShown) {
+            sessionStorage.setItem(welcomeShownKey, 'true');
+            setTimeout(() => {
+              toast.success("🎁 Bem-vindo ao PicTuz!", {
+                description: "Recebeste 2 PicCoins grátis para começares a transformar as tuas fotos!"
+              });
+            }, 1500);
+          }
         } else {
           // 🔥 TRACKING: Returning user login
           trackEvent('returning_user_login', {
