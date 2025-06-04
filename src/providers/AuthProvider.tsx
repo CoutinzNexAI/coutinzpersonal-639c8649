@@ -70,21 +70,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         console.log("[syncUserWithDatabase] ✅ User profile synced/updated successfully in DB.");
         
+        // Award welcome bonus for new users
         if (isNewUser) {
-          // 🔥 TRACKING: New user registration (database already gives 2 piccoins by default)
+          // 🔥 TRACKING: New user registration
           trackEvent('user_registered', {
             user_id: userData.id,
             email: userData.email,
             signup_method: 'google',
-            welcome_bonus: 2 // Note: bonus is automatic via database default value
+            welcome_bonus: 2
           });
 
-          // Show welcome message without duplicating piccoins
-          setTimeout(() => {
-            toast.success("🎁 Bem-vindo ao PicTuz!", {
-              description: "Recebeste 2 PicCoins grátis para começares a transformar as tuas fotos!"
+          try {
+            console.log("[syncUserWithDatabase] 🎁 New user detected, awarding welcome bonus...");
+                        
+            const { error: bonusError } = await supabase.rpc('earn_piccoins', {
+              p_user_id: userData.id,
+              p_amount: 2,
+              p_type: 'bonus_first_login',
+              p_reference_id: `welcome_bonus_${userData.id}_${Date.now()}`,
+              p_description: 'Bónus de boas-vindas - Bem-vindo ao PicTuz!'
             });
-          }, 1500);
+            
+            if (bonusError) {
+              console.error("[syncUserWithDatabase] Error awarding welcome bonus:", bonusError);
+              console.error("[syncUserWithDatabase] Full bonus error details:", JSON.stringify(bonusError));
+              
+              // 🔥 TRACKING: Welcome bonus error
+              trackEvent('welcome_bonus_error', {
+                user_id: userData.id,
+                error_message: bonusError.message
+              });
+            } else {
+              console.log("[syncUserWithDatabase] ✅ Welcome bonus awarded successfully!");
+              
+              // 🔥 TRACKING: Welcome bonus success
+              trackEvent('welcome_bonus_awarded', {
+                user_id: userData.id,
+                amount: 2,
+                total_credits: 2
+              });
+              
+              setTimeout(() => {
+                toast.success("🎁 Bem-vindo ao PicTuz!", {
+                  description: "Recebeste 2 PicCoins grátis para começares a transformar as tuas fotos!"
+                });
+              }, 1500);
+            }
+          } catch (bonusError) {
+            console.error("[syncUserWithDatabase] Exception during welcome bonus:", bonusError);
+            
+            // 🔥 TRACKING: Welcome bonus exception
+            trackEvent('welcome_bonus_exception', {
+              user_id: userData.id,
+              error: String(bonusError)
+            });
+          }
         } else {
           // 🔥 TRACKING: Returning user login
           trackEvent('returning_user_login', {
