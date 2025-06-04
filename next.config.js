@@ -53,7 +53,8 @@ const nextConfig = {
               " script-src 'self' 'unsafe-inline' 'unsafe-eval'" + // 'self' e inline/eval (tenta remover unsafe-* se possível no futuro)
               " https://vercel.live https://_next-live/feedback/feedback.js" + // Vercel Live feedback
               " https://www.googletagmanager.com https://*.google-analytics.com" + // Google Analytics e Tag Manager
-              " https://js.stripe.com https://m.stripe.network;" + // Stripe JS e Metering
+              " https://js.stripe.com https://m.stripe.network" + // Stripe JS e Metering
+              " https://eu-assets.i.posthog.com https://*.posthog.com;" + // PostHog analytics
               // Estilos permitidos:
               " style-src 'self' 'unsafe-inline'" + // 'self' e inline styles
               " https://fonts.googleapis.com;" + // Google Fonts
@@ -67,12 +68,13 @@ const nextConfig = {
               " https://*.supabase.co" + // Supabase
               " https://api.stripe.com https://m.stripe.network" + // Stripe API e Metering
               " https://vercel.live wss://vercel.live" + // Vercel Live websockets
-              " https://region1.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com;" + // Google Analytics
+              " https://region1.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com" + // Google Analytics
+              " https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com;" + // PostHog API endpoints
               // Iframes permitidos:
-              " frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network;" + // Stripe Elements/iframes
+              " frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network https://vercel.live;" + // Stripe Elements/iframes + Vercel Live
               // Outras diretivas de segurança:
               " object-src 'none';" + // Não permite <object>, <embed>, <applet>
-              " base-uri 'self';" // Restringe o <base> tag
+              " base-uri 'self';"
               // " form-action 'self';" // Opcional: restringe para onde os formulários podem submeter
               // " frame-ancestors 'none';" // Similar ao X-Frame-Options: DENY
           }

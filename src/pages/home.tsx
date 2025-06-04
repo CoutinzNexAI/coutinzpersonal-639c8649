@@ -12,6 +12,7 @@ import { usePicCoins } from '@/hooks/usePicCoins';
 import { useFirstPurchaseCheck } from '@/hooks/useFirstPurchaseCheck';
 import { useTransformationCount } from '@/hooks/useTransformationCount';
 import { toast } from '@/components/ui/sonner';
+import PostHogDebug from '@/components/PostHogDebug'; // <<< NOVO: Debug component
 
 // Componente funcional para a página inicial (rota '/')
 const Index = () => {
@@ -189,6 +190,9 @@ const Index = () => {
         onClose={handleClosePromoModal}
         onAcceptPromo={handleAcceptPromo}
       />
+
+      {/* PostHog Debug Component */}
+      <PostHogDebug />
     </div> {/* Fim do container principal */}
     </>
   );

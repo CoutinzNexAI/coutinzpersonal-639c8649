@@ -69,7 +69,6 @@ const TransformationsModal: React.FC = () => {
 
   const fetchTransformations = useCallback(async (page: number, isPageChange: boolean = false) => {
     if (isAuthLoading || !userInfo) {
-        console.log("[TransformationsModal] Auth loading or no user info, skipping fetch.");
         return;
     }
 
@@ -90,7 +89,6 @@ const TransformationsModal: React.FC = () => {
       const from = page * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
 
-      console.log(`[TransformationsModal] Fetching transformations for user ${userInfo.id}, page ${page}, range ${from}-${to}, statuses: ${RELEVANT_STATUSES.join(', ')}`);
 
       const { data, error: dbError, count } = await supabase
         .from('transformations')
@@ -105,7 +103,6 @@ const TransformationsModal: React.FC = () => {
 
       if (dbError) throw dbError;
       
-      console.log(`[TransformationsModal] Fetched data:`, data, `Count:`, count);
 
       const itemsWithState = (data || []).map(item => ({
           ...(item as unknown as FetchedTransformation), 
@@ -130,12 +127,10 @@ const TransformationsModal: React.FC = () => {
   // Efeito para buscar dados quando o modal abre ou o utilizador muda
   useEffect(() => {
     if (isOpen && userInfo && !isAuthLoading) {
-      console.log("[TransformationsModal] Modal open and user ready. Fetching initial transformations (page 0).");
       setCurrentPage(0); // Reseta para a primeira página ao abrir ou mudar de user
       fetchTransformations(0, false); 
     } else if (!isOpen) {
       // Limpa os dados e reseta a página se o modal estiver fechado
-      console.log("[TransformationsModal] Modal closed. Clearing data.");
       setGridItems([]);
       setTotalCount(0);
       setCurrentPage(0); 
@@ -152,7 +147,6 @@ const TransformationsModal: React.FC = () => {
         // Este fetch é acionado pela MUDANÇA de currentPage.
         // O fetchTransformations em si não deve estar na dependência se currentPage for o único gatilho que queremos para *este* efeito.
         // No entanto, para segurança, mantemos.
-        console.log(`[TransformationsModal] currentPage changed to ${currentPage}. Fetching page.`);
         fetchTransformations(currentPage, true); // true indica que é uma mudança de página
     }
 }, [currentPage]); // Dependência principal aqui é currentPage

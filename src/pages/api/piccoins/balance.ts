@@ -1,6 +1,13 @@
 // src/pages/api/piccoins/balance.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
+
+// Admin client for bypassing RLS
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // Função auxiliar para fazer o parse manual de um cookie específico
 function getManuallyParsedCookie(cookieString: string, cookieName: string): string | undefined {
@@ -22,7 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-
   try {    
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -42,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               return manualValue;
             }
             
-            return originalValue; // Retorna o valor do parse original se não for um token Supabase ou se foi encontrado
+            return originalValue; // Retorna o valor do parse original se não foi encontrado
           },
           set: (name: string, value: string, options) => {
             const cookie = serializeCookieHeader(name, value, options);
@@ -65,29 +71,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     );
 
-
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
+      console.error('[Balance API] Auth error:', authError?.message);
       return res.status(401).json({ message: 'Unauthorized', detail: authError?.message });
     }
 
-    const { data, error } = await supabase
+    // Use admin client to bypass RLS for balance queries
+    const { data, error } = await supabaseAdmin
       .from('users')
       .select('piccoin_balance, id, email, created_at')
       .eq('id', user.id)
       .single();
 
     if (error) {
+      console.error('[Balance API] Database error:', error.message, error);
       return res.status(500).json({ message: 'Internal Server Error fetching balance' });
     }
 
     if (!data) {
+      console.error('[Balance API] User not found in database:', user.id);
       return res.status(404).json({ message: 'User profile not found in database' });
     }
 
     const balance = data.piccoin_balance;
-    
     const finalBalance = balance ?? 0;
 
     return res.status(200).json({
