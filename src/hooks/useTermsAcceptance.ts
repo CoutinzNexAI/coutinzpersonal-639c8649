@@ -26,7 +26,7 @@ export const useTermsAcceptance = () => {
         .eq('id', userInfo.id);
 
       if (error) {
-        console.error('Error updating terms acceptance:', error);
+        console.error('Error updating terms aceptance:', error);
         toast.error('Erro ao guardar aceitação', {
           description: 'Tente novamente ou contacte o suporte.'
         });
