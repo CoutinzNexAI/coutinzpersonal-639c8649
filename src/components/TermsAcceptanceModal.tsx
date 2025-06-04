@@ -80,129 +80,131 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
           >
-            <div className="bg-ghibli-paper rounded-2xl shadow-2xl border-2 border-ghibli-sand w-full max-w-lg mx-auto overflow-hidden">
+            <div className="bg-ghibli-paper rounded-xl sm:rounded-2xl shadow-2xl border-2 border-ghibli-sand w-full max-w-sm sm:max-w-lg mx-auto overflow-hidden max-h-[95vh] flex flex-col">
               
               {/* Header */}
-              <div className="bg-gradient-to-r from-ghibli-sky via-ghibli-forest to-ghibli-wood p-8 text-white relative">
+              <div className="bg-gradient-to-r from-ghibli-sky via-ghibli-forest to-ghibli-wood p-4 sm:p-6 text-white">
                 <motion.div 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, type: "spring" }}
-                  className="flex items-center gap-4 mb-3"
+                  className="flex items-center gap-3 mb-2"
                 >
-                  <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
-                    <Shield className="h-8 w-8" />
+                  <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                    <Shield className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-ghibli font-bold">Bem-vindo ao PicTuz! ✨</h2>
-                    <p className="text-white/90 text-sm font-medium">A magia da transformação de imagens</p>
+                    <h2 className="text-lg sm:text-xl font-ghibli font-bold">Bem-vindo ao PicTuz! ✨</h2>
+                    <p className="text-white/90 text-xs sm:text-sm font-medium">Transformação de imagens</p>
                   </div>
                 </motion.div>
-                <p className="text-white/80 text-sm leading-relaxed">
-                  Para começar a criar arte incrível, precisamos que aceite os nossos termos legais.
+                <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
+                  Aceite os termos para começar.
                 </p>
               </div>
 
-              {/* Content */}
-              <div className="p-8 space-y-6 bg-gradient-to-b from-ghibli-paper to-ghibli-cream">
-                
-                <div className="text-center mb-6">
-                  <p className="text-ghibli-wood font-medium text-lg mb-2">
-                    🎨 Pronto para transformar as suas fotos?
-                  </p>
-                  <p className="text-ghibli-earth text-sm">
-                    Aceite os nossos documentos legais para continuar
-                  </p>
-                </div>
-
-                {/* Terms Checkbox */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="flex items-start gap-4 p-4 rounded-xl bg-white/60 border border-ghibli-sand/50 hover:bg-white/80 transition-all duration-200"
-                >
-                  <Checkbox
-                    id="terms"
-                    checked={hasReadTerms}
-                    onCheckedChange={handleTermsChange}
-                    className="mt-1 border-ghibli-wood data-[state=checked]:bg-ghibli-forest"
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="terms" className="text-sm font-medium text-ghibli-wood cursor-pointer leading-relaxed">
-                      Li e aceito os{' '}
-                      <Link 
-                        href="/termos-servicos" 
-                        target="_blank"
-                        onClick={() => trackLinkClick('terms')}
-                        className="text-ghibli-sky hover:text-ghibli-forest font-semibold underline decoration-2 underline-offset-2 hover:decoration-ghibli-forest transition-colors"
-                      >
-                        Termos e Condições de Serviço
-                      </Link>
-                    </label>
+              {/* Content - Scrollable */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 bg-gradient-to-b from-ghibli-paper to-ghibli-cream">
+                  
+                  <div className="text-center mb-4">
+                    <p className="text-ghibli-wood font-medium text-base sm:text-lg mb-1">
+                      🎨 Pronto para transformar fotos?
+                    </p>
+                    <p className="text-ghibli-earth text-xs sm:text-sm">
+                      Aceite os documentos para continuar
+                    </p>
                   </div>
-                </motion.div>
 
-                {/* Privacy Checkbox */}
-                <motion.div 
-                  whileHover={{ scale: 1.02 }}
-                  className="flex items-start gap-4 p-4 rounded-xl bg-white/60 border border-ghibli-sand/50 hover:bg-white/80 transition-all duration-200"
-                >
-                  <Checkbox
-                    id="privacy"
-                    checked={hasReadPrivacy}
-                    onCheckedChange={handlePrivacyChange}
-                    className="mt-1 border-ghibli-wood data-[state=checked]:bg-ghibli-forest"
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="privacy" className="text-sm font-medium text-ghibli-wood cursor-pointer leading-relaxed">
-                      Li e aceito a{' '}
-                      <Link 
-                        href="/politica-privacidade" 
-                        target="_blank"
-                        onClick={() => trackLinkClick('privacy')}
-                        className="text-ghibli-sky hover:text-ghibli-forest font-semibold underline decoration-2 underline-offset-2 hover:decoration-ghibli-forest transition-colors"
-                      >
-                        Política de Privacidade
-                      </Link>
-                    </label>
-                  </div>
-                </motion.div>
+                  {/* Terms Checkbox */}
+                  <motion.div 
+                    whileHover={{ scale: 1.01 }}
+                    className="flex items-start gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-white/60 border border-ghibli-sand/50 hover:bg-white/80 transition-all duration-200"
+                  >
+                    <Checkbox
+                      id="terms"
+                      checked={hasReadTerms}
+                      onCheckedChange={handleTermsChange}
+                      className="mt-0.5 h-4 w-4 sm:h-5 sm:w-5 border-2 border-ghibli-wood data-[state=checked]:bg-ghibli-forest data-[state=checked]:border-ghibli-forest data-[state=checked]:text-white"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="terms" className="text-xs sm:text-sm font-medium text-ghibli-wood cursor-pointer leading-relaxed">
+                        Li e aceito os{' '}
+                        <Link 
+                          href="/termos-servicos" 
+                          target="_blank"
+                          onClick={() => trackLinkClick('terms')}
+                          className="text-ghibli-sky hover:text-ghibli-forest font-semibold underline decoration-1 underline-offset-1 hover:decoration-ghibli-forest transition-colors"
+                        >
+                          Termos de Serviço
+                        </Link>
+                      </label>
+                    </div>
+                  </motion.div>
 
-                {/* Info Note */}
-                <div className="bg-ghibli-forest/10 border border-ghibli-forest/20 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <FileText className="h-5 w-5 text-ghibli-forest mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-ghibli-wood">
-                      <span className="font-medium">Nota:</span> Os documentos incluem informações sobre como utilizamos cookies e melhoramos a plataforma através de analytics.
+                  {/* Privacy Checkbox */}
+                  <motion.div 
+                    whileHover={{ scale: 1.01 }}
+                    className="flex items-start gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-white/60 border border-ghibli-sand/50 hover:bg-white/80 transition-all duration-200"
+                  >
+                    <Checkbox
+                      id="privacy"
+                      checked={hasReadPrivacy}
+                      onCheckedChange={handlePrivacyChange}
+                      className="mt-0.5 h-4 w-4 sm:h-5 sm:w-5 border-2 border-ghibli-wood data-[state=checked]:bg-ghibli-forest data-[state=checked]:border-ghibli-forest data-[state=checked]:text-white"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="privacy" className="text-xs sm:text-sm font-medium text-ghibli-wood cursor-pointer leading-relaxed">
+                        Li e aceito a{' '}
+                        <Link 
+                          href="/politica-privacidade" 
+                          target="_blank"
+                          onClick={() => trackLinkClick('privacy')}
+                          className="text-ghibli-sky hover:text-ghibli-forest font-semibold underline decoration-1 underline-offset-1 hover:decoration-ghibli-forest transition-colors"
+                        >
+                          Política de Privacidade
+                        </Link>
+                      </label>
+                    </div>
+                  </motion.div>
+
+                  {/* Info Note */}
+                  <div className="bg-ghibli-forest/10 border border-ghibli-forest/20 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-ghibli-forest mt-0.5 flex-shrink-0" />
+                      <div className="text-xs sm:text-sm text-ghibli-wood">
+                        <span className="font-medium">Nota:</span> Inclui informações sobre cookies e analytics.
+                      </div>
                     </div>
                   </div>
-                </div>
 
+                </div>
               </div>
 
               {/* Footer */}
-              <div className="p-6 pt-0 pb-8 flex gap-4 bg-ghibli-cream">
+              <div className="p-4 sm:p-6 pt-0 pb-4 sm:pb-6 flex gap-3 sm:gap-4 bg-ghibli-cream">
                 <Button
                   variant="outline"
                   onClick={handleReject}
                   disabled={loading}
-                  className="flex-1 text-ghibli-wood border-ghibli-sand hover:bg-ghibli-sand/30 font-medium"
+                  className="flex-1 text-xs sm:text-sm text-ghibli-wood border-ghibli-sand hover:bg-ghibli-sand/30 font-medium h-9 sm:h-10"
                 >
                   Não aceito
                 </Button>
                 <Button
                   onClick={handleAccept}
                   disabled={!canAccept || loading}
-                  className="flex-1 bg-gradient-to-r from-ghibli-sky to-ghibli-forest hover:from-ghibli-sky/90 hover:to-ghibli-forest/90 text-white font-semibold disabled:opacity-50 shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="flex-1 text-xs sm:text-sm bg-gradient-to-r from-ghibli-sky to-ghibli-forest hover:from-ghibli-sky/90 hover:to-ghibli-forest/90 text-white font-semibold disabled:opacity-50 shadow-lg hover:shadow-xl transition-all duration-200 h-9 sm:h-10"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       A guardar...
                     </div>
                   ) : (
-                    '✨ Aceitar & Começar'
+                    '✨ Aceitar'
                   )}
                 </Button>
               </div>

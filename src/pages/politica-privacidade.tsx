@@ -313,7 +313,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
                 <h4 className="font-semibold text-purple-800 mb-2">📊 Analytics Comportamentais (PostHog)</h4>
                 <p className="text-purple-700 text-sm mb-2">
                   <strong>O que gravamos:</strong>
-                </p>
+            </p>
                 <ul className="list-disc list-outside pl-4 text-purple-700 text-sm space-y-1">
                   <li>Cliques, hovers, scroll depth e tempo em cada página</li>
                   <li>Jornada completa: landing → upload → seleção → transformação → resultado</li>
@@ -360,7 +360,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
                 <li><strong>PostHog Opt-out:</strong> Contacte-nos para opt-out permanente dos analytics avançados</li>
                 <li><strong>Session Recordings:</strong> Pode solicitar desativação mantendo outras funcionalidades</li>
                 <li><strong>Eliminação:</strong> Pode solicitar eliminação de todos os recordings existentes</li>
-              </ul>
+            </ul>
               <p className="text-amber-700 text-sm mt-2">
                 <strong>Impacto:</strong> Desativar pode afetar a qualidade do suporte técnico e otimizações de UX personalizadas.
               </p>

@@ -26,8 +26,8 @@ export const usePicCoins = () => {
         throw new Error('Failed to fetch balance');
       }
       
-      const data = await response.json();
-      setBalance(data.balance);
+        const data = await response.json();
+        setBalance(data.balance);
 
       // 🔥 TRACKING: Balance check
       trackPicCoinBalance(data.balance, {
