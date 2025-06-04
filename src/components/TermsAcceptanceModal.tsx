@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, FileText, Shield, AlertCircle } from 'lucide-react';
+import { FileText, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { trackEvent } from '@/lib/posthog';
@@ -23,7 +23,6 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
 }) => {
   const [hasReadTerms, setHasReadTerms] = useState(false);
   const [hasReadPrivacy, setHasReadPrivacy] = useState(false);
-  const [agreedToAnalytics, setAgreedToAnalytics] = useState(false);
 
   const handleTermsChange = (checked: boolean | 'indeterminate') => {
     setHasReadTerms(checked === true);
@@ -33,18 +32,13 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
     setHasReadPrivacy(checked === true);
   };
 
-  const handleAnalyticsChange = (checked: boolean | 'indeterminate') => {
-    setAgreedToAnalytics(checked === true);
-  };
-
-  const canAccept = hasReadTerms && hasReadPrivacy && agreedToAnalytics;
+  const canAccept = hasReadTerms && hasReadPrivacy;
 
   const handleAccept = () => {
     trackEvent('terms_acceptance_modal_accepted', {
       user_email: userEmail,
       read_terms: hasReadTerms,
       read_privacy: hasReadPrivacy,
-      agreed_analytics: agreedToAnalytics,
       timestamp: new Date().toISOString()
     });
     onAccept();
@@ -55,7 +49,6 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
       user_email: userEmail,
       read_terms: hasReadTerms,
       read_privacy: hasReadPrivacy,
-      agreed_analytics: agreedToAnalytics,
       timestamp: new Date().toISOString()
     });
     onReject();
@@ -77,113 +70,111 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-            style={{ backdropFilter: 'blur(4px)' }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            style={{ backdropFilter: 'blur(2px)' }}
           />
           
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md mx-auto overflow-hidden">
+            <div className="bg-ghibli-paper rounded-2xl shadow-2xl border-2 border-ghibli-sand w-full max-w-lg mx-auto overflow-hidden">
               
               {/* Header */}
-              <div className="bg-gradient-to-r from-ghibli-sky to-ghibli-forest p-6 text-white relative">
-                <div className="flex items-center gap-3 mb-2">
-                  <Shield className="h-6 w-6" />
-                  <h2 className="text-xl font-bold">Bem-vindo ao PicTuz!</h2>
-                </div>
-                <p className="text-white/90 text-sm">
-                  Para continuar, precisamos do seu consentimento para os nossos termos e analytics.
+              <div className="bg-gradient-to-r from-ghibli-sky via-ghibli-forest to-ghibli-wood p-8 text-white relative">
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring" }}
+                  className="flex items-center gap-4 mb-3"
+                >
+                  <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
+                    <Shield className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-ghibli font-bold">Bem-vindo ao PicTuz! ✨</h2>
+                    <p className="text-white/90 text-sm font-medium">A magia da transformação de imagens</p>
+                  </div>
+                </motion.div>
+                <p className="text-white/80 text-sm leading-relaxed">
+                  Para começar a criar arte incrível, precisamos que aceite os nossos termos legais.
                 </p>
               </div>
 
               {/* Content */}
-              <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
+              <div className="p-8 space-y-6 bg-gradient-to-b from-ghibli-paper to-ghibli-cream">
                 
+                <div className="text-center mb-6">
+                  <p className="text-ghibli-wood font-medium text-lg mb-2">
+                    🎨 Pronto para transformar as suas fotos?
+                  </p>
+                  <p className="text-ghibli-earth text-sm">
+                    Aceite os nossos documentos legais para continuar
+                  </p>
+                </div>
+
                 {/* Terms Checkbox */}
-                <div className="flex items-start gap-3">
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="flex items-start gap-4 p-4 rounded-xl bg-white/60 border border-ghibli-sand/50 hover:bg-white/80 transition-all duration-200"
+                >
                   <Checkbox
                     id="terms"
                     checked={hasReadTerms}
                     onCheckedChange={handleTermsChange}
-                    className="mt-1"
+                    className="mt-1 border-ghibli-wood data-[state=checked]:bg-ghibli-forest"
                   />
                   <div className="flex-1">
-                    <label htmlFor="terms" className="text-sm font-medium text-gray-900 cursor-pointer">
+                    <label htmlFor="terms" className="text-sm font-medium text-ghibli-wood cursor-pointer leading-relaxed">
                       Li e aceito os{' '}
                       <Link 
                         href="/termos-servicos" 
                         target="_blank"
                         onClick={() => trackLinkClick('terms')}
-                        className="text-ghibli-sky hover:underline font-semibold"
+                        className="text-ghibli-sky hover:text-ghibli-forest font-semibold underline decoration-2 underline-offset-2 hover:decoration-ghibli-forest transition-colors"
                       >
                         Termos e Condições de Serviço
                       </Link>
                     </label>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Privacy Checkbox */}
-                <div className="flex items-start gap-3">
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="flex items-start gap-4 p-4 rounded-xl bg-white/60 border border-ghibli-sand/50 hover:bg-white/80 transition-all duration-200"
+                >
                   <Checkbox
                     id="privacy"
                     checked={hasReadPrivacy}
                     onCheckedChange={handlePrivacyChange}
-                    className="mt-1"
+                    className="mt-1 border-ghibli-wood data-[state=checked]:bg-ghibli-forest"
                   />
                   <div className="flex-1">
-                    <label htmlFor="privacy" className="text-sm font-medium text-gray-900 cursor-pointer">
+                    <label htmlFor="privacy" className="text-sm font-medium text-ghibli-wood cursor-pointer leading-relaxed">
                       Li e aceito a{' '}
                       <Link 
                         href="/politica-privacidade" 
                         target="_blank"
                         onClick={() => trackLinkClick('privacy')}
-                        className="text-ghibli-sky hover:underline font-semibold"
+                        className="text-ghibli-sky hover:text-ghibli-forest font-semibold underline decoration-2 underline-offset-2 hover:decoration-ghibli-forest transition-colors"
                       >
                         Política de Privacidade
                       </Link>
                     </label>
                   </div>
-                </div>
+                </motion.div>
 
-                {/* Analytics Consent */}
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                {/* Info Note */}
+                <div className="bg-ghibli-forest/10 border border-ghibli-forest/20 rounded-xl p-4">
                   <div className="flex items-start gap-3">
-                    <Checkbox
-                      id="analytics"
-                      checked={agreedToAnalytics}
-                      onCheckedChange={handleAnalyticsChange}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <label htmlFor="analytics" className="text-sm font-medium text-gray-900 cursor-pointer flex items-start gap-2">
-                        <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <div className="font-semibold text-amber-900">
-                            Consentimento para Analytics & Session Recordings
-                          </div>
-                          <div className="text-xs text-amber-800 mt-1">
-                            Autorizo a gravação das minhas sessões (movimentos do rato, cliques) e recolha de dados comportamentais para otimização da plataforma. 
-                            <span className="font-medium"> Dados sensíveis são automaticamente censurados.</span>
-                          </div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Info Box */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex items-start gap-2">
-                    <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs text-blue-800">
-                      <span className="font-medium">Transparência total:</span> Pode desativar analytics a qualquer momento nas configurações ou contactando-nos. 
-                      Só gravamos para melhorar a sua experiência!
+                    <FileText className="h-5 w-5 text-ghibli-forest mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-ghibli-wood">
+                      <span className="font-medium">Nota:</span> Os documentos incluem informações sobre como utilizamos cookies e melhoramos a plataforma através de analytics.
                     </div>
                   </div>
                 </div>
@@ -191,27 +182,27 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
               </div>
 
               {/* Footer */}
-              <div className="p-6 pt-0 flex gap-3">
+              <div className="p-6 pt-0 pb-8 flex gap-4 bg-ghibli-cream">
                 <Button
                   variant="outline"
                   onClick={handleReject}
                   disabled={loading}
-                  className="flex-1 text-gray-700 border-gray-300 hover:bg-gray-50"
+                  className="flex-1 text-ghibli-wood border-ghibli-sand hover:bg-ghibli-sand/30 font-medium"
                 >
-                  Recusar & Sair
+                  Não aceito
                 </Button>
                 <Button
                   onClick={handleAccept}
                   disabled={!canAccept || loading}
-                  className="flex-1 bg-gradient-to-r from-ghibli-sky to-ghibli-forest hover:from-ghibli-sky/90 hover:to-ghibli-forest/90 text-white disabled:opacity-50"
+                  className="flex-1 bg-gradient-to-r from-ghibli-sky to-ghibli-forest hover:from-ghibli-sky/90 hover:to-ghibli-forest/90 text-white font-semibold disabled:opacity-50 shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Guardando...
+                      A guardar...
                     </div>
                   ) : (
-                    'Aceitar & Continuar'
+                    '✨ Aceitar & Começar'
                   )}
                 </Button>
               </div>
