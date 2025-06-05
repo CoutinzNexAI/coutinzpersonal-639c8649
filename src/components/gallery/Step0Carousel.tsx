@@ -18,7 +18,7 @@ interface CarouselExample {
 const EXAMPLES_DATA: CarouselExample[] = [
   {
     id: 1,
-    beforeSrc: '/barbarabandeiranormal.webp',
+    beforeSrc: '/foto/barbarabandeiranormal.webp',
     afterSrc: '/imperador/barbara.png',
     altBefore: 'Fotografia original de uma celebração de São João no Porto',
     altAfter: 'Fotografia de São João no Porto transformada para o estilo Ghibli',
@@ -26,7 +26,7 @@ const EXAMPLES_DATA: CarouselExample[] = [
   },
   {
     id: 2,
-    beforeSrc: '/marcelonormal.jpg',
+    beforeSrc: '/foto/marcelonormal.jpg',
     afterSrc: '/reiportugal/marcelo.png',
     altBefore: 'Imagem original de uma paisagem urbana com grafitti',
     altAfter: 'Paisagem urbana com grafitti transformada para o estilo Azulejo',
@@ -34,8 +34,8 @@ const EXAMPLES_DATA: CarouselExample[] = [
   },
   {
     id: 3,
-    beforeSrc: '/camoesnormal.jpg',
-    afterSrc: '/camoeslego.png',
+    beforeSrc: '/foto/camoesnormal.jpg',
+    afterSrc: '/lego/camoeslego.png',
     altBefore: 'Estátua original de Luís de Camões',
     altAfter: 'Estátua de Luís de Camões transformada em estilo Lego',
     ariaLabel: 'Exemplo de transformação: Estátua de Camões para estilo Lego',

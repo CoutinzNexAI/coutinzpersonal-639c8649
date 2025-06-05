@@ -24,12 +24,12 @@ export interface StyleExample {
       name: "Estilo Imperador",
       description: "Transforme-se no Imperador, inspirado no século XVI!",
       examples: [
-        { before: "/barbarabandeiranormal.webp", after: "/imperador/barbara.png" },
-        { before: "/gyokeresnormal.jpg", after: "/imperador/gyokers.png" },
-        { before: "/neves.png", after: "/imperador/joaoneves.png" },
+        { before: "/foto/barbarabandeiranormal.webp", after: "/imperador/barbara.png" },
+        { before: "/foto/gyokeresnormal.jpg", after: "/imperador/gyokers.png" },
+        { before: "/foto/neves.png", after: "/imperador/joaoneves.png" },
         { before: "/foto/madalenaaragao.png", after: "/imperador/madalena.png" },
-        { before: "/marcelonormal.jpg", after: "/imperador/marcelo.png" },
-        { before: "/ronaldonormal.jpg", after: "/imperador/ronaldo.png" },
+        { before: "/foto/marcelonormal.jpg", after: "/imperador/marcelo.png" },
+        { before: "/foto/ronaldonormal.jpg", after: "/imperador/ronaldo.png" },
       ]
     },
     {
@@ -37,12 +37,12 @@ export interface StyleExample {
       name: "Estilo Simpson",
       description: "Transforme suas fotos no estilo dos Simpsons, com cores vibrantes e o estilo característico da série.",
       examples: [
-        { before: "/wbgnormal.jpg", after: "/wbgsimpson.png" },
+        { before: "/foto/wbgnormal.jpg", after: "/simpson/wbgsimpson.png" },
         { before: "/foto/joaomadalena.webp", after: "/simpson/joaomadalena.png" },
-        { before: "/profjamnormal.jpg", after: "/profsimpson.png" },
-        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeirasimpson.png" },
-        { before: "/mbappenormal.jpg", after: "/simpson/mbappesimpson.png" },
-        { before: "/morambappenormal.webp", after: "/simpson/morasimpson.png" },
+        { before: "/foto/profjamnormal.jpg", after: "/simpson/profsimpson.png" },
+        { before: "/foto/barbarabandeiranormal.webp", after: "/simpson/barbarabandeirasimpson.png" },
+        { before: "/foto/mbappe.jpg", after: "/simpson/mbappesimpson.png" },
+        { before: "/foto/morambappenormal.webp", after: "/simpson/morasimpson.png" },
       ]
     },
     {
@@ -50,11 +50,13 @@ export interface StyleExample {
       name: "Estilo Ghibli",
       description: "Dê às suas imagens o visual mágico dos filmes do Studio Ghibli, com cores suaves e detalhes encantadores.",
       examples: [
-        { before: "/tonymickaelcarreiranormal.jpg", after: "/tonymickaelghibli.png" },
-        { before: "/gyokerespotenormal.jpeg", after: "/gyopoteghibli.png" },
-        { before: "/casamentonormal.jpg", after: "/casalghibli.png" },
-        { before: "/caogatonormal.jpg", after: "/caogatoghibli.png" },
-        { before: "/saojoaoportonormal.jpg", after: "/saojoaoportoghibli.png" }
+        { before: "/foto/tonymickaelcarreiranormal.jpg", after: "/ghibli/tonymickaelghibli.png" },
+        { before: "/foto/gyokerespotenormal.jpeg", after: "/ghibli/gyopoteghibli.png" },
+        { before: "/foto/casamentonormal.jpg", after: "/ghibli/casalghibli.png" },
+        { before: "/foto/caogatonormal.jpg", after: "/ghibli/caogatoghibli.png" },
+        { before: "/foto/saojoaoportonormal.jpg", after: "/ghibli/saojoaoportoghibli.png" },
+        { before: "/foto/joaomadalena.webp", after: "/ghibli/joaomadalena.png" },
+
       ]
     },
     {
@@ -62,10 +64,12 @@ export interface StyleExample {
       name: "Estilo Azulejo Português",
       description: "Transforme suas fotos no estilo tradicional dos azulejos portugueses, com padrões azuis e brancos.",
       examples: [
-        { before: "/camoesnormal.jpg", after: "/camoesazulejo.png" },
-        { before: "/saojoaoportonormal.jpg", after: "/saojoaoportoazulejo.png" },
-        { before: "/andreventuranormal.png", after: "/andreventuraazulejo.png" },
-        { before: "/pastoralentejonormal.png", after: "/pastoralentejoazulejo.png" }
+        { before: "/foto/camoesnormal.jpg", after: "/azulejo/camoesazulejo.png" },
+        { before: "/foto/saojoaoportonormal.jpg", after: "/azulejo/saojoaoportoazulejo.png" },
+        { before: "/foto/andreventuranormal.png", after: "/azulejo/andreventuraazulejo.png" },
+        { before: "/foto/pastoralentejonormal.png", after: "/azulejo/pastoralentejoazulejo.png" },
+        { before: "/foto/badbuny.jpg", after: "/azulejo/badbunny.png" },
+        { before: "/foto/yamalnormal.webp", after: "/azulejo/yamalazulejo.png" },
       ]
     },
     {
@@ -75,9 +79,10 @@ export interface StyleExample {
       examples: [
         { before: "/foto/badbuny.jpg", after: "/lego/badbunny.png" },
         { before: "/foto/joaomadalena.webp", after: "/lego/madalenajoao.png" },
-        { before: "/camoesnormal.jpg", after: "/camoeslego.png" },
-        { before: "/marcelonormal.jpg", after: "/MarceloLego.png" }, // Nota: imagem 'before' repetida, pode ser intencional
-        { before: "/yamalnormal.webp", after: "/yamallego.png" },
+        { before: "/foto/camoesnormal.jpg", after: "/lego/camoeslego.png" },
+        { before: "/foto/marcelonormal.jpg", after: "/lego/MarceloLego.png" }, // Nota: imagem 'before' repetida, pode ser intencional
+        { before: "/foto/yamalnormal.webp", after: "/lego/yamallego.png" },
+        { before: "/foto/neves.png", after: "/lego/joaoneves.png" },
       ]
     },
     {
@@ -86,11 +91,11 @@ export interface StyleExample {
       description: "Transforme-se no Rei Portugal, inspirado no século XVI!",
       examples: [
         { before: "/foto/madalenaaragao.png", after: "/reiportugal/madalena.png" },
-        { before: "/marcelonormal.jpg", after: "/reiportugal/marcelo.png" },
-        { before: "/montenegronormal.jpg", after: "/reiportugal/monte.png" },
-        { before: "/yamalnormal.webp", after: "/reiportugal/yamal.png" },
+        { before: "/foto/marcelonormal.jpg", after: "/reiportugal/marcelo.png" },
+        { before: "/foto/montenegronormal.jpg", after: "/reiportugal/monte.png" },
+        { before: "/foto/yamalnormal.webp", after: "/reiportugal/yamal.png" },
         { before: "/foto/badbuny.jpg", after: "/reiportugal/badbunny.png" },
-        { before: "/barbarabandeiranormal.webp", after: "/reiportugal/barbarainha.png" },
+        { before: "/foto/barbarabandeiranormal.webp", after: "/reiportugal/barbarainha.png" },
       ],
     },
     {
@@ -98,12 +103,12 @@ export interface StyleExample {
       name: "Estilo Cartoon",
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.",
       examples: [
-        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiracartoon.png" },
-        { before: "/wbgnormal.jpg", after: "/wbgcartoon.png" },
-        { before: "/ronaldoeuro.webp", after: "/ronaldocartoon.png" },
-        { before: "/pastoralentejonormal.png", after: "/pastorcartoon.png" },
-        { before: "/marcelonormal.jpg", after: "/marcelocartoon.png" },
-        { before: "/camoesnormal.jpg", after: "/camoescartoon.png" },
+        { before: "/foto/barbarabandeiranormal.webp", after: "/cartoon/barbarabandeiracartoon.png" },
+        { before: "/foto/wbgnormal.jpg", after: "/cartoon/wbgcartoon.png" },
+        { before: "/foto/ronaldoeuro.webp", after: "/cartoon/ronaldocartoon.png" },
+        { before: "/foto/pastoralentejonormal.png", after: "/cartoon/pastorcartoon.png" },
+        { before: "/foto/marcelonormal.jpg", after: "/cartoon/marcelocartoon.png" },
+        { before: "/foto/camoesnormal.jpg", after: "/cartoon/camoescartoon.png" },
       ]
     },
     {
@@ -111,11 +116,12 @@ export interface StyleExample {
       name: "Estilo Super-Herói", // Considerar "Banda Desenhada" ou "Estilo BD"
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.", // Descrição igual à de "Cartoon", pode querer diferenciar
       examples: [
-        { before: "/profjamnormal.jpg", after: "/profbd.png" },
-        { before: "/hermannormal.jpeg", after: "/hermanbd.png" },
-        { before: "/casamentonormal.jpg", after: "/casalbd.png" },
-        { before: "/mbappenormal.jpg", after: "/mbappesp.png" },
-        { before: "/foto/badbuny.jpg", after: "/bd/badbunny.png" },
+        { before: "/foto/profjamnormal.jpg", after: "/sp/profbd.png" },
+        { before: "/foto/hermannormal.jpeg", after: "/sp/hermanbd.png" },
+        { before: "/foto/casamentonormal.jpg", after: "/sp/casalbd.png" },
+        { before: "/foto/mbappe.jpg", after: "/sp/mbappe.png" },
+        { before: "/foto/badbuny.jpg", after: "/sp/badbunny.png" },
+        { before: "/foto/barbarabandeiranormal.webp", after: "/sp/barbarabandeirabd.png" },
       ]
     },
 
@@ -124,11 +130,12 @@ export interface StyleExample {
       name: "Estilo Minecraft",
       description: "Transforme suas fotos em desenhos animados coloridos e estilizados.",
       examples: [
-        { before: "/yamallewa.jpg", after: "/yamallewamine.png" },
-        { before: "/barbarabandeiranormal.webp", after: "/barbarabandeiraminecraft.png" },
-        { before: "/wbgnormal.jpg", after: "/wbgminevdd.png" },
-        { before: "/morambappenormal.webp", after: "/morambappemine.png" },
-        { before: "/montenegronormal.jpg", after: "/montemine.png" }
+        { before: "/foto/yamallewa.jpg", after: "/minecraft/yamallewamine.png" },
+        { before: "/foto/barbarabandeiranormal.webp", after: "/minecraft/barbarabandeiraminecraft.png" },
+        { before: "/foto/wbgnormal.jpg", after: "/minecraft/wbgminevdd.png" },
+        { before: "/foto/morambappenormal.webp", after: "/minecraft/moramine1.png" },
+        { before: "/foto/montenegronormal.jpg", after: "/minecraft/montemine.png" },
+        { before: "/foto/caogatonormal.jpg", after: "/minecraft/caogato.png" },
       ],
     },
   ];

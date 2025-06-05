@@ -14,43 +14,43 @@ const GALLERY_ITEMS: GalleryItem[] = [
     id: 1,
     title: "Lego",
     style: "Veja a transformação e o detalhe do lego",
-    before: "barbarabandeiranormal.webp",
-    after: "barbarabandeiralego.png"
+    before: "foto/barbarabandeiranormal.webp",
+    after: "lego/barbarabandeiralego.png"
   },
   {
     id: 2,
     title: "Minecraft",
     style: "Estilo Minecraft para voltar aos tempos de 2011",
-    before: "yamalnormal.webp",
-    after: "yamalminecraft.png"
+    before: "foto/yamalnormal.webp",
+    after: "minecraft/yamalminecraft.png"
   },
   {
     id: 3,
     title: "Ghibli",
     style: "Transformação no estilo popular de Ghibli",
-    before: "saojoaoportonormal.jpg",
-    after: "saojoaoportoghibli.png"
+    before: "foto/saojoaoportonormal.jpg",
+    after: "ghibli/saojoaoportoghibli.png"
   },
   {
     id: 4,
     title: "Simpson",
     style: "Desta vez a Barbara transformou-se numa Simpson!",
-    before: "barbarabandeiranormal.webp",
-    after: "barbarabandeirasimpson.png"
+    before: "foto/barbarabandeiranormal.webp",
+    after: "simpson/barbarabandeirasimpson.png"
   },
   {
     id: 5,
     title: "Cartoon",
     style: "Estilo inspirado nos cartoons americanos da TV",
-    before: "yamalnormal.webp",
-    after: "yamalcartoon.png"
+    before: "foto/yamalnormal.webp",
+    after: "cartoon/yamalcartoon.png"
   },
   {
     id: 6,
     title: "Azulejo Português",
     style: "Estilo inspirado nos portugueses!",
-    before: "saojoaoportonormal.jpg",
-    after: "saojoaoportoazulejo.png"
+    before: "foto/saojoaoportonormal.jpg",
+    after: "azulejo/saojoaoportoazulejo.png"
   },
 ];
 
