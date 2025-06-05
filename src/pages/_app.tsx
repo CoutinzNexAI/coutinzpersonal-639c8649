@@ -87,27 +87,27 @@ function MyApp({ Component, pageProps }: AppProps) {
           `,
         }}
       />
-      <PostHogProvider>
       <TooltipProvider>
         <AuthProvider>
-          <TransformationsModalProvider>
-            <AccountSettingsModalProvider>
-              
-              <FallingElements />
-              
-              <Component {...pageProps} />
+          <PostHogProvider>
+            <TransformationsModalProvider>
+              <AccountSettingsModalProvider>
+                
+                <FallingElements />
+                
+                <Component {...pageProps} />
 
-              <Sonner richColors position="top-right" />
+                <Sonner richColors position="top-right" />
 
-              <TransformationsModal />
-              <AccountSettingsModal />
-              <Analytics /> {/* Adiciona o componente Analytics aqui */}
+                <TransformationsModal />
+                <AccountSettingsModal />
+                <Analytics /> {/* Adiciona o componente Analytics aqui */}
 
-            </AccountSettingsModalProvider>
-          </TransformationsModalProvider>
+              </AccountSettingsModalProvider>
+            </TransformationsModalProvider>
+          </PostHogProvider>
         </AuthProvider>
       </TooltipProvider>
-      </PostHogProvider>
     </QueryClientProvider>
   );
 }
