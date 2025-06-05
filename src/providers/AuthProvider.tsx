@@ -8,6 +8,7 @@ import { User as SupabaseUser, Session } from '@supabase/supabase-js'; // Renome
 import { AuthContext, AuthContextType, UserInfo } from '@/contexts/AuthContext'; // Importa do ficheiro separado
 import { usePathname } from 'next/navigation';
 import { trackEvent, identifyUser, resetUser } from '@/lib/posthog'; // <<< NOVO: Import tracking
+import { posthog } from '@/lib/posthog'; // Import direto do posthog para session recording
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
@@ -44,6 +45,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         avatar_url: user.user_metadata?.avatar_url || '',
       };
       setUserInfo(userData); // Atualiza UI com dados básicos primeiro
+
+      // 🔒 PROTEÇÃO: Parar session recording para conta de teste
+      if (userData.email === 'diogolemecoutinho@gmail.com') {
+        console.log('PostHog: Session recording parado para conta de teste');
+        if (typeof window !== 'undefined') {
+          posthog.stopSessionRecording();
+        }
+      }
 
       // Check if this is a new user by checking if they exist in database
       const { error: checkError } = await supabase
@@ -249,7 +258,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const redirectUrl = window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: redirectUrl }
+        options: { 
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account',
+            hd: '' // Permite qualquer domínio
+          }
+        }
       });
       if (error) throw error;
     } catch (error: unknown) {

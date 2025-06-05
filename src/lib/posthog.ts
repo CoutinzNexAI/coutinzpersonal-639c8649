@@ -1,5 +1,14 @@
 import posthog from 'posthog-js'
 
+// Função para verificar se é conta de teste
+const isTestAccount = (email?: string | null, userId?: string | null): boolean => {
+  const testEmails = ['diogolemecoutinho@gmail.com'];
+  const testUserIds: string[] = []; // Adiciona IDs de usuário de teste aqui se necessário
+  
+  return (email && testEmails.includes(email.toLowerCase())) || 
+         (userId && testUserIds.includes(userId));
+};
+
 if (typeof window !== 'undefined') {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY || '', {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com',
@@ -15,12 +24,30 @@ export { posthog }
 // Helper functions para tracking
 export const trackEvent = (eventName: string, properties?: Record<string, string | number | boolean | null>) => {
   if (typeof window !== 'undefined') {
+    // Verifica se é conta de teste antes de enviar eventos
+    const userEmail = posthog.get_property('$email') || properties?.email || properties?.user_email;
+    const userId = posthog.get_property('$user_id') || properties?.user_id;
+    
+    if (isTestAccount(userEmail as string, userId as string)) {
+      console.log('PostHog: Evento bloqueado para conta de teste:', eventName, properties);
+      return;
+    }
+    
     posthog.capture(eventName, properties)
   }
 }
 
 export const identifyUser = (userId: string, properties?: Record<string, string | number | boolean | null>) => {
   if (typeof window !== 'undefined') {
+    const userEmail = properties?.email;
+    
+    if (isTestAccount(userEmail as string, userId)) {
+      console.log('PostHog: Identificação bloqueada para conta de teste:', userId, properties);
+      // Para contas de teste, vamos parar o session recording se estiver ativo
+      posthog.stopSessionRecording();
+      return;
+    }
+    
     posthog.identify(userId, properties)
   }
 }
@@ -408,4 +435,38 @@ export function initializeScrollTracking() {
 if (typeof window !== 'undefined') {
   // Initialize scroll tracking when the module loads
   document.addEventListener('DOMContentLoaded', initializeScrollTracking);
+}
+
+// 🔧 UTILITIES & DEBUG FUNCTIONS
+
+// Função para verificar se o tracking está ativo para o usuário atual
+export function isTrackingEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+  
+  const userEmail = posthog.get_property('$email');
+  const userId = posthog.get_property('$user_id');
+  
+  return !isTestAccount(userEmail, userId);
+}
+
+// Função para debug - verificar estado atual do PostHog
+export function getPostHogDebugInfo(): Record<string, unknown> {
+  if (typeof window === 'undefined') return {};
+  
+  return {
+    userEmail: posthog.get_property('$email'),
+    userId: posthog.get_property('$user_id'),
+    isTestAccount: isTestAccount(posthog.get_property('$email'), posthog.get_property('$user_id')),
+    trackingEnabled: isTrackingEnabled(),
+    sessionRecordingEnabled: posthog.sessionRecordingStarted(),
+    distinctId: posthog.get_distinct_id()
+  };
+}
+
+// Função para forçar parar session recording (útil para debug)
+export function forceStopSessionRecording(): void {
+  if (typeof window !== 'undefined') {
+    posthog.stopSessionRecording();
+    console.log('PostHog: Session recording forçadamente parado');
+  }
 } 
