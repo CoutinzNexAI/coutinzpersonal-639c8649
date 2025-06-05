@@ -10,6 +10,7 @@ import { usePathname } from 'next/navigation';
 import { trackEvent, identifyUser, resetUser } from '@/lib/posthog'; // <<< NOVO: Import tracking
 import { posthog } from '@/lib/posthog'; // Import direto do posthog para session recording
 
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -54,31 +55,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      // Check if this is a new user by checking if they exist in database
-      const { error: checkError } = await supabase
-        .from('users')
-        .select('id, created_at')
-        .eq('id', userData.id)
-        .single();
+      // Sync user with database via API endpoint (bypasses RLS)
+      try {
+        const response = await fetch('/api/users/sync', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userData }),
+        });
 
-      const isNewUser = checkError && checkError.code === 'PGRST116'; // Not found error
+        const result = await response.json();
 
-      const { error: upsertError } = await supabase
-        .from('users')
-        .upsert({
-          id: userData.id,
-          email: userData.email,
-          full_name: userData.full_name,
-          avatar_url: userData.avatar_url,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'id' });
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to sync user');
+        }
 
-      if (upsertError) {
-        console.error("[syncUserWithDatabase] Error upserting user:", upsertError.message);
-        toast.error("Erro ao sincronizar perfil", { description: upsertError.message });
-      } else {
-        console.log("[syncUserWithDatabase] ✅ User profile synced/updated successfully in DB.");
+        console.log("[syncUserWithDatabase] ✅ User profile synced successfully via API.");
         
+        const isNewUser = result.isNewUser;
+
         if (isNewUser) {
           // 🔥 TRACKING: New user registration (database already gives 2 piccoins by default)
           trackEvent('user_registered', {
@@ -107,6 +103,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: userData.email
           });
         }
+      } catch (syncError) {
+        console.error("[syncUserWithDatabase] Error syncing user via API:", syncError);
+        toast.error("Erro ao sincronizar perfil", { 
+          description: syncError instanceof Error ? syncError.message : 'Erro desconhecido'
+        });
       }
     } catch (error) {
       console.error('[syncUserWithDatabase] Exception:', error);
