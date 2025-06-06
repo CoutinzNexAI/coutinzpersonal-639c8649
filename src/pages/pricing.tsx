@@ -36,7 +36,7 @@ const packages = [
     gradient: 'from-purple-400 to-purple-600'
   },
   { 
-    id: 'creative', 
+    id: 'premium', 
     name: 'CRIATIVO', 
     coins: 20, 
     price: 8, 
@@ -46,7 +46,7 @@ const packages = [
     gradient: 'from-emerald-400 to-emerald-600'
   },
   { 
-    id: 'pro', 
+    id: 'mega', 
     name: 'PRO', 
     coins: 40, 
     price: 12, 

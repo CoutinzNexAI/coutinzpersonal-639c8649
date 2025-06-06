@@ -26,11 +26,11 @@ function getManuallyParsedCookie(cookieString: string, cookieName: string): stri
 // Define your PicCoin packages
 // Ensure prices are in the smallest currency unit (e.g., cents for EUR)
 const PICCOIN_PACKAGES = {
-  starter: { coins: 1, price: 200, name: 'STARTER' }, // 2 EUR = 200 cents
-  popular: { coins: 3, price: 500, name: 'POPULAR' }, // 5 EUR = 500 cents
-  premium: { coins: 7, price: 1000, name: 'PREMIUM' }, // 10 EUR = 1000 cents
-  mega: { coins: 15, price: 2000, name: 'MEGA' },     // 20 EUR = 2000 cents
-  ultimate: { coins: 50, price: 5000, name: 'ULTIMATE' } // 50 EUR = 5000 cents
+  starter: { coins: 5, price: 300, name: 'DESCOBERTA' }, // 3 EUR = 300 cents
+  popular: { coins: 10, price: 500, name: 'POPULAR' }, // 5 EUR = 500 cents
+  premium: { coins: 20, price: 800, name: 'CRIATIVO' }, // 8 EUR = 800 cents
+  mega: { coins: 40, price: 1200, name: 'PRO' }, // 12 EUR = 1200 cents
+  ultimate: { coins: 100, price: 2500, name: 'ULTIMATE' } // 25 EUR = 2500 cents
 };
 
 type PackageId = keyof typeof PICCOIN_PACKAGES;
