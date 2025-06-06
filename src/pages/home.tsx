@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import Header from '@/components/Header';
 import GhibliHero from '@/components/GhibliHero'; // Componente principal com texto e área interativa
@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePicCoins } from '@/hooks/usePicCoins';
 import { useFirstPurchaseCheck } from '@/hooks/useFirstPurchaseCheck';
 import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
-import { useTransformationCount } from '@/hooks/useTransformationCount';
+import { supabase } from '@/lib/supabase/client';
 import { trackLandingPageVisit, trackSessionStart, trackTimeOnPage, trackReturnVisit, trackUserLifecycleStage, trackEvent } from '@/lib/posthog';
 import { trackOrganicTraffic } from '@/lib/seo-tracking';
 import { toast } from '@/components/ui/sonner';
@@ -23,24 +23,81 @@ export default function HomePage() {
   const { balance, purchaseCoins } = usePicCoins();
   const { isFirstPurchase, markFirstPurchaseAsUsed } = useFirstPurchaseCheck();
   const { acceptTerms, rejectTerms, checkTermsAcceptance, loading: termsLoading } = useTermsAcceptance();
-  const { count: transformationCount, isLoading: countLoading } = useTransformationCount();
   
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
 
-  // Mostrar modal quando:
-  // 1. first_purchase_used = false (isFirstPurchase = true)
-  // 2. Fez 2 ou 3 transformações (pode ter ganho 1 na comunidade)
-  useEffect(() => {
-    if (userInfo && !countLoading && isFirstPurchase === true && (transformationCount === 2 || transformationCount === 3)) {
-      // Aguardar um pouco para a página carregar completamente
-      const timer = setTimeout(() => {
-        setIsPromoModalOpen(true);
-      }, 1500); // 1.5 segundos delay
+  // Nova função para verificar se deve mostrar o modal de promoção
+  const checkAndShowPromoModal = useCallback(async () => {
+    if (!userInfo?.id || isFirstPurchase !== true) return;
 
+    try {
+      // Query direta ao Supabase para ter o balance mais atualizado
+      const { data, error } = await supabase
+        .from('users')
+        .select('piccoin_balance, first_purchase_used')
+        .eq('id', userInfo.id)
+        .single();
+
+      if (error) {
+        console.error('[HomePage] Error checking promo eligibility:', error);
+        return; // Se erro, assume que tem coins e não mostra
+      }
+
+      // Mostrar modal apenas se:
+      // 1. Tem 0 PicCoins
+      // 2. Ainda não usou a primeira compra promocional
+      if (data.piccoin_balance === 0 && !data.first_purchase_used) {
+        // Aguardar um pouco para a página carregar completamente
+        setTimeout(() => {
+          setIsPromoModalOpen(true);
+        }, 1500); // 1.5 segundos delay
+      }
+    } catch (error) {
+      console.error('[HomePage] Error in checkAndShowPromoModal:', error);
+      // Em caso de erro, não mostrar o modal
+    }
+  }, [userInfo?.id, isFirstPurchase]);
+
+  // Verificar quando o utilizador está autenticado e é primeira compra
+  useEffect(() => {
+    if (userInfo && !isAuthLoading && isFirstPurchase === true) {
+      checkAndShowPromoModal();
+    }
+  }, [userInfo, isAuthLoading, isFirstPurchase, checkAndShowPromoModal]);
+
+  // Verificar novamente depois de mudanças no balance (refetch)
+  useEffect(() => {
+    if (userInfo && isFirstPurchase === true && balance === 0) {
+      // Pequeno delay para evitar spam
+      const timer = setTimeout(() => {
+        checkAndShowPromoModal();
+      }, 500);
+      
       return () => clearTimeout(timer);
     }
-  }, [userInfo, isFirstPurchase, transformationCount, countLoading]);
+  }, [balance, userInfo, isFirstPurchase, checkAndShowPromoModal]);
+
+  // Event listener para refunds/mudanças de balance que devem triggerar o check
+  useEffect(() => {
+    const handleBalanceUpdate = () => {
+      if (userInfo && isFirstPurchase === true) {
+        // Delay maior para garantir que a BD foi atualizada
+        setTimeout(() => {
+          checkAndShowPromoModal();
+        }, 1000);
+      }
+    };
+
+    // Escutar eventos customizados de refund ou balance update
+    window.addEventListener('piccoins:refund', handleBalanceUpdate);
+    window.addEventListener('piccoins:balance-updated', handleBalanceUpdate);
+
+    return () => {
+      window.removeEventListener('piccoins:refund', handleBalanceUpdate);
+      window.removeEventListener('piccoins:balance-updated', handleBalanceUpdate);
+    };
+  }, [userInfo, isFirstPurchase, checkAndShowPromoModal]);
 
   // 🔥 FUNNEL TRACKING: Landing page visit and session tracking
   useEffect(() => {
@@ -55,7 +112,7 @@ export default function HomePage() {
     trackLandingPageVisit({
       user_id: userInfo?.id || null,
       is_authenticated: !!userInfo,
-      has_transformations: (transformationCount || 0) > 0,
+      has_transformations: (balance || 0) > 0,
       is_eligible_for_promo: isFirstPurchase,
       entry_point: 'homepage'
     });
@@ -81,8 +138,8 @@ export default function HomePage() {
     // Track user lifecycle stage
     if (userInfo) {
       let lifecycleStage = 'new_user';
-      if ((transformationCount || 0) > 0) {
-        if ((transformationCount || 0) > 5) {
+      if ((balance || 0) > 0) {
+        if ((balance || 0) > 5) {
           lifecycleStage = 'power_user';
         } else {
           lifecycleStage = 'active_user';
@@ -90,7 +147,7 @@ export default function HomePage() {
       }
       trackUserLifecycleStage(lifecycleStage, {
         user_id: userInfo.id,
-        transformation_count: transformationCount || 0
+        piccoin_balance: balance || 0
       });
     }
 
@@ -102,7 +159,7 @@ export default function HomePage() {
         session_duration: timeOnPage
       });
     };
-  }, [userInfo?.id, transformationCount, isFirstPurchase]);
+  }, [userInfo?.id, balance, isFirstPurchase]);
 
   // Check terms acceptance after authentication
   useEffect(() => {

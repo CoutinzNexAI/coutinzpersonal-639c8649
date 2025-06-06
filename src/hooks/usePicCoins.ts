@@ -30,6 +30,7 @@ export const usePicCoins = () => {
       }
 
         const data = await response.json();
+        const oldBalance = balance;
         setBalance(data.balance);
 
       // 🔥 TRACKING: Balance check
@@ -38,6 +39,17 @@ export const usePicCoins = () => {
         balance_check_timestamp: new Date().toISOString(),
         balance_fetch_success: true
       });
+
+      // 🎯 EMIT CUSTOM EVENT: Notificar sobre mudança de balance (se mudou)
+      if (oldBalance !== data.balance) {
+        window.dispatchEvent(new CustomEvent('piccoins:balance-updated', {
+          detail: { 
+            oldBalance, 
+            newBalance: data.balance, 
+            userId: userInfo.id 
+          }
+        }));
+      }
 
     } catch (error) {
       console.error('Error fetching balance:', error);
@@ -51,7 +63,7 @@ export const usePicCoins = () => {
       
       setError('Failed to fetch balance');
     }
-  }, [userInfo?.id]);
+  }, [userInfo?.id, balance]);
 
   const spendCoins = useCallback(async (amount: number, jobId?: string) => {
     if (!userInfo?.id) {
@@ -187,6 +199,16 @@ export const usePicCoins = () => {
     });
 
     await fetchBalance();
+
+    // 🎯 EMIT CUSTOM EVENT: Notificar homepage sobre refund
+    window.dispatchEvent(new CustomEvent('piccoins:refund', {
+      detail: { 
+        amount, 
+        newBalance: data.newBalance, 
+        jobId, 
+        reason 
+      }
+    }));
 
     return data;
   }, [userInfo?.id, balance, fetchBalance]);
