@@ -93,6 +93,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onFileChange, className }) =>
           aria-label="Área para carregar imagem. Clique ou arraste um ficheiro."
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleUploadClick(); } }}
         >
+          {/* Aviso sobre qualidade da imagem */}
+          <div className="w-full mb-4 p-3 bg-yellow-100/90 border border-yellow-200 rounded-lg text-center">
+            <p className="text-yellow-700 text-xs sm:text-sm font-medium">
+              💡 Para melhores resultados, use fotos nítidas onde o rosto seja claramente visível
+            </p>
+          </div>
+
           <div className={cn(
             "mb-3 sm:mb-4 rounded-full p-3 sm:p-4 transition-colors",
             uploadError ? "bg-destructive/10" : "bg-ghibli-sky/10"
@@ -108,6 +115,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onFileChange, className }) =>
           <p className="text-xs text-ghibli-stone/80 text-center">
             Formatos: JPG, PNG, WEBP (máx. {formatFileSize(MAX_FILE_SIZE)})
           </p>
+          
           {uploadError && (
             <div className="mt-3 p-2 bg-destructive/10 text-destructive rounded-md text-xs sm:text-sm flex items-center text-center w-full max-w-xs justify-center">
               <AlertTriangle className="h-4 w-4 mr-1.5 flex-shrink-0" />

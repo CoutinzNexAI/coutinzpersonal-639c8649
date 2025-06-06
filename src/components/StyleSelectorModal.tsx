@@ -34,6 +34,7 @@ export interface Style {
   is_active: boolean;
   prompt_template?: string;
   order?: number;
+  single_person_only?: boolean;
 }
 
 interface StyleSelectorModalProps {

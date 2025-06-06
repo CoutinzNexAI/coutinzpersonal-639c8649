@@ -149,6 +149,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
             <div className="w-full flex-grow relative">
               <PaymentState
                 selectedStyleName={selectedStyle?.name || 'Estilo não definido'}
+                selectedStyle={selectedStyle}
                 onPaymentClick={handleStartTransformation}
                 isRedirecting={isLoading || ['checking_balance', 'spending_coins', 'triggering_processing'].includes(processingState)}
                 errorMessage={errorMessage}

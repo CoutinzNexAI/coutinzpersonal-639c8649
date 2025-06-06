@@ -153,7 +153,7 @@ export function useImageProcessing() {
       try {
         const { data, error: fetchError } = await supabase
           .from('styles')
-          .select('*')
+          .select('id, name, description, example_image_url, is_limited_edition, is_active, prompt_template, order, single_person_only')
           .eq('is_active', true)
           .order('order', { ascending: true });
         if (fetchError) throw fetchError;

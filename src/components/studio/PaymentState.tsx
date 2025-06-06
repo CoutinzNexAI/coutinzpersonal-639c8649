@@ -1,17 +1,20 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LoaderCircle, Coins } from 'lucide-react';
+import { LoaderCircle, Coins, CheckCircle, AlertTriangle, User } from 'lucide-react';
+import { Style } from '../StyleSelectorModal';
 
 interface PaymentStateProps {
-  selectedStyleName: string; 
+  selectedStyleName: string;
+  selectedStyle?: Style;
   onPaymentClick: () => void;
   isRedirecting: boolean;
-  errorMessage?: string | null;
-  processingState?: string;
+  errorMessage: string | null;
+  processingState: string;
 }
 
 const PaymentState: React.FC<PaymentStateProps> = ({
   selectedStyleName,
+  selectedStyle,
   onPaymentClick,
   isRedirecting,
   errorMessage,
@@ -45,6 +48,20 @@ const PaymentState: React.FC<PaymentStateProps> = ({
         <h3 className="text-xl font-ghibli text-ghibli-wood mb-2">
           {isRedirecting ? stateText : 'Último Passo!'}
         </h3>
+        
+        {/* Aviso para estilos de uma pessoa só */}
+        {!isRedirecting && selectedStyle?.single_person_only && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <User className="w-4 h-4 text-red-600" />
+              <span className="font-semibold text-red-700 text-sm">Estilo para 1 pessoa</span>
+            </div>
+            <p className="text-red-600 text-xs">
+              Para melhores resultados, certifique-se que a sua foto tem apenas uma pessoa claramente visível
+            </p>
+          </div>
+        )}
+        
         <p className="text-ghibli-earth text-sm">
           {isRedirecting 
             ? `Estilo "${selectedStyleName}" a ser processado...`
