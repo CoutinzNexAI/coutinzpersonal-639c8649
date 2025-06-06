@@ -14,6 +14,7 @@ import { useFirstPurchaseCheck } from '@/hooks/useFirstPurchaseCheck';
 import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
 import { useTransformationCount } from '@/hooks/useTransformationCount';
 import { trackLandingPageVisit, trackSessionStart, trackTimeOnPage, trackReturnVisit, trackUserLifecycleStage, trackEvent } from '@/lib/posthog';
+import { trackOrganicTraffic } from '@/lib/seo-tracking';
 import { toast } from '@/components/ui/sonner';
 
 // Componente funcional para a página inicial (rota '/')
@@ -44,6 +45,11 @@ export default function HomePage() {
   // 🔥 FUNNEL TRACKING: Landing page visit and session tracking
   useEffect(() => {
     const sessionStartTime = Date.now();
+    
+    // Track SEO and organic traffic
+    trackOrganicTraffic({
+      user_id: userInfo?.id || null
+    });
     
     // Track landing page visit with funnel context
     trackLandingPageVisit({
@@ -169,15 +175,17 @@ export default function HomePage() {
       {/* SEO Meta Tags para Portugal/Brasil */}
       <Head>
         <title>Transformar Fotos com AI - Editor Inteligência Artificial | Pictuz</title>
-        <meta name="description" content="Transforme suas fotografias em arte incrível com inteligência artificial. Editor de fotos AI gratuito, fácil de usar. Mais de 20 estilos artísticos disponíveis!" />
-        <meta name="keywords" content="transformar fotos AI, fotografias inteligência artificial, editor fotos AI grátis, arte AI Portugal, converter foto pintura, gerador arte artificial" />
+        <meta name="description" content="🎨 Transforme fotos em arte AI em segundos! Estilo Simpson, Ghibli, LEGO, Azulejo Português e +15 estilos. Gratuito para começar. Resultados profissionais." />
+        <meta name="keywords" content="transformar fotos AI Portugal, editor fotos inteligência artificial, arte AI Simpson Ghibli, converter foto pintura azulejo, gerador arte artificial grátis, AI photo editor português" />
         
         {/* Open Graph para redes sociais */}
         <meta property="og:title" content="Pictuz - Transformar Fotos com Inteligência Artificial" />
-        <meta property="og:description" content="Crie arte incrível a partir das suas fotografias usando AI. Grátis para começar!" />
+        <meta property="og:description" content="🎨 Editor AI que transforma fotos em arte Simpson, Ghibli, LEGO, Azulejo. +15 estilos disponíveis. Grátis para começar!" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://pictuz.com" />
         <meta property="og:image" content="https://pictuz.com/og-image.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta property="og:locale" content="pt_PT" />
         <meta property="og:site_name" content="Pictuz" />
         
@@ -188,50 +196,119 @@ export default function HomePage() {
         <meta name="twitter:image" content="https://pictuz.com/twitter-image.jpg" />
         
         {/* SEO Técnico */}
-        <meta name="robots" content="index, follow" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <meta name="language" content="pt-PT" />
         <meta name="geo.region" content="PT" />
         <meta name="geo.country" content="Portugal" />
+        <meta name="author" content="Pictuz" />
+        <meta name="theme-color" content="#4F6F52" />
         <link rel="canonical" href="https://pictuz.com" />
+        
+        {/* Performance e UX */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <link rel="preload" href="/fonts/ghibli-font.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="//eu.i.posthog.com" />
+        
+        {/* PWA hints */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         
         {/* Schema.org JSON-LD */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebApplication",
-              "name": "Pictuz",
-              "description": "Transforme fotografias em arte com inteligência artificial",
-              "url": "https://pictuz.com",
-              "applicationCategory": "MultimediaApplication",
-              "operatingSystem": "Web Browser",
-              "inLanguage": ["pt-PT", "pt-BR"],
-              "creator": {
-                "@type": "Organization",
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "WebApplication",
                 "name": "Pictuz",
-                "url": "https://pictuz.com"
+                "description": "Transforme fotografias em arte com inteligência artificial",
+                "url": "https://pictuz.com",
+                "applicationCategory": "MultimediaApplication",
+                "operatingSystem": "Web Browser",
+                "inLanguage": ["pt-PT", "pt-BR"],
+                "creator": {
+                  "@type": "Organization",
+                  "name": "Pictuz",
+                  "url": "https://pictuz.com"
+                },
+                "offers": {
+                  "@type": "Offer",
+                  "price": "0",
+                  "priceCurrency": "EUR",
+                  "description": "Créditos gratuitos disponíveis para começar",
+                  "availability": "https://schema.org/InStock"
+                },
+                "featureList": [
+                  "Transformação de fotos com AI",
+                  "Estilo Simpson, Ghibli, LEGO, Azulejo",
+                  "Mais de 20 estilos artísticos",
+                  "Upload fácil e rápido",
+                  "Galeria da comunidade",
+                  "Créditos gratuitos",
+                  "Resultados em segundos",
+                  "Interface em português"
+                ],
+                "applicationSubCategory": "Photo Editing Software",
+                "audience": {
+                  "@type": "Audience",
+                  "geographicArea": ["Portugal", "Brasil"]
+                }
               },
-              "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "EUR",
-                "description": "Créditos gratuitos disponíveis para começar",
-                "availability": "https://schema.org/InStock"
-              },
-              "featureList": [
-                "Transformação de fotos com AI",
-                "Mais de 20 estilos artísticos",
-                "Upload fácil e rápido",
-                "Galeria da comunidade",
-                "Créditos gratuitos"
-              ],
-              "applicationSubCategory": "Photo Editing Software",
-              "audience": {
-                "@type": "Audience",
-                "geographicArea": ["Portugal", "Brasil"]
+              {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "name": "Transformação de Fotos AI",
+                "description": "Serviço de transformação de fotografias em arte usando inteligência artificial",
+                "provider": {
+                  "@type": "Organization",
+                  "name": "Pictuz"
+                },
+                "serviceType": "Photo Editing",
+                "areaServed": ["PT", "BR"],
+                "hasOfferCatalog": {
+                  "@type": "OfferCatalog",
+                  "name": "Estilos de Arte AI",
+                  "itemListElement": [
+                    {
+                      "@type": "Offer",
+                      "itemOffered": {
+                        "@type": "Service",
+                        "name": "Estilo Simpson",
+                        "description": "Transforme fotos no estilo dos Simpsons"
+                      }
+                    },
+                    {
+                      "@type": "Offer", 
+                      "itemOffered": {
+                        "@type": "Service",
+                        "name": "Estilo Ghibli",
+                        "description": "Arte no estilo Studio Ghibli"
+                      }
+                    },
+                    {
+                      "@type": "Offer",
+                      "itemOffered": {
+                        "@type": "Service", 
+                        "name": "Estilo LEGO",
+                        "description": "Transforme em blocos LEGO"
+                      }
+                    },
+                    {
+                      "@type": "Offer",
+                      "itemOffered": {
+                        "@type": "Service",
+                        "name": "Azulejo Português",
+                        "description": "Estilo tradicional azulejo português"
+                      }
+                    }
+                  ]
+                }
               }
-            })
+            ])
           }}
         />
       </Head>

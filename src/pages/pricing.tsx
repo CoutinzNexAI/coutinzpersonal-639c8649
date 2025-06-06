@@ -12,6 +12,7 @@ import Footer from '@/components/Footer';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { Star, Sparkles, Zap, Crown, Infinity as InfinityIcon } from 'lucide-react';
 import { trackEvent } from '@/lib/posthog';
+import Breadcrumb from '@/components/Breadcrumb';
 
 const packages = [
   { 
@@ -245,7 +246,7 @@ export default function PricingPage() {
       {/* SEO Meta Tags para Pricing */}
       <Head>
         <title>Preços PicCoins - Pacotes de Créditos AI Baratos | Pictuz</title>
-        <meta name="description" content="Compre PicCoins para transformar suas fotos com AI. Pacotes a partir de €2. Créditos baratos para editor de fotos inteligência artificial." />
+        <meta name="description" content="💰 Pacotes PicCoins desde €2! Transforme fotos em arte AI: Simpson, Ghibli, LEGO. 10 créditos por €2, 50 por €8. Preços acessíveis Portugal." />
         <meta name="keywords" content="preços AI fotos, comprar créditos AI, pacotes PicCoins, editor fotos AI barato, transformar fotos preço" />
         
         {/* Open Graph */}
@@ -302,8 +303,15 @@ export default function PricingPage() {
       <div className="star-decoration top-40 right-28 text-xl">✨</div>
       <div className="star-decoration bottom-16 left-20 text-2xl">⭐</div>
 
+      {/* Breadcrumb Navigation */}
+      <div className="container mx-auto px-4 pt-24">
+        <Breadcrumb items={[
+          { label: "Preços" }
+        ]} />
+      </div>
+
       {/* Main Content */}
-      <main className="flex-grow pt-24 pb-16">
+      <main className="flex-grow pb-16">
         <div className="container mx-auto px-4">
           {/* Hero Section */}
           <motion.div 

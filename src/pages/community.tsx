@@ -21,6 +21,7 @@ import SubmitToCommunityModal from '@/components/community/SubmitToCommunityModa
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
 import { trackEvent } from '@/lib/posthog';
+import Breadcrumb from '@/components/Breadcrumb';
 
 // =====================================================
 // PICTUZ COMMUNITY - GALERIA PRINCIPAL
@@ -207,7 +208,7 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
     <>
       <Head>
         <title>Galeria da Comunidade AI - Arte Criada por Utilizadores | Pictuz</title>
-        <meta name="description" content="Descobre transformações incríveis de fotos em arte AI criadas pela comunidade Pictuz. Inspira-te, gosta e comenta obras de arte geradas por inteligência artificial." />
+        <meta name="description" content="🖼️ Descobre arte AI incrível: Simpson, Ghibli, LEGO criada pela comunidade. Inspira-te, vota e comenta. +1000 transformações únicas para explorar!" />
         <meta name="keywords" content="galeria AI arte, comunidade fotos AI, transformações utilizadores, arte artificial comunidade, inspiração AI Portugal" />
         
         {/* Open Graph */}
@@ -253,6 +254,13 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
       <div className="min-h-screen bg-ghibli-cream flex flex-col">
         {/* Header */}
         <Header />
+        
+        {/* Breadcrumb Navigation */}
+        <div className="container mx-auto px-4 pt-4">
+          <Breadcrumb items={[
+            { label: "Galeria da Comunidade" }
+          ]} />
+        </div>
 
         {/* Decorative Elements */}
         <div className="leaf-decoration top-20 left-10 text-3xl">🍃</div>

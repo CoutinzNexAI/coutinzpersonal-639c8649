@@ -1,0 +1,32 @@
+# Robots.txt para Pictuz - Editor de Fotos AI
+# https://pictuz.com/robots.txt
+
+User-agent: *
+Allow: /
+
+# Permitir acesso a todas as páginas principais
+Allow: /home
+Allow: /pricing
+Allow: /community
+Allow: /politica-privacidade
+Allow: /termos-servicos
+
+# Bloquear APIs e rotas internas
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+Disallow: /auth/
+
+# Permitir recursos estáticos importantes para SEO
+Allow: /favicon.ico
+Allow: /sitemap.xml
+Allow: /og-image.jpg
+Allow: /twitter-image.jpg
+Allow: /*.css
+Allow: /*.js
+
+# Sitemap location
+Sitemap: https://pictuz.com/sitemap.xml
+
+# Crawl-delay para não sobrecarregar servidor
+Crawl-delay: 1 

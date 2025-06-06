@@ -59,6 +59,11 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Preconnect para performance */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://www.googletagmanager.com" />
+      <link rel="preconnect" href="https://eu.i.posthog.com" />
+      
       {/* Google Analytics Scripts */}
       <Script
         strategy="afterInteractive"

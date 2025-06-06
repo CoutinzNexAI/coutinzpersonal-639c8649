@@ -1,4 +1,5 @@
 import React from 'react';
+import Head from 'next/head';
 import { Button } from '@/components/ui/button'; // Usa o Button para consistência
 import { Home } from 'lucide-react'; // Ícone opcional
 
@@ -13,8 +14,16 @@ const NotFoundPage = () => {
   };
 
   return (
-    // Container principal para centralizar o conteúdo
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-ghibli-cream to-ghibli-sky/30 p-4">
+    <>
+      <Head>
+        <title>Página Não Encontrada - 404 | Pictuz</title>
+        <meta name="description" content="Página não encontrada. Volte para o Pictuz e continue transformando suas fotos em arte com inteligência artificial." />
+        <meta name="robots" content="noindex, nofollow" />
+        <link rel="canonical" href="https://pictuz.com" />
+      </Head>
+      
+      {/* Container principal para centralizar o conteúdo */}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-ghibli-cream to-ghibli-sky/30 p-4">
       <div className="text-center bg-white/80 backdrop-blur-md p-8 md:p-12 rounded-xl shadow-lg max-w-md w-full">
         {/* Título 404 */}
         <h1 className="text-6xl md:text-8xl font-bold text-ghibli-wood mb-4 animate-pulse">404</h1>
@@ -29,6 +38,7 @@ const NotFoundPage = () => {
         </Button>
       </div>
     </div>
+    </>
   );
 };
 

@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <!-- Página Principal -->
   <url>
     <loc>https://pictuz.com</loc>
     <lastmod>2024-12-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://pictuz.com/og-image.jpg</image:loc>
+      <image:title>Pictuz - Transformar Fotos com AI</image:title>
+      <image:caption>Editor de fotos com inteligência artificial - Simpson, Ghibli, LEGO, Azulejo</image:caption>
+    </image:image>
   </url>
   
   <!-- Preços -->
@@ -22,6 +29,11 @@
     <lastmod>2024-12-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pictuz.com/community-og.jpg</image:loc>
+      <image:title>Galeria da Comunidade Pictuz</image:title>
+      <image:caption>Arte AI criada pela comunidade - Simpson, Ghibli, LEGO</image:caption>
+    </image:image>
   </url>
   
   <!-- Política de Privacidade -->
