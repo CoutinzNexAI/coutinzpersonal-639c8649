@@ -156,7 +156,6 @@ export interface StyleExample {
       examples: [
         { before: "/foto/badbuny.jpg", after: "/deusgrego/badbunny.png" },
         { before: "/foto/madalenaaragao.png", after: "/deusgrego/madalena.png" },
-        { before: "/foto/montenegronormal.jpg", after: "/deusgrego/mike.png" },
         { before: "/foto/yamalnormal.webp", after: "/deusgrego/neves.png" },
         { before: "/foto/ronaldoeuro.webp", after: "/deusgrego/ronaldotaca.png" },
       ],

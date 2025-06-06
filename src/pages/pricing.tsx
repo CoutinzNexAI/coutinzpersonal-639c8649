@@ -17,51 +17,51 @@ import { trackEvent } from '@/lib/posthog';
 const packages = [
   { 
     id: 'starter', 
-    name: 'STARTER', 
-    coins: 1, 
-    price: 2, 
+    name: 'DESCOBERTA', 
+    coins: 5, 
+    price: 3, 
     popular: false, 
-    description: 'Perfeito para descobrir a magia',
+    description: 'Primeiros passos mágicos',
     icon: Star,
     gradient: 'from-blue-400 to-blue-600'
   },
   { 
     id: 'popular', 
     name: 'POPULAR', 
-    coins: 3, 
+    coins: 10, 
     price: 5, 
     popular: true, 
-    description: 'Escolha favorita dos criadores',
+    description: 'Escolha da comunidade',
     icon: Sparkles,
     gradient: 'from-purple-400 to-purple-600'
   },
   { 
-    id: 'premium', 
-    name: 'PREMIUM', 
-    coins: 7, 
-    price: 10, 
+    id: 'creative', 
+    name: 'CRIATIVO', 
+    coins: 20, 
+    price: 8, 
     popular: false, 
-    description: 'Valor excepcional para criadores',
+    description: 'Para exploradores digitais',
     icon: Zap,
     gradient: 'from-emerald-400 to-emerald-600'
   },
   { 
-    id: 'mega', 
-    name: 'MEGA', 
-    coins: 15, 
-    price: 20, 
+    id: 'pro', 
+    name: 'PRO', 
+    coins: 40, 
+    price: 12, 
     bestValue: true, 
-    description: 'Máximo poder criativo',
+    description: 'Melhor valor para artistas',
     icon: Crown,
     gradient: 'from-amber-400 to-amber-600'
   },
   { 
     id: 'ultimate', 
     name: 'ULTIMATE', 
-    coins: 50, 
-    price: 50, 
+    coins: 100, 
+    price: 25, 
     popular: false, 
-    description: 'Para verdadeiros artistas digitais',
+    description: 'Poder criativo sem limites',
     icon: InfinityIcon,
     gradient: 'from-rose-400 to-rose-600'
   }
@@ -246,12 +246,12 @@ export default function PricingPage() {
       {/* SEO Meta Tags para Pricing */}
       <Head>
         <title>Preços PicCoins - Pacotes de Créditos AI Baratos | Pictuz</title>
-        <meta name="description" content="💰 Pacotes PicCoins desde €2! Transforme fotos em arte AI: Simpson, Ghibli, LEGO. 10 créditos por €2, 50 por €8. Preços acessíveis Portugal." />
+        <meta name="description" content="💰 Pacotes PicCoins desde €3! Transforme fotos em arte AI: Simpson, Ghibli, LEGO. 5 créditos por €3, 100 por €25. Preços acessíveis Portugal." />
         <meta name="keywords" content="preços AI fotos, comprar créditos AI, pacotes PicCoins, editor fotos AI barato, transformar fotos preço" />
         
         {/* Open Graph */}
         <meta property="og:title" content="Preços PicCoins - Pacotes de Créditos AI | Pictuz" />
-        <meta property="og:description" content="Pacotes de PicCoins a partir de €2. Transforme suas fotos com AI por preços acessíveis." />
+        <meta property="og:description" content="Pacotes de PicCoins a partir de €3. Transforme suas fotos com AI por preços acessíveis." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://pictuz.com/pricing" />
         <meta property="og:image" content="https://pictuz.com/pricing-og.jpg" />
@@ -436,9 +436,9 @@ export default function PricingPage() {
                         <div className="text-sm text-ghibli-earth">
                           €{(pkg.price / pkg.coins).toFixed(2)} por PicCoin
                         </div>
-                        {pkg.coins > 1 && (
+                        {pkg.coins > 5 && (
                           <div className="text-sm text-emerald-600 font-medium">
-                            Poupa {Math.round((1 - (pkg.price / pkg.coins) / 2) * 100)}%
+                            Poupa {Math.round((1 - (pkg.price / pkg.coins) / (3 / 5)) * 100)}%
                           </div>
                         )}
                       </div>
