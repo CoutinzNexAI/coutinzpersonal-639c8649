@@ -73,12 +73,12 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
             transition={{ duration: 0.15 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 w-full max-w-md mx-auto">
+            <div className="bg-ghibli-cream rounded-lg shadow-lg border border-ghibli-sand/30 w-full max-w-md mx-auto">
               
               {/* Header */}
-              <div className="p-6 pb-4 border-b border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">Aceitar Termos</h2>
-                <p className="text-sm text-gray-600">
+              <div className="p-6 pb-4 border-b border-ghibli-sand/20">
+                <h2 className="text-lg font-semibold text-ghibli-wood mb-1">Aceitar Termos</h2>
+                <p className="text-sm text-ghibli-earth">
                   Para continuar, aceite os nossos termos e política de privacidade.
                 </p>
               </div>
@@ -92,17 +92,17 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                       id="terms"
                       checked={hasAcceptedTerms}
                       onCheckedChange={handleTermsChange}
-                      className="h-4 w-4 border-gray-300"
+                      className="h-4 w-4 border-ghibli-stone"
                     />
                   </div>
                   <div className="flex-1">
-                    <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer leading-relaxed">
+                    <label htmlFor="terms" className="text-sm text-ghibli-earth cursor-pointer leading-relaxed">
                       Aceito os{' '}
                       <Link 
                         href="/termos-servicos" 
                         target="_blank"
                         onClick={() => trackLinkClick('terms')}
-                        className="text-blue-600 hover:text-blue-800 underline"
+                        className="text-ghibli-sky hover:text-ghibli-moss underline"
                       >
                         Termos de Serviço
                       </Link>
@@ -111,7 +111,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                         href="/politica-privacidade" 
                         target="_blank"
                         onClick={() => trackLinkClick('privacy')}
-                        className="text-blue-600 hover:text-blue-800 underline"
+                        className="text-ghibli-sky hover:text-ghibli-moss underline"
                       >
                         Política de Privacidade
                       </Link>
@@ -126,18 +126,18 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                   variant="outline"
                   onClick={handleReject}
                   disabled={loading}
-                  className="text-sm text-gray-700 border-gray-300 hover:bg-gray-50"
+                  className="text-sm text-ghibli-earth border-ghibli-sand hover:bg-ghibli-sand/30"
                 >
                   Cancelar
                 </Button>
                 <Button
                   onClick={handleAccept}
                   disabled={!canAccept || loading}
-                  className="text-sm bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 px-6"
+                  className="text-sm bg-ghibli-moss hover:bg-ghibli-moss/90 text-ghibli-cream disabled:opacity-50 px-6"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-3 h-3 border-2 border-ghibli-cream/30 border-t-ghibli-cream rounded-full animate-spin" />
                       A processar...
                     </div>
                   ) : (
