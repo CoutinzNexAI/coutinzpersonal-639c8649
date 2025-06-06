@@ -52,6 +52,8 @@ export default async function handler(
   }
 
   try {
+    console.log(`${endpointName} 🚀 Request received:`, req.query);
+
     // 1. RATE LIMITING (Optional - for anonymous users)
     // =================================================
     try {

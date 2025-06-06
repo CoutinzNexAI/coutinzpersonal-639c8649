@@ -12,7 +12,7 @@ import Footer from '@/components/Footer';
 import LoginPromptModal from '@/components/LoginPromptModal';
 import { Star, Sparkles, Zap, Crown, Infinity as InfinityIcon } from 'lucide-react';
 import { trackEvent } from '@/lib/posthog';
-import Breadcrumb from '@/components/Breadcrumb';
+
 
 const packages = [
   { 
@@ -303,15 +303,10 @@ export default function PricingPage() {
       <div className="star-decoration top-40 right-28 text-xl">✨</div>
       <div className="star-decoration bottom-16 left-20 text-2xl">⭐</div>
 
-      {/* Breadcrumb Navigation */}
-      <div className="container mx-auto px-4 pt-24">
-        <Breadcrumb items={[
-          { label: "Preços" }
-        ]} />
-      </div>
+
 
       {/* Main Content */}
-      <main className="flex-grow pb-16">
+      <main className="flex-grow pb-16 pt-24">
         <div className="container mx-auto px-4">
           {/* Hero Section */}
           <motion.div 

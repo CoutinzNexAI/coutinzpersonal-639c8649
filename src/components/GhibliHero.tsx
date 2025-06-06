@@ -7,7 +7,7 @@ import { useImageProcessing, UseImageProcessingResult } from '@/hooks/useImagePr
 import { motion, Variants } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth'; // <<< NOVO: Importar useAuth
 import { toast } from '@/components/ui/sonner'; // <<< NOVO: Para feedback de autenticação
-import { trackEvent, trackHover, trackFeatureAdoption, trackElementVisible } from '@/lib/posthog'; // <<< NOVO: Import tracking
+import { trackEvent, trackHover, trackFeatureAdoption } from '@/lib/posthog'; // <<< NOVO: Import tracking
 
 import { StyleExamplesModal } from './gallery/StyleExamplsModal'; // Mantido
 import { TransformationStudio } from './TransformationStudio';
@@ -372,7 +372,7 @@ const GhibliHero = () => {
                   onMouseEnter={handleCommunityHover}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white rounded-lg border border-blue-400 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="px-4 py-2.5 bg-gradient-to-r from-ghibli-sky/80 to-ghibli-sky hover:from-ghibli-sky hover:to-ghibli-sky/90 text-white rounded-lg border border-ghibli-sky/60 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   <span className="mr-2">👥</span>
                   <p className="text-sm font-medium">Ver Comunidade</p>
@@ -413,7 +413,7 @@ const GhibliHero = () => {
                 onMouseEnter={handleCommunityHover}
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white rounded-full border border-blue-400 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="px-4 py-2 bg-gradient-to-r from-ghibli-sky/80 to-ghibli-sky hover:from-ghibli-sky hover:to-ghibli-sky/90 text-white rounded-full border border-ghibli-sky/60 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 <span className="mr-2">👥</span>
                 <p className="text-sm font-medium">Ver Comunidade</p>

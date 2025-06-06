@@ -18,10 +18,11 @@ import { useCommunity, CommunityTransformation } from '@/hooks/useCommunity';
 import CommunityTransformationCard from '@/components/community/CommunityTransformationCard';
 import ViewTransformationModal from '@/components/community/ViewTransformationModal';
 import SubmitToCommunityModal from '@/components/community/SubmitToCommunityModal';
+import { PaginationControls } from '@/components/community/PaginationControls';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
 import { trackEvent } from '@/lib/posthog';
-import Breadcrumb from '@/components/Breadcrumb';
+
 
 // =====================================================
 // PICTUZ COMMUNITY - GALERIA PRINCIPAL
@@ -40,7 +41,11 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
     pagination,
     toggleLike,
     fetchTransformations,
-    loadMoreTransformations,
+    goToPage,
+    goToFirstPage,
+    goToLastPage,
+    goToNextPage,
+    goToPreviousPage,
     fetchComments,
     addComment,
     isLiked,
@@ -191,6 +196,27 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
     setIsPublishModalOpen(true);
   };
 
+  // PAGINATION HANDLERS
+  const handleGoToPage = useCallback(async (page: number) => {
+    await goToPage(page, filters);
+  }, [goToPage, filters]);
+
+  const handleGoToFirstPage = useCallback(async () => {
+    await goToFirstPage(filters);
+  }, [goToFirstPage, filters]);
+
+  const handleGoToLastPage = useCallback(async () => {
+    await goToLastPage(filters);
+  }, [goToLastPage, filters]);
+
+  const handleGoToNextPage = useCallback(async () => {
+    await goToNextPage(filters);
+  }, [goToNextPage, filters]);
+
+  const handleGoToPreviousPage = useCallback(async () => {
+    await goToPreviousPage(filters);
+  }, [goToPreviousPage, filters]);
+
   // EFFECTS
   useEffect(() => {
     fetchTransformations(filters, true);
@@ -255,12 +281,7 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
         {/* Header */}
         <Header />
         
-        {/* Breadcrumb Navigation */}
-        <div className="container mx-auto px-4 pt-4">
-          <Breadcrumb items={[
-            { label: "Galeria da Comunidade" }
-          ]} />
-        </div>
+
 
         {/* Decorative Elements */}
         <div className="leaf-decoration top-20 left-10 text-3xl">🍃</div>
@@ -487,15 +508,15 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
               )}
             </AnimatePresence>
 
-            {/* TRANSFORMATIONS GRID - Mobile Optimized */}
+            {/* TRANSFORMATIONS GRID - Updated for 8 items with 4x2 layout */}
             <motion.section 
               variants={containerVariants}
               initial="hidden"
               animate="visible"
             >
               {loadingTransformations && transformations.length === 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                  {[...Array(12)].map((_, i) => (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                  {[...Array(8)].map((_, i) => (
                     <div key={i} className="bg-white/90 rounded-2xl overflow-hidden border border-ghibli-sand/30">
                       {/* Image skeleton */}
                       <div className="aspect-square bg-gradient-to-r from-ghibli-sand/20 via-ghibli-sand/30 to-ghibli-sand/20 animate-pulse" />
@@ -525,44 +546,42 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                  <AnimatePresence>
-                    {transformations.map((transformation) => (
-                      <motion.div
-                        key={transformation.id}
-                        variants={itemVariants}
-                        layout
-                      >
-                        <CommunityTransformationCard
-                          transformation={transformation}
-                          isLiked={isLiked(transformation.id)}
-                          isTogglingLike={isTogglingLike(transformation.id)}
-                          onLike={handleLike}
-                          onView={handleViewTransformation}
-                        />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              )}
+                <>
+                  {/* Grid with 4x2 layout (8 items) */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                    <AnimatePresence>
+                      {transformations.map((transformation) => (
+                        <motion.div
+                          key={transformation.id}
+                          variants={itemVariants}
+                          layout
+                        >
+                          <CommunityTransformationCard
+                            transformation={transformation}
+                            isLiked={isLiked(transformation.id)}
+                            isTogglingLike={isTogglingLike(transformation.id)}
+                            onLike={handleLike}
+                            onView={handleViewTransformation}
+                          />
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
 
-              {/* Load More - Mobile Optimized */}
-              {pagination.has_next_page && !loadingTransformations && (
-                <motion.div 
-                  className="flex justify-center mt-8 sm:mt-12"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <motion.button
-                    onClick={() => loadMoreTransformations(filters)}
-                    className="ghibli-button px-6 py-2.5 sm:px-8 sm:py-3 font-medium text-sm sm:text-base"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Carregar Mais Transformações
-                  </motion.button>
-                </motion.div>
+                  {/* Pagination Controls */}
+                  <PaginationControls
+                    currentPage={pagination.page}
+                    totalPages={pagination.total_pages}
+                    hasNextPage={pagination.has_next_page}
+                    hasPrevPage={pagination.has_prev_page}
+                    isLoading={loadingTransformations}
+                    onGoToPage={handleGoToPage}
+                    onGoToFirstPage={handleGoToFirstPage}
+                    onGoToLastPage={handleGoToLastPage}
+                    onGoToNextPage={handleGoToNextPage}
+                    onGoToPreviousPage={handleGoToPreviousPage}
+                  />
+                </>
               )}
             </motion.section>
           </div>

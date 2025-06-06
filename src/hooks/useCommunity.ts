@@ -54,7 +54,7 @@ export const useCommunity = () => {
   const [comments, setComments] = useState<Record<string, CommunityComment[]>>({});
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
-    limit: 12,
+    limit: 8,
     total: 0,
     total_pages: 0,
     has_next_page: false,
@@ -67,7 +67,7 @@ export const useCommunity = () => {
   const [submittingComment, setSubmittingComment] = useState<Record<string, boolean>>({});
   const [togglingLike, setTogglingLike] = useState<Record<string, boolean>>({});
 
-  // FETCH TRANSFORMAÇÕES
+  // FETCH TRANSFORMAÇÕES - Modified for proper pagination
   const fetchTransformations = useCallback(async (
     filters: Filters,
     reset: boolean = false,
@@ -75,10 +75,10 @@ export const useCommunity = () => {
   ) => {
     try {
       setLoadingTransformations(true);
-      const currentPage = reset ? 1 : (page || pagination.page);
+      const targetPage = page || (reset ? 1 : pagination.page);
       
       const params = new URLSearchParams({
-        page: currentPage.toString(),
+        page: targetPage.toString(),
         limit: pagination.limit.toString(),
         sort: filters.sort,
         timeframe: filters.timeframe
@@ -89,14 +89,21 @@ export const useCommunity = () => {
       }
 
       const response = await fetch(`/api/community/get-public-transformations?${params}`);
-      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      if (!text) {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
 
       if (data.success) {
-        if (reset) {
-          setTransformations(data.transformations);
-        } else {
-          setTransformations(prev => [...prev, ...data.transformations]);
-        }
+        // Always replace transformations for pagination (no more concatenation)
+        setTransformations(data.transformations);
         setPagination(data.pagination);
       } else {
         throw new Error(data.error || 'Failed to fetch transformations');
@@ -107,7 +114,39 @@ export const useCommunity = () => {
     } finally {
       setLoadingTransformations(false);
     }
-  }, [pagination.page, pagination.limit]);
+  }, [pagination.limit]);
+
+  // NEW: Navigate to specific page
+  const goToPage = useCallback(async (page: number, filters: Filters) => {
+    if (page < 1 || page > pagination.total_pages || page === pagination.page) {
+      return;
+    }
+    await fetchTransformations(filters, false, page);
+  }, [fetchTransformations, pagination.page, pagination.total_pages]);
+
+  // NEW: Go to first page
+  const goToFirstPage = useCallback(async (filters: Filters) => {
+    if (pagination.page === 1) return;
+    await fetchTransformations(filters, false, 1);
+  }, [fetchTransformations, pagination.page]);
+
+  // NEW: Go to last page
+  const goToLastPage = useCallback(async (filters: Filters) => {
+    if (pagination.page === pagination.total_pages) return;
+    await fetchTransformations(filters, false, pagination.total_pages);
+  }, [fetchTransformations, pagination.page, pagination.total_pages]);
+
+  // NEW: Go to next page
+  const goToNextPage = useCallback(async (filters: Filters) => {
+    if (!pagination.has_next_page) return;
+    await fetchTransformations(filters, false, pagination.page + 1);
+  }, [fetchTransformations, pagination.has_next_page, pagination.page]);
+
+  // NEW: Go to previous page
+  const goToPreviousPage = useCallback(async (filters: Filters) => {
+    if (!pagination.has_prev_page) return;
+    await fetchTransformations(filters, false, pagination.page - 1);
+  }, [fetchTransformations, pagination.has_prev_page, pagination.page]);
 
   // TOGGLE LIKE COM OPTIMISTIC UPDATE
   const toggleLike = useCallback(async (transformationId: string) => {
@@ -140,7 +179,16 @@ export const useCommunity = () => {
         body: JSON.stringify({ transformation_id: transformationId })
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      if (!text) {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
       
       if (data.success) {
         // Update with real data from server
@@ -192,14 +240,23 @@ export const useCommunity = () => {
       });
 
       const response = await fetch(`/api/community/comments?${params}`);
-      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      if (!text) {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
 
       if (data.success) {
         setComments(prev => ({
           ...prev,
           [transformationId]: page === 1 ? data.comments : [...(prev[transformationId] || []), ...data.comments]
         }));
-        return data;
       } else {
         throw new Error(data.error || 'Failed to fetch comments');
       }
@@ -212,28 +269,38 @@ export const useCommunity = () => {
   }, []);
 
   // ADICIONAR COMENTÁRIO
-  const addComment = useCallback(async (
-    transformationId: string,
-    content: string,
-    parentCommentId?: string
-  ) => {
+  const addComment = useCallback(async (transformationId: string, content: string) => {
     try {
       setSubmittingComment(prev => ({ ...prev, [transformationId]: true }));
 
-      const response = await fetch('/api/community/comments', {
+      const response = await fetch('/api/community/add-comment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transformation_id: transformationId,
-          content: content.trim(),
-          parent_comment_id: parentCommentId
+          content: content.trim()
         })
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      if (!text) {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
 
       if (data.success) {
-        // Update comment count
+        // Update comments locally
+        setComments(prev => ({
+          ...prev,
+          [transformationId]: [data.comment, ...(prev[transformationId] || [])]
+        }));
+
+        // Update comment count in transformations
         setTransformations(prev => 
           prev.map(t => 
             t.id === transformationId 
@@ -242,17 +309,7 @@ export const useCommunity = () => {
           )
         );
 
-        // Add new comment to local state
-        setComments(prev => ({
-          ...prev,
-          [transformationId]: [data.comment, ...(prev[transformationId] || [])]
-        }));
-
-        // Return the API response which includes earned_piccoin and message
-        return {
-          earned_piccoin: data.earned_piccoin,
-          message: data.message
-        };
+        return data.comment;
       } else {
         throw new Error(data.error || 'Failed to add comment');
       }
@@ -264,54 +321,45 @@ export const useCommunity = () => {
     }
   }, []);
 
-  // LOAD MORE TRANSFORMAÇÕES
-  const loadMoreTransformations = useCallback(async (filters: Filters) => {
-    if (pagination.has_next_page && !loadingTransformations) {
-      await fetchTransformations(filters, false, pagination.page + 1);
-    }
-  }, [pagination.has_next_page, pagination.page, loadingTransformations, fetchTransformations]);
+  // HELPER FUNCTIONS
+  const isLiked = useCallback((transformationId: string) => {
+    return likedTransformations.has(transformationId);
+  }, [likedTransformations]);
 
-  // RESET STATE
-  const resetCommunityState = useCallback(() => {
-    setTransformations([]);
-    setLikedTransformations(new Set());
-    setComments({});
-    setPagination({
-      page: 1,
-      limit: 12,
-      total: 0,
-      total_pages: 0,
-      has_next_page: false,
-      has_prev_page: false
-    });
-  }, []);
+  const isTogglingLike = useCallback((transformationId: string) => {
+    return togglingLike[transformationId] || false;
+  }, [togglingLike]);
+
+  const getComments = useCallback((transformationId: string) => {
+    return comments[transformationId] || [];
+  }, [comments]);
+
+  const isLoadingComments = useCallback((transformationId: string) => {
+    return loadingComments[transformationId] || false;
+  }, [loadingComments]);
+
+  const isSubmittingComment = useCallback((transformationId: string) => {
+    return submittingComment[transformationId] || false;
+  }, [submittingComment]);
 
   return {
-    // Estado
     transformations,
-    likedTransformations,
-    comments,
-    pagination,
-    
-    // Loading states
     loadingTransformations,
-    loadingComments,
-    submittingComment,
-    togglingLike,
-    
-    // Ações
-    fetchTransformations,
+    pagination,
     toggleLike,
+    fetchTransformations,
+    // NEW pagination functions
+    goToPage,
+    goToFirstPage,
+    goToLastPage,
+    goToNextPage,
+    goToPreviousPage,
     fetchComments,
     addComment,
-    loadMoreTransformations,
-    resetCommunityState,
-    
-    // Utilitários
-    isLiked: (transformationId: string) => likedTransformations.has(transformationId),
-    isLoadingComments: (transformationId: string) => loadingComments[transformationId] || false,
-    isSubmittingComment: (transformationId: string) => submittingComment[transformationId] || false,
-    isTogglingLike: (transformationId: string) => togglingLike[transformationId] || false,
-    getComments: (transformationId: string) => comments[transformationId] || []
+    isLiked,
+    isTogglingLike,
+    getComments,
+    isLoadingComments,
+    isSubmittingComment
   };
 }; 
