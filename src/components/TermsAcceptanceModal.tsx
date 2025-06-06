@@ -133,11 +133,11 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                 <Button
                   onClick={handleAccept}
                   disabled={!canAccept || loading}
-                  className="text-sm bg-ghibli-moss hover:bg-ghibli-moss/90 text-ghibli-cream disabled:opacity-50 px-6"
+                  className="text-sm bg-black hover:bg-gray-800 text-white disabled:opacity-50 disabled:bg-gray-400 px-6"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 border-2 border-ghibli-cream/30 border-t-ghibli-cream rounded-full animate-spin" />
+                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       A processar...
                     </div>
                   ) : (

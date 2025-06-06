@@ -138,5 +138,28 @@ export interface StyleExample {
         { before: "/foto/caogatonormal.jpg", after: "/minecraft/caogato.png" },
       ],
     },
+    {
+      id: "GTAV",
+      name: "Estilo GTAV",
+      description: "Transforme-se numa personagem do GTA V!",
+      examples: [
+        { before: "/foto/badbuny.jpg", after: "/GTA/badbunny.png" },
+        { before: "/foto/barbarabandeiranormal.webp", after: "/GTA/barbarabandeira.png" },
+        { before: "/foto/travis.webp", after: "/GTA/travis.png" },
+        { before: "/foto/osprimos.jpg", after: "/GTA/primos.png" },
+      ],
+    },
+    {
+      id: "Deus Grego",
+      name: "Estilo Deus Grego",
+      description: "Transforme-se num Deus Grego!",
+      examples: [
+        { before: "/foto/badbuny.jpg", after: "/deusgrego/badbunny.png" },
+        { before: "/foto/madalenaaragao.png", after: "/deusgrego/madalena.png" },
+        { before: "/foto/montenegronormal.jpg", after: "/deusgrego/mike.png" },
+        { before: "/foto/yamalnormal.webp", after: "/deusgrego/neves.png" },
+        { before: "/foto/ronaldoeuro.webp", after: "/deusgrego/ronaldotaca.png" },
+      ],
+    },
   ];
   
