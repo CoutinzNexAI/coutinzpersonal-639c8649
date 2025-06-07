@@ -224,7 +224,7 @@ const GhibliHero = () => {
           viewport={{ once: true, amount: 0.8 }}
         >
           {titleParts.map((part, index) => (
-            <motion.span key={index} variants={titleWordVariants} className="block">
+            <motion.span key={index} variants={titleWordVariants} className="block md:inline-block">
               {part.split("").map((char, charIndex) => (
                 <motion.span
                   key={charIndex}
@@ -240,6 +240,7 @@ const GhibliHero = () => {
                   {char === " " ? "\u00A0" : char}
                 </motion.span>
               ))}
+              {index < titleParts.length - 1 && <span className="hidden md:inline">{"\u00A0"}</span>}
             </motion.span>
           ))}
         </motion.h1>
