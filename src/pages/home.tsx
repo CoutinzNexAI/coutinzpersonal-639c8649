@@ -10,9 +10,8 @@ import { FirstPurchasePromoModal } from '@/components/FirstPurchasePromoModal';
 import { TermsAcceptanceModal } from '@/components/TermsAcceptanceModal';
 import { useAuth } from '@/hooks/useAuth';
 import { usePicCoins } from '@/hooks/usePicCoins';
-import { useFirstPurchaseCheck } from '@/hooks/useFirstPurchaseCheck';
+import { useFirstPurchasePromo } from '@/hooks/useFirstPurchasePromo';
 import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
-import { useTransformationCount } from '@/hooks/useTransformationCount';
 import { trackLandingPageVisit, trackSessionStart, trackTimeOnPage, trackReturnVisit, trackUserLifecycleStage, trackEvent } from '@/lib/posthog';
 import { trackOrganicTraffic } from '@/lib/seo-tracking';
 import { toast } from '@/components/ui/sonner';
@@ -21,26 +20,23 @@ import { toast } from '@/components/ui/sonner';
 export default function HomePage() {
   const { userInfo, isLoading: isAuthLoading } = useAuth();
   const { balance, purchaseCoins } = usePicCoins();
-  const { isFirstPurchase, markFirstPurchaseAsUsed } = useFirstPurchaseCheck();
+  const { shouldShowPromo, markFirstPurchaseAsUsed, dismissPromo } = useFirstPurchasePromo();
   const { acceptTerms, rejectTerms, checkTermsAcceptance, loading: termsLoading } = useTermsAcceptance();
-  const { count: transformationCount, isLoading: countLoading } = useTransformationCount();
   
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
 
-  // Mostrar modal quando:
-  // 1. first_purchase_used = false (isFirstPurchase = true)
-  // 2. Fez 2 ou 3 transformações (pode ter ganho 1 na comunidade)
+  // Nova lógica: mostrar modal automaticamente quando elegível
   useEffect(() => {
-    if (userInfo && !countLoading && isFirstPurchase === true && (transformationCount === 2 || transformationCount === 3)) {
-      // Aguardar um pouco para a página carregar completamente
+    if (shouldShowPromo) {
+      // Pequeno delay para página carregar
       const timer = setTimeout(() => {
         setIsPromoModalOpen(true);
-      }, 1500); // 1.5 segundos delay
+      }, 1000);
 
       return () => clearTimeout(timer);
     }
-  }, [userInfo, isFirstPurchase, transformationCount, countLoading]);
+  }, [shouldShowPromo]);
 
   // 🔥 FUNNEL TRACKING: Landing page visit and session tracking
   useEffect(() => {
@@ -55,8 +51,8 @@ export default function HomePage() {
     trackLandingPageVisit({
       user_id: userInfo?.id || null,
       is_authenticated: !!userInfo,
-      has_transformations: (transformationCount || 0) > 0,
-      is_eligible_for_promo: isFirstPurchase,
+      has_transformations: false, // Simplified - not needed for new promo logic
+      is_eligible_for_promo: shouldShowPromo,
       entry_point: 'homepage'
     });
 
@@ -80,17 +76,10 @@ export default function HomePage() {
 
     // Track user lifecycle stage
     if (userInfo) {
-      let lifecycleStage = 'new_user';
-      if ((transformationCount || 0) > 0) {
-        if ((transformationCount || 0) > 5) {
-          lifecycleStage = 'power_user';
-        } else {
-          lifecycleStage = 'active_user';
-        }
-      }
+      const lifecycleStage = 'new_user'; // Simplified for new promo logic
       trackUserLifecycleStage(lifecycleStage, {
         user_id: userInfo.id,
-        transformation_count: transformationCount || 0
+        transformation_count: 0 // Simplified - not tracking transformations anymore
       });
     }
 
@@ -102,7 +91,7 @@ export default function HomePage() {
         session_duration: timeOnPage
       });
     };
-  }, [userInfo?.id, transformationCount, isFirstPurchase]);
+  }, [userInfo?.id, shouldShowPromo]);
 
   // Check terms acceptance after authentication
   useEffect(() => {
@@ -153,6 +142,7 @@ export default function HomePage() {
 
   const handleClosePromoModal = () => {
     setIsPromoModalOpen(false);
+    dismissPromo(); // Track dismissal e manter rate limiting
   };
 
   const handleTermsAccept = async () => {

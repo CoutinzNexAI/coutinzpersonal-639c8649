@@ -20,10 +20,10 @@ export const FirstPurchasePromoModal: React.FC<FirstPurchasePromoModalProps> = (
 
   // Pacote popular com desconto especial
   const originalPrice = 5;
-  const promoPrice = 2;
+  const promoPrice = 3;
   const savings = originalPrice - promoPrice;
-  const discountPercent = Math.round((savings / originalPrice) * 100);
-  const coins = 3;
+  const discountPercent = 40; // Fixed 40% discount
+  const coins = 10;
 
   // 🔥 TRACKING: Modal opened (trigger from parent)
   React.useEffect(() => {

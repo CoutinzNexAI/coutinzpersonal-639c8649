@@ -45,14 +45,14 @@ const getBasePackageId = (promoPackageId: string): string => {
   return promoPackageId.replace('_first_purchase_promo', '') as keyof typeof PICCOIN_PACKAGES;
 };
 
-// Função para calcular preço promocional (60% de desconto)
+// Função para calcular preço promocional (40% de desconto)
 const getPromoPrice = (basePrice: number, packageId: string): number => {
-  // Pacote popular (5€) fica especificamente 2€ (60% desconto)
+  // Pacote popular (5€) fica especificamente 3€ (40% desconto)
   if (packageId === 'popular') {
-    return 200; // 2 EUR = 200 cents
+    return 300; // 3 EUR = 300 cents
   }
-  // Outros pacotes: 60% desconto
-  return Math.ceil(basePrice * 0.4);
+  // Outros pacotes: 40% desconto
+  return Math.ceil(basePrice * 0.6);
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -134,7 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const selectedPackage = PICCOIN_PACKAGES[basePackageId as PackageId];
     const finalPrice = isPromo ? getPromoPrice(selectedPackage.price, basePackageId) : selectedPackage.price;
-    const packageDisplayName = isPromo ? `${selectedPackage.name} (PRIMEIRA COMPRA -60%)` : selectedPackage.name;
+    const packageDisplayName = isPromo ? `${selectedPackage.name} (PRIMEIRA COMPRA -40%)` : selectedPackage.name;
 
     // 3. Get the application URL from environment variables
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -175,7 +175,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         isFirstPurchasePromo: isPromo.toString(), // Flag para identificar se é promoção
         originalPrice: selectedPackage.price.toString(), // Preço original
         finalPrice: finalPrice.toString(), // Preço final pago
-        discountPercent: isPromo ? '60' : '0' // Percentagem de desconto
+        discountPercent: isPromo ? '40' : '0' // Percentagem de desconto
       },
       // To collect billing addresses if needed for tax or other reasons
       // billing_address_collection: 'required', 

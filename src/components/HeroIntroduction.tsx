@@ -120,7 +120,13 @@ export const HeroIntroduction: React.FC<HeroIntroductionProps> = ({
       <div className="relative z-10 flex flex-col md:flex-row items-center">
         {/* Lado Esquerdo: Texto Introdutório */}
         <div className="w-full md:w-5/12 mb-10 md:mb-0 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-ghibli font-bold text-ghibli-wood leading-tight mb-6">
+          <h1 
+            className="text-4xl md:text-5xl lg:text-6xl font-ghibli font-bold text-ghibli-wood leading-tight mb-6 break-words hyphens-none"
+            style={{ 
+              wordBreak: "keep-all",
+              hyphens: "none"
+            }}
+          >
             Transforme as suas Fotos em Obras de Arte!
           </h1>
           <p className="text-lg text-ghibli-earth mb-8 max-w-md leading-relaxed hidden md:block">

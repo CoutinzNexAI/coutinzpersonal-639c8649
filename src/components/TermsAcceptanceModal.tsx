@@ -92,7 +92,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                       id="terms"
                       checked={hasAcceptedTerms}
                       onCheckedChange={handleTermsChange}
-                      className="h-4 w-4 border-ghibli-stone"
+                      className="h-4 w-4 border-2 border-black data-[state=unchecked]:border-black"
                     />
                   </div>
                   <div className="flex-1">

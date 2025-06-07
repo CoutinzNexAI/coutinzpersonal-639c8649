@@ -200,8 +200,12 @@ const GhibliHero = () => {
           variants={titleContainerVariants}
           initial="hidden"
           animate="visible"
-          className="text-4xl md:text-5xl lg:text-6xl font-ghibli font-bold text-ghibli-wood leading-tight mb-12 md:mb-20 text-center"
-          style={{ textShadow: "0 0 5px transparent" }}
+          className="text-4xl md:text-5xl lg:text-6xl font-ghibli font-bold text-ghibli-wood leading-tight mb-12 md:mb-20 text-center break-words hyphens-none"
+          style={{ 
+            textShadow: "0 0 5px transparent",
+            wordBreak: "keep-all",
+            hyphens: "none"
+          }}
           whileInView={{
             textShadow: [
               "0 0 5px rgba(255, 223, 186, 0)",
