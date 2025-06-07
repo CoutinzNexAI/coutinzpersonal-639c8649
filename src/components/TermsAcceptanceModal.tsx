@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { trackEvent } from '@/lib/posthog';
 import Link from 'next/link';
 
@@ -20,18 +19,9 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
   userEmail,
   loading = false
 }) => {
-  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
-
-  const handleTermsChange = (checked: boolean | 'indeterminate') => {
-    setHasAcceptedTerms(checked === true);
-  };
-
-  const canAccept = hasAcceptedTerms;
-
   const handleAccept = () => {
     trackEvent('terms_acceptance_modal_accepted', {
       user_email: userEmail,
-      accepted_terms: hasAcceptedTerms,
       timestamp: new Date().toISOString()
     });
     onAccept();
@@ -40,7 +30,6 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
   const handleReject = () => {
     trackEvent('terms_acceptance_modal_rejected', {
       user_email: userEmail,
-      accepted_terms: hasAcceptedTerms,
       timestamp: new Date().toISOString()
     });
     onReject();
@@ -85,38 +74,26 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
 
               {/* Content */}
               <div className="p-6">
-                {/* Terms Checkbox */}
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center mt-0.5">
-                    <Checkbox
-                      id="terms"
-                      checked={hasAcceptedTerms}
-                      onCheckedChange={handleTermsChange}
-                      className="h-4 w-4 border-2 border-black data-[state=unchecked]:border-black"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label htmlFor="terms" className="text-sm text-ghibli-earth cursor-pointer leading-relaxed">
-                      Aceito os{' '}
-                      <Link 
-                        href="/termos-servicos" 
-                        target="_blank"
-                        onClick={() => trackLinkClick('terms')}
-                        className="text-ghibli-sky hover:text-ghibli-moss underline"
-                      >
-                        Termos de Serviço
-                      </Link>
-                      {' '}e a{' '}
-                      <Link 
-                        href="/politica-privacidade" 
-                        target="_blank"
-                        onClick={() => trackLinkClick('privacy')}
-                        className="text-ghibli-sky hover:text-ghibli-moss underline"
-                      >
-                        Política de Privacidade
-                      </Link>
-                    </label>
-                  </div>
+                <div className="text-sm text-ghibli-earth leading-relaxed">
+                  Declaro que aceito os{' '}
+                  <Link 
+                    href="/termos-servicos" 
+                    target="_blank"
+                    onClick={() => trackLinkClick('terms')}
+                    className="text-ghibli-sky hover:text-ghibli-moss underline"
+                  >
+                    Termos de Serviço
+                  </Link>
+                  {' '}e a{' '}
+                  <Link 
+                    href="/politica-privacidade" 
+                    target="_blank"
+                    onClick={() => trackLinkClick('privacy')}
+                    className="text-ghibli-sky hover:text-ghibli-moss underline"
+                  >
+                    Política de Privacidade
+                  </Link>
+                  .
                 </div>
               </div>
 
@@ -132,7 +109,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                 </Button>
                 <Button
                   onClick={handleAccept}
-                  disabled={!canAccept || loading}
+                  disabled={loading}
                   className="text-sm bg-black hover:bg-gray-800 text-white disabled:opacity-50 disabled:bg-gray-400 px-6 border-2 border-black"
                 >
                   {loading ? (
