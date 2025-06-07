@@ -195,6 +195,9 @@ export default function HomePage() {
         <meta name="theme-color" content="#4F6F52" />
         <link rel="canonical" href="https://pictuz.com" />
         
+        {/* Google Site Verification */}
+        <meta name="google-site-verification" content="l211-Gj4ukj2TaZmwAxFZ8k90fq4Xjc631PfNAhvppM" />
+        
         {/* Performance e UX */}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="preload" href="/fonts/ghibli-font.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />

@@ -8,10 +8,10 @@ import Image from 'next/image'; // Importa o componente Image do Next.js
 const Footer = () => {
   const year = new Date().getFullYear();
 
-  // Itens de navegação do rodapé - hrefs ATUALIZADOS
+  // Itens de navegação do rodapé - hrefs ATUALIZADOS - Política de Privacidade em destaque para Google OAuth
   const footerLinks = [
+    { name: "Política de Privacidade", href: "/politica-privacidade" }, // PRIMEIRO para máxima visibilidade Google OAuth
     { name: "Termos de Serviço", href: "/termos-servicos" },
-    { name: "Política de Privacidade", href: "/politica-privacidade" },
     { name: "Sobre", href: "/sobre" },
     { name: "Contato", href: "mailto:pictuzinfo@gmail.com?subject=Contato PicTuz - Suporte&body=Olá,%0D%0A%0D%0AEu gostaria de entrar em contato sobre..." },
   ];
@@ -62,7 +62,11 @@ const Footer = () => {
                 // Para links internos usa o componente Link do Next.js
                 <Link key={link.name} href={link.href} legacyBehavior passHref>
                   <motion.a
-                    className="text-sm text-ghibli-earth hover:text-ghibli-moss transition-colors"
+                    className={`text-sm transition-colors ${
+                      link.name === 'Política de Privacidade' 
+                        ? 'text-ghibli-moss hover:text-ghibli-wood font-medium' // Destaque para Google OAuth
+                        : 'text-ghibli-earth hover:text-ghibli-moss'
+                    }`}
                     whileHover={{ scale: 1.05 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 10 }}
                   >
