@@ -20,7 +20,7 @@ import { toast } from '@/components/ui/sonner';
 export default function HomePage() {
   const { userInfo, isLoading: isAuthLoading } = useAuth();
   const { balance, purchaseCoins } = usePicCoins();
-  const { shouldShowPromo, markFirstPurchaseAsUsed, dismissPromo } = useFirstPurchasePromo();
+  const { shouldShowPromo, markFirstPurchaseAsUsed, markPromoShown, dismissPromo } = useFirstPurchasePromo();
   const { acceptTerms, rejectTerms, checkTermsAcceptance, loading: termsLoading } = useTermsAcceptance();
   
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -32,11 +32,12 @@ export default function HomePage() {
       // Pequeno delay para página carregar
       const timer = setTimeout(() => {
         setIsPromoModalOpen(true);
+        markPromoShown(); // Incrementar contagem quando modal efetivamente abre
       }, 1000);
 
       return () => clearTimeout(timer);
     }
-  }, [shouldShowPromo]);
+  }, [shouldShowPromo, markPromoShown]);
 
   // 🔥 FUNNEL TRACKING: Landing page visit and session tracking
   useEffect(() => {

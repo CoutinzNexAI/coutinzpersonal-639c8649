@@ -45,24 +45,23 @@ export const useFirstPurchasePromo = () => {
       const hasZeroBalance = data.piccoin_balance === 0;
       const hasNotPurchased = !data.first_purchase_used;
       const underLimit = shownCount < 5;
-      const notShownToday = lastShown !== today;
+      // Removido limite "1x por dia" - pode aparecer várias vezes no mesmo dia até 5 tentativas
 
       const eligible = hasZeroBalance && hasNotPurchased;
-      const shouldShow = eligible && underLimit && notShownToday;
+      const shouldShow = eligible && underLimit;
 
       setIsEligible(eligible);
 
       if (shouldShow) {
-        // Incrementar contagem e marcar data
-        localStorage.setItem(shownCountKey, (shownCount + 1).toString());
-        localStorage.setItem(lastShownKey, today);
+        // Só incrementar contagem se o modal for efetivamente mostrado
+        // (vamos fazer isso quando o modal abrir, não aqui)
         
         // Track promo eligibility
         trackEvent('first_purchase_promo_eligible', {
           user_id: userInfo.id,
           piccoin_balance: data.piccoin_balance,
-          shown_count: shownCount + 1,
-          days_since_signup: 'unknown' // Would need created_at from user data if needed
+          shown_count: shownCount,
+          current_check: 'eligible'
         });
 
         setShouldShowPromo(true);
@@ -74,8 +73,7 @@ export const useFirstPurchasePromo = () => {
           trackEvent('first_purchase_promo_rate_limited', {
             user_id: userInfo.id,
             shown_count: shownCount,
-            last_shown: lastShown,
-            reason: !underLimit ? 'max_attempts' : 'shown_today'
+            reason: !underLimit ? 'max_attempts' : 'other'
           });
         }
       }
@@ -119,6 +117,24 @@ export const useFirstPurchasePromo = () => {
     }
   };
 
+  // Marcar que o modal foi efetivamente mostrado (incrementar contagem)
+  const markPromoShown = () => {
+    if (!userInfo?.id) return;
+    
+    const shownCountKey = `promo_count_${userInfo.id}`;
+    const lastShownKey = `promo_last_${userInfo.id}`;
+    const today = new Date().toDateString();
+    
+    const currentCount = parseInt(localStorage.getItem(shownCountKey) || '0');
+    localStorage.setItem(shownCountKey, (currentCount + 1).toString());
+    localStorage.setItem(lastShownKey, today);
+    
+    trackEvent('first_purchase_promo_actually_shown', {
+      user_id: userInfo.id,
+      shown_count: currentCount + 1
+    });
+  };
+
   // Fechar modal sem aceitar (manter elegibilidade mas respeitar rate limiting)
   const dismissPromo = () => {
     setShouldShowPromo(false);
@@ -142,6 +158,7 @@ export const useFirstPurchasePromo = () => {
     shouldShowPromo,
     isLoading,
     markFirstPurchaseAsUsed,
+    markPromoShown,
     dismissPromo,
     refreshCheck: checkEligibility
   };

@@ -169,7 +169,7 @@ const GhibliHero = () => {
     setShowStepZeroInStudio(true);
   };
 
-  const titleParts = "Transforme as suas Fotos em Obras de Arte!".split(/(Fotos em Obras)/g);
+  const titleParts = "Transforme as suas\nFotos em Obras\nde Arte!".split(/(\n)/g).filter(part => part !== '\n');
 
   // Add hover tracking to main CTA button
   const handleCTAHover = () => {
@@ -224,7 +224,7 @@ const GhibliHero = () => {
           viewport={{ once: true, amount: 0.8 }}
         >
           {titleParts.map((part, index) => (
-            <motion.span key={index} variants={titleWordVariants} className="inline-block">
+            <motion.span key={index} variants={titleWordVariants} className="block">
               {part.split("").map((char, charIndex) => (
                 <motion.span
                   key={charIndex}
