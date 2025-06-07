@@ -34,7 +34,7 @@ export const processImageApiRateLimiter = redisClient ? new Ratelimit({
 // Limiter para a API de compra
 export const purchaseApiRateLimiter = redisClient ? new Ratelimit({
   redis: redisClient,
-  limiter: Ratelimit.slidingWindow(5, "1 m"),  // Ex: 5 pedidos por minuto
+  limiter: Ratelimit.slidingWindow(10, "1 m"),  // Ex: 10 pedidos por minuto (evita bloquear users legítimos)
   analytics: true,
   prefix: "pictuz_ratelimit_purchase",
 }) : null;
