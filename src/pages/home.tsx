@@ -12,14 +12,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePicCoins } from '@/hooks/usePicCoins';
 import { useFirstPurchasePromo } from '@/hooks/useFirstPurchasePromo';
 import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
-import { trackLandingPageVisit, trackSessionStart, trackTimeOnPage, trackReturnVisit, trackUserLifecycleStage, trackEvent } from '@/lib/posthog';
+import { trackLandingPageVisit, trackSessionStart, trackTimeOnPage, trackReturnVisit, trackUserLifecycleStage } from '@/lib/posthog';
 import { trackOrganicTraffic } from '@/lib/seo-tracking';
 import { toast } from '@/components/ui/sonner';
 
 // Componente funcional para a página inicial (rota '/')
 export default function HomePage() {
   const { userInfo, isLoading: isAuthLoading } = useAuth();
-  const { balance, purchaseCoins } = usePicCoins();
+  const { purchaseCoins } = usePicCoins();
   const { shouldShowPromo, markFirstPurchaseAsUsed, markPromoShown, dismissPromo } = useFirstPurchasePromo();
   const { acceptTerms, rejectTerms, checkTermsAcceptance, loading: termsLoading } = useTermsAcceptance();
   
