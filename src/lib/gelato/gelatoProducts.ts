@@ -15,6 +15,13 @@ export interface GelatoProduct {
   // CAMPOS CRUCIAIS PARA GELATO:
   gelatoPrintDimensionsMm: { width: number; height: number }; // Dimensões reais de impressão Gelato em MM
   gelatoPrintOffsetsMm: { x: number; y: number }; // Deslocamentos reais de impressão Gelato em MM
+  // NOVO: Suporte para ajuste manual da imagem pelo utilizador
+  supportsManualAdjustment?: boolean;
+  adjustmentLimits?: {
+    minZoom: number;
+    maxZoom: number;
+    allowRotation?: boolean;
+  };
 }
 
 export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
@@ -33,7 +40,8 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     category: 'canvas',
     // DIMENSÕES REAIS GELATO (confirmar estes valores no Gelato Dashboard):
     gelatoPrintDimensionsMm: { width: 200, height: 200 }, // Canvas 20x20cm
-    gelatoPrintOffsetsMm: { x: 0, y: 0 } // Full bleed canvas, sem offset
+    gelatoPrintOffsetsMm: { x: 0, y: 0 }, // Full bleed canvas, sem offset
+    supportsManualAdjustment: false // Canvas não precisa de ajuste manual
   },
 
   'canvas_300x400_portrait_slim_wood_frame': {
@@ -49,7 +57,8 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     category: 'canvas',
     // DIMENSÕES REAIS GELATO (confirmar estes valores no Gelato Dashboard):
     gelatoPrintDimensionsMm: { width: 300, height: 400 }, // Canvas 30x40cm
-    gelatoPrintOffsetsMm: { x: 0, y: 0 } // Full bleed canvas, sem offset
+    gelatoPrintOffsetsMm: { x: 0, y: 0 }, // Full bleed canvas, sem offset
+    supportsManualAdjustment: false // Canvas não precisa de ajuste manual
   },
 
   // T-SHIRT PRODUCTS
@@ -66,7 +75,8 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     category: 'apparel',
     // DIMENSÕES REAIS GELATO (confirmar no Dashboard):
     gelatoPrintDimensionsMm: { width: 250, height: 300 }, // Área do peito S
-    gelatoPrintOffsetsMm: { x: 50, y: 50 } // Offset do centro do peito
+    gelatoPrintOffsetsMm: { x: 50, y: 50 }, // Offset do centro do peito
+    supportsManualAdjustment: false // T-shirt usa posicionamento automático
   },
 
   'tshirt_unisex_m_white_crewneck': {
@@ -82,7 +92,8 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     category: 'apparel',
     // DIMENSÕES REAIS GELATO (confirmar no Dashboard):
     gelatoPrintDimensionsMm: { width: 270, height: 320 }, // Área do peito M
-    gelatoPrintOffsetsMm: { x: 45, y: 45 } // Offset do centro do peito
+    gelatoPrintOffsetsMm: { x: 45, y: 45 }, // Offset do centro do peito
+    supportsManualAdjustment: false // T-shirt usa posicionamento automático
   },
 
   // POSTER PRODUCTS
@@ -99,10 +110,11 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     category: 'poster',
     // DIMENSÕES REAIS GELATO:
     gelatoPrintDimensionsMm: { width: 210, height: 297 }, // A4 padrão
-    gelatoPrintOffsetsMm: { x: 0, y: 0 } // Full bleed poster
+    gelatoPrintOffsetsMm: { x: 0, y: 0 }, // Full bleed poster
+    supportsManualAdjustment: false // Poster usa posicionamento automático
   },
 
-  // MUG PRODUCTS
+  // MUG PRODUCTS - SUPORTA AJUSTE MANUAL
   'mug_ceramic_white_330ml': {
     name: 'Caneca Cerâmica (Branca, 330ml)',
     productUid: 'mug_ceramic_white_330ml_product_uid', // A confirmar UID real
@@ -116,10 +128,16 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     category: 'mug',
     // DIMENSÕES REAIS GELATO (confirmar no Dashboard):
     gelatoPrintDimensionsMm: { width: 200, height: 120 }, // Área lateral da caneca
-    gelatoPrintOffsetsMm: { x: 10, y: 10 } // Margem da área de impressão
+    gelatoPrintOffsetsMm: { x: 10, y: 10 }, // Margem da área de impressão
+    supportsManualAdjustment: true, // CANECA PRECISA DE AJUSTE MANUAL
+    adjustmentLimits: {
+      minZoom: 0.8,
+      maxZoom: 2.5,
+      allowRotation: false // Sem rotação para canecas
+    }
   },
 
-  // PHONE CASE PRODUCTS
+  // PHONE CASE PRODUCTS - SUPORTA AJUSTE MANUAL
   'phone_case_iphone_15_clear': {
     name: 'Capa iPhone 15 (Transparente)',
     productUid: 'phone_case_iphone_15_clear_product_uid', // A confirmar UID real
@@ -133,7 +151,13 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     category: 'phone-case',
     // DIMENSÕES REAIS GELATO (confirmar no Dashboard):
     gelatoPrintDimensionsMm: { width: 70, height: 140 }, // Área traseira iPhone 15
-    gelatoPrintOffsetsMm: { x: 5, y: 15 } // Margem das bordas/camera
+    gelatoPrintOffsetsMm: { x: 5, y: 15 }, // Margem das bordas/camera
+    supportsManualAdjustment: true, // CAPA PRECISA DE AJUSTE MANUAL
+    adjustmentLimits: {
+      minZoom: 0.5,
+      maxZoom: 3.0,
+      allowRotation: true // Permitir rotação para capas
+    }
   }
 };
 

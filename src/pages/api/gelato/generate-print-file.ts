@@ -10,12 +10,26 @@ const supabase = createClient(
 import { getGelatoProduct } from '@/lib/gelato/gelatoProducts';
 import { calculatePrintDimensions, generatePrintFileName } from '@/lib/gelato/printFileGenerator';
 
+interface ImageAdjustments {
+  x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
+  y: number;          // Posição Y da imagem dentro da área de impressão (0-1, percentagem)
+  scale: number;      // Zoom (escala, 1 = tamanho original)
+  rotation?: number;  // Rotação em graus (se suportada pelo produto)
+  cropArea?: {        // Área de crop da imagem original
+    x: number;        // X do crop em percentagem da imagem original
+    y: number;        // Y do crop em percentagem da imagem original
+    width: number;    // Largura do crop em percentagem da imagem original
+    height: number;   // Altura do crop em percentagem da imagem original
+  };
+}
+
 interface GeneratePrintFileRequest {
   imageUrl: string;
   productUid: string;
   productId: string; // PicTuz product ID
   userId?: string;
   transformationId?: string;
+  imageAdjustments?: ImageAdjustments; // NOVO: Ajustes manuais da imagem
 }
 
 export default async function handler(
@@ -27,7 +41,7 @@ export default async function handler(
   }
 
   try {
-    const { imageUrl, productUid, productId, userId, transformationId }: GeneratePrintFileRequest = req.body;
+    const { imageUrl, productUid, productId, userId, transformationId, imageAdjustments }: GeneratePrintFileRequest = req.body;
 
     // Validar dados de entrada
     if (!imageUrl || !productUid || !productId) {
@@ -41,6 +55,7 @@ export default async function handler(
     }
 
     console.log(`Generating print file for product: ${product.name}`);
+    console.log('Image adjustments:', imageAdjustments);
 
     // Calcular dimensões de impressão
     const printDimensions = calculatePrintDimensions(product);
@@ -55,14 +70,74 @@ export default async function handler(
 
     const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
 
-    // Processar imagem com Sharp
-    const processedImageBuffer = await sharp(imageBuffer)
+    // Obter metadados da imagem original
+    const originalImageMeta = await sharp(imageBuffer).metadata();
+    const originalWidth = originalImageMeta.width!;
+    const originalHeight = originalImageMeta.height!;
+
+    console.log(`Original image: ${originalWidth}x${originalHeight}px`);
+
+    // Processar imagem com Sharp - APLICAR AJUSTES MANUAIS SE EXISTIREM
+    let processedImage = sharp(imageBuffer);
+
+    if (imageAdjustments && product.supportsManualAdjustment) {
+      console.log('Applying manual adjustments...');
+
+      // 1. ROTAÇÃO (se suportada e especificada)
+      if (imageAdjustments.rotation && product.adjustmentLimits?.allowRotation) {
+        console.log(`Applying rotation: ${imageAdjustments.rotation}°`);
+        processedImage = processedImage.rotate(imageAdjustments.rotation, { background: { r: 255, g: 255, b: 255, alpha: 1 } });
+        
+        // Recalcular dimensões após rotação
+        const rotatedMeta = await processedImage.metadata();
+        console.log(`After rotation: ${rotatedMeta.width}x${rotatedMeta.height}px`);
+      }
+
+      // 2. CROP (se especificado)
+      if (imageAdjustments.cropArea) {
+        const crop = imageAdjustments.cropArea;
+        
+        // Calcular coordenadas de crop em pixels
+        const cropX = Math.round(originalWidth * crop.x);
+        const cropY = Math.round(originalHeight * crop.y);
+        const cropWidth = Math.round(originalWidth * crop.width);
+        const cropHeight = Math.round(originalHeight * crop.height);
+
+        console.log(`Applying crop: ${cropX},${cropY} ${cropWidth}x${cropHeight}px`);
+
+        processedImage = processedImage.extract({
+          left: Math.max(0, cropX),
+          top: Math.max(0, cropY),
+          width: Math.min(cropWidth, originalWidth - cropX),
+          height: Math.min(cropHeight, originalHeight - cropY)
+        });
+      }
+
+      // 3. ESCALA/ZOOM
+      if (imageAdjustments.scale && imageAdjustments.scale !== 1) {
+        console.log(`Applying scale: ${imageAdjustments.scale}x`);
+        
+        const targetWidth = Math.round(printDimensions.widthPx * imageAdjustments.scale);
+        const targetHeight = Math.round(printDimensions.heightPx * imageAdjustments.scale);
+        
+        processedImage = processedImage.resize(targetWidth, targetHeight, {
+          fit: 'cover',
+          position: 'center'
+        });
+      }
+    }
+
+    // Redimensionar para as dimensões finais de impressão
+    const processedImageBuffer = await processedImage
       .resize(printDimensions.widthPx, printDimensions.heightPx, {
-        fit: 'cover',
-        position: 'center'
+        fit: imageAdjustments && product.supportsManualAdjustment ? 'inside' : 'cover',
+        position: 'center',
+        background: { r: 255, g: 255, b: 255, alpha: 1 } // Fundo branco se necessário
       })
       .png() // Converter para PNG para melhor qualidade
       .toBuffer();
+
+    console.log(`Final processed image: ${printDimensions.widthPx}x${printDimensions.heightPx}px`);
 
     // Criar PDF/X-4 com pdf-lib
     const pdfDoc = await PDFDocument.create();
@@ -169,6 +244,7 @@ export default async function handler(
       fileUrl,
       fileName,
       printDimensions,
+      imageAdjustments: imageAdjustments || null,
       metadata: {
         productId,
         productUid,
@@ -177,7 +253,8 @@ export default async function handler(
         bleedMm: product.printFileBleed,
         resolutionDpi: product.printFileResolution,
         fileSizeBytes: pdfBytes.length,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
+        manualAdjustments: !!imageAdjustments
       }
     });
 

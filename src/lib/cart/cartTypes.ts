@@ -13,6 +13,18 @@ export interface CartItem {
     color?: string;
     variant?: string;
   };
+  imageAdjustments?: {
+    x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
+    y: number;          // Posição Y da imagem dentro da área de impressão (0-1, percentagem)
+    scale: number;      // Zoom (escala, 1 = tamanho original)
+    rotation?: number;  // Rotação em graus (se suportada pelo produto)
+    cropArea?: {        // Área de crop da imagem original
+      x: number;        // X do crop em percentagem da imagem original
+      y: number;        // Y do crop em percentagem da imagem original
+      width: number;    // Largura do crop em percentagem da imagem original
+      height: number;   // Altura do crop em percentagem da imagem original
+    };
+  };
   addedAt: Date;
 }
 

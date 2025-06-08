@@ -13,6 +13,19 @@ import { useAuth } from '@/hooks/useAuth';
 import SocialProof from '@/components/gelato/SocialProof';
 import { CartService } from '@/lib/cart/cartService';
 
+interface ImageAdjustments {
+  x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
+  y: number;          // Posição Y da imagem dentro da área de impressão (0-1, percentagem)
+  scale: number;      // Zoom (escala, 1 = tamanho original)
+  rotation?: number;  // Rotação em graus (se suportada pelo produto)
+  cropArea?: {        // Área de crop da imagem original
+    x: number;        // X do crop em percentagem da imagem original
+    y: number;        // Y do crop em percentagem da imagem original
+    width: number;    // Largura do crop em percentagem da imagem original
+    height: number;   // Altura do crop em percentagem da imagem original
+  };
+}
+
 const ProductDetailPage: React.FC = () => {
   const router = useRouter();
   const { productId } = router.query;
@@ -21,6 +34,7 @@ const ProductDetailPage: React.FC = () => {
   const [product, setProduct] = useState<GelatoProduct | null>(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
 
   // Carregar produto baseado no ID
@@ -64,8 +78,9 @@ const ProductDetailPage: React.FC = () => {
     }
   };
 
-  const handlePreviewReady = (url: string) => {
+  const handlePreviewReady = (url: string, adjustments?: ImageAdjustments) => {
     setPreviewUrl(url);
+    setImageAdjustments(adjustments);
   };
 
   const handleAddToCart = async () => {
@@ -82,7 +97,7 @@ const ProductDetailPage: React.FC = () => {
     setLoading(true);
 
     try {
-      // Adicionar item ao carrinho usando o CartService
+      // Adicionar item ao carrinho usando o CartService - AGORA COM AJUSTES DA IMAGEM
       const cartItem = CartService.addToCart({
         productId: productId as string,
         productUid: product.productUid,
@@ -93,7 +108,8 @@ const ProductDetailPage: React.FC = () => {
         quantity: 1,
         customizations: {
           size: `${product.gelatoPrintDimensionsMm.width}×${product.gelatoPrintDimensionsMm.height}mm`
-        }
+        },
+        imageAdjustments: imageAdjustments // NOVO: Passar os ajustes da imagem
       });
 
       // Simular pequeno delay para UX
