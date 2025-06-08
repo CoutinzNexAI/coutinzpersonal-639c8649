@@ -3,9 +3,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShoppingCart } from "lucide-react";
 import UserMenu from "./UserMenu";
 import { PicCoinBalance } from './PicCoinBalance';
+import { CartService } from '@/lib/cart/cartService';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/router';
 
@@ -16,15 +17,17 @@ interface NavLink {
   id: string;
 }
 
-// Simplified navigation - community and pricing links
+// Simplified navigation - community, shop and pricing links
 const navLinks: NavLink[] = [
   { href: "/community", label: "Comunidade", id: "community" },
+  { href: "/shop", label: "Loja", id: "shop" },
   { href: "/pricing", label: "Preço", id: "pricing" },
 ];
 
 const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const router = useRouter();
@@ -42,6 +45,24 @@ const Header: React.FC = () => {
 
   // Close mobile menu
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+
+  // Update cart count
+  const updateCartCount = useCallback(() => {
+    const count = CartService.getCartCount();
+    setCartCount(count);
+  }, []);
+
+  // Listen for cart updates
+  useEffect(() => {
+    updateCartCount(); // Initial load
+    
+    const handleCartUpdate = () => updateCartCount();
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, [updateCartCount]);
 
   // Handle scroll effects
   useEffect(() => {
@@ -195,6 +216,28 @@ const Header: React.FC = () => {
               transition={{ delay: 0.5, duration: 0.5 }}
             >
               <PicCoinBalance />
+              
+              {/* Cart Button */}
+              <Link href="/checkout">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="relative border-ghibli-sand text-ghibli-earth hover:bg-ghibli-sand/30 transition-all duration-300"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  {cartCount > 0 && (
+                    <motion.span
+                      className="absolute -top-2 -right-2 bg-ghibli-moss text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    >
+                      {cartCount > 9 ? '9+' : cartCount}
+                    </motion.span>
+                  )}
+                </Button>
+              </Link>
+              
               <UserMenu />
             </motion.div>
           </nav>
