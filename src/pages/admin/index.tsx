@@ -27,11 +27,18 @@ interface DashboardStats {
   };
 }
 
+interface AdminUser {
+  id: string;
+  email?: string;
+  full_name?: string;
+  role: string;
+}
+
 const AdminDashboard = () => {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
 
   useEffect(() => {
     checkAdminAccess();

@@ -55,7 +55,7 @@ const AdminOrdersPage = () => {
   const [orders, setOrders] = useState<GelatoOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [_currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   
   // Filtros
   const [filters, setFilters] = useState({

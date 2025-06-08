@@ -19,9 +19,27 @@ interface GelatoOrder {
   price: number;
   currency: string;
   quantity: number;
-  customizations: any;
-  shipping_info: any;
-  payment_info: any;
+  customizations: {
+    size?: string;
+    color?: string;
+    material?: string;
+    [key: string]: string | number | boolean | undefined;
+  };
+  shipping_info: {
+    name: string;
+    address: string;
+    city: string;
+    postal_code: string;
+    country: string;
+    phone?: string;
+    [key: string]: string | undefined;
+  };
+  payment_info: {
+    method: string;
+    transaction_id?: string;
+    status: string;
+    [key: string]: string | undefined;
+  };
   status: string;
   gelato_status: string;
   tracking_number?: string;
@@ -34,13 +52,14 @@ interface GelatoOrder {
   };
 }
 
+
+
 const AdminOrderDetailPage = () => {
   const router = useRouter();
   const { id } = router.query;
   const [order, setOrder] = useState<GelatoOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     if (id) {
@@ -70,7 +89,6 @@ const AdminOrderDetailPage = () => {
         return;
       }
 
-      setCurrentUser({ ...user, role: userData.role });
       loadOrderDetails();
 
     } catch (error) {
@@ -322,8 +340,7 @@ const AdminOrderDetailPage = () => {
                   <p className="text-sm font-medium mb-2">Endereço de envio:</p>
                   <div className="text-sm text-gray-600 space-y-1">
                     {order.shipping_info.name && <p>{order.shipping_info.name}</p>}
-                    {order.shipping_info.address1 && <p>{order.shipping_info.address1}</p>}
-                    {order.shipping_info.address2 && <p>{order.shipping_info.address2}</p>}
+                    {order.shipping_info.address && <p>{order.shipping_info.address}</p>}
                     {order.shipping_info.city && order.shipping_info.postal_code && (
                       <p>{order.shipping_info.postal_code} {order.shipping_info.city}</p>
                     )}
