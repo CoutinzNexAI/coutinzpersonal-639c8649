@@ -18,8 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { items, shippingMethod, userId, userName, userEmail, subtotal, shipping, tax, total } = req.body;
 
-    // Gerar referência única para este checkout
+    // Gerar referências únicas para este checkout e pedido
     const checkoutReference = `CHK-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    const orderReference = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
 
     // Validar dados obrigatórios
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -115,6 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         userId,
         userName,
         checkoutReference, // Referência única para recuperar dados depois
+        orderReference, // Referência do pedido para guardar na DB
         orderType: 'gelato',
         subtotal: subtotal.toString(),
         shipping: shipping.toString(),
@@ -172,6 +174,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('Stripe checkout session created:', {
       sessionId: session.id,
       checkoutReference,
+      orderReference,
       userId,
       itemsCount: items.length,
       total

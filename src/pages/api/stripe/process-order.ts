@@ -127,11 +127,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 2. RECUPERAR DADOS DO CHECKOUT TEMPORÁRIO
     const metadata = session.metadata || {};
     const checkoutReference = metadata.checkoutReference;
+    const orderReference = metadata.orderReference;
 
     if (!checkoutReference) {
       return res.status(400).json({ 
         success: false, 
         error: 'Referência do checkout não encontrada nos metadata da sessão' 
+      });
+    }
+
+    if (!orderReference) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Referência do pedido não encontrada nos metadata da sessão' 
       });
     }
 
@@ -159,6 +167,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('✅ Dados do checkout recuperados:', {
       cartItemsCount: cartItems.length,
       checkoutReference,
+      orderReference,
       total: financialData.total
     });
 
@@ -215,47 +224,91 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     // 4. PREPARAR DADOS DO PEDIDO PARA DB
-    const orderReference = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    // O orderReference agora vem dos metadata do Stripe
     
+    // Extrair dados do primeiro item do carrinho (para campos obrigatórios)
+    const firstItem = cartItems[0];
+    if (!firstItem) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Nenhum item encontrado no carrinho' 
+      });
+    }
+
+    // Garantir que temos transformation_id (obrigatório na DB)
+    const transformationId = firstItem.userImageId;
+    if (!transformationId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'ID da transformação não encontrado no primeiro item do carrinho' 
+      });
+    }
+
     const orderData = {
+      // ✅ CAMPOS OBRIGATÓRIOS DA TABELA
       user_id: userId || metadata.userId,
-      stripe_session_id: sessionId,
-      stripe_payment_intent_id: typeof session.payment_intent === 'string' 
-        ? session.payment_intent 
-        : session.payment_intent?.id || null,
-      order_reference: orderReference,
+      transformation_id: transformationId, // ✅ OBRIGATÓRIO: UUID da transformação
+      product_id: firstItem.productId, // ✅ OBRIGATÓRIO: ID do produto
+      product_name: firstItem.productName, // ✅ OBRIGATÓRIO: Nome do produto
+      product_category: firstItem.productCategory, // ✅ OBRIGATÓRIO: Categoria
+      user_image_url: firstItem.userImageUrl, // ✅ OBRIGATÓRIO: URL da imagem
+      price: firstItem.price, // ✅ OBRIGATÓRIO: Preço por item
       
-      // CAMPOS CRÍTICOS
+      // ✅ CAMPOS COM DEFAULTS
+      currency: 'EUR',
+      quantity: firstItem.quantity || 1,
+      
+      // ✅ STRIPE E GELATO IDS
+      gelato_order_id: null, // Será preenchido após chamada Gelato
+      order_reference: orderReference, // ✅ Referência interna dos metadata
+      
+      // ✅ CAMPOS CRÍTICOS DO CLIENTE
       customer_email: customerEmail,
       customer_name: customerName,
       customer_phone: customerPhone,
       
-      // Dados financeiros dos dados temporários
-      subtotal: financialData.subtotal,
-      shipping_cost: financialData.shipping,
-      tax_amount: financialData.tax,
-      total_amount: financialData.total,
-      currency: 'EUR',
+      // ✅ DADOS FINANCEIROS - NOMES CORRECTOS DAS COLUNAS
+      total_amount: financialData.total, // ✅ CORRIGIDO: era total_amount não total_amount
+      subtotal_amount: financialData.subtotal, // ✅ CORRIGIDO: era subtotal não subtotal_amount  
+      shipping_amount: financialData.shipping, // ✅ CORRIGIDO: era shipping_cost não shipping_amount
+      tax_amount: financialData.tax, // ✅ CORRECTO: tax_amount
       
-      // Dados de envio em formato JSON
-      shipping_info: JSON.stringify(gelatoShippingAddress),
-      shipping_method_uid: shippingMethodData.uid,
-      shipping_method_name: shippingMethodData.name,
+      // ✅ DADOS JSONB
+      customizations: firstItem.customizations || null,
+      shipping_info: gelatoShippingAddress, // ✅ OBRIGATÓRIO: JSONB do endereço
+      payment_info: { // JSONB com info do pagamento
+        stripe_session_id: sessionId,
+        stripe_payment_intent_id: typeof session.payment_intent === 'string' 
+          ? session.payment_intent 
+          : session.payment_intent?.id || null,
+        customer_details: session.customer_details,
+        amount_total: session.amount_total,
+        currency: session.currency
+      },
+      items: cartItems, // Array JSONB completo dos itens do carrinho
       
-      // Items do pedido - dados completos do carrinho
-      items: cartItems,
-      
-      // Status inicial - pagamento processado, DB salvo, aguardando Gelato
+      // ✅ STATUS INICIAL
       status: 'payment_processed_db_saved',
-      payment_status: 'completed',
-      gelato_status: null, // Ainda não enviado
-      gelato_order_id: null,
+      gelato_status: null, // Ainda não enviado para Gelato
       
+      // ✅ CAMPOS DE TRACKING (nulls por agora)
+      tracking_number: null,
+      tracking_url: null,
+      
+      // ✅ TIMESTAMPS (serão auto-preenchidos mas podemos especificar)
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
-    console.log('💾 Salvando pedido na base de dados...');
+    console.log('💾 Salvando pedido na base de dados com schema completo...');
+    console.log('📋 Dados do pedido preparados:', {
+      user_id: orderData.user_id,
+      transformation_id: orderData.transformation_id,
+      product_id: orderData.product_id,
+      order_reference: orderData.order_reference,
+      total_amount: orderData.total_amount,
+      cartItemsCount: cartItems.length
+    });
 
     // 5. INSERÇÃO CRÍTICA NA BASE DE DADOS (DEVE SER BEM-SUCEDIDA)
     const { data: savedOrder, error: dbError } = await supabaseAdmin
@@ -311,7 +364,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         currency: savedOrder.currency,
         items: gelatoItems,
         shippingAddress: gelatoShippingAddress,
-        shipmentMethodUid: savedOrder.shipping_method_uid
+        shipmentMethodUid: shippingMethodData.uid // Usar dados do checkout temporário
       };
 
       console.log('📤 Payload Gelato:', JSON.stringify(gelatoPayload, null, 2));
@@ -363,8 +416,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .from('gelato_orders')
         .update({
           gelato_status: 'failed_gelato_api',
-          status: 'failed',
-          error_message: errorMessage,
+          status: 'cancelled', // Usar status válido do constraint check
           updated_at: new Date().toISOString()
         })
         .eq('id', savedOrder.id);
