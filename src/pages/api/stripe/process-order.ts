@@ -84,6 +84,19 @@ interface CheckoutTempData {
   };
 }
 
+// Função utilitária para extrair transformation_id do URL de output
+function extractTransformationIdFromUrl(outputUrl: string): string | null {
+  try {
+    // Padrão: /public/{user_id}/{transformation_id}/result_*.png
+    const urlPattern = /\/public\/[^/]+\/([^/]+)\/result_/;
+    const match = outputUrl.match(urlPattern);
+    return match ? match[1] : null;
+  } catch (error) {
+    console.error('Erro ao extrair transformation_id do URL:', error);
+    return null;
+  }
+}
+
 // Estender a interface Session do Stripe
 interface ExtendedSession extends Stripe.Checkout.Session {
   shipping_details?: ShippingDetails;
@@ -236,7 +249,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Garantir que temos transformation_id (obrigatório na DB)
-    const transformationId = firstItem.userImageId;
+    const transformationId = firstItem.userImageId || extractTransformationIdFromUrl(firstItem.userImageUrl);
     if (!transformationId) {
       return res.status(400).json({ 
         success: false, 

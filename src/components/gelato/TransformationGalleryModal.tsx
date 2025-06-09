@@ -18,7 +18,7 @@ interface Transformation {
 interface TransformationGalleryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectImage: (imageUrl: string) => void;
+  onSelectImage: (imageUrl: string, imageId: string) => void;
 }
 
 export default function TransformationGalleryModal({ 
@@ -120,9 +120,9 @@ export default function TransformationGalleryModal({
     }
   };
 
-  const handleSelectImage = (imageUrl: string) => {
-    console.log('TransformationGalleryModal: Image selected:', imageUrl);
-    onSelectImage(imageUrl);
+  const handleSelectImage = (transformation: Transformation) => {
+    console.log('TransformationGalleryModal: Transformation selected:', transformation);
+    onSelectImage(transformation.output_url, transformation.id);
     onClose();
   };
 
@@ -170,7 +170,7 @@ export default function TransformationGalleryModal({
                   <div
                     key={transformation.id}
                     className="relative group cursor-pointer transform transition-all duration-200 hover:scale-105"
-                    onClick={() => handleSelectImage(transformation.output_url)}
+                    onClick={() => handleSelectImage(transformation)}
                   >
                     <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-teal-500 transition-colors">
                       <Image

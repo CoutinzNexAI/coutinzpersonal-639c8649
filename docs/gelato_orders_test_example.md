@@ -17,6 +17,38 @@
 - `quantity` (INTEGER) - Default: 1
 - Todos os outros campos são nullable
 
+## ✅ **Correção do userImageId**
+
+### **Problema Identificado:**
+Cart items estavam sem o campo `userImageId`, causando falha na inserção na DB porque `transformation_id` é obrigatório.
+
+### **Solução Implementada:**
+
+1. **Frontend (`[productId].tsx`)**:
+   - ✅ Estado para `selectedImageId`
+   - ✅ API `/api/transformations/latest` já retorna `id` + `outputUrl`
+   - ✅ `TransformationGalleryModal` agora passa `(imageUrl, imageId)`
+   - ✅ `handleAddToCart` inclui `userImageId` no cart item
+
+2. **Backend (`process-order.ts`)**:
+   - ✅ Função fallback `extractTransformationIdFromUrl()` 
+   - ✅ Prioridade: `firstItem.userImageId || extractFromUrl(firstItem.userImageUrl)`
+
+### **Extração de ID do URL (Fallback)**:
+```typescript
+function extractTransformationIdFromUrl(outputUrl: string): string | null {
+  // Padrão: /public/{user_id}/{transformation_id}/result_*.png
+  const urlPattern = /\/public\/[^/]+\/([^/]+)\/result_/;
+  const match = outputUrl.match(urlPattern);
+  return match ? match[1] : null;
+}
+```
+
+**Exemplo URL**: 
+`https://...supabase.co/storage/v1/object/public/results/public/bbcdea4a-cde4-4109-bf1c-b8901ece9eb2/6e1dec78-aae4-4949-afcc-6b5037af7b13/result_1749464626711.png`
+
+**ID Extraído**: `6e1dec78-aae4-4949-afcc-6b5037af7b13`
+
 ## Exemplo de Registo Completo
 
 ```json

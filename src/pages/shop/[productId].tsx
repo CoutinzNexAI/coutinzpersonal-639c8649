@@ -34,6 +34,7 @@ const ProductDetailPage: React.FC = () => {
   
   const [product, setProduct] = useState<GelatoProduct | null>(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
@@ -65,8 +66,9 @@ const ProductDetailPage: React.FC = () => {
       
       if (response.ok) {
         const data = await response.json();
-        if (data.outputUrl) {
+        if (data.outputUrl && data.id) {
           setSelectedImageUrl(data.outputUrl);
+          setSelectedImageId(data.id);
         }
       }
     } catch (error) {
@@ -93,6 +95,11 @@ const ProductDetailPage: React.FC = () => {
       return;
     }
 
+    if (!selectedImageId) {
+      toast.error('ID da transformação não encontrado. Selecione a imagem novamente.');
+      return;
+    }
+
     if (!userInfo) {
       toast.error('Faça login para adicionar ao carrinho');
       return;
@@ -101,13 +108,14 @@ const ProductDetailPage: React.FC = () => {
     setLoading(true);
 
     try {
-      // Adicionar item ao carrinho usando o CartService - AGORA COM AJUSTES DA IMAGEM
+      // Adicionar item ao carrinho usando o CartService - AGORA COM AJUSTES DA IMAGEM E ID
       const cartItem = CartService.addToCart({
         productId: productId as string,
         productUid: product.productUid,
         productName: product.name,
         productCategory: product.category,
         userImageUrl: selectedImageUrl,
+        userImageId: selectedImageId, // ✅ CRITICAL: Passar o ID da transformação
         price: product.price || 29.99,
         quantity: 1,
         customizations: {
@@ -148,8 +156,9 @@ const ProductDetailPage: React.FC = () => {
     }
   };
 
-  const handleSelectImageFromGallery = (imageUrl: string) => {
+  const handleSelectImageFromGallery = (imageUrl: string, imageId: string) => {
     setSelectedImageUrl(imageUrl);
+    setSelectedImageId(imageId); // ✅ NOVO: Guardar o ID da transformação selecionada
     setIsGalleryModalOpen(false);
     toast.success('Arte selecionada!', {
       description: 'A sua transformação foi aplicada ao produto'
