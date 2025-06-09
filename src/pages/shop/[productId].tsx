@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -8,6 +8,7 @@ import { toast } from '@/components/ui/sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCanvas from '@/components/gelato/ProductCanvas';
+import TransformationGalleryModal from '@/components/gelato/TransformationGalleryModal';
 import { getGelatoProduct, GelatoProduct } from '@/lib/gelato/gelatoProducts';
 import { useAuth } from '@/hooks/useAuth';
 import SocialProof from '@/components/gelato/SocialProof';
@@ -29,13 +30,14 @@ interface ImageAdjustments {
 const ProductDetailPage: React.FC = () => {
   const router = useRouter();
   const { productId } = router.query;
-  const { userInfo } = useAuth();
+  const { userInfo, session } = useAuth();
   
   const [product, setProduct] = useState<GelatoProduct | null>(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
+  const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
 
   // Carregar produto baseado no ID
   useEffect(() => {
@@ -50,21 +52,17 @@ const ProductDetailPage: React.FC = () => {
     }
   }, [productId, router]);
 
-  // Obter imagem transformada do utilizador (se estiver autenticado)
-  useEffect(() => {
-    if (userInfo && product) {
-      // Aqui podemos buscar a última transformação do utilizador
-      // Por agora, vamos usar uma imagem placeholder
-      fetchUserLatestTransformation();
-    }
-  }, [userInfo, product]);
-
-  const fetchUserLatestTransformation = async () => {
-    if (!userInfo?.id) return;
+  const fetchUserLatestTransformation = useCallback(async () => {
+    if (!userInfo?.id || !session?.access_token) return;
 
     try {
       // Buscar a última transformação do utilizador
-      const response = await fetch('/api/transformations/latest');
+      const response = await fetch('/api/transformations/latest', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+      
       if (response.ok) {
         const data = await response.json();
         if (data.outputUrl) {
@@ -73,10 +71,16 @@ const ProductDetailPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Erro ao buscar última transformação:', error);
-      // Usar imagem de exemplo para demonstração
-      setSelectedImageUrl('/simpson/mike-simpsons-1.jpeg');
+      // Não definir imagem padrão - deixar o utilizador escolher
     }
-  };
+  }, [userInfo?.id, session?.access_token]);
+
+  // Obter imagem transformada do utilizador (se estiver autenticado)
+  useEffect(() => {
+    if (userInfo && product && session?.access_token) {
+      fetchUserLatestTransformation();
+    }
+  }, [userInfo, product, session?.access_token, fetchUserLatestTransformation]);
 
   const handlePreviewReady = (url: string, adjustments?: ImageAdjustments) => {
     setPreviewUrl(url);
@@ -135,8 +139,21 @@ const ProductDetailPage: React.FC = () => {
   };
 
   const handleSelectDifferentImage = () => {
-    // Redirecionar para o studio para criar nova transformação
-    router.push('/');
+    if (userInfo) {
+      // Se o utilizador está autenticado, abrir modal da galeria
+      setIsGalleryModalOpen(true);
+    } else {
+      // Se não está autenticado, redirecionar para login/home
+      router.push('/');
+    }
+  };
+
+  const handleSelectImageFromGallery = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
+    setIsGalleryModalOpen(false);
+    toast.success('Arte selecionada!', {
+      description: 'A sua transformação foi aplicada ao produto'
+    });
   };
 
   if (!product) {
@@ -189,28 +206,41 @@ const ProductDetailPage: React.FC = () => {
                   className="w-full"
                 />
 
-                {/* Botão para Selecionar Imagem Diferente */}
+                {/* Botão para Selecionar Imagem */}
                 {!selectedImageUrl ? (
                   <div className="mt-6 text-center">
                     <p className="text-ghibli-earth mb-4">
-                      Precisa de uma transformação AI para personalizar este produto
+                      {userInfo 
+                        ? 'Escolha uma das suas transformações AI' 
+                        : 'Faça login para personalizar este produto'}
                     </p>
                     <Button 
                       onClick={handleSelectDifferentImage}
                       className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white"
                     >
-                      🎨 Criar Transformação AI
+                      {userInfo ? '🎨 Escolher Arte AI' : '🎨 Criar Transformação AI'}
                     </Button>
                   </div>
                 ) : (
-                  <div className="mt-6 text-center">
-                    <Button 
-                      variant="outline"
-                      onClick={handleSelectDifferentImage}
-                      className="border-ghibli-sand text-ghibli-earth hover:bg-ghibli-sand/30"
-                    >
-                      🔄 Usar Imagem Diferente
-                    </Button>
+                  <div className="mt-6 space-y-3">
+                    {/* Indicador de Arte Selecionada */}
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-center gap-2 text-sm text-green-800">
+                        <span>✅</span>
+                        <span>Arte AI aplicada com sucesso!</span>
+                      </div>
+                    </div>
+                    
+                    {/* Botão para trocar */}
+                    <div className="text-center">
+                      <Button 
+                        variant="outline"
+                        onClick={handleSelectDifferentImage}
+                        className="border-ghibli-sand text-ghibli-earth hover:bg-ghibli-sand/30"
+                      >
+                        🔄 Escolher Arte Diferente
+                      </Button>
+                    </div>
                   </div>
                 )}
               </motion.div>
@@ -341,6 +371,13 @@ const ProductDetailPage: React.FC = () => {
         </main>
         
         <Footer />
+
+        {/* Modal da Galeria de Transformações */}
+        <TransformationGalleryModal
+          isOpen={isGalleryModalOpen}
+          onClose={() => setIsGalleryModalOpen(false)}
+          onSelectImage={handleSelectImageFromGallery}
+        />
       </div>
     </>
   );
