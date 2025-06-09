@@ -360,12 +360,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       // Construir payload para Gelato baseado nos cart items completos
       const gelatoItems = cartItems.map((item: CartItem) => ({
+        itemReferenceId: item.id, // ✅ ADICIONADO: ID único obrigatório para cada item
         productUid: item.productUid || 'canvas_200x200-mm-8x8-inch_canvas_wood-fsc-slim_4-0_ver', // Usar o productUid real do cart
         quantity: item.quantity || 1,
         files: [
           {
             type: 'default',
-            url: 'https://example.com/print-file.pdf' // TODO: gerar print file real baseado na transformação do item.userImageUrl
+            url: item.userImageUrl // ✅ CORRIGIDO: Usar a imagem real em vez do placeholder
           }
         ]
       }));
