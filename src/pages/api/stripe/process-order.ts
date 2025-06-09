@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Recuperar sessão do Stripe com todos os detalhes necessários
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items', 'customer', 'payment_intent', 'shipping_details']
+      expand: ['line_items', 'customer', 'payment_intent']
     });
 
     if (!session) {

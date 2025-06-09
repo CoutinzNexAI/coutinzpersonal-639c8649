@@ -177,15 +177,27 @@ const CheckoutPage: React.FC = () => {
 
   if (!userInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-teal-100 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Acesso necessário</h2>
-          <p className="text-gray-600 mb-6">Precisa de fazer login para aceder ao checkout.</p>
-          <Link href="/login">
-            <Button className="bg-emerald-600 hover:bg-emerald-700">
-              Fazer Login
-            </Button>
-          </Link>
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-ghibli-paper to-ghibli-sky relative overflow-hidden">
+        {/* Elementos decorativos */}
+        <div className="absolute top-20 left-10 text-3xl animate-leaf-float">🍃</div>
+        <div className="absolute bottom-28 right-16 text-2xl animate-leaf-float">🍂</div>
+        <div className="absolute top-40 right-28 text-xl animate-star-twinkle">✨</div>
+        
+        <div className="flex items-center justify-center min-h-screen">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-ghibli-moss/20"
+          >
+            <div className="text-6xl mb-4">🌸</div>
+            <h2 className="text-2xl font-ghibli text-ghibli-wood mb-4">Acesso necessário</h2>
+            <p className="text-ghibli-earth mb-6">Precisa de fazer login para aceder ao checkout.</p>
+            <Link href="/login">
+              <Button className="bg-ghibli-moss hover:bg-ghibli-moss-light text-white px-8 py-3 rounded-xl">
+                Fazer Login
+              </Button>
+            </Link>
+          </motion.div>
         </div>
       </div>
     );
@@ -193,10 +205,20 @@ const CheckoutPage: React.FC = () => {
 
   if (loadingUserData) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-teal-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">A carregar dados do perfil...</p>
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-ghibli-paper to-ghibli-sky relative overflow-hidden">
+        {/* Elementos decorativos */}
+        <div className="absolute top-20 left-10 text-3xl animate-leaf-float">🍃</div>
+        <div className="absolute bottom-28 right-16 text-2xl animate-leaf-float">🍂</div>
+        
+        <div className="flex items-center justify-center min-h-screen">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-ghibli-moss/20"
+          >
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-ghibli-moss/20 border-t-ghibli-moss mx-auto mb-4"></div>
+            <p className="text-ghibli-earth">A carregar dados do perfil...</p>
+          </motion.div>
         </div>
       </div>
     );
@@ -204,17 +226,32 @@ const CheckoutPage: React.FC = () => {
 
   if (!cartSummary) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-teal-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">A carregar carrinho...</p>
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-ghibli-paper to-ghibli-sky relative overflow-hidden">
+        <div className="absolute top-20 left-10 text-3xl animate-leaf-float">🍃</div>
+        <div className="absolute bottom-28 right-16 text-2xl animate-leaf-float">🍂</div>
+        
+        <div className="flex items-center justify-center min-h-screen">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-ghibli-moss/20"
+          >
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-ghibli-moss/20 border-t-ghibli-moss mx-auto mb-4"></div>
+            <p className="text-ghibli-earth">A carregar carrinho...</p>
+          </motion.div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-teal-100">
+    <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-ghibli-paper to-ghibli-sky relative overflow-hidden">
+      {/* Elementos decorativos de fundo */}
+      <div className="absolute top-20 left-10 text-3xl animate-leaf-float opacity-20">🍃</div>
+      <div className="absolute bottom-28 right-16 text-2xl animate-leaf-float opacity-20">🍂</div>
+      <div className="absolute top-40 right-28 text-xl animate-star-twinkle opacity-30">✨</div>
+      <div className="absolute bottom-40 left-20 text-2xl animate-star-twinkle opacity-30">✨</div>
+      
       <Head>
         <title>Checkout - PicTuz</title>
         <meta name="description" content="Finalize a sua compra de produtos personalizados no PicTuz" />
@@ -222,32 +259,56 @@ const CheckoutPage: React.FC = () => {
 
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+      <main className="container mx-auto px-4 py-8 relative z-10">
+        <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Cabeçalho */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">Finalizar Compra</h1>
-              <p className="text-gray-600">
+            {/* Cabeçalho estilo Ghibli */}
+            <div className="mb-12 text-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="inline-block mb-4"
+              >
+                <div className="text-6xl mb-2">🛒</div>
+              </motion.div>
+              <h1 className="text-4xl md:text-5xl font-ghibli text-ghibli-wood mb-4">
+                Finalizar Compra
+              </h1>
+              <p className="text-xl text-ghibli-earth max-w-2xl mx-auto">
                 Reveja o seu pedido e prossiga para o pagamento seguro
               </p>
+              <div className="mt-6 h-1 w-32 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light mx-auto rounded-full"></div>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* Resumo do Pedido */}
-              <div className="space-y-6">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Resumo do Pedido</h2>
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Resumo do Pedido - span 2 colunas */}
+              <div className="lg:col-span-2 space-y-6">
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-ghibli-moss/10 p-8"
+                >
+                  <div className="flex items-center mb-6">
+                    <div className="text-3xl mr-3">📦</div>
+                    <h2 className="text-2xl font-ghibli text-ghibli-wood">Resumo do Pedido</h2>
+                  </div>
                   
                   <div className="space-y-4">
                     {cartSummary.items.map((item) => (
-                      <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                      <motion.div 
+                        key={item.id} 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 p-6 border border-ghibli-moss/20 rounded-xl bg-ghibli-cream/30 hover:bg-ghibli-cream/50 transition-colors"
+                      >
                         {item.userImageUrl && (
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                          <div className="relative w-20 h-20 rounded-xl overflow-hidden shadow-md flex-shrink-0">
                             <Image
                               src={item.userImageUrl}
                               alt={item.productName}
@@ -258,97 +319,126 @@ const CheckoutPage: React.FC = () => {
                         )}
                         
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium text-gray-800 truncate">
+                          <h3 className="text-lg font-semibold text-ghibli-wood mb-1">
                             {item.productName}
                           </h3>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-ghibli-earth">
                             {item.customizations?.size && `Tamanho: ${item.customizations.size}`}
                           </p>
-                          <p className="text-sm text-gray-500">
-                            Qtd: {item.quantity}
+                          <p className="text-sm text-ghibli-earth">
+                            Quantidade: {item.quantity}
                           </p>
                         </div>
                         
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-gray-800">
+                        <div className="text-right w-full sm:w-auto">
+                          <p className="text-xl font-bold text-ghibli-moss mb-2">
                             €{(item.price * item.quantity).toFixed(2)}
                           </p>
                           <button
                             onClick={() => removeFromCart(item.id)}
-                            className="text-xs text-red-500 hover:text-red-700 mt-1"
+                            className="text-sm text-ghibli-poppy hover:text-red-700 transition-colors bg-red-50 hover:bg-red-100 px-3 py-1 rounded-lg"
                           >
                             Remover
                           </button>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Dados do Cliente */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Dados do Cliente</h2>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Nome</label>
-                      <p className="text-gray-800">{userData?.full_name || 'Não disponível'}</p>
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-ghibli-moss/10 p-8"
+                >
+                  <div className="flex items-center mb-6">
+                    <div className="text-3xl mr-3">👤</div>
+                    <h2 className="text-2xl font-ghibli text-ghibli-wood">Dados do Cliente</h2>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="p-4 bg-ghibli-cream/30 rounded-xl">
+                      <label className="text-sm font-medium text-ghibli-earth block mb-1">Nome</label>
+                      <p className="text-ghibli-wood font-semibold">{userData?.full_name || 'Não disponível'}</p>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Email</label>
-                      <p className="text-gray-800">{userData?.email || 'Não disponível'}</p>
+                    <div className="p-4 bg-ghibli-cream/30 rounded-xl">
+                      <label className="text-sm font-medium text-ghibli-earth block mb-1">Email</label>
+                      <p className="text-ghibli-wood font-semibold">{userData?.email || 'Não disponível'}</p>
                     </div>
-                    <div className="text-sm text-gray-500 mt-4 p-3 bg-blue-50 rounded-lg">
-                      <p>ℹ️ Os dados de envio serão recolhidos no próximo passo através do sistema seguro do Stripe.</p>
+                    <div className="text-sm text-ghibli-earth p-4 bg-ghibli-sky/30 rounded-xl border border-ghibli-sky/50">
+                      <div className="flex items-start">
+                        <span className="text-lg mr-2">ℹ️</span>
+                        <p>Os dados de envio serão recolhidos no próximo passo através do sistema seguro do Stripe.</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
 
-              {/* Resumo Financeiro e Checkout */}
+              {/* Sidebar - Resumo Financeiro e Checkout */}
               <div className="space-y-6">
                 {/* Método de Envio */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Método de Envio</h2>
-                  <div className="border rounded-lg p-4 bg-emerald-50">
+                <motion.div 
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-ghibli-moss/10 p-6"
+                >
+                  <div className="flex items-center mb-4">
+                    <div className="text-2xl mr-2">🚚</div>
+                    <h2 className="text-xl font-ghibli text-ghibli-wood">Método de Envio</h2>
+                  </div>
+                  
+                  <div className="border border-ghibli-moss/30 rounded-xl p-4 bg-ghibli-moss/10">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-medium text-gray-800">{shippingMethod.name}</h3>
-                        <p className="text-sm text-gray-600">{shippingMethod.description}</p>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <h3 className="font-semibold text-ghibli-wood">{shippingMethod.name}</h3>
+                        <p className="text-sm text-ghibli-earth">{shippingMethod.description}</p>
+                        <p className="text-sm text-ghibli-earth mt-1">
                           Entrega em {shippingMethod.deliveryDaysMin}-{shippingMethod.deliveryDaysMax} dias úteis
                         </p>
                       </div>
-                      <span className="text-lg font-semibold text-emerald-600">
+                      <span className="text-lg font-bold text-ghibli-moss">
                         €{shippingMethod.price.toFixed(2)}
                       </span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Resumo Financeiro */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Resumo Financeiro</h2>
+                <motion.div 
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-ghibli-moss/10 p-6"
+                >
+                  <div className="flex items-center mb-6">
+                    <div className="text-2xl mr-2">💰</div>
+                    <h2 className="text-xl font-ghibli text-ghibli-wood">Resumo Financeiro</h2>
+                  </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Subtotal</span>
-                      <span className="text-gray-800">€{cartSummary.subtotal.toFixed(2)}</span>
+                  <div className="space-y-4">
+                    <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
+                      <span className="text-ghibli-earth">Subtotal</span>
+                      <span className="text-ghibli-wood font-semibold">€{cartSummary.subtotal.toFixed(2)}</span>
                     </div>
                     
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Envio</span>
-                      <span className="text-gray-800">€{shippingMethod.price.toFixed(2)}</span>
+                    <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
+                      <span className="text-ghibli-earth">Envio</span>
+                      <span className="text-ghibli-wood font-semibold">€{shippingMethod.price.toFixed(2)}</span>
                     </div>
                     
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">IVA (23%)</span>
-                      <span className="text-gray-800">€{cartSummary.tax.toFixed(2)}</span>
+                    <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
+                      <span className="text-ghibli-earth">IVA (23%)</span>
+                      <span className="text-ghibli-wood font-semibold">€{cartSummary.tax.toFixed(2)}</span>
                     </div>
                     
-                    <div className="border-t pt-3">
-                      <div className="flex justify-between text-lg font-semibold">
-                        <span className="text-gray-800">Total</span>
-                        <span className="text-emerald-600">€{calculateTotal().toFixed(2)}</span>
+                    <div className="bg-ghibli-moss/10 rounded-xl p-4 mt-4">
+                      <div className="flex justify-between text-xl font-bold">
+                        <span className="text-ghibli-wood">Total</span>
+                        <span className="text-ghibli-moss">€{calculateTotal().toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -357,41 +447,53 @@ const CheckoutPage: React.FC = () => {
                   <Button
                     onClick={handleCheckout}
                     disabled={loadingPayment}
-                    className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-lg font-semibold"
+                    className="w-full mt-6 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light hover:from-ghibli-moss-light hover:to-ghibli-moss text-white py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     {loadingPayment ? (
                       <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-2"></div>
                         A processar...
                       </div>
                     ) : (
-                      'Finalizar Compra'
+                      <>
+                        <span className="mr-2">🌟</span>
+                        Finalizar Compra
+                      </>
                     )}
                   </Button>
 
-                  <p className="text-xs text-gray-500 text-center mt-3">
-                    Ao continuar, será redirecionado para o Stripe para pagamento seguro
+                  <p className="text-xs text-ghibli-earth text-center mt-3">
+                    Será redirecionado para o Stripe para pagamento seguro
                   </p>
-                </div>
+                </motion.div>
 
                 {/* Informações de Segurança */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Compra Segura</h3>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <span className="text-green-500 mr-2">🔒</span>
-                      Pagamento processado pelo Stripe
+                <motion.div 
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-ghibli-moss/10 p-6"
+                >
+                  <div className="flex items-center mb-4">
+                    <div className="text-2xl mr-2">🛡️</div>
+                    <h3 className="text-lg font-ghibli text-ghibli-wood">Compra Segura</h3>
+                  </div>
+                  
+                  <div className="space-y-3 text-sm text-ghibli-earth">
+                    <div className="flex items-center p-2 bg-green-50 rounded-lg">
+                      <span className="text-green-500 mr-3 text-lg">🔒</span>
+                      <span>Pagamento processado pelo Stripe</span>
                     </div>
-                    <div className="flex items-center">
-                      <span className="text-green-500 mr-2">🛡️</span>
-                      Dados protegidos com SSL
+                    <div className="flex items-center p-2 bg-blue-50 rounded-lg">
+                      <span className="text-blue-500 mr-3 text-lg">🛡️</span>
+                      <span>Dados protegidos com SSL</span>
                     </div>
-                    <div className="flex items-center">
-                      <span className="text-green-500 mr-2">💳</span>
-                      Aceitamos Visa, Mastercard, etc.
+                    <div className="flex items-center p-2 bg-purple-50 rounded-lg">
+                      <span className="text-purple-500 mr-3 text-lg">💳</span>
+                      <span>Aceitamos Visa, Mastercard, etc.</span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
           </motion.div>
