@@ -5,11 +5,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader2, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase/client';
+import { toast } from '@/components/ui/sonner';
 
 interface Transformation {
   id: string;
   output_url: string;
-  style: string;
+  style_requested: string;
   created_at: string;
 }
 
@@ -30,53 +32,83 @@ export default function TransformationGalleryModal({
   const [totalPages, setTotalPages] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
-  const { userInfo, session } = useAuth();
+  const { userInfo } = useAuth();
 
   const ITEMS_PER_PAGE = 6;
 
   const fetchTransformations = useCallback(async (page: number) => {
-    if (!userInfo?.id || !session?.access_token) return;
+    if (!userInfo?.id) {
+      console.log('TransformationGalleryModal: No user ID available');
+      return;
+    }
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `/api/transformations/history?page=${page}&limit=${ITEMS_PER_PAGE}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-        }
-      );
+      console.log('TransformationGalleryModal: Fetching transformations for page:', page);
+      
+      const from = (page - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch transformations');
+      // Usar Supabase diretamente como no TransformationsModal existente
+      const { data, error: dbError, count } = await supabase
+        .from('transformations')
+        .select(`
+          id, output_url, style_requested, created_at
+        `, { count: 'exact' })
+        .eq('user_id', userInfo.id)
+        .eq('status', 'completed')
+        .not('output_url', 'is', null)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (dbError) {
+        console.error('TransformationGalleryModal: Database error:', dbError);
+        throw dbError;
       }
 
-      const data = await response.json();
-      setTransformations(data.transformations);
-      setTotalPages(data.totalPages);
-      setHasNextPage(data.hasNextPage);
-      setHasPreviousPage(data.hasPreviousPage);
-      setCurrentPage(data.currentPage);
+      console.log('TransformationGalleryModal: Fetched data:', data);
+      console.log('TransformationGalleryModal: Total count:', count);
+
+      setTransformations(data || []);
+      const totalCount = count || 0;
+      const calculatedTotalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+      setTotalPages(calculatedTotalPages);
+      setHasNextPage(page < calculatedTotalPages);
+      setHasPreviousPage(page > 1);
+      setCurrentPage(page);
+
     } catch (error) {
-      console.error('Error fetching transformations:', error);
+      console.error('TransformationGalleryModal: Error fetching transformations:', error);
       setTransformations([]);
+      setTotalPages(0);
+      setHasNextPage(false);
+      setHasPreviousPage(false);
+      toast.error('Erro ao carregar transformações', {
+        description: 'Tente novamente ou contacte o suporte.'
+      });
     } finally {
       setLoading(false);
     }
-  }, [userInfo?.id, session?.access_token, ITEMS_PER_PAGE]);
+  }, [userInfo?.id, ITEMS_PER_PAGE]);
 
   useEffect(() => {
-    if (isOpen && userInfo?.id && session?.access_token) {
+    if (isOpen && userInfo?.id) {
+      console.log('TransformationGalleryModal: Modal opened, fetching page 1');
       setCurrentPage(1);
       fetchTransformations(1);
+    } else if (!isOpen) {
+      // Limpar dados quando modal fecha
+      setTransformations([]);
+      setCurrentPage(1);
+      setTotalPages(0);
+      setHasNextPage(false);
+      setHasPreviousPage(false);
     }
-  }, [isOpen, userInfo?.id, session?.access_token, fetchTransformations]);
+  }, [isOpen, userInfo?.id, fetchTransformations]);
 
   const handlePreviousPage = () => {
     if (hasPreviousPage) {
       const newPage = currentPage - 1;
-      setCurrentPage(newPage);
       fetchTransformations(newPage);
     }
   };
@@ -84,12 +116,12 @@ export default function TransformationGalleryModal({
   const handleNextPage = () => {
     if (hasNextPage) {
       const newPage = currentPage + 1;
-      setCurrentPage(newPage);
       fetchTransformations(newPage);
     }
   };
 
   const handleSelectImage = (imageUrl: string) => {
+    console.log('TransformationGalleryModal: Image selected:', imageUrl);
     onSelectImage(imageUrl);
     onClose();
   };
@@ -143,7 +175,7 @@ export default function TransformationGalleryModal({
                     <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-teal-500 transition-colors">
                       <Image
                         src={transformation.output_url}
-                        alt={`Transformação ${formatStyleName(transformation.style)}`}
+                        alt={`Transformação ${formatStyleName(transformation.style_requested)}`}
                         className="w-full h-full object-cover"
                         width={300}
                         height={300}
@@ -153,7 +185,7 @@ export default function TransformationGalleryModal({
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity flex items-center justify-center">
                         <div className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-center">
                           <p className="font-semibold text-sm">
-                            {formatStyleName(transformation.style)}
+                            {formatStyleName(transformation.style_requested)}
                           </p>
                           <p className="text-xs mt-1">Clique para selecionar</p>
                         </div>

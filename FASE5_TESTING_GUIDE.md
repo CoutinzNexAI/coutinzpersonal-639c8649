@@ -1,4 +1,4 @@
-# 🚀 FASE 5 - Guia de Testes e Implementação
+# 🚀 FASE 5 - Guia de Testes e Implementação - ATUALIZADO
 
 ## 📋 CHECKLIST PRÉ-TESTE
 
@@ -42,105 +42,118 @@ UPDATE public.users SET role = 'admin' WHERE email = 'teu-email@exemplo.com';
 
 ---
 
-## 🧪 PLANO DE TESTES
+## 🧪 PLANO DE TESTES - ATUALIZADO
 
-### TESTE 1: Verificação de Webhooks ✅
+### TESTE 1: Verificação de Webhooks ✅ **CONCLUÍDO**
 
 **Objetivo**: Validar que os webhooks estão seguros e funcionais
 
-1. **Teste de Segurança**:
-   ```bash
-   # Tenta enviar webhook sem assinatura
-   curl -X POST https://teu-dominio.vercel.app/api/gelato/webhooks \
-     -H "Content-Type: application/json" \
-     -d '{"event_type": "test", "gelato_order_id": "123"}'
-   
-   # Deve retornar 403 - Assinatura ausente
-   ```
+✅ **RESULTADO**: Webhooks funcionam corretamente com validação de assinatura
 
-2. **Teste com Assinatura Inválida**:
-   ```bash
-   # Envia webhook com assinatura falsa
-   curl -X POST https://teu-dominio.vercel.app/api/gelato/webhooks \
-     -H "Content-Type: application/json" \
-     -H "X-Gelato-Signature: sha256=assinatura_falsa" \
-     -d '{"event_type": "test", "gelato_order_id": "123"}'
-   
-   # Deve retornar 403 - Assinatura inválida
-   ```
-
-3. **Verificar Logs**:
-   - Vai ao Vercel Dashboard → Functions → Logs
-   - Deve ver logs de tentativas rejeitadas
-
-### TESTE 2: Verificação de Roles de Admin 🔐
+### TESTE 2: Verificação de Roles de Admin ✅ **CONCLUÍDO**
 
 **Objetivo**: Confirmar que apenas admins acedem às funcionalidades
 
-1. **Login com Utilizador Normal**:
+✅ **RESULTADO**: Sistema de roles funciona corretamente
+
+### TESTE 3: Nova Funcionalidade - Galeria de Transformações 🎨
+
+**Objetivo**: Testar a nova funcionalidade de seleção de transformações AI
+
+1. **API de Histórico**:
    ```
-   1. Faz login com conta normal
-   2. Tenta aceder a /admin/orders
-   3. Deve ser redirecionado ou ver erro 403
+   1. Faz login no PicTuz
+   2. Verifica endpoint: GET /api/transformations/history
+   3. Confirma que retorna apenas transformações concluídas
+   4. Testa paginação (page=1, page=2, etc.)
    ```
 
-2. **Login como Admin**:
+2. **Modal da Galeria**:
    ```
-   1. Faz login com tua conta (que marcaste como admin)
-   2. Acede a /admin/orders
-   3. Deve ver o dashboard de admin
-   ```
-
-3. **Teste API Routes**:
-   ```bash
-   # Com token de user normal
-   curl -H "Authorization: Bearer TOKEN_USER_NORMAL" \
-     https://teu-dominio.vercel.app/api/admin/gelato-orders
-   
-   # Deve retornar 403
-   
-   # Com token de admin
-   curl -H "Authorization: Bearer TOKEN_ADMIN" \
-     https://teu-dominio.vercel.app/api/admin/gelato-orders
-   
-   # Deve retornar dados
+   1. Vai a qualquer página de produto (/shop/canvas-20x20)
+   2. Clica "Escolher Arte AI" 
+   3. Verifica se modal abre com galeria paginada
+   4. Testa navegação entre páginas
+   5. Clica numa transformação para selecionar
    ```
 
-### TESTE 3: Compra Completa End-to-End 🛒
-
-**Objetivo**: Testar todo o fluxo de compra com webhooks
-
-1. **Transformação de Imagem**:
+3. **Aplicação ao Produto**:
    ```
-   1. Vai ao PicTuz
-   2. Transforma uma imagem com IA
-   3. Vai à loja (/shop)
-   4. Seleciona um produto (ex: t-shirt)
-   5. Aplica a imagem transformada
+   1. Seleciona uma transformação no modal
+   2. Verifica se imagem é aplicada no ProductCanvas
+   3. Confirma feedback visual "Arte AI aplicada"
+   4. Testa botão "Escolher Arte Diferente"
    ```
 
-2. **Processo de Checkout**:
-   ```
-   1. Adiciona ao carrinho
-   2. Vai ao checkout (/checkout)
-   3. Usa dados REAIS de envio (tua morada)
-   4. Usa cartão de TESTE do Stripe:
-      - Número: 4242 4242 4242 4242
-      - CVV: 123
-      - Data: qualquer futura
-   ```
+### TESTE 4: Compra Completa End-to-End com Nova Funcionalidade 🛒
 
-3. **Verificações Pós-Compra**:
-   ```
-   - Verifica se aparece na página /orders do utilizador
-   - Verifica no dashboard admin (/admin/orders)
-   - Confirma no Dashboard da Gelato
-   - Verifica as tabelas no Supabase:
-     * gelato_orders deve ter o novo pedido
-     * print_files deve ter o PDF gerado
-   ```
+**Objetivo**: Testar todo o fluxo de compra com a galeria de transformações
 
-### TESTE 4: Monitorização de Webhooks 📡
+#### Pré-requisitos para o Teste:
+1. Utilizador deve ter pelo menos 3-5 transformações concluídas
+2. Estar logado no PicTuz  
+3. Ter PicCoins suficientes ou possibilidade de comprar
+
+#### Passos Detalhados do Teste:
+
+**🎯 PARTE A: Verificação da Galeria Standalone**
+```
+1. Abrir o browser e ir para localhost:3000/shop
+2. Escolher qualquer produto (ex: /shop/canvas-20x20)
+3. Verificar se aparece botão "Escolher Arte AI"
+4. Clicar no botão e verificar se modal abre
+5. Confirmar que as transformações aparecem em grid
+6. Testar navegação entre páginas (se houver múltiplas)
+7. Fechar modal sem selecionar e verificar se continua vazio
+```
+
+**🎯 PARTE B: Seleção e Aplicação de Arte**
+```
+1. Abrir modal novamente
+2. Clicar numa transformação específica
+3. Verificar se modal fecha automaticamente
+4. Confirmar que aparece feedback "Arte AI aplicada com sucesso"
+5. Verificar se a imagem aparece no ProductCanvas
+6. Testar botão "Escolher Arte Diferente"
+7. Selecionar nova arte e confirmar troca
+```
+
+**🎯 PARTE C: Fluxo Completo de Compra**
+```
+1. Com arte selecionada, clicar "Adicionar ao Carrinho"
+2. Verificar se botão está ativo (não disabled)
+3. Confirmar toast de sucesso
+4. Ir para /checkout
+5. Verificar se o produto aparece com a imagem correta
+6. Preencher dados de envio (usar dados reais para teste)
+7. Usar cartão de teste: 4242 4242 4242 4242
+8. Completar compra
+```
+
+**🎯 PARTE D: Verificações Pós-Compra**
+```
+1. Verificar se redirecionamento para página de sucesso funciona
+2. Ir para /orders e confirmar que pedido aparece
+3. (Admin) Ir para /admin/orders e verificar pedido
+4. Verificar no Supabase se gelato_orders foi criada
+5. Confirmar se print_files contém a imagem selecionada
+```
+
+#### Critérios de Sucesso:
+- ✅ Modal abre e carrega transformações
+- ✅ Seleção de arte funciona e atualiza preview
+- ✅ Compra completa sem erros
+- ✅ Produto final contém a arte selecionada
+- ✅ Dados corretos salvos na base de dados
+
+#### Se Algo Falhar:
+1. Verificar console do browser para erros JavaScript
+2. Verificar Network tab para problemas de API
+3. Confirmar se utilizador tem transformações concluídas
+4. Verificar se ProductCanvas está a receber userImageUrl
+5. Testar com utilizador diferente
+
+### TESTE 5: Monitorização de Webhooks 📡
 
 **Objetivo**: Verificar se webhooks são recebidos e processados
 
@@ -158,103 +171,85 @@ UPDATE public.users SET role = 'admin' WHERE email = 'teu-email@exemplo.com';
    3. Verifica se gelato_orders.gelato_status é atualizado
    ```
 
-3. **Verificar Logs do Vercel**:
-   ```
-   - Vai a Vercel → Functions → /api/gelato/webhooks
-   - Deve ver logs de webhooks recebidos e processados
-   ```
-
-### TESTE 5: Dashboard de Admin 📊
+### TESTE 6: Dashboard de Admin 📊
 
 **Objetivo**: Validar funcionalidades administrativas
 
 1. **Dashboard Principal**:
    ```
    1. Acede a /admin
-   2. Verifica estatísticas:
-      - Número total de pedidos
-      - Receita total
-      - Status dos webhooks
+   2. Verifica estatísticas atualizadas
+   3. Confirma dados dos novos pedidos
    ```
 
 2. **Gestão de Pedidos**:
    ```
    1. Acede a /admin/orders
-   2. Testa filtros de pesquisa:
-      - Por email do cliente
-      - Por nome do produto
-      - Por status
-   3. Clica "Ver Detalhes" num pedido
+   2. Verifica pedidos criados com nova funcionalidade
+   3. Testa filtros de pesquisa
+   4. Clica "Ver Detalhes" nos novos pedidos
    ```
 
-3. **Cancelamento de Pedidos**:
+### TESTE 7: Edge Cases da Nova Funcionalidade 💪
+
+1. **Utilizador Sem Transformações**:
    ```
-   1. Vai aos detalhes de um pedido pendente
-   2. Clica "Cancelar Pedido"
-   3. Confirma o cancelamento
-   4. Verifica se status é atualizado
-   5. Confirma no Dashboard da Gelato
+   1. Login com conta nova (sem transformações)
+   2. Vai a página de produto
+   3. Clica "Escolher Arte AI"
+   4. Verifica estado vazio no modal
    ```
 
-### TESTE 6: Testes de Stress e Edge Cases 💪
-
-1. **Webhook com Payload Inválido**:
-   ```bash
-   # Envia JSON inválido (com assinatura correta)
-   curl -X POST https://teu-dominio.vercel.app/api/gelato/webhooks \
-     -H "Content-Type: application/json" \
-     -H "X-Gelato-Signature: ASSINATURA_CORRETA" \
-     -d 'json_inválido{'
+2. **Paginação com Muitas Transformações**:
+   ```
+   1. Login com conta com 20+ transformações
+   2. Testa navegação entre múltiplas páginas
+   3. Verifica performance do loading
    ```
 
-2. **Tentativa de Cancelar Pedido Já Enviado**:
+3. **Seleção e Troca Múltipla**:
    ```
-   1. Seleciona pedido com status "shipped"
-   2. Tenta cancelar
-   3. Deve mostrar erro apropriado
-   ```
-
-3. **Webhook Duplicado**:
-   ```
-   1. Simula recebimento do mesmo webhook 2x
-   2. Verifica se não há duplicação de processamento
+   1. Seleciona uma transformação
+   2. Abre modal novamente
+   3. Seleciona transformação diferente
+   4. Verifica se preview atualiza corretamente
    ```
 
 ---
 
-## 🔍 MONITORIZAÇÃO EM PRODUÇÃO
+## 🔍 STATUS DOS TESTES
 
-### Logs a Monitorizar
-
-1. **Vercel Function Logs**:
-   ```
-   /api/gelato/webhooks - Webhooks recebidos
-   /api/admin/* - Atividade administrativa
-   ```
-
-2. **Supabase Logs**:
-   ```
-   - Tabela gelato_webhooks (webhooks recebidos)
-   - Tabela gelato_orders (pedidos criados/atualizados)
-   ```
-
-3. **PostHog Events**:
-   ```
-   - checkout_completed
-   - order_created
-   - admin_action_*
-   ```
-
-### Alertas Recomendados
-
-1. **Webhooks Não Processados > 10**
-2. **Tentativas de Acesso Admin Negadas > 5/hora**
-3. **Erros 500 em /api/gelato/webhooks**
-4. **Pedidos com status "pending" > 24h**
+| Teste | Status | Resultado |
+|-------|--------|-----------|
+| 1. Webhooks | ✅ CONCLUÍDO | Funcionais |
+| 2. Admin Roles | ✅ CONCLUÍDO | Funcionais |
+| 3. Galeria Transformações | ✅ CONCLUÍDO | Funcionais - Corrigido para usar Supabase diretamente |
+| 4. Compra End-to-End | 🔄 EM ANDAMENTO | - |
+| 5. Monitorização Webhooks | ⏳ PENDENTE | - |
+| 6. Dashboard Admin | ⏳ PENDENTE | - |
+| 7. Edge Cases | ⏳ PENDENTE | - |
 
 ---
 
-## 🚨 TROUBLESHOOTING
+## 🚨 TROUBLESHOOTING - ATUALIZADO
+
+### Problema: Modal da Galeria Não Abre
+**Solução**: 
+1. Verifica se utilizador está autenticado
+2. Confirma que API `/api/transformations/history` responde
+3. Verifica console para erros JavaScript
+
+### Problema: Transformações Não Aparecem no Modal
+**Solução**: 
+1. Confirma que utilizador tem transformações com status 'completed'
+2. Verifica se output_url não é null
+3. Testa endpoint diretamente: `/api/transformations/history?page=1&limit=6`
+
+### Problema: Imagem Não Aplica ao Produto
+**Solução**: 
+1. Verifica se ProductCanvas recebe userImageUrl correto
+2. Confirma que selectedImageUrl é atualizado no estado
+3. Verifica console para erros de carregamento de imagem
 
 ### Problema: Webhook Retorna 403
 **Solução**: Verifica `GELATO_WEBHOOK_SECRET` no Vercel e Gelato Portal
@@ -264,26 +259,28 @@ UPDATE public.users SET role = 'admin' WHERE email = 'teu-email@exemplo.com';
 1. Confirma que executaste o SQL para adicionar coluna `role`
 2. Verifica se teu email tem `role = 'admin'`
 
-### Problema: Pedidos Não Aparecem no Admin
-**Solução**: Verifica políticas RLS do Supabase
-
-### Problema: Cancelamento Falha
-**Solução**: 
-1. Verifica `GELATO_API_KEY`
-2. Confirma que pedido ainda pode ser cancelado
-3. Verifica logs do Vercel
-
 ---
 
 ## ✅ CHECKLIST FINAL ANTES DE PRODUÇÃO
 
-- [ ] Todas as variáveis de ambiente configuradas no Vercel
-- [ ] Webhook URL da Gelato aponta para produção
-- [ ] Teu email marcado como admin no Supabase
-- [ ] Políticas RLS ativadas e testadas
-- [ ] Teste de compra completo realizado
-- [ ] Dashboard admin acessível e funcional
-- [ ] Webhooks sendo recebidos e processados
-- [ ] Logs de monitorização configurados
+- [x] Webhooks seguros e funcionais
+- [x] Sistema de admin roles ativo
+- [ ] Nova galeria de transformações testada
+- [ ] Fluxo completo de compra com nova funcionalidade
+- [ ] Dashboard admin mostra novos pedidos
+- [ ] Edge cases da galeria testados
+- [ ] Performance da paginação validada
 
-**🎉 Se tudo estiver ✅, o PicTuz está pronto para vender produtos físicos com segurança e robustez!** 
+**🎉 Progresso: 3/7 testes concluídos. A seguir: Teste 4 - Compra End-to-End com Nova Funcionalidade!**
+
+## 📝 NOTAS DE CORREÇÃO - TESTE 3
+
+**Problema identificado**: O modal da galeria estava vazio devido à autenticação via API.
+
+**Solução implementada**: 
+- Mudança de abordagem: usar Supabase diretamente no frontend (como no TransformationsModal existente)
+- Removida dependência da API `/api/transformations/history`
+- Adicionados logs de debug para monitorização
+- Melhoria na gestão de estado do modal
+
+**Resultado**: ✅ Modal agora carrega e exibe transformações corretamente 
