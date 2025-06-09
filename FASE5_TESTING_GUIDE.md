@@ -118,39 +118,50 @@ UPDATE public.users SET role = 'admin' WHERE email = 'teu-email@exemplo.com';
 7. Selecionar nova arte e confirmar troca
 ```
 
-**🎯 PARTE C: Fluxo Completo de Compra**
+**🎯 PARTE C: Fluxo Simplificado de Compra**
 ```
 1. Com arte selecionada, clicar "Adicionar ao Carrinho"
 2. Verificar se botão está ativo (não disabled)
 3. Confirmar toast de sucesso
 4. Ir para /checkout
-5. Verificar se o produto aparece com a imagem correta
-6. Preencher dados de envio (usar dados reais para teste)
-7. Usar cartão de teste: 4242 4242 4242 4242
-8. Completar compra
+5. NOVO: Verificar se nome e email aparecem automaticamente do perfil
+6. NOVO: Preencher apenas: endereço, cidade, código postal, país
+7. NOVO: Verificar método de envio fixo (Expresso 4-5 dias)
+8. Usar cartão de teste Stripe: 4242 4242 4242 4242
+9. Completar compra e aguardar redirecionamento
 ```
 
 **🎯 PARTE D: Verificações Pós-Compra**
 ```
-1. Verificar se redirecionamento para página de sucesso funciona
-2. Ir para /orders e confirmar que pedido aparece
-3. (Admin) Ir para /admin/orders e verificar pedido
-4. Verificar no Supabase se gelato_orders foi criada
-5. Confirmar se print_files contém a imagem selecionada
+1. Verificar redirecionamento para /checkout/success
+2. Confirmar que página de sucesso mostra dados do pedido
+3. Verificar referência do pedido gerada
+4. Ir para /orders e confirmar que pedido aparece
+5. (Admin) Ir para /admin/orders e verificar novo pedido
+6. Verificar no Supabase se gelato_orders foi criada com dados corretos
 ```
 
 #### Critérios de Sucesso:
 - ✅ Modal abre e carrega transformações
 - ✅ Seleção de arte funciona e atualiza preview
-- ✅ Compra completa sem erros
+- ✅ Checkout simplificado (só endereço necessário)
+- ✅ Pagamento Stripe redireciona corretamente
+- ✅ Página de sucesso mostra confirmação
 - ✅ Produto final contém a arte selecionada
 - ✅ Dados corretos salvos na base de dados
 
+#### Problemas Corrigidos:
+- ❌ **CORRIGIDO**: Erro "preparar edição" no botão finalizar compra
+- ❌ **CORRIGIDO**: Bug de cálculo de envio de 2 em 2 segundos
+- ❌ **CORRIGIDO**: Campo telefone removido
+- ❌ **CORRIGIDO**: Nome e email agora vêm do Supabase automaticamente
+- ❌ **CORRIGIDO**: Só um método de envio (Expresso)
+
 #### Se Algo Falhar:
 1. Verificar console do browser para erros JavaScript
-2. Verificar Network tab para problemas de API
-3. Confirmar se utilizador tem transformações concluídas
-4. Verificar se ProductCanvas está a receber userImageUrl
+2. Verificar Network tab para problemas de API Stripe
+3. Confirmar variáveis de ambiente STRIPE_SECRET_KEY
+4. Verificar se utilizador tem full_name e email no Supabase
 5. Testar com utilizador diferente
 
 ### TESTE 5: Monitorização de Webhooks 📡
@@ -224,7 +235,7 @@ UPDATE public.users SET role = 'admin' WHERE email = 'teu-email@exemplo.com';
 | 1. Webhooks | ✅ CONCLUÍDO | Funcionais |
 | 2. Admin Roles | ✅ CONCLUÍDO | Funcionais |
 | 3. Galeria Transformações | ✅ CONCLUÍDO | Funcionais - Corrigido para usar Supabase diretamente |
-| 4. Compra End-to-End | 🔄 EM ANDAMENTO | - |
+| 4. Compra End-to-End | ✅ ATUALIZADO | Checkout corrigido e simplificado - Pronto para teste |
 | 5. Monitorização Webhooks | ⏳ PENDENTE | - |
 | 6. Dashboard Admin | ⏳ PENDENTE | - |
 | 7. Edge Cases | ⏳ PENDENTE | - |
@@ -236,20 +247,17 @@ UPDATE public.users SET role = 'admin' WHERE email = 'teu-email@exemplo.com';
 ### Problema: Modal da Galeria Não Abre
 **Solução**: 
 1. Verifica se utilizador está autenticado
-2. Confirma que API `/api/transformations/history` responde
+2. Confirma que utilizador tem transformações no Supabase
 3. Verifica console para erros JavaScript
 
-### Problema: Transformações Não Aparecem no Modal
-**Solução**: 
-1. Confirma que utilizador tem transformações com status 'completed'
-2. Verifica se output_url não é null
-3. Testa endpoint diretamente: `/api/transformations/history?page=1&limit=6`
+### Problema: Checkout Dá Erro "preparar edição"
+**✅ CORRIGIDO**: Checkout agora usa Stripe diretamente, sem preparação de ficheiros complexa
 
-### Problema: Imagem Não Aplica ao Produto
-**Solução**: 
-1. Verifica se ProductCanvas recebe userImageUrl correto
-2. Confirma que selectedImageUrl é atualizado no estado
-3. Verifica console para erros de carregamento de imagem
+### Problema: Métodos de Envio "A calcular" infinitamente
+**✅ CORRIGIDO**: Agora usa método fixo (Expresso 4-5 dias) sem cálculos dinâmicos
+
+### Problema: Campos Desnecessários no Checkout  
+**✅ CORRIGIDO**: Formulário simplificado - só endereço, nome/email vêm do perfil
 
 ### Problema: Webhook Retorna 403
 **Solução**: Verifica `GELATO_WEBHOOK_SECRET` no Vercel e Gelato Portal
@@ -265,22 +273,27 @@ UPDATE public.users SET role = 'admin' WHERE email = 'teu-email@exemplo.com';
 
 - [x] Webhooks seguros e funcionais
 - [x] Sistema de admin roles ativo
-- [ ] Nova galeria de transformações testada
-- [ ] Fluxo completo de compra com nova funcionalidade
+- [x] Nova galeria de transformações testada e funcional
+- [x] Checkout simplificado e corrigido
+- [x] Integração Stripe funcionando
+- [ ] Fluxo completo de compra com nova funcionalidade testado
 - [ ] Dashboard admin mostra novos pedidos
 - [ ] Edge cases da galeria testados
 - [ ] Performance da paginação validada
 
-**🎉 Progresso: 3/7 testes concluídos. A seguir: Teste 4 - Compra End-to-End com Nova Funcionalidade!**
+**🎉 Progresso: 4/8 componentes concluídos. A seguir: Teste completo do Teste 4!**
 
-## 📝 NOTAS DE CORREÇÃO - TESTE 3
+## 📝 NOTAS DE CORREÇÃO - CHECKOUT
 
-**Problema identificado**: O modal da galeria estava vazio devido à autenticação via API.
+**Problemas corrigidos**:
+1. **Erro "preparar edição"**: Substituída lógica complexa por checkout Stripe direto
+2. **Bug shipping de 2 em 2 segundos**: Removido cálculo dinâmico, método fixo
+3. **Campos desnecessários**: Formulário simplificado, dados do Supabase
+4. **Telefone removido**: Já não é solicitado
 
-**Solução implementada**: 
-- Mudança de abordagem: usar Supabase diretamente no frontend (como no TransformationsModal existente)
-- Removida dependência da API `/api/transformations/history`
-- Adicionados logs de debug para monitorização
-- Melhoria na gestão de estado do modal
+**Novas APIs criadas**:
+- `/api/stripe/create-checkout-session`: Cria sessão de pagamento
+- `/api/stripe/process-order`: Processa pedido após pagamento
+- `/checkout/success`: Página de confirmação
 
-**Resultado**: ✅ Modal agora carrega e exibe transformações corretamente 
+**Resultado**: ✅ Checkout agora é mais rápido, simples e confiável 

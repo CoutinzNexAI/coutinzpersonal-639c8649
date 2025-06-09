@@ -76,23 +76,23 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
               <div className="p-6">
                 <div className="text-sm text-ghibli-earth leading-relaxed">
                   Declaro que aceito os{' '}
-                  <Link 
-                    href="/termos-servicos" 
-                    target="_blank"
-                    onClick={() => trackLinkClick('terms')}
-                    className="text-ghibli-sky hover:text-ghibli-moss underline"
-                  >
-                    Termos de Serviço
-                  </Link>
-                  {' '}e a{' '}
-                  <Link 
-                    href="/politica-privacidade" 
-                    target="_blank"
-                    onClick={() => trackLinkClick('privacy')}
-                    className="text-ghibli-sky hover:text-ghibli-moss underline"
-                  >
-                    Política de Privacidade
-                  </Link>
+                      <Link 
+                        href="/termos-servicos" 
+                        target="_blank"
+                        onClick={() => trackLinkClick('terms')}
+                        className="text-ghibli-sky hover:text-ghibli-moss underline"
+                      >
+                        Termos de Serviço
+                      </Link>
+                      {' '}e a{' '}
+                      <Link 
+                        href="/politica-privacidade" 
+                        target="_blank"
+                        onClick={() => trackLinkClick('privacy')}
+                        className="text-ghibli-sky hover:text-ghibli-moss underline"
+                      >
+                        Política de Privacidade
+                      </Link>
                   .
                 </div>
               </div>

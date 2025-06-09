@@ -14,17 +14,15 @@ import Footer from '@/components/Footer';
 import { CartService } from '@/lib/cart/cartService';
 import { CartSummary, ShippingInfo } from '@/lib/cart/cartTypes';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
 
-// Schema de validação para dados de envio
+// Schema simplificado - só endereço, cidade, código postal e país
 const shippingSchema = z.object({
-  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  email: z.string().email('Email inválido'),
   address: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
   city: z.string().min(2, 'Cidade deve ter pelo menos 2 caracteres'),
   postalCode: z.string().regex(/^\d{4}-\d{3}$/, 'Código postal deve ter formato 0000-000'),
-  country: z.string().min(2, 'País é obrigatório'),
-  phone: z.string().optional()
+  country: z.string().min(2, 'País é obrigatório')
 });
 
 type ShippingFormData = z.infer<typeof shippingSchema>;
@@ -38,21 +36,33 @@ interface ShippingMethod {
   description?: string;
 }
 
+interface UserData {
+  full_name: string;
+  email: string;
+}
+
 const CheckoutPage: React.FC = () => {
   const router = useRouter();
   const { userInfo } = useAuth();
   
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
-  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
-  const [selectedShippingMethod, setSelectedShippingMethod] = useState<string>('');
-  const [loadingShipping, setLoadingShipping] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loadingUserData, setLoadingUserData] = useState(true);
   const [loadingPayment, setLoadingPayment] = useState(false);
-  const [quoteError, setQuoteError] = useState<string>('');
+
+  // Método de envio fixo - só um
+  const shippingMethod: ShippingMethod = {
+    uid: 'express',
+    name: 'Envio Expresso',
+    price: 5.39,
+    deliveryDaysMin: 4,
+    deliveryDaysMax: 5,
+    description: 'Entrega rápida em 4-5 dias úteis'
+  };
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isValid }
   } = useForm<ShippingFormData>({
     resolver: zodResolver(shippingSchema),
@@ -61,7 +71,39 @@ const CheckoutPage: React.FC = () => {
     }
   });
 
-  const watchedValues = watch();
+  // Carregar dados do utilizador do Supabase
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!userInfo?.id) return;
+
+      try {
+        setLoadingUserData(true);
+        
+        const { data, error } = await supabase
+          .from('users')
+          .select('full_name, email')
+          .eq('id', userInfo.id)
+          .single();
+
+        if (error) {
+          console.error('Erro ao carregar dados do utilizador:', error);
+          toast.error('Erro ao carregar dados do perfil');
+          return;
+        }
+
+        if (data) {
+          setUserData(data);
+        }
+      } catch (error) {
+        console.error('Erro inesperado ao carregar dados:', error);
+        toast.error('Erro ao carregar dados do perfil');
+      } finally {
+        setLoadingUserData(false);
+      }
+    };
+
+    fetchUserData();
+  }, [userInfo?.id]);
 
   // Carregar resumo do carrinho
   useEffect(() => {
@@ -76,90 +118,13 @@ const CheckoutPage: React.FC = () => {
     setCartSummary(summary);
   }, [router]);
 
-  // Buscar cotações de envio quando dados de envio mudarem
-  useEffect(() => {
-    if (isValid && cartSummary && cartSummary.items.length > 0) {
-      const timer = setTimeout(() => {
-        fetchShippingQuotes(watchedValues);
-      }, 1000); // Debounce
-
-      return () => clearTimeout(timer);
-    }
-  }, [watchedValues, isValid, cartSummary]);
-
-  const fetchShippingQuotes = async (shippingData: ShippingFormData) => {
-    if (!cartSummary) return;
-
-    setLoadingShipping(true);
-    setQuoteError('');
-
-    try {
-      const response = await fetch('/api/gelato/quote', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          cart: cartSummary.items,
-          shippingAddress: shippingData
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao obter cotações de envio');
-      }
-
-      const data = await response.json();
-      
-      if (data.shipmentMethods && data.shipmentMethods.length > 0) {
-        setShippingMethods(data.shipmentMethods);
-        // Selecionar automaticamente o primeiro método
-        setSelectedShippingMethod(data.shipmentMethods[0].uid);
-      } else {
-        setShippingMethods([]);
-        setQuoteError('Nenhum método de envio disponível para esta localização');
-      }
-      
-    } catch (error) {
-      console.error('Erro ao buscar cotações:', error);
-      setQuoteError('Erro ao calcular envio. Tente novamente.');
-      
-      // Fallback com métodos simulados
-      setShippingMethods([
-        {
-          uid: 'standard',
-          name: 'Envio Standard',
-          price: 4.99,
-          deliveryDaysMin: 5,
-          deliveryDaysMax: 7,
-          description: 'CTT - Entrega em 5-7 dias úteis'
-        },
-        {
-          uid: 'express',
-          name: 'Envio Expresso',
-          price: 9.99,
-          deliveryDaysMin: 2,
-          deliveryDaysMax: 3,
-          description: 'CTT Expresso - Entrega em 2-3 dias úteis'
-        }
-      ]);
-      setSelectedShippingMethod('standard');
-    } finally {
-      setLoadingShipping(false);
-    }
-  };
-
   const calculateTotal = () => {
     if (!cartSummary) return 0;
-    
-    const selectedMethod = shippingMethods.find(m => m.uid === selectedShippingMethod);
-    const shippingCost = selectedMethod ? selectedMethod.price : 0;
-    
-    return cartSummary.subtotal + shippingCost + cartSummary.tax;
+    return cartSummary.subtotal + shippingMethod.price + cartSummary.tax;
   };
 
   const handleCheckout = async (data: ShippingFormData) => {
-    if (!cartSummary || !selectedShippingMethod || !userInfo) {
+    if (!cartSummary || !userInfo || !userData) {
       toast.error('Dados incompletos para finalizar compra');
       return;
     }
@@ -177,146 +142,55 @@ const CheckoutPage: React.FC = () => {
       // 2. Calcular total final
       const finalTotal = calculateTotal();
 
-      toast.info('A gerar ficheiros de impressão...', { duration: 3000 });
+      toast.info('A preparar pedido...', { duration: 2000 });
 
-      // 3. Gerar ficheiros de impressão para cada item
-      const printFilePromises = cartSummary.items.map(async (item) => {
-        try {
-          const response = await fetch('/api/gelato/generate-print-file', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              imageUrl: item.userImageUrl,
-              productUid: item.productUid,
-              productId: item.productId,
-              userId: userInfo.id,
-              transformationId: item.userImageId
-            })
-          });
-
-          if (!response.ok) {
-            throw new Error(`Erro ao gerar print file para ${item.productName}`);
-          }
-
-          const printFileData = await response.json();
-          return {
-            ...item,
-            printFileUrl: printFileData.fileUrl,
-            printFileName: printFileData.fileName
-          };
-        } catch (error) {
-          console.error(`Error generating print file for ${item.productName}:`, error);
-          throw error;
-        }
-      });
-
-      const itemsWithPrintFiles = await Promise.all(printFilePromises);
-
-      toast.success('Ficheiros de impressão gerados! Processando pagamento...', { duration: 2000 });
-
-      // 4. Criar ordem no sistema local (simulado)
-      const orderData = {
-        userId: userInfo.id,
-        items: itemsWithPrintFiles,
-        shippingInfo: data,
-        shippingMethod: shippingMethods.find(m => m.uid === selectedShippingMethod),
-        subtotal: cartSummary.subtotal,
-        shipping: shippingMethods.find(m => m.uid === selectedShippingMethod)?.price || 0,
-        tax: cartSummary.tax,
-        total: finalTotal,
-        status: 'pending_payment'
+      // 3. Preparar dados completos da encomenda
+      const fullShippingData = {
+        name: userData.full_name,
+        email: userData.email,
+        address: data.address,
+        city: data.city,
+        postalCode: data.postalCode,
+        country: data.country
       };
 
-      // 5. Processar pagamento via Stripe (simulado)
-      toast.info('Redirecionando para pagamento seguro...', { duration: 3000 });
-      
-      // Simular redirecionamento e pagamento Stripe
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Simular confirmação de pagamento
-      const paymentSuccess = Math.random() > 0.1; // 90% success rate for demo
-      
-      if (!paymentSuccess) {
-        throw new Error('Pagamento foi recusado. Tente outro cartão.');
-      }
-
-      toast.success('Pagamento confirmado! Enviando para produção...', { duration: 3000 });
-
-      // 6. Enviar pedido para Gelato
-      try {
-        const gelatoOrderResponse = await fetch('/api/gelato/orders', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orderReferenceId: `order_${Date.now()}_${userInfo.id}`,
-            customerReferenceId: userInfo.id,
-            currency: 'EUR',
-            recipient: {
-              name: data.name,
-              email: data.email,
-              address: {
-                line1: data.address,
-                city: data.city,
-                postalCode: data.postalCode,
-                country: data.country
-              }
-            },
-            products: itemsWithPrintFiles.map((item, index) => ({
-              itemReferenceId: `item_${index + 1}`,
-              productUid: item.productUid,
-              quantity: item.quantity,
-              files: [
-                {
-                  url: item.printFileUrl,
-                  type: 'default'
-                }
-              ]
-            })),
-            shipmentMethodUid: selectedShippingMethod
-          })
-        });
-
-        if (gelatoOrderResponse.ok) {
-          const gelatoOrderData = await gelatoOrderResponse.json();
-          toast.success('Pedido enviado para produção! Receberá email de confirmação.', { duration: 5000 });
-          console.log('Gelato order created:', gelatoOrderData);
-        } else {
-          console.warn('Gelato order failed, but payment was successful');
-          toast.warning('Pagamento processado. Pedido será enviado para produção manualmente.');
-        }
-      } catch (gelatoError) {
-        console.error('Gelato integration error:', gelatoError);
-        toast.warning('Pagamento processado. Pedido será enviado para produção manualmente.');
-      }
-
-      // 7. Limpar carrinho e redirecionar
-      CartService.clearCart();
-      
-      toast.success('Compra finalizada com sucesso! Redirecionando...', { 
-        duration: 3000,
-        description: 'Receberá updates do pedido por email'
+      // 4. Criar sessão de pagamento Stripe
+      const response = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: cartSummary.items,
+          shippingInfo: fullShippingData,
+          shippingMethod: shippingMethod,
+          userId: userInfo.id,
+          subtotal: cartSummary.subtotal,
+          shipping: shippingMethod.price,
+          tax: cartSummary.tax,
+          total: finalTotal
+        })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao criar sessão de pagamento');
+      }
+
+      const { url } = await response.json();
       
-      setTimeout(() => {
-        router.push('/orders');
-      }, 2000);
+      if (url) {
+        // Redirecionar para Stripe Checkout
+        window.location.href = url;
+      } else {
+        throw new Error('URL de pagamento não recebida');
+      }
       
     } catch (error) {
       console.error('Erro no checkout:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      
-      if (errorMessage.includes('print file') || errorMessage.includes('ficheiro')) {
-        toast.error('Erro ao preparar ficheiros para impressão. Tente novamente.');
-      } else if (errorMessage.includes('pagamento') || errorMessage.includes('payment')) {
-        toast.error('Erro no pagamento: ' + errorMessage);
-      } else {
-        toast.error('Erro ao processar compra: ' + errorMessage);
-      }
+      toast.error('Erro ao processar compra: ' + errorMessage);
     } finally {
       setLoadingPayment(false);
     }
@@ -333,12 +207,27 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
-  if (!cartSummary) {
+  if (!cartSummary || loadingUserData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-ghibli-moss border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-ghibli-earth">A carregar carrinho...</p>
+          <p className="text-ghibli-earth">
+            {loadingUserData ? 'A carregar dados...' : 'A carregar carrinho...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-ghibli-earth mb-4">Erro ao carregar dados do perfil</p>
+          <Button onClick={() => router.push('/profile')}>
+            Ir para Perfil
+          </Button>
         </div>
       </div>
     );
@@ -389,41 +278,40 @@ const CheckoutPage: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
+              {/* Dados do Cliente (só leitura) */}
               <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-6 shadow-lg">
                 <h2 className="text-xl font-semibold text-ghibli-wood mb-6">
-                  📦 Dados de Envio
+                  👤 Dados do Cliente
                 </h2>
-
-                <form onSubmit={handleSubmit(handleCheckout)} className="space-y-4">
+                
+                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-ghibli-earth mb-2">
                       Nome Completo
                     </label>
-                    <Input
-                      {...register('name')}
-                      placeholder="O seu nome completo"
-                      className={errors.name ? 'border-red-500' : ''}
-                    />
-                    {errors.name && (
-                      <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
-                    )}
+                    <div className="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-ghibli-wood">
+                      {userData.full_name}
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-ghibli-earth mb-2">
                       Email
                     </label>
-                    <Input
-                      {...register('email')}
-                      type="email"
-                      placeholder="o.seu.email@exemplo.com"
-                      className={errors.email ? 'border-red-500' : ''}
-                    />
-                    {errors.email && (
-                      <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-                    )}
+                    <div className="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-ghibli-wood">
+                      {userData.email}
+                    </div>
                   </div>
+                </div>
+              </div>
 
+              {/* Dados de Envio */}
+              <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-6 shadow-lg">
+                <h2 className="text-xl font-semibold text-ghibli-wood mb-6">
+                  📦 Endereço de Envio
+                </h2>
+
+                <form onSubmit={handleSubmit(handleCheckout)} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-ghibli-earth mb-2">
                       Endereço
@@ -483,83 +371,34 @@ const CheckoutPage: React.FC = () => {
                       <option value="IT">Itália</option>
                     </select>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-ghibli-earth mb-2">
-                      Telefone (opcional)
-                    </label>
-                    <Input
-                      {...register('phone')}
-                      placeholder="+351 912 345 678"
-                    />
-                  </div>
                 </form>
               </div>
 
-              {/* Métodos de Envio */}
-              {shippingMethods.length > 0 && (
-                <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-6 shadow-lg">
-                  <h3 className="text-lg font-semibold text-ghibli-wood mb-4">
-                    🚚 Método de Envio
-                  </h3>
-                  
-                  {loadingShipping && (
-                    <div className="flex items-center gap-2 text-ghibli-earth mb-4">
-                      <div className="w-4 h-4 border-2 border-ghibli-moss border-t-transparent rounded-full animate-spin" />
-                      <span>A calcular opções de envio...</span>
+              {/* Método de Envio Fixo */}
+              <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-6 shadow-lg">
+                <h3 className="text-lg font-semibold text-ghibli-wood mb-4">
+                  🚚 Método de Envio
+                </h3>
+                
+                <div className="p-4 border border-ghibli-moss bg-green-50 rounded-lg">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="font-medium text-ghibli-wood">
+                        {shippingMethod.name}
+                      </div>
+                      <div className="text-sm text-ghibli-earth">
+                        {shippingMethod.deliveryDaysMin}-{shippingMethod.deliveryDaysMax} dias úteis
+                      </div>
+                      <div className="text-xs text-ghibli-earth/80 mt-1">
+                        {shippingMethod.description}
+                      </div>
                     </div>
-                  )}
-
-                  {quoteError && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                      <p className="text-red-700 text-sm">{quoteError}</p>
+                    <div className="text-lg font-semibold text-ghibli-wood">
+                      €{shippingMethod.price.toFixed(2)}
                     </div>
-                  )}
-
-                  <div className="space-y-3">
-                    {shippingMethods.map((method) => (
-                      <label
-                        key={method.uid}
-                        className={`block p-4 border rounded-lg cursor-pointer transition-all ${
-                          selectedShippingMethod === method.uid
-                            ? 'border-ghibli-moss bg-green-50'
-                            : 'border-gray-200 hover:border-ghibli-sand'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="shipping"
-                          value={method.uid}
-                          checked={selectedShippingMethod === method.uid}
-                          onChange={(e) => setSelectedShippingMethod(e.target.value)}
-                          className="sr-only"
-                        />
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="font-medium text-ghibli-wood">
-                              {method.name}
-                            </div>
-                            <div className="text-sm text-ghibli-earth">
-                              {method.deliveryDaysMin === method.deliveryDaysMax
-                                ? `${method.deliveryDaysMin} dias úteis`
-                                : `${method.deliveryDaysMin}-${method.deliveryDaysMax} dias úteis`
-                              }
-                            </div>
-                            {method.description && (
-                              <div className="text-xs text-ghibli-earth/80 mt-1">
-                                {method.description}
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-lg font-semibold text-ghibli-wood">
-                            €{method.price.toFixed(2)}
-                          </div>
-                        </div>
-                      </label>
-                    ))}
                   </div>
                 </div>
-              )}
+              </div>
             </motion.div>
 
             {/* Coluna Direita - Resumo do Carrinho */}
@@ -621,14 +460,10 @@ const CheckoutPage: React.FC = () => {
                     <span className="text-ghibli-wood">€{cartSummary.subtotal.toFixed(2)}</span>
                   </div>
                   
-                  {selectedShippingMethod && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-ghibli-earth">Envio:</span>
-                      <span className="text-ghibli-wood">
-                        €{shippingMethods.find(m => m.uid === selectedShippingMethod)?.price.toFixed(2) || '0.00'}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-ghibli-earth">Envio:</span>
+                    <span className="text-ghibli-wood">€{shippingMethod.price.toFixed(2)}</span>
+                  </div>
                   
                   <div className="flex justify-between text-sm">
                     <span className="text-ghibli-earth">IVA (23%):</span>
@@ -646,7 +481,7 @@ const CheckoutPage: React.FC = () => {
                 {/* Botão de Finalizar Compra */}
                 <Button
                   onClick={handleSubmit(handleCheckout)}
-                  disabled={!isValid || !selectedShippingMethod || loadingPayment || loadingShipping}
+                  disabled={!isValid || loadingPayment}
                   className="w-full mt-6 bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white py-4 text-lg font-semibold disabled:opacity-50"
                 >
                   {loadingPayment ? (
