@@ -143,11 +143,11 @@ const CheckoutPage: React.FC = () => {
         throw new Error(errorData.error || 'Erro ao criar sessão de pagamento');
       }
 
-      const { url } = await response.json();
+      const result = await response.json();
       
-      if (url) {
+      if (result.url) {
         // Redirecionar para Stripe Checkout
-        window.location.href = url;
+        window.location.href = result.url;
       } else {
         throw new Error('URL de pagamento não recebida');
       }

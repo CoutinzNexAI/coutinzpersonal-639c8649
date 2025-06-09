@@ -1,330 +1,322 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { CartService } from '@/lib/cart/cartService';
-import { useAuth } from '@/hooks/useAuth';
+import Link from 'next/link';
+
+interface OrderResult {
+  success: boolean;
+  message: string;
+  orderId: string;
+  orderReference: string;
+  gelatoOrderId?: string;
+  status: string;
+  estimatedDelivery?: string;
+  customerEmail: string;
+  customerName: string;
+  total: number;
+  error?: string;
+  supportNeeded?: boolean;
+}
 
 const CheckoutSuccessPage: React.FC = () => {
   const router = useRouter();
-  const { userInfo } = useAuth();
   const { session_id } = router.query;
-  
+  const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
   const [loading, setLoading] = useState(true);
-  const [orderData, setOrderData] = useState<{
-    orderReference?: string;
-    items?: Array<{ productName: string; quantity: number; price: number }>;
-    subtotal?: number;
-    shipping?: number;
-    tax?: number;
-    total?: number;
-  } | null>(null);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!session_id || typeof session_id !== 'string') {
-      return;
-    }
+    if (!session_id) return;
 
     const processOrder = async () => {
       try {
         setLoading(true);
-
-        // Verificar sessão do Stripe e processar pedido
+        
+        console.log('🔄 Processando pedido após pagamento...');
+        
         const response = await fetch('/api/stripe/process-order', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            sessionId: session_id,
-            userId: userInfo?.id
+            sessionId: session_id
           })
         });
 
-        if (!response.ok) {
-          throw new Error('Erro ao processar pedido');
-        }
-
-        const data = await response.json();
-        setOrderData(data);
-
-        // Limpar carrinho após compra bem-sucedida
-        CartService.clearCart();
-
-        toast.success('Pedido processado com sucesso!', {
-          description: 'Receberá um email de confirmação em breve'
-        });
-
-      } catch (error) {
-        console.error('Erro ao processar pedido:', error);
-        setError('Erro ao confirmar pedido. Contacte o suporte se o problema persistir.');
+        const result = await response.json();
         
-        toast.error('Erro ao processar pedido', {
-          description: 'O pagamento foi processado mas houve um erro. Contacte o suporte.'
-        });
+        if (response.ok && result.success) {
+          // ✅ SUCESSO TOTAL - Pedido processado e enviado para Gelato
+          console.log('✅ Pedido processado com sucesso:', result);
+          setOrderResult(result);
+          toast.success('Pedido finalizado com sucesso!');
+          
+        } else if (!response.ok && result.supportNeeded) {
+          // ⚠️ PAGAMENTO OK, MAS GELATO FALHOU - Precisa suporte
+          console.error('⚠️ Pagamento processado mas erro na Gelato:', result);
+          setOrderResult(result);
+          toast.error('Pedido parcialmente processado. Contacte o suporte.');
+          
+        } else {
+          // ❌ ERRO COMPLETO
+          console.error('❌ Erro ao processar pedido:', result);
+          setError(result.error || 'Erro desconhecido ao processar pedido');
+          toast.error('Erro ao processar pedido');
+        }
+        
+      } catch (error) {
+        console.error('❌ Erro inesperado:', error);
+        setError('Erro de conexão ao processar pedido');
+        toast.error('Erro de conexão');
       } finally {
         setLoading(false);
       }
     };
 
     processOrder();
-  }, [session_id, userInfo?.id]);
+  }, [session_id]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-ghibli-moss border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-ghibli-wood mb-2">
-            A processar o seu pedido...
-          </h2>
-          <p className="text-ghibli-earth">
-            Por favor aguarde enquanto confirmamos o pagamento
-          </p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-ghibli-paper to-ghibli-sky relative overflow-hidden">
+        <div className="absolute top-20 left-10 text-3xl animate-leaf-float opacity-20">🍃</div>
+        <div className="absolute bottom-28 right-16 text-2xl animate-leaf-float opacity-20">🍂</div>
+        
+        <Header />
+        
+        <main className="container mx-auto px-4 py-16 relative z-10">
+          <div className="max-w-2xl mx-auto text-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white/90 backdrop-blur-sm rounded-2xl p-12 shadow-xl border border-ghibli-moss/10"
+            >
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-ghibli-moss/20 border-t-ghibli-moss mx-auto mb-6"></div>
+              <h1 className="text-2xl font-ghibli text-ghibli-wood mb-4">
+                A processar o seu pedido...
+              </h1>
+              <p className="text-ghibli-earth">
+                Aguarde enquanto confirmamos o pagamento e enviamos o pedido para produção.
+              </p>
+            </motion.div>
+          </div>
+        </main>
+        
+        <Footer />
       </div>
     );
   }
 
   if (error) {
     return (
-      <>
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-ghibli-paper to-ghibli-sky relative overflow-hidden">
+        <div className="absolute top-20 left-10 text-3xl animate-leaf-float opacity-20">🍃</div>
+        <div className="absolute bottom-28 right-16 text-2xl animate-leaf-float opacity-20">🍂</div>
+        
         <Head>
-          <title>Erro no Pedido - PicTuz</title>
+          <title>Erro no Processamento - PicTuz</title>
         </Head>
-
-        <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
-          <Header />
-          
-          <main className="container mx-auto px-4 py-12">
-            <div className="max-w-2xl mx-auto text-center">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                <div className="bg-red-50 border border-red-200 rounded-2xl p-8 mb-8">
-                  <div className="text-6xl mb-4">❌</div>
-                  <h1 className="text-2xl font-bold text-red-800 mb-4">
-                    Erro no Processamento
-                  </h1>
-                  <p className="text-red-700 mb-6">
-                    {error}
-                  </p>
-                  <div className="space-y-4">
-                    <Button 
-                      onClick={() => router.push('/orders')}
-                      className="bg-ghibli-moss hover:bg-ghibli-moss/80"
-                    >
-                      Ver Meus Pedidos
-                    </Button>
-                    <div>
-                      <Link href="/support" className="text-sm text-ghibli-earth hover:text-ghibli-moss">
-                        Contactar Suporte
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </main>
-
-          <Footer />
-        </div>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Head>
-        <title>Compra Finalizada - PicTuz</title>
-        <meta name="description" content="Obrigado pela sua compra! O seu pedido foi processado com sucesso." />
-      </Head>
-
-      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
+        
         <Header />
         
-        <main className="container mx-auto px-4 py-12">
-          <div className="max-w-4xl mx-auto">
-            {/* Confirmação Principal */}
+        <main className="container mx-auto px-4 py-16 relative z-10">
+          <div className="max-w-2xl mx-auto text-center">
             <motion.div
-              className="text-center mb-12"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-8 shadow-lg">
-                <div className="text-6xl mb-4">✅</div>
-                <h1 className="text-3xl md:text-4xl font-ghibli font-bold text-ghibli-wood mb-4">
-                  Compra Finalizada com Sucesso!
-                </h1>
-                <p className="text-lg text-ghibli-earth mb-6">
-                  Obrigado pela sua compra! O seu pedido foi processado e será enviado para produção.
-                </p>
-                
-                {orderData?.orderReference && (
-                  <div className="bg-ghibli-moss/10 border border-ghibli-moss/30 rounded-lg p-4 mb-6">
-                    <p className="text-sm text-ghibli-earth mb-1">Referência do Pedido:</p>
-                    <p className="font-mono text-lg font-semibold text-ghibli-wood">
-                      {orderData.orderReference}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-
-            {/* Detalhes do Pedido */}
-            {orderData && (
-              <motion.div
-                className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                {/* Resumo do Pedido */}
-                <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-6 shadow-lg">
-                  <h2 className="text-xl font-semibold text-ghibli-wood mb-4">
-                    📋 Resumo do Pedido
-                  </h2>
-                  
-                  {orderData.items && (
-                    <div className="space-y-3">
-                      {orderData.items.map((item: { productName: string; quantity: number; price: number }, index: number) => (
-                        <div key={index} className="flex justify-between items-center p-3 bg-ghibli-sand/10 rounded-lg">
-                          <div>
-                            <p className="font-medium text-ghibli-wood text-sm">
-                              {item.productName}
-                            </p>
-                            <p className="text-xs text-ghibli-earth">
-                              Qtd: {item.quantity}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-ghibli-wood">
-                              €{(item.price * item.quantity).toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                      
-                      <div className="border-t border-ghibli-sand/30 pt-3 mt-3">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-ghibli-earth">Subtotal:</span>
-                          <span>€{orderData.subtotal?.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-ghibli-earth">Envio:</span>
-                          <span>€{orderData.shipping?.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-ghibli-earth">IVA:</span>
-                          <span>€{orderData.tax?.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between font-semibold text-lg">
-                          <span>Total:</span>
-                          <span>€{orderData.total?.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Próximos Passos */}
-                <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-6 shadow-lg">
-                  <h2 className="text-xl font-semibold text-ghibli-wood mb-4">
-                    📦 Próximos Passos
-                  </h2>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-ghibli-moss text-white rounded-full flex items-center justify-center text-sm font-bold">
-                        1
-                      </div>
-                      <div>
-                        <p className="font-medium text-ghibli-wood text-sm">
-                          Confirmação por Email
-                        </p>
-                        <p className="text-xs text-ghibli-earth">
-                          Receberá um email de confirmação em poucos minutos
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-ghibli-moss text-white rounded-full flex items-center justify-center text-sm font-bold">
-                        2
-                      </div>
-                      <div>
-                        <p className="font-medium text-ghibli-wood text-sm">
-                          Produção
-                        </p>
-                        <p className="text-xs text-ghibli-earth">
-                          Os seus produtos serão impressos com qualidade premium
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-ghibli-moss text-white rounded-full flex items-center justify-center text-sm font-bold">
-                        3
-                      </div>
-                      <div>
-                        <p className="font-medium text-ghibli-wood text-sm">
-                          Envio
-                        </p>
-                        <p className="text-xs text-ghibli-earth">
-                          Entrega em 4-5 dias úteis com tracking incluído
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Ações */}
-            <motion.div
-              className="text-center space-y-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              className="bg-white/90 backdrop-blur-sm rounded-2xl p-12 shadow-xl border border-red-200"
             >
-              <div className="space-x-4">
-                <Button 
-                  onClick={() => router.push('/orders')}
-                  className="bg-ghibli-moss hover:bg-ghibli-moss/80"
-                >
-                  Ver Meus Pedidos
-                </Button>
+              <div className="text-6xl mb-6">❌</div>
+              <h1 className="text-3xl font-ghibli text-red-600 mb-4">
+                Erro no Processamento
+              </h1>
+              <p className="text-ghibli-earth mb-6">{error}</p>
+              
+              <div className="space-y-4">
                 <Button 
                   onClick={() => router.push('/shop')}
-                  variant="outline"
-                  className="border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss/10"
+                  className="bg-ghibli-moss hover:bg-ghibli-moss-light text-white px-6 py-3 rounded-xl"
                 >
-                  Continuar Comprando
+                  Voltar à Loja
                 </Button>
+                
+                <div className="text-sm text-ghibli-earth">
+                  <p>Se o problema persistir, contacte o nosso suporte:</p>
+                  <a href="mailto:suporte@pictuz.com" className="text-ghibli-moss hover:underline">
+                    suporte@pictuz.com
+                  </a>
+                </div>
               </div>
-              
-              <p className="text-sm text-ghibli-earth">
-                Tem dúvidas? {' '}
-                <Link href="/support" className="text-ghibli-moss hover:underline">
-                  Contacte o nosso suporte
-                </Link>
-              </p>
             </motion.div>
           </div>
         </main>
-
+        
         <Footer />
       </div>
-    </>
+    );
+  }
+
+  if (!orderResult) return null;
+
+  const isSuccess = orderResult.success;
+  const needsSupport = orderResult.supportNeeded;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-ghibli-paper to-ghibli-sky relative overflow-hidden">
+      <div className="absolute top-20 left-10 text-3xl animate-leaf-float opacity-20">🍃</div>
+      <div className="absolute bottom-28 right-16 text-2xl animate-leaf-float opacity-20">🍂</div>
+      <div className="absolute top-40 right-28 text-xl animate-star-twinkle opacity-30">✨</div>
+      
+      <Head>
+        <title>{isSuccess ? 'Pedido Confirmado' : 'Atenção Necessária'} - PicTuz</title>
+      </Head>
+      
+      <Header />
+      
+      <main className="container mx-auto px-4 py-16 relative z-10">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border ${
+              isSuccess ? 'border-green-200' : needsSupport ? 'border-yellow-200' : 'border-red-200'
+            }`}
+          >
+            {/* Cabeçalho */}
+            <div className="text-center mb-8">
+              <div className={`text-6xl mb-4 ${
+                isSuccess ? '🎉' : needsSupport ? '⚠️' : '❌'
+              }`}>
+                {isSuccess ? '🎉' : needsSupport ? '⚠️' : '❌'}
+              </div>
+              
+              <h1 className={`text-3xl font-ghibli mb-4 ${
+                isSuccess ? 'text-green-600' : needsSupport ? 'text-yellow-600' : 'text-red-600'
+              }`}>
+                {isSuccess ? 'Pedido Confirmado!' : needsSupport ? 'Atenção Necessária' : 'Erro no Processamento'}
+              </h1>
+              
+              <p className="text-ghibli-earth text-lg">
+                {orderResult.message}
+              </p>
+            </div>
+
+            {/* Detalhes do Pedido */}
+            <div className="bg-ghibli-cream/30 rounded-xl p-6 mb-8">
+              <h2 className="text-xl font-ghibli text-ghibli-wood mb-4">Detalhes do Pedido</h2>
+              
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-ghibli-earth">Referência:</span>
+                  <span className="ml-2 font-mono text-ghibli-wood">{orderResult.orderReference}</span>
+                </div>
+                
+                <div>
+                  <span className="font-medium text-ghibli-earth">Total:</span>
+                  <span className="ml-2 font-bold text-ghibli-moss">€{orderResult.total.toFixed(2)}</span>
+                </div>
+                
+                <div>
+                  <span className="font-medium text-ghibli-earth">Cliente:</span>
+                  <span className="ml-2 text-ghibli-wood">{orderResult.customerName}</span>
+                </div>
+                
+                <div>
+                  <span className="font-medium text-ghibli-earth">Email:</span>
+                  <span className="ml-2 text-ghibli-wood">{orderResult.customerEmail}</span>
+                </div>
+                
+                <div>
+                  <span className="font-medium text-ghibli-earth">Status:</span>
+                  <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                    isSuccess ? 'bg-green-100 text-green-800' : 
+                    needsSupport ? 'bg-yellow-100 text-yellow-800' : 
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {orderResult.status}
+                  </span>
+                </div>
+                
+                {orderResult.estimatedDelivery && (
+                  <div>
+                    <span className="font-medium text-ghibli-earth">Entrega:</span>
+                    <span className="ml-2 text-ghibli-wood">{orderResult.estimatedDelivery}</span>
+                  </div>
+                )}
+                
+                {orderResult.gelatoOrderId && (
+                  <div className="md:col-span-2">
+                    <span className="font-medium text-ghibli-earth">ID Gelato:</span>
+                    <span className="ml-2 font-mono text-ghibli-wood">{orderResult.gelatoOrderId}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Ações */}
+            <div className="space-y-4">
+              {isSuccess && (
+                <div className="text-center">
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                    <div className="flex items-center justify-center text-green-600 mb-2">
+                      <span className="mr-2">✅</span>
+                      <span className="font-medium">Pedido em Produção</span>
+                    </div>
+                    <p className="text-sm text-green-700">
+                      O seu pedido foi enviado para a Gelato e está agora em produção. 
+                      Receberá updates por email sobre o progresso.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {needsSupport && (
+                <div className="text-center">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                    <div className="flex items-center justify-center text-yellow-600 mb-2">
+                      <span className="mr-2">⚠️</span>
+                      <span className="font-medium">Suporte Necessário</span>
+                    </div>
+                    <p className="text-sm text-yellow-700 mb-3">
+                      O pagamento foi processado mas houve um problema ao enviar para produção.
+                      A nossa equipa irá resolver isto em breve.
+                    </p>
+                    <a 
+                      href="mailto:suporte@pictuz.com?subject=Pedido%20precisa%20suporte%20-%20${orderResult.orderReference}"
+                      className="text-yellow-600 hover:text-yellow-800 underline"
+                    >
+                      Contactar Suporte
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/shop">
+                  <Button className="bg-ghibli-moss hover:bg-ghibli-moss-light text-white px-6 py-3 rounded-xl">
+                    Continuar a Comprar
+                  </Button>
+                </Link>
+                
+                <Link href="/account/orders">
+                  <Button variant="outline" className="border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss/10 px-6 py-3 rounded-xl">
+                    Ver Meus Pedidos
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </main>
+      
+      <Footer />
+    </div>
   );
 };
 
