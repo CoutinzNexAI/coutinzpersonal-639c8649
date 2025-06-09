@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
+import { supabaseAdmin } from '../../../lib/supabase/admin';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
@@ -17,6 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { items, shippingMethod, userId, userName, userEmail, subtotal, shipping, tax, total } = req.body;
 
+    // Gerar referência única para este checkout
+    const checkoutReference = `CHK-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+
     // Validar dados obrigatórios
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Items são obrigatórios' });
@@ -29,6 +33,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!shippingMethod) {
       return res.status(400).json({ error: 'Método de envio é obrigatório' });
     }
+
+    console.log('💾 Salvando dados do checkout temporariamente...');
+
+    // Salvar dados do checkout temporariamente para recuperar depois
+    const { error: tempSaveError } = await supabaseAdmin
+      .from('checkout_sessions_temp')
+      .insert({
+        checkout_reference: checkoutReference,
+        user_id: userId,
+        cart_items: items, // Salvar array completo diretamente
+        shipping_method: shippingMethod,
+        financial_data: {
+          subtotal,
+          shipping,
+          tax,
+          total
+        },
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString() // Expira em 2 horas
+      });
+
+    if (tempSaveError) {
+      console.error('❌ Erro ao salvar dados temporários:', tempSaveError);
+      return res.status(500).json({ error: 'Erro ao preparar checkout' });
+    }
+
+    console.log('✅ Dados do checkout salvos temporariamente:', checkoutReference);
 
     // Criar line items para o Stripe
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: {
@@ -83,6 +114,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       metadata: {
         userId,
         userName,
+        checkoutReference, // Referência única para recuperar dados depois
         orderType: 'gelato',
         subtotal: subtotal.toString(),
         shipping: shipping.toString(),
@@ -90,8 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         total: total.toString(),
         shippingMethodUid: shippingMethod.uid,
         shippingMethodName: shippingMethod.name,
-        // Salvar items completos do carrinho para reconstruir na DB
-        cartItemsJson: JSON.stringify(items)
+        itemsCount: items.length.toString()
       },
       // Configurar recolha obrigatória de endereço de envio
       shipping_address_collection: {
@@ -140,6 +171,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('Stripe checkout session created:', {
       sessionId: session.id,
+      checkoutReference,
       userId,
       itemsCount: items.length,
       total

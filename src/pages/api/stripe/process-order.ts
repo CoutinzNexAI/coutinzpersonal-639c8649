@@ -63,6 +63,27 @@ interface CartItem {
   addedAt: Date;
 }
 
+// Interface para dados do checkout temporário
+interface CheckoutTempData {
+  checkout_reference: string;
+  user_id: string;
+  cart_items: CartItem[];
+  shipping_method: {
+    uid: string;
+    name: string;
+    price: number;
+    deliveryDaysMin: number;
+    deliveryDaysMax: number;
+    description?: string;
+  };
+  financial_data: {
+    subtotal: number;
+    shipping: number;
+    tax: number;
+    total: number;
+  };
+}
+
 // Estender a interface Session do Stripe
 interface ExtendedSession extends Stripe.Checkout.Session {
   shipping_details?: ShippingDetails;
@@ -103,9 +124,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ success: false, error: 'Pagamento não confirmado' });
     }
 
-    // 2. EXTRAÇÃO ROBUSTA DOS DADOS DO CLIENTE
-    const lineItems = session.line_items?.data || [];
+    // 2. RECUPERAR DADOS DO CHECKOUT TEMPORÁRIO
     const metadata = session.metadata || {};
+    const checkoutReference = metadata.checkoutReference;
+
+    if (!checkoutReference) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Referência do checkout não encontrada nos metadata da sessão' 
+      });
+    }
+
+    console.log(`📋 Recuperando dados do checkout: ${checkoutReference}`);
+
+    const { data: checkoutData, error: fetchError } = await supabaseAdmin
+      .from('checkout_sessions_temp')
+      .select('*')
+      .eq('checkout_reference', checkoutReference)
+      .single();
+
+    if (fetchError || !checkoutData) {
+      console.error('❌ Erro ao recuperar dados do checkout:', fetchError);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Erro ao recuperar dados do checkout. Sessão pode ter expirado.' 
+      });
+    }
+
+    const tempData = checkoutData as CheckoutTempData;
+    const cartItems = tempData.cart_items;
+    const shippingMethodData = tempData.shipping_method;
+    const financialData = tempData.financial_data;
+
+    console.log('✅ Dados do checkout recuperados:', {
+      cartItemsCount: cartItems.length,
+      checkoutReference,
+      total: financialData.total
+    });
+
+    // 3. EXTRAÇÃO DOS DADOS DO CLIENTE DO STRIPE
     const shippingDetails = (session as ExtendedSession).shipping_details || null;
     const customerDetails = session.customer_details || null;
     
@@ -113,7 +170,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       hasShipping: !!shippingDetails,
       hasCustomer: !!customerDetails,
       sessionEmail: session.customer_email,
-      lineItemsCount: lineItems.length
+      lineItemsCount: session.line_items?.data?.length || 0
     });
 
     // Prioridade para extrair informações do cliente
@@ -157,32 +214,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       phone: customerPhone,
     };
 
-    // 3. PREPARAR DADOS DO PEDIDO PARA DB
+    // 4. PREPARAR DADOS DO PEDIDO PARA DB
     const orderReference = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
-    
-    // Recuperar cart items completos dos metadata da sessão
-    let cartItems: CartItem[] = [];
-    try {
-      cartItems = JSON.parse(metadata.cartItemsJson || '[]');
-      console.log('📋 Cart items recuperados dos metadata:', cartItems.length);
-    } catch (error) {
-      console.error('❌ Erro ao parsear cart items dos metadata:', error);
-      // Fallback: reconstruir a partir dos line items (menos informação)
-      cartItems = lineItems
-        .filter(item => !item.description?.includes('Envio')) // Filtrar item de envio
-        .map((item, index) => ({
-          id: `fallback-${index}`,
-          productId: 'unknown',
-          productUid: 'unknown',
-          productName: item.description || 'Produto',
-          productCategory: 'unknown',
-          userImageUrl: '',
-          userImageId: undefined,
-          price: item.amount_total ? item.amount_total / 100 : 0,
-          quantity: item.quantity || 1,
-          addedAt: new Date()
-        }));
-    }
     
     const orderData = {
       user_id: userId || metadata.userId,
@@ -192,24 +225,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         : session.payment_intent?.id || null,
       order_reference: orderReference,
       
-      // NOVOS CAMPOS CRÍTICOS
+      // CAMPOS CRÍTICOS
       customer_email: customerEmail,
       customer_name: customerName,
       customer_phone: customerPhone,
       
-      // Dados financeiros
-      subtotal: parseFloat(metadata.subtotal || '0'),
-      shipping_cost: parseFloat(metadata.shipping || '0'),
-      tax_amount: parseFloat(metadata.tax || '0'),
-      total_amount: parseFloat(metadata.total || '0'),
+      // Dados financeiros dos dados temporários
+      subtotal: financialData.subtotal,
+      shipping_cost: financialData.shipping,
+      tax_amount: financialData.tax,
+      total_amount: financialData.total,
       currency: 'EUR',
       
       // Dados de envio em formato JSON
       shipping_info: JSON.stringify(gelatoShippingAddress),
-      shipping_method_uid: metadata.shippingMethodUid || 'express',
-      shipping_method_name: metadata.shippingMethodName || 'Envio Expresso',
+      shipping_method_uid: shippingMethodData.uid,
+      shipping_method_name: shippingMethodData.name,
       
-      // Items do pedido - agora com dados completos do carrinho
+      // Items do pedido - dados completos do carrinho
       items: cartItems,
       
       // Status inicial - pagamento processado, DB salvo, aguardando Gelato
@@ -224,7 +257,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('💾 Salvando pedido na base de dados...');
 
-    // 4. INSERÇÃO CRÍTICA NA BASE DE DADOS (DEVE SER BEM-SUCEDIDA)
+    // 5. INSERÇÃO CRÍTICA NA BASE DE DADOS (DEVE SER BEM-SUCEDIDA)
     const { data: savedOrder, error: dbError } = await supabaseAdmin
       .from('gelato_orders')
       .insert(orderData)
@@ -245,7 +278,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       orderReference: orderReference
     });
 
-    // 5. CHAMADA BLOQUEANTE À API GELATO
+    // 6. LIMPEZA DOS DADOS TEMPORÁRIOS
+    await supabaseAdmin
+      .from('checkout_sessions_temp')
+      .delete()
+      .eq('checkout_reference', checkoutReference);
+
+    console.log('🧹 Dados temporários do checkout removidos');
+
+    // 7. CHAMADA BLOQUEANTE À API GELATO
     let gelatoOrderResult;
     
     try {
@@ -282,7 +323,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       console.log('✅ Pedido enviado para Gelato com sucesso:', gelatoOrderResult);
 
-      // 6. ATUALIZAR DB COM SUCESSO GELATO
+      // 8. ATUALIZAR DB COM SUCESSO GELATO
       const { error: updateError } = await supabaseAdmin
         .from('gelato_orders')
         .update({
@@ -298,7 +339,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Não é crítico, mas deve ser registado
       }
 
-      // 7. RESPOSTA DE SUCESSO COMPLETO
+      // 9. RESPOSTA DE SUCESSO COMPLETO
       return res.status(200).json({
         success: true,
         message: "Pedido processado com sucesso e enviado para a Gelato!",
@@ -315,28 +356,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (gelatoError: unknown) {
       console.error('❌ ERRO CRÍTICO: Falha ao enviar pedido para a Gelato API:', gelatoError);
       
-             // 8. MARCAR COMO ERRO GELATO NA DB
-       const errorMessage = gelatoError instanceof Error ? gelatoError.message : 'Erro desconhecido na API Gelato';
-       
-       await supabaseAdmin
-         .from('gelato_orders')
-         .update({
-           gelato_status: 'failed_gelato_api',
-           status: 'failed',
-           error_message: errorMessage,
-           updated_at: new Date().toISOString()
-         })
-         .eq('id', savedOrder.id);
+      // 10. MARCAR COMO ERRO GELATO NA DB
+      const errorMessage = gelatoError instanceof Error ? gelatoError.message : 'Erro desconhecido na API Gelato';
+      
+      await supabaseAdmin
+        .from('gelato_orders')
+        .update({
+          gelato_status: 'failed_gelato_api',
+          status: 'failed',
+          error_message: errorMessage,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', savedOrder.id);
 
-       // 9. RESPOSTA DE ERRO GELATO (PAGAMENTO FOI PROCESSADO MAS GELATO FALHOU)
-       return res.status(500).json({
-         success: false,
-         message: "O pagamento foi processado, mas houve um erro ao enviar o pedido para a Gelato. Contacte o suporte.",
-         orderId: savedOrder.id,
-         orderReference: orderReference,
-         error: errorMessage,
-         supportNeeded: true
-       });
+      // 11. RESPOSTA DE ERRO GELATO (PAGAMENTO FOI PROCESSADO MAS GELATO FALHOU)
+      return res.status(500).json({
+        success: false,
+        message: "O pagamento foi processado, mas houve um erro ao enviar o pedido para a Gelato. Contacte o suporte.",
+        orderId: savedOrder.id,
+        orderReference: orderReference,
+        error: errorMessage,
+        supportNeeded: true
+      });
     }
 
   } catch (error) {
