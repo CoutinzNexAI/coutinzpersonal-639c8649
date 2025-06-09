@@ -3,29 +3,15 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { CartService } from '@/lib/cart/cartService';
-import { CartSummary, ShippingInfo } from '@/lib/cart/cartTypes';
+import { CartSummary } from '@/lib/cart/cartTypes';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
-
-// Schema simplificado - só endereço, cidade, código postal e país
-const shippingSchema = z.object({
-  address: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
-  city: z.string().min(2, 'Cidade deve ter pelo menos 2 caracteres'),
-  postalCode: z.string().regex(/^\d{4}-\d{3}$/, 'Código postal deve ter formato 0000-000'),
-  country: z.string().min(2, 'País é obrigatório')
-});
-
-type ShippingFormData = z.infer<typeof shippingSchema>;
 
 interface ShippingMethod {
   uid: string;
@@ -59,17 +45,6 @@ const CheckoutPage: React.FC = () => {
     deliveryDaysMax: 5,
     description: 'Entrega rápida em 4-5 dias úteis'
   };
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid }
-  } = useForm<ShippingFormData>({
-    resolver: zodResolver(shippingSchema),
-    defaultValues: {
-      country: 'PT'
-    }
-  });
 
   // Carregar dados do utilizador do Supabase
   useEffect(() => {
@@ -123,7 +98,7 @@ const CheckoutPage: React.FC = () => {
     return cartSummary.subtotal + shippingMethod.price + cartSummary.tax;
   };
 
-  const handleCheckout = async (data: ShippingFormData) => {
+  const handleCheckout = async () => {
     if (!cartSummary || !userInfo || !userData) {
       toast.error('Dados incompletos para finalizar compra');
       return;
@@ -142,19 +117,9 @@ const CheckoutPage: React.FC = () => {
       // 2. Calcular total final
       const finalTotal = calculateTotal();
 
-      toast.info('A preparar pedido...', { duration: 2000 });
+      toast.info('A preparar sessão de pagamento...', { duration: 2000 });
 
-      // 3. Preparar dados completos da encomenda
-      const fullShippingData = {
-        name: userData.full_name,
-        email: userData.email,
-        address: data.address,
-        city: data.city,
-        postalCode: data.postalCode,
-        country: data.country
-      };
-
-      // 4. Criar sessão de pagamento Stripe
+      // 3. Criar sessão de pagamento Stripe
       const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -162,9 +127,10 @@ const CheckoutPage: React.FC = () => {
         },
         body: JSON.stringify({
           items: cartSummary.items,
-          shippingInfo: fullShippingData,
           shippingMethod: shippingMethod,
           userId: userInfo.id,
+          userName: userData.full_name,
+          userEmail: userData.email,
           subtotal: cartSummary.subtotal,
           shipping: shippingMethod.price,
           tax: cartSummary.tax,
@@ -203,320 +169,237 @@ const CheckoutPage: React.FC = () => {
     
     if (newSummary.itemCount === 0) {
       router.push('/shop');
-      toast.info('Carrinho vazio! Redirecionando para a loja.');
+      toast.info('Carrinho vazio. Redirecionando para a loja...');
+    } else {
+      toast.success('Produto removido do carrinho');
     }
   };
 
-  if (!cartSummary || loadingUserData) {
+  if (!userInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-teal-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-ghibli-moss border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-ghibli-earth">
-            {loadingUserData ? 'A carregar dados...' : 'A carregar carrinho...'}
-          </p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Acesso necessário</h2>
+          <p className="text-gray-600 mb-6">Precisa de fazer login para aceder ao checkout.</p>
+          <Link href="/login">
+            <Button className="bg-emerald-600 hover:bg-emerald-700">
+              Fazer Login
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
 
-  if (!userData) {
+  if (loadingUserData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-teal-100 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-ghibli-earth mb-4">Erro ao carregar dados do perfil</p>
-          <Button onClick={() => router.push('/profile')}>
-            Ir para Perfil
-          </Button>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">A carregar dados do perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cartSummary) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-teal-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">A carregar carrinho...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-teal-100">
       <Head>
         <title>Checkout - PicTuz</title>
-        <meta name="description" content="Finalize a sua compra de produtos personalizados com arte AI" />
+        <meta name="description" content="Finalize a sua compra de produtos personalizados no PicTuz" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
-        <Header />
-        
-        <main className="container mx-auto px-4 py-8 sm:py-12">
-          {/* Breadcrumb */}
-          <div className="mb-8">
-            <nav className="text-sm text-ghibli-earth">
-              <Link href="/shop" className="hover:text-ghibli-moss transition-colors">
-                Loja
-              </Link>
-              <span className="mx-2">→</span>
-              <span className="text-ghibli-wood font-medium">Checkout</span>
-            </nav>
-          </div>
+      <Header />
 
-          {/* Título */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
           <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5 }}
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-ghibli font-bold text-ghibli-wood mb-4">
-              🛒 Finalizar Compra
-            </h1>
-            <p className="text-ghibli-earth text-lg">
-              Último passo para receber os seus produtos personalizados
-            </p>
-          </motion.div>
+            {/* Cabeçalho */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">Finalizar Compra</h1>
+              <p className="text-gray-600">
+                Reveja o seu pedido e prossiga para o pagamento seguro
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {/* Coluna Esquerda - Formulário de Envio */}
-            <motion.div
-              className="space-y-6"
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              {/* Dados do Cliente (só leitura) */}
-              <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-6 shadow-lg">
-                <h2 className="text-xl font-semibold text-ghibli-wood mb-6">
-                  👤 Dados do Cliente
-                </h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-ghibli-earth mb-2">
-                      Nome Completo
-                    </label>
-                    <div className="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-ghibli-wood">
-                      {userData.full_name}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-ghibli-earth mb-2">
-                      Email
-                    </label>
-                    <div className="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-ghibli-wood">
-                      {userData.email}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Dados de Envio */}
-              <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-6 shadow-lg">
-                <h2 className="text-xl font-semibold text-ghibli-wood mb-6">
-                  📦 Endereço de Envio
-                </h2>
-
-                <form onSubmit={handleSubmit(handleCheckout)} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-ghibli-earth mb-2">
-                      Endereço
-                    </label>
-                    <Input
-                      {...register('address')}
-                      placeholder="Rua, número, andar, porta"
-                      className={errors.address ? 'border-red-500' : ''}
-                    />
-                    {errors.address && (
-                      <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-ghibli-earth mb-2">
-                        Cidade
-                      </label>
-                      <Input
-                        {...register('city')}
-                        placeholder="Lisboa"
-                        className={errors.city ? 'border-red-500' : ''}
-                      />
-                      {errors.city && (
-                        <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-ghibli-earth mb-2">
-                        Código Postal
-                      </label>
-                      <Input
-                        {...register('postalCode')}
-                        placeholder="1000-001"
-                        className={errors.postalCode ? 'border-red-500' : ''}
-                      />
-                      {errors.postalCode && (
-                        <p className="text-red-500 text-xs mt-1">{errors.postalCode.message}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-ghibli-earth mb-2">
-                      País
-                    </label>
-                    <select
-                      {...register('country')}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ghibli-moss focus:border-ghibli-moss"
-                    >
-                      <option value="PT">Portugal</option>
-                      <option value="ES">Espanha</option>
-                      <option value="FR">França</option>
-                      <option value="DE">Alemanha</option>
-                      <option value="IT">Itália</option>
-                    </select>
-                  </div>
-                </form>
-              </div>
-
-              {/* Método de Envio Fixo */}
-              <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-6 shadow-lg">
-                <h3 className="text-lg font-semibold text-ghibli-wood mb-4">
-                  🚚 Método de Envio
-                </h3>
-                
-                <div className="p-4 border border-ghibli-moss bg-green-50 rounded-lg">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="font-medium text-ghibli-wood">
-                        {shippingMethod.name}
-                      </div>
-                      <div className="text-sm text-ghibli-earth">
-                        {shippingMethod.deliveryDaysMin}-{shippingMethod.deliveryDaysMax} dias úteis
-                      </div>
-                      <div className="text-xs text-ghibli-earth/80 mt-1">
-                        {shippingMethod.description}
-                      </div>
-                    </div>
-                    <div className="text-lg font-semibold text-ghibli-wood">
-                      €{shippingMethod.price.toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Coluna Direita - Resumo do Carrinho */}
-            <motion.div
-              className="space-y-6"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-2xl p-6 shadow-lg sticky top-6">
-                <h2 className="text-xl font-semibold text-ghibli-wood mb-6">
-                  📋 Resumo do Pedido
-                </h2>
-
-                {/* Itens do Carrinho */}
-                <div className="space-y-4 mb-6">
-                  {cartSummary.items.map((item) => (
-                    <div key={item.id} className="flex gap-4 p-4 bg-white/50 rounded-lg">
-                      <div className="w-16 h-16 bg-ghibli-sand/20 rounded-lg flex-shrink-0 relative overflow-hidden">
-                        <Image
-                          src={item.userImageUrl}
-                          alt={item.productName}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-ghibli-wood text-sm truncate">
-                          {item.productName}
-                        </h4>
-                        <p className="text-xs text-ghibli-earth">
-                          Qtd: {item.quantity}
-                        </p>
-                        {item.customizations?.size && (
-                          <p className="text-xs text-ghibli-earth">
-                            {item.customizations.size}
-                          </p>
+            <div className="grid lg:grid-cols-2 gap-8">
+              {/* Resumo do Pedido */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Resumo do Pedido</h2>
+                  
+                  <div className="space-y-4">
+                    {cartSummary.items.map((item) => (
+                      <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                        {item.userImageUrl && (
+                          <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                            <Image
+                              src={item.userImageUrl}
+                              alt={item.productName}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
                         )}
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-ghibli-wood">
-                          €{(item.price * item.quantity).toFixed(2)}
+                        
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-medium text-gray-800 truncate">
+                            {item.productName}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {item.customizations?.size && `Tamanho: ${item.customizations.size}`}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Qtd: {item.quantity}
+                          </p>
                         </div>
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-xs text-red-500 hover:text-red-700 transition-colors"
-                        >
-                          Remover
-                        </button>
+                        
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-800">
+                            €{(item.price * item.quantity).toFixed(2)}
+                          </p>
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-xs text-red-500 hover:text-red-700 mt-1"
+                          >
+                            Remover
+                          </button>
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dados do Cliente */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Dados do Cliente</h2>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Nome</label>
+                      <p className="text-gray-800">{userData?.full_name || 'Não disponível'}</p>
                     </div>
-                  ))}
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Email</label>
+                      <p className="text-gray-800">{userData?.email || 'Não disponível'}</p>
+                    </div>
+                    <div className="text-sm text-gray-500 mt-4 p-3 bg-blue-50 rounded-lg">
+                      <p>ℹ️ Os dados de envio serão recolhidos no próximo passo através do sistema seguro do Stripe.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resumo Financeiro e Checkout */}
+              <div className="space-y-6">
+                {/* Método de Envio */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Método de Envio</h2>
+                  <div className="border rounded-lg p-4 bg-emerald-50">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium text-gray-800">{shippingMethod.name}</h3>
+                        <p className="text-sm text-gray-600">{shippingMethod.description}</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Entrega em {shippingMethod.deliveryDaysMin}-{shippingMethod.deliveryDaysMax} dias úteis
+                        </p>
+                      </div>
+                      <span className="text-lg font-semibold text-emerald-600">
+                        €{shippingMethod.price.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Resumo Financeiro */}
-                <div className="border-t border-ghibli-sand/30 pt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-ghibli-earth">Subtotal:</span>
-                    <span className="text-ghibli-wood">€{cartSummary.subtotal.toFixed(2)}</span>
-                  </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Resumo Financeiro</h2>
                   
-                  <div className="flex justify-between text-sm">
-                    <span className="text-ghibli-earth">Envio:</span>
-                    <span className="text-ghibli-wood">€{shippingMethod.price.toFixed(2)}</span>
-                  </div>
-                  
-                  <div className="flex justify-between text-sm">
-                    <span className="text-ghibli-earth">IVA (23%):</span>
-                    <span className="text-ghibli-wood">€{cartSummary.tax.toFixed(2)}</span>
-                  </div>
-                  
-                  <div className="border-t border-ghibli-sand/30 pt-2">
-                    <div className="flex justify-between text-lg font-semibold">
-                      <span className="text-ghibli-wood">Total:</span>
-                      <span className="text-ghibli-wood">€{calculateTotal().toFixed(2)}</span>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subtotal</span>
+                      <span className="text-gray-800">€{cartSummary.subtotal.toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Envio</span>
+                      <span className="text-gray-800">€{shippingMethod.price.toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">IVA (23%)</span>
+                      <span className="text-gray-800">€{cartSummary.tax.toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="border-t pt-3">
+                      <div className="flex justify-between text-lg font-semibold">
+                        <span className="text-gray-800">Total</span>
+                        <span className="text-emerald-600">€{calculateTotal().toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Botão de Checkout */}
+                  <Button
+                    onClick={handleCheckout}
+                    disabled={loadingPayment}
+                    className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-lg font-semibold"
+                  >
+                    {loadingPayment ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        A processar...
+                      </div>
+                    ) : (
+                      'Finalizar Compra'
+                    )}
+                  </Button>
+
+                  <p className="text-xs text-gray-500 text-center mt-3">
+                    Ao continuar, será redirecionado para o Stripe para pagamento seguro
+                  </p>
                 </div>
 
-                {/* Botão de Finalizar Compra */}
-                <Button
-                  onClick={handleSubmit(handleCheckout)}
-                  disabled={!isValid || loadingPayment}
-                  className="w-full mt-6 bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white py-4 text-lg font-semibold disabled:opacity-50"
-                >
-                  {loadingPayment ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Processando...
+                {/* Informações de Segurança */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Compra Segura</h3>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center">
+                      <span className="text-green-500 mr-2">🔒</span>
+                      Pagamento processado pelo Stripe
                     </div>
-                  ) : (
-                    '💳 Finalizar Compra'
-                  )}
-                </Button>
-
-                {/* Garantias */}
-                <div className="mt-4 text-xs text-ghibli-earth space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span>🔒</span>
-                    <span>Pagamento seguro via Stripe</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>📦</span>
-                    <span>Envio com tracking incluído</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>↩️</span>
-                    <span>Garantia de devolução em 30 dias</span>
+                    <div className="flex items-center">
+                      <span className="text-green-500 mr-2">🛡️</span>
+                      Dados protegidos com SSL
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-green-500 mr-2">💳</span>
+                      Aceitamos Visa, Mastercard, etc.
+                    </div>
                   </div>
                 </div>
               </div>
-            </motion.div>
-          </div>
-        </main>
+            </div>
+          </motion.div>
+        </div>
+      </main>
 
-        <Footer />
-      </div>
-    </>
+      <Footer />
+    </div>
   );
 };
 

@@ -16,6 +16,11 @@ interface ShippingDetails {
   };
 }
 
+// Estender a interface Session do Stripe para incluir shipping_details
+interface ExtendedSession extends Stripe.Checkout.Session {
+  shipping_details?: ShippingDetails;
+}
+
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
 }
@@ -36,9 +41,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Session ID é obrigatório' });
     }
 
-    // Recuperar sessão do Stripe
+    // Recuperar sessão do Stripe com todos os detalhes necessários
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items', 'customer', 'payment_intent']
+      expand: ['line_items', 'customer', 'payment_intent', 'shipping_details']
     });
 
     if (!session) {
@@ -53,20 +58,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const lineItems = session.line_items?.data || [];
     const metadata = session.metadata || {};
     
-    // Buscar detalhes de envio separadamente se necessário
-    let shippingDetails = null;
-    try {
-      if (session.id) {
-        const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-          expand: ['shipping_details']
-        });
-        shippingDetails = (fullSession as Stripe.Checkout.Session & { shipping_details?: ShippingDetails }).shipping_details;
-      }
-    } catch (shippingError) {
-      console.warn('Não foi possível obter detalhes de envio:', shippingError);
-      // Continuar sem detalhes de envio
-    }
+    // Extrair detalhes de envio - Stripe pode colocar em diferentes campos
+    const shippingDetails = (session as ExtendedSession).shipping_details || null;
+    const customerDetails = session.customer_details || null;
+    
+    console.log('Detalhes de envio extraídos:', {
+      shipping: shippingDetails,
+      customer: customerDetails,
+      sessionId: session.id
+    });
 
+    // Preparar endereço de envio para Gelato
+    const finalShippingAddress = shippingDetails?.address || customerDetails?.address || {};
+    const finalShippingName = shippingDetails?.name || customerDetails?.name || metadata.userName || 'N/A';
+    const finalShippingPhone = shippingDetails?.phone || customerDetails?.phone || null;
+    
     // Preparar dados do pedido
     const orderData = {
       user_id: userId || metadata.userId,
@@ -75,7 +81,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ? session.payment_intent 
         : session.payment_intent?.id || null,
       order_reference: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-      customer_email: session.customer_email || session.customer_details?.email || null,
+      customer_email: session.customer_email || customerDetails?.email || null,
+      customer_name: metadata.userName || finalShippingName,
       
       // Dados financeiros
       subtotal: parseFloat(metadata.subtotal || '0'),
@@ -84,10 +91,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       total_amount: parseFloat(metadata.total || '0'),
       currency: 'EUR',
       
-      // Dados de envio
-      shipping_name: shippingDetails?.name || session.customer_details?.name || 'N/A',
-      shipping_address: JSON.stringify(shippingDetails?.address || session.customer_details?.address || {}),
-      shipping_phone: shippingDetails?.phone || session.customer_details?.phone || null,
+      // Dados de envio extraídos do Stripe
+      shipping_name: finalShippingName,
+      shipping_address: JSON.stringify(finalShippingAddress),
+      shipping_phone: finalShippingPhone,
+      shipping_method_uid: metadata.shippingMethodUid || 'express',
+      shipping_method_name: metadata.shippingMethodName || 'Envio Expresso',
       
       // Status e timestamps
       status: 'paid',
@@ -124,17 +133,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       subtotal: orderData.subtotal,
       shipping: orderData.shipping_cost,
       tax: orderData.tax_amount,
+      customerName: orderData.customer_name,
+      customerEmail: orderData.customer_email,
       items: lineItems.map(item => ({
         productName: item.description || 'Produto',
         quantity: item.quantity || 1,
         price: item.amount_total ? item.amount_total / 100 : 0
       })),
-      shippingAddress: shippingDetails?.address || session.customer_details?.address,
+      shippingAddress: finalShippingAddress,
+      shippingName: finalShippingName,
+      shippingPhone: finalShippingPhone,
+      shippingMethod: orderData.shipping_method_name,
       estimatedDelivery: '4-5 dias úteis'
     };
 
     // Enviar para Gelato (em background, não bloqueante)
-    processGelatoOrder(order, lineItems).catch(error => {
+    processGelatoOrder(order, lineItems, {
+      address: finalShippingAddress,
+      name: finalShippingName,
+      phone: finalShippingPhone,
+      methodUid: orderData.shipping_method_uid
+    }).catch(error => {
       console.error('Erro ao processar pedido Gelato:', error);
       // Não falhar a resposta por causa disso
     });
@@ -156,21 +175,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
+// Interface para dados de envio para Gelato
+interface GelatoShippingData {
+  address: {
+    line1?: string;
+    line2?: string;
+    city?: string;
+    state?: string;
+    postal_code?: string;
+    country?: string;
+  };
+  name: string;
+  phone: string | null;
+  methodUid: string;
+}
+
 // Função auxiliar para processar pedido no Gelato (não bloqueante)
 async function processGelatoOrder(
   order: { id: string; order_reference: string }, 
-  lineItems: Stripe.LineItem[]
+  lineItems: Stripe.LineItem[],
+  shippingData: GelatoShippingData
 ) {
   try {
     console.log('Iniciando processamento Gelato para pedido:', order.order_reference);
     
-    // Aqui seria a integração real com Gelato
-    // Por agora, apenas log para debug
+    // Log dos dados de envio extraídos do Stripe
+    console.log('Dados de envio para Gelato:', {
+      name: shippingData.name,
+      address: shippingData.address,
+      phone: shippingData.phone,
+      shippingMethod: shippingData.methodUid
+    });
+    
+    // Dados dos produtos para Gelato
     console.log('Line items para Gelato:', lineItems.map(item => ({
       description: item.description,
       quantity: item.quantity,
       amount: item.amount_total
     })));
+    
+    // Aqui seria a integração real com a API da Gelato
+    // Poderia construir o payload completo para Create Order:
+    // - shippingAddress com shippingData.address
+    // - shipmentMethodUid com shippingData.methodUid
+    // - orderItems baseado nos lineItems
     
     // Atualizar status do pedido
     const { error: updateError } = await supabaseAdmin
@@ -185,7 +233,7 @@ async function processGelatoOrder(
       throw new Error('Erro ao atualizar status Gelato: ' + updateError.message);
     }
 
-    console.log('Pedido enviado para Gelato com sucesso:', order.order_reference);
+    console.log('Pedido preparado para Gelato com sucesso:', order.order_reference);
     
   } catch (error) {
     console.error('Erro no processamento Gelato:', error);

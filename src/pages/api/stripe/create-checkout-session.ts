@@ -15,19 +15,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { items, shippingInfo, shippingMethod, userId, subtotal, shipping, tax, total } = req.body;
+    const { items, shippingMethod, userId, userName, userEmail, subtotal, shipping, tax, total } = req.body;
 
     // Validar dados obrigatórios
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Items são obrigatórios' });
     }
 
-    if (!shippingInfo || !shippingInfo.name || !shippingInfo.email || !shippingInfo.address) {
-      return res.status(400).json({ error: 'Dados de envio incompletos' });
+    if (!userId || !userName || !userEmail) {
+      return res.status(400).json({ error: 'Dados do utilizador são obrigatórios' });
     }
 
-    if (!userId) {
-      return res.status(400).json({ error: 'ID do utilizador é obrigatório' });
+    if (!shippingMethod) {
+      return res.status(400).json({ error: 'Método de envio é obrigatório' });
     }
 
     // Criar line items para o Stripe
@@ -79,23 +79,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       mode: 'payment',
       success_url: `${req.headers.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.origin}/checkout?cancelled=true`,
-      customer_email: shippingInfo.email,
+      customer_email: userEmail,
       metadata: {
         userId,
+        userName,
         orderType: 'gelato',
         subtotal: subtotal.toString(),
         shipping: shipping.toString(),
         tax: tax.toString(),
-        total: total.toString()
+        total: total.toString(),
+        shippingMethodUid: shippingMethod.uid,
+        shippingMethodName: shippingMethod.name
       },
+      // Configurar recolha obrigatória de endereço de envio
       shipping_address_collection: {
-        allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT']
+        allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH', 'US', 'CA', 'GB']
       },
       phone_number_collection: {
         enabled: false
       },
       billing_address_collection: 'auto',
-      // Pré-preencher dados de envio
+      // Definir opções de envio
       shipping_options: [
         {
           shipping_rate_data: {
@@ -118,7 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
       ],
-      // Dados adicionais para processamento posterior
+      // Campos personalizados opcionais
       custom_fields: [
         {
           key: 'order_notes',
