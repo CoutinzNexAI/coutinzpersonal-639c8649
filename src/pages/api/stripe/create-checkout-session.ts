@@ -89,7 +89,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         tax: tax.toString(),
         total: total.toString(),
         shippingMethodUid: shippingMethod.uid,
-        shippingMethodName: shippingMethod.name
+        shippingMethodName: shippingMethod.name,
+        // Salvar items completos do carrinho para reconstruir na DB
+        cartItemsJson: JSON.stringify(items)
       },
       // Configurar recolha obrigatória de endereço de envio
       shipping_address_collection: {

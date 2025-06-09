@@ -32,6 +32,37 @@ interface GelatoShippingAddress {
   phone?: string | null;
 }
 
+// Interface para cart item (compatível com cartTypes.ts)
+interface CartItem {
+  id: string;
+  productId: string;
+  productUid: string;
+  productName: string;
+  productCategory: string;
+  userImageUrl: string;
+  userImageId?: string;
+  price: number;
+  quantity: number;
+  customizations?: {
+    size?: string;
+    color?: string;
+    variant?: string;
+  };
+  imageAdjustments?: {
+    x: number;
+    y: number;
+    scale: number;
+    rotation?: number;
+    cropArea?: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+  };
+  addedAt: Date;
+}
+
 // Estender a interface Session do Stripe
 interface ExtendedSession extends Stripe.Checkout.Session {
   shipping_details?: ShippingDetails;
@@ -129,6 +160,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 3. PREPARAR DADOS DO PEDIDO PARA DB
     const orderReference = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
     
+    // Recuperar cart items completos dos metadata da sessão
+    let cartItems: CartItem[] = [];
+    try {
+      cartItems = JSON.parse(metadata.cartItemsJson || '[]');
+      console.log('📋 Cart items recuperados dos metadata:', cartItems.length);
+    } catch (error) {
+      console.error('❌ Erro ao parsear cart items dos metadata:', error);
+      // Fallback: reconstruir a partir dos line items (menos informação)
+      cartItems = lineItems
+        .filter(item => !item.description?.includes('Envio')) // Filtrar item de envio
+        .map((item, index) => ({
+          id: `fallback-${index}`,
+          productId: 'unknown',
+          productUid: 'unknown',
+          productName: item.description || 'Produto',
+          productCategory: 'unknown',
+          userImageUrl: '',
+          userImageId: undefined,
+          price: item.amount_total ? item.amount_total / 100 : 0,
+          quantity: item.quantity || 1,
+          addedAt: new Date()
+        }));
+    }
+    
     const orderData = {
       user_id: userId || metadata.userId,
       stripe_session_id: sessionId,
@@ -154,13 +209,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       shipping_method_uid: metadata.shippingMethodUid || 'express',
       shipping_method_name: metadata.shippingMethodName || 'Envio Expresso',
       
-      // Items do pedido
-      items: JSON.stringify(lineItems.map(item => ({
-        productName: item.description || 'Produto',
-        quantity: item.quantity || 1,
-        price: item.amount_total ? item.amount_total / 100 : 0,
-        priceId: item.price?.id || null
-      }))),
+      // Items do pedido - agora com dados completos do carrinho
+      items: cartItems,
       
       // Status inicial - pagamento processado, DB salvo, aguardando Gelato
       status: 'payment_processed_db_saved',
@@ -201,14 +251,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       console.log('🚀 Enviando pedido para Gelato API...');
       
-      // Construir payload para Gelato baseado nos line items
-      const gelatoItems = lineItems.map(item => ({
-        productUid: 'canvas_200x200-mm-8x8-inch_canvas_wood-fsc-slim_4-0_ver', // TODO: mapear com base no produto real
+      // Construir payload para Gelato baseado nos cart items completos
+      const gelatoItems = cartItems.map((item: CartItem) => ({
+        productUid: item.productUid || 'canvas_200x200-mm-8x8-inch_canvas_wood-fsc-slim_4-0_ver', // Usar o productUid real do cart
         quantity: item.quantity || 1,
         files: [
           {
             type: 'default',
-            url: 'https://example.com/print-file.pdf' // TODO: gerar print file real
+            url: 'https://example.com/print-file.pdf' // TODO: gerar print file real baseado na transformação do item.userImageUrl
           }
         ]
       }));
