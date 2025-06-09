@@ -429,7 +429,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .from('gelato_orders')
         .update({
           gelato_status: 'failed_gelato_api',
-          status: 'cancelled', // Usar status válido do constraint check
+          status: 'failed', // ✅ CORRIGIDO: Usar 'failed' (será adicionado à constraint)
           updated_at: new Date().toISOString()
         })
         .eq('id', savedOrder.id);
