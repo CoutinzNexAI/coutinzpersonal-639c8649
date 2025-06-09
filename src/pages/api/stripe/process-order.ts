@@ -300,9 +300,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       items: cartItems, // Array JSONB completo dos itens do carrinho
       
-      // ✅ STATUS INICIAL
-      status: 'payment_processed_db_saved',
-      gelato_status: null, // Ainda não enviado para Gelato
+      // ✅ STATUS INICIAL - CORRIGIDO
+      status: 'processing', // ✅ CORRIGIDO: Valor válido da CHECK constraint
+      gelato_status: 'payment_processed_db_saved', // ✅ CORRIGIDO: Estado interno do PicTuz
       
       // ✅ CAMPOS DE TRACKING (nulls por agora)
       tracking_number: null,
