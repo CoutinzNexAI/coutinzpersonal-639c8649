@@ -11,30 +11,92 @@ export const config = {
 
 // Função para ler o raw body
 async function getRawBody(req: NextApiRequest): Promise<string> {
-  let rawBody = '';
+  const chunks: Buffer[] = [];
+  
   for await (const chunk of req) {
-    rawBody += chunk.toString();
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
+  
+  const rawBodyBuffer = Buffer.concat(chunks);
+  const rawBody = rawBodyBuffer.toString('utf8');
+  
+  // Log para debug (remover depois)
+  console.log('📄 RAW_BODY_DEBUG:', {
+    totalChunks: chunks.length,
+    totalBytes: rawBodyBuffer.length,
+    bodyLength: rawBody.length,
+    bodyStart: rawBody.substring(0, 100),
+    bodyEncoding: 'utf8'
+  });
+  
   return rawBody;
 }
 
 // Função para validar a assinatura do webhook
 function validateWebhookSignature(rawBody: string, signature: string, secret: string): boolean {
   try {
+    // Calcular a assinatura esperada
     const expectedSignature = crypto
       .createHmac('sha256', secret)
       .update(rawBody, 'utf8')
       .digest('hex');
     
-    // A Gelato pode enviar com ou sem prefixo 'sha256='
-    const cleanSignature = signature.replace('sha256=', '');
+    // Limpar possíveis prefixos da assinatura recebida
+    let cleanSignature = signature;
+    const prefixes = ['sha256=', 'v1=', 'v0='];
+    for (const prefix of prefixes) {
+      if (signature.startsWith(prefix)) {
+        cleanSignature = signature.substring(prefix.length);
+        break;
+      }
+    }
     
-    return crypto.timingSafeEqual(
-      Buffer.from(expectedSignature, 'hex'),
-      Buffer.from(cleanSignature, 'hex')
-    );
+    // Log detalhado para debug (remover depois)
+    console.log('🔍 DEBUG_SIGNATURE_VALIDATION:', {
+      originalSignature: signature,
+      cleanSignature: cleanSignature,
+      expectedSignature: expectedSignature,
+      originalSignatureLength: signature.length,
+      cleanSignatureLength: cleanSignature.length,
+      expectedSignatureLength: expectedSignature.length,
+      rawBodyLength: rawBody.length,
+      secretLength: secret.length,
+      rawBodyFirst50Chars: rawBody.substring(0, 50),
+      originalSignatureFirst20: signature.substring(0, 20),
+      cleanSignatureFirst20: cleanSignature.substring(0, 20),
+      expectedSignatureFirst20: expectedSignature.substring(0, 20)
+    });
+
+    // Verificar se as assinaturas têm o mesmo comprimento
+    if (cleanSignature.length !== expectedSignature.length) {
+      console.error('❌ Assinaturas têm comprimentos diferentes:', {
+        cleanSignatureLength: cleanSignature.length,
+        expectedSignatureLength: expectedSignature.length
+      });
+      return false;
+    }
+
+    // Comparar as assinaturas usando timing-safe comparison
+    const receivedBuffer = Buffer.from(cleanSignature, 'hex');
+    const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+    
+    // Verificação final de comprimento dos buffers
+    if (receivedBuffer.length !== expectedBuffer.length) {
+      console.error('❌ Buffers têm comprimentos diferentes:', {
+        receivedBufferLength: receivedBuffer.length,
+        expectedBufferLength: expectedBuffer.length
+      });
+      return false;
+    }
+    
+    const isValid = crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
+    
+    console.log(isValid ? '✅ Assinatura válida!' : '❌ Assinatura inválida!');
+    
+    return isValid;
+    
   } catch (error) {
-    console.error('Erro na validação da assinatura:', error);
+    console.error('❌ Erro na validação da assinatura:', error);
     return false;
   }
 }
@@ -189,16 +251,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 3. Verificar assinatura do webhook
-    const signature = req.headers['x-gelato-signature'] as string;
+    const signatureHeader = req.headers['x-gelato-signature'];
+    const signature = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
     const webhookSecret = process.env.GELATO_WEBHOOK_SECRET;
 
+    // Log detalhado dos headers recebidos para debug
+    console.log('📨 WEBHOOK_HEADERS_DEBUG:', {
+      'x-gelato-signature': signatureHeader,
+      'content-type': req.headers['content-type'],
+      'user-agent': req.headers['user-agent'],
+      'content-length': req.headers['content-length'],
+      allHeaders: Object.keys(req.headers),
+      signatureAfterProcessing: signature
+    });
+
     if (!webhookSecret) {
-      console.error('GELATO_WEBHOOK_SECRET não configurado');
+      console.error('❌ GELATO_WEBHOOK_SECRET não configurado');
       return res.status(500).json({ message: 'Configuração de webhook inválida.' });
     }
 
     if (!signature) {
-      console.error('Assinatura do webhook ausente');
+      console.error('❌ Assinatura do webhook ausente no cabeçalho X-Gelato-Signature');
       return res.status(403).json({ message: 'Assinatura do webhook ausente.' });
     }
 
