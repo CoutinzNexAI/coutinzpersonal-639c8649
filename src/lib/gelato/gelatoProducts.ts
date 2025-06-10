@@ -32,8 +32,8 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     gelatoTemplateId: 'c676339d-76bc-49f0-932b-bbdb7cb10f79', // Template ID confirmado
     printArea: 'default', // Para full print em canvas, 'default' é o tipo comum para a Order API
     mockupPath: '/assets/mockups/canvas/canvas_20x20_unframed_blank_front.png', // Mockup do Diogo
-    mockupDimensions: { width: 644, height: 800 }, // Medidas confirmadas do mockup
-    printAreaCoords: { x: 1, y: 77, width: 555, height: 545 }, // Área da imagem no mockup confirmada
+    mockupDimensions: { width: 400, height: 400 }, // Medidas confirmadas do mockup
+    printAreaCoords: { x: 25, y: 25, width: 355, height: 346 }, // Área da imagem no mockup confirmada
     printFileBleed: 4, // mm (padrão Gelato)
     printFileResolution: 300, // DPI (padrão Gelato)
     category: 'canvas',
