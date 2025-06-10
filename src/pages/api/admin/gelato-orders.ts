@@ -61,7 +61,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
       }
 
       case 'POST': {
-        // Buscar pedidos com filtros (busca avançada)
         const { 
           status, 
           gelato_status, 
