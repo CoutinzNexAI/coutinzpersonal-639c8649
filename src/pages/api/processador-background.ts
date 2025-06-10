@@ -249,6 +249,8 @@ async function processImage(jobId: string, jobData: JobData) {
         formData.append('image', fs.createReadStream(tempFilePath));
         formData.append('n', 1);
         formData.append('size', '1024x1024');
+        formData.append('quality', 'high');
+
 
         const openaiApiKey = process.env.OPENAI_API_KEY;
         if (!openaiApiKey) {

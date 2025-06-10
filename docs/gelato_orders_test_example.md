@@ -136,5 +136,5 @@ function extractTransformationIdFromUrl(outputUrl: string): string | null {
 - `transformation_id` deve existir na tabela `transformations`
 - `user_id` deve existir na tabela `users` 
 - `shipping_info` deve ser JSONB válido com endereço completo
-- `items` deve ter pelo menos 1 item no array
+- `items` deve ter pelo menos 1 item no arra
 - `total_amount >= subtotal_amount + shipping_amount + tax_amount` 
