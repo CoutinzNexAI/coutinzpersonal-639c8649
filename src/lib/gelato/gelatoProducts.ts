@@ -25,23 +25,23 @@ export interface GelatoProduct {
 }
 
 export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
-  // CANVAS PRODUCTS - SO O PRIMEIRO É QUE É REAL!
-  'canvas_200x200_square_slim_wood_frame': {
-    name: 'Quadro Canvas (20x20cm, Moldura Fina de Madeira)',
-    productUid: 'canvas_200x200-mm-8x8-inch_canvas_wood-fsc-slim_4-0_ver',
-    gelatoTemplateId: '', // A preencher quando criares o template no Gelato Dashboard
-    printArea: 'full_canvas_print',
-    mockupPath: '/assets/mockups/canvas/canvas_20x20_mockup_blank_front.png',
-    mockupDimensions: { width: 800, height: 800 },
-    // ATENÇÃO: Coordenadas a serem medidas no mockup real!
-    printAreaCoords: { x: 49, y: 44.11, width: 700, height: 700 },
-    printFileBleed: 4,
-    printFileResolution: 300,
+  // CANVAS PRODUCTS - DADOS CONFIRMADOS PELO DIOGO!
+  'canvas_200x200_square_slim_unframed': {
+    name: 'Quadro Canvas (20x20cm, Sem Moldura Slim)',
+    productUid: 'canvas_200x200-mm-8x8-inch_canvas_wood-fsc-slim_4-0_ver', // UID confirmado da Gelato
+    gelatoTemplateId: 'c676339d-76bc-49f0-932b-bbdb7cb10f79', // Template ID confirmado
+    printArea: 'default', // Para full print em canvas, 'default' é o tipo comum para a Order API
+    mockupPath: '/assets/mockups/canvas/canvas_20x20_unframed_blank_front.png', // Mockup do Diogo
+    mockupDimensions: { width: 644, height: 800 }, // Medidas confirmadas do mockup
+    printAreaCoords: { x: 1, y: 77, width: 555, height: 545 }, // Área da imagem no mockup confirmada
+    printFileBleed: 4, // mm (padrão Gelato)
+    printFileResolution: 300, // DPI (padrão Gelato)
     category: 'canvas',
-    // DIMENSÕES REAIS GELATO (confirmar estes valores no Gelato Dashboard):
-    gelatoPrintDimensionsMm: { width: 200, height: 200 }, // Canvas 20x20cm
-    gelatoPrintOffsetsMm: { x: 0, y: 0 }, // Full bleed canvas, sem offset
-    supportsManualAdjustment: false // Canvas não precisa de ajuste manual
+    // DIMENSÕES REAIS GELATO CONFIRMADAS:
+    gelatoPrintDimensionsMm: { width: 200, height: 200 }, // Dimensões reais de impressão Gelato em MM
+    gelatoPrintOffsetsMm: { x: 49, y: 49 }, // Offsets reais de impressão Gelato em MM confirmados
+    price: 30.00, // Preço base para o cliente
+    supportsManualAdjustment: false // Sem ajuste manual para este canvas
   },
 
   'canvas_300x400_portrait_slim_wood_frame': {
