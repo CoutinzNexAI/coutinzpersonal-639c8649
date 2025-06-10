@@ -76,24 +76,39 @@ function validateWebhookSignature(rawBody: string, signature: string, secret: st
   }
 }
 
-// Tipos para os eventos do webhook
+// Tipos para os eventos do webhook da Gelato
 interface GelatoWebhookEvent {
-  event_type: string;
-  gelato_order_id?: string;
-  payload?: Record<string, unknown>;
-  [key: string]: unknown;
+  id: string;                     // ID único do webhook
+  event: string;                  // Tipo de evento (ex: "order_status_updated")
+  orderId?: string;               // ID do pedido Gelato
+  channel?: string;               // Canal da Gelato
+  created?: string;               // Data de criação
+  [key: string]: unknown;         // Outros campos dinâmicos
 }
 
 // Função para processar eventos do webhook
 async function processWebhookEvent(event: GelatoWebhookEvent, signature: string) {
-  const { event_type, gelato_order_id } = event;
+  // Extrair corretamente os campos do payload da Gelato
+  const eventType = event.event;                    // Campo 'event' contém o tipo
+  const orderIdFromPayload = event.orderId || null; // Campo 'orderId' contém o ID do pedido
+  const webhookId = event.id;                       // ID único do webhook
+  const channel = event.channel;                    // Canal da Gelato
+
+  // Log para debug da extração
+  console.log('🔍 DEBUG_WEBHOOK_EXTRACTION:', {
+    eventType,
+    orderIdFromPayload,
+    webhookId,
+    channel,
+    fullPayload: event
+  });
   
   // 1. Primeiro, salvar o webhook na tabela gelato_webhooks
   const { data: webhookRecord, error: webhookError } = await supabaseAdmin
     .from('gelato_webhooks')
     .insert({
-      event_type,
-      gelato_order_id: gelato_order_id || null,
+      event_type: eventType,
+      gelato_order_id: orderIdFromPayload,
       payload: event,
       signature,
       processed: false,
@@ -106,11 +121,11 @@ async function processWebhookEvent(event: GelatoWebhookEvent, signature: string)
     throw new Error('Falha ao salvar webhook');
   }
 
-  const webhookId = webhookRecord.id;
+  const savedWebhookId = webhookRecord.id;
 
   try {
     // 2. Processar com base no tipo de evento
-    switch (event_type) {
+    switch (eventType) {
       case 'order_status_updated':
         await processOrderStatusUpdate(event);
         break;
@@ -125,14 +140,14 @@ async function processWebhookEvent(event: GelatoWebhookEvent, signature: string)
         break;
         
       default:
-        console.log(`Evento não processado: ${event_type}`, event);
+        console.log(`Evento não processado: ${eventType}`, event);
     }
 
     // 3. Marcar como processado
     await supabaseAdmin
       .from('gelato_webhooks')
       .update({ processed: true })
-      .eq('id', webhookId);
+      .eq('id', savedWebhookId);
 
   } catch (error) {
     console.error('Erro no processamento do webhook:', error);
@@ -143,43 +158,44 @@ async function processWebhookEvent(event: GelatoWebhookEvent, signature: string)
 
 // Processar atualização de status do pedido
 async function processOrderStatusUpdate(event: GelatoWebhookEvent) {
-  const { gelato_order_id, payload } = event;
+  const orderIdFromEvent = event.orderId;
   
-  if (!gelato_order_id) {
-    console.warn('order_status_updated sem gelato_order_id:', event);
+  if (!orderIdFromEvent) {
+    console.warn('order_status_updated sem orderId:', event);
     return;
   }
 
+  // O status pode estar em diferentes campos do payload
   const updateData = {
-    gelato_status: (payload as Record<string, unknown>)?.status || (payload as Record<string, unknown>)?.order_status,
+    gelato_status: event.status || event.orderStatus || event.order_status,
     updated_at: new Date().toISOString(),
   };
 
   const { error } = await supabaseAdmin
     .from('gelato_orders')
     .update(updateData)
-    .eq('gelato_order_id', gelato_order_id);
+    .eq('gelato_order_id', orderIdFromEvent);
 
   if (error) {
     console.error('Erro ao atualizar status do pedido:', error);
     throw error;
   }
 
-  console.log(`Status atualizado para pedido ${gelato_order_id}:`, updateData.gelato_status);
+  console.log(`Status atualizado para pedido ${orderIdFromEvent}:`, updateData.gelato_status);
 }
 
 // Processar atualização de código de rastreamento
 async function processTrackingUpdate(event: GelatoWebhookEvent) {
-  const { gelato_order_id, payload } = event;
+  const orderIdFromEvent = event.orderId;
   
-  if (!gelato_order_id) {
-    console.warn('tracking_update sem gelato_order_id:', event);
+  if (!orderIdFromEvent) {
+    console.warn('tracking_update sem orderId:', event);
     return;
   }
 
   const updateData = {
-    tracking_number: (payload as Record<string, unknown>)?.tracking_code || (payload as Record<string, unknown>)?.tracking_number,
-    tracking_url: (payload as Record<string, unknown>)?.tracking_url,
+    tracking_number: event.tracking_code || event.trackingCode || event.tracking_number,
+    tracking_url: event.tracking_url || event.trackingUrl,
     updated_at: new Date().toISOString(),
   };
 
@@ -193,14 +209,14 @@ async function processTrackingUpdate(event: GelatoWebhookEvent) {
   const { error } = await supabaseAdmin
     .from('gelato_orders')
     .update(updateData)
-    .eq('gelato_order_id', gelato_order_id);
+    .eq('gelato_order_id', orderIdFromEvent);
 
   if (error) {
     console.error('Erro ao atualizar tracking do pedido:', error);
     throw error;
   }
 
-  console.log(`Tracking atualizado para pedido ${gelato_order_id}:`, updateData);
+  console.log(`Tracking atualizado para pedido ${orderIdFromEvent}:`, updateData);
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -266,8 +282,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     console.log('--- Webhook Gelato Válido Recebido ---');
-    console.log('Evento:', event.event_type || event.event);
-    console.log('ID do Pedido:', event.gelato_order_id);
+    console.log('Evento:', event.event);
+    console.log('ID do Pedido:', event.orderId);
+    console.log('ID do Webhook:', event.id);
+    console.log('Canal:', event.channel);
     console.log('Assinatura: Válida ✓');
     console.log('---------------------------------------');
 
@@ -278,7 +296,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).json({ 
       status: 'success', 
       message: 'Webhook processado com sucesso!',
-      event_type: event.event_type || event.event
+      event_type: event.event,
+      order_id: event.orderId,
+      webhook_id: event.id
     });
 
   } catch (error) {
