@@ -33,70 +33,45 @@ async function getRawBody(req: NextApiRequest): Promise<string> {
 }
 
 // Função para validar a assinatura do webhook
+// A Gelato não usa HMAC - é uma comparação direta do header com o secret
 function validateWebhookSignature(rawBody: string, signature: string, secret: string): boolean {
   try {
-    // Calcular a assinatura esperada
-    const expectedSignature = crypto
-      .createHmac('sha256', secret)
-      .update(rawBody, 'utf8')
-      .digest('hex');
+    // Remove prefixos se presentes (por precaução)
+    const cleanSignatureFromHeader = signature.replace(/^sha256=/, '');
+    const cleanSecret = secret.replace(/^sha256=/, '');
     
-    // Limpar possíveis prefixos da assinatura recebida
-    let cleanSignature = signature;
-    const prefixes = ['sha256=', 'v1=', 'v0='];
-    for (const prefix of prefixes) {
-      if (signature.startsWith(prefix)) {
-        cleanSignature = signature.substring(prefix.length);
-        break;
-      }
-    }
-    
-    // Log detalhado para debug (remover depois)
-    console.log('🔍 DEBUG_SIGNATURE_VALIDATION:', {
+    // Log detalhado para debug
+    console.log('🔍 DEBUG_DIRECT_SIGNATURE_VALIDATION:', {
       originalSignature: signature,
-      cleanSignature: cleanSignature,
-      expectedSignature: expectedSignature,
-      originalSignatureLength: signature.length,
-      cleanSignatureLength: cleanSignature.length,
-      expectedSignatureLength: expectedSignature.length,
-      rawBodyLength: rawBody.length,
-      secretLength: secret.length,
-      rawBodyFirst50Chars: rawBody.substring(0, 50),
-      originalSignatureFirst20: signature.substring(0, 20),
-      cleanSignatureFirst20: cleanSignature.substring(0, 20),
-      expectedSignatureFirst20: expectedSignature.substring(0, 20)
+      cleanSignatureFromHeader: cleanSignatureFromHeader,
+      cleanSecret: cleanSecret,
+      signatureLength: cleanSignatureFromHeader.length,
+      secretLength: cleanSecret.length,
+      signatureFirst20: cleanSignatureFromHeader.substring(0, 20),
+      secretFirst20: cleanSecret.substring(0, 20)
     });
 
-    // Verificar se as assinaturas têm o mesmo comprimento
-    if (cleanSignature.length !== expectedSignature.length) {
-      console.error('❌ Assinaturas têm comprimentos diferentes:', {
-        cleanSignatureLength: cleanSignature.length,
-        expectedSignatureLength: expectedSignature.length
+    // Verificar se os comprimentos são iguais
+    if (cleanSignatureFromHeader.length !== cleanSecret.length) {
+      console.error('❌ Erro de comprimento na validação de webhook:', {
+        headerLength: cleanSignatureFromHeader.length,
+        secretLength: cleanSecret.length
       });
       return false;
     }
 
-    // Comparar as assinaturas usando timing-safe comparison
-    const receivedBuffer = Buffer.from(cleanSignature, 'hex');
-    const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+    // Comparação direta e segura usando timing-safe comparison
+    const isMatch = crypto.timingSafeEqual(
+      Buffer.from(cleanSignatureFromHeader, 'utf8'),
+      Buffer.from(cleanSecret, 'utf8')
+    );
     
-    // Verificação final de comprimento dos buffers
-    if (receivedBuffer.length !== expectedBuffer.length) {
-      console.error('❌ Buffers têm comprimentos diferentes:', {
-        receivedBufferLength: receivedBuffer.length,
-        expectedBufferLength: expectedBuffer.length
-      });
-      return false;
-    }
+    console.log(isMatch ? '✅ Assinatura válida!' : '❌ Assinatura inválida!');
     
-    const isValid = crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
-    
-    console.log(isValid ? '✅ Assinatura válida!' : '❌ Assinatura inválida!');
-    
-    return isValid;
+    return isMatch;
     
   } catch (error) {
-    console.error('❌ Erro na validação da assinatura:', error);
+    console.error('❌ Erro na validação da assinatura do webhook:', error);
     return false;
   }
 }
@@ -278,8 +253,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 4. Validar assinatura
     const isValidSignature = validateWebhookSignature(rawBody, signature, webhookSecret);
     
+    // Log adicional para debug da validação
+    console.log('🔍 DEBUG_WEBHOOK_VALIDATION:', {
+      signatureReceived: signature,
+      webhookSecretUsed: webhookSecret,
+      isValid: isValidSignature
+    });
+    
     if (!isValidSignature) {
-      console.error('Assinatura do webhook inválida');
+      console.error('❌ Assinatura do webhook inválida!');
       return res.status(403).json({ message: 'Assinatura do webhook inválida.' });
     }
 
