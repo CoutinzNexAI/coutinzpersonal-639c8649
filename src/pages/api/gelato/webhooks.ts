@@ -83,7 +83,39 @@ interface GelatoWebhookEvent {
   orderId?: string;               // ID do pedido Gelato
   channel?: string;               // Canal da Gelato
   created?: string;               // Data de criação
+  status?: string;                // Status do pedido/item
+  orderStatus?: string;           // Status alternativo
+  order_status?: string;          // Status alternativo
+  fulfillmentStatus?: string;     // Status de fulfillment
+  fullPayload?: Record<string, unknown>; // Payload completo para casos complexos
   [key: string]: unknown;         // Outros campos dinâmicos
+}
+
+// Função para mapear status da Gelato para status interno válido
+function mapGelatoStatusToInternal(gelatoStatus: string): string {
+  switch (gelatoStatus?.toLowerCase()) {
+    case 'created':
+    case 'accepted':
+    case 'in_production':
+    case 'printed':
+    case 'printing':
+      return 'processing';
+    case 'shipped':
+    case 'dispatched':
+      return 'shipped';
+    case 'delivered':
+    case 'completed':
+      return 'delivered';
+    case 'cancelled':
+      return 'cancelled';
+    case 'failed':
+    case 'error':
+    case 'rejected':
+      return 'failed';
+    default:
+      console.warn('Status Gelato desconhecido:', gelatoStatus);
+      return 'processing'; // Default seguro
+  }
 }
 
 // Função para processar eventos do webhook
@@ -130,6 +162,10 @@ async function processWebhookEvent(event: GelatoWebhookEvent, signature: string)
         await processOrderStatusUpdate(event);
         break;
         
+      case 'order_item_status_updated':
+        await processOrderItemStatusUpdate(event);
+        break;
+        
       case 'order_item_tracking_code_updated':
         await processTrackingUpdate(event);
         break;
@@ -140,7 +176,7 @@ async function processWebhookEvent(event: GelatoWebhookEvent, signature: string)
         break;
         
       default:
-        console.log(`Evento não processado: ${eventType}`, event);
+        console.warn(`Evento não processado: ${eventType}`, event);
     }
 
     // 3. Marcar como processado
@@ -165,9 +201,24 @@ async function processOrderStatusUpdate(event: GelatoWebhookEvent) {
     return;
   }
 
-  // O status pode estar em diferentes campos do payload
+  // Extrair status da Gelato de diferentes possíveis campos
+  const gelatoStatus = (event.fullPayload?.fulfillmentStatus as string) || 
+                      (event.fullPayload?.status as string) || 
+                      event.status || 
+                      event.orderStatus || 
+                      event.order_status;
+
+  if (!gelatoStatus) {
+    console.warn('order_status_updated sem status válido:', event);
+    return;
+  }
+
+  // Mapear para status interno válido
+  const internalStatus = mapGelatoStatusToInternal(gelatoStatus);
+
   const updateData = {
-    gelato_status: event.status || event.orderStatus || event.order_status,
+    gelato_status: gelatoStatus,    // Status exato da Gelato
+    status: internalStatus,         // Status interno válido
     updated_at: new Date().toISOString(),
   };
 
@@ -181,7 +232,56 @@ async function processOrderStatusUpdate(event: GelatoWebhookEvent) {
     throw error;
   }
 
-  console.log(`Status atualizado para pedido ${orderIdFromEvent}:`, updateData.gelato_status);
+  console.log(`Status atualizado para pedido ${orderIdFromEvent}:`, {
+    gelato: gelatoStatus,
+    internal: internalStatus
+  });
+}
+
+// Processar atualização de status de item do pedido
+async function processOrderItemStatusUpdate(event: GelatoWebhookEvent) {
+  const orderIdFromEvent = event.orderId;
+  
+  if (!orderIdFromEvent) {
+    console.warn('order_item_status_updated sem orderId:', event);
+    return;
+  }
+
+  // Extrair status da Gelato de diferentes possíveis campos
+  const gelatoStatus = (event.fullPayload?.fulfillmentStatus as string) || 
+                      (event.fullPayload?.status as string) || 
+                      event.status || 
+                      event.orderStatus || 
+                      event.order_status;
+
+  if (!gelatoStatus) {
+    console.warn('order_item_status_updated sem status válido:', event);
+    return;
+  }
+
+  // Mapear para status interno válido
+  const internalStatus = mapGelatoStatusToInternal(gelatoStatus);
+
+  const updateData = {
+    gelato_status: gelatoStatus,    // Status exato da Gelato
+    status: internalStatus,         // Status interno válido
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabaseAdmin
+    .from('gelato_orders')
+    .update(updateData)
+    .eq('gelato_order_id', orderIdFromEvent);
+
+  if (error) {
+    console.error('Erro ao atualizar status do item do pedido:', error);
+    throw error;
+  }
+
+  console.log(`Status do item atualizado para pedido ${orderIdFromEvent}:`, {
+    gelato: gelatoStatus,
+    internal: internalStatus
+  });
 }
 
 // Processar atualização de código de rastreamento
