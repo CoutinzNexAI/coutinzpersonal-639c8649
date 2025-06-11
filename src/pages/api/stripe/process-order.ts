@@ -383,7 +383,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       console.log('📤 Payload Gelato:', JSON.stringify(gelatoPayload, null, 2));
 
-      gelatoOrderResult = await gelatoFetch('/orders', {
+      gelatoOrderResult = await gelatoFetch('/v4/orders', {
         method: 'POST',
         body: JSON.stringify(gelatoPayload)
       });

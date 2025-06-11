@@ -1,6 +1,6 @@
 // src/lib/gelato/gelatoApi.ts
 
-const GELATO_API_BASE_URL = 'https://order.gelatoapis.com/v4';
+const GELATO_API_BASE_URL = 'https://order.gelatoapis.com';
 const API_KEY = process.env.GELATO_API_KEY;
 
 if (!API_KEY) {
@@ -43,7 +43,7 @@ export const gelatoFetch = async (endpoint: string, options?: RequestInit) => {
 export const testGelatoConnection = async () => {
   console.log('A testar a conexão com a Gelato API...');
   try {
-    const data = await gelatoFetch('/orders:search', {
+    const data = await gelatoFetch('/v4/orders:search', {
       method: 'POST',
       body: JSON.stringify({}) // Corpo vazio para procurar todos os pedidos
     });

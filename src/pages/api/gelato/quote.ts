@@ -74,7 +74,7 @@ export default async function handler(
     console.log('Sending quote request to Gelato:', JSON.stringify(quotePayload, null, 2));
 
     // Chamar API da Gelato para cotação
-    const response = await gelatoFetch('/orders:quote', {
+    const response = await gelatoFetch('/v4/orders:quote', {
       method: 'POST',
       body: JSON.stringify(quotePayload)
     });

@@ -9,14 +9,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (action === 'search') {
           // Buscar pedidos existentes - POST para manter consistência com Gelato API
-          const searchData = await gelatoFetch('/orders:search', {
+          const searchData = await gelatoFetch('/v4/orders:search', {
             method: 'POST',
             body: JSON.stringify(bodyData) // Filtros vindos do body da requisição
           });
           return res.status(200).json(searchData);
         } else {
           // Criar novo pedido
-          const orderData = await gelatoFetch('/orders', {
+          const orderData = await gelatoFetch('/v4/orders', {
             method: 'POST',
             body: JSON.stringify(req.body)
           });

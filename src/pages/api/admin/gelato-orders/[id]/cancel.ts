@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 
 // Função para fazer chamadas à API da Gelato
 async function gelatoFetch(endpoint: string, options?: RequestInit) {
-  const baseURL = process.env.GELATO_API_BASE_URL || 'https://api.gelato.com/v4';
+  const baseURL = process.env.GELATO_API_BASE_URL || 'https://order.gelatoapis.com';
   const apiKey = process.env.GELATO_API_KEY;
 
   if (!apiKey) {
@@ -65,7 +65,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
     // 2. Verificar o status atual do pedido na Gelato
     let gelatoOrder;
     try {
-      gelatoOrder = await gelatoFetch(`/orders/${order.gelato_order_id}`);
+      gelatoOrder = await gelatoFetch(`/v4/orders/${order.gelato_order_id}`);
     } catch (error) {
       console.error('Erro ao buscar pedido na Gelato:', error);
       res.status(500).json({ 
@@ -91,7 +91,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
     // 4. Cancelar o pedido na Gelato
     let cancelResponse;
     try {
-      cancelResponse = await gelatoFetch(`/orders/${order.gelato_order_id}:cancel`, {
+      cancelResponse = await gelatoFetch(`/v4/orders/${order.gelato_order_id}:cancel`, {
         method: 'POST',
         body: JSON.stringify({
           reason: `Cancelado pelo admin: ${user.email} (${user.id})`
