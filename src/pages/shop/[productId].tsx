@@ -116,13 +116,30 @@ const ProductDetailPage: React.FC = () => {
 
       const data = await response.json();
       
+      // 🔍 DEBUG: Logs detalhados para ver o que está a chegar do backend
+      console.log('=== RESPOSTA COMPLETA DO BACKEND ===');
+      console.log('Response status:', response.status);
+      console.log('Data completo:', data);
+      console.log('data.success:', data.success);
+      console.log('data.previewUrls:', data.previewUrls);
+      console.log('Type of previewUrls:', typeof data.previewUrls);
+      console.log('Length of previewUrls:', data.previewUrls?.length);
+      console.log('data.draftOrderId:', data.draftOrderId);
+      console.log('===================================');
+      
       if (data.success) {
+        // 🔍 A LINHA MAIS IMPORTANTE PARA O DEBUG AGORA:
+        console.log('✅ URLs dos mockups recebidos no frontend:', data.previewUrls);
+        
         setGelatoPreviewUrls(data.previewUrls || []);
         setDraftOrderId(data.draftOrderId || '');
-        console.log('Draft order created:', data.draftOrderId);
-        console.log('Preview URLs:', data.previewUrls);
+        
+        console.log('🔄 Estados atualizados no frontend:');
+        console.log('- gelatoPreviewUrls será:', data.previewUrls || []);
+        console.log('- draftOrderId será:', data.draftOrderId || '');
       } else {
-        console.error('Draft order creation failed:', data.error);
+        console.error('❌ API respondeu com sucesso mas success=false:', data);
+        console.error('❌ Erro recebido:', data.error);
         // Fallback para preview local se Gelato falhar
         setGelatoPreviewUrls([]);
         setDraftOrderId('');

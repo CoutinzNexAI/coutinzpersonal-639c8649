@@ -36,6 +36,15 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
   onPreviewReady,
   className = ''
 }) => {
+  // 🔍 DEBUG: Logs para rastrear props recebidas
+  console.log('=== PRODUCTCANVAS PROPS DEBUG ===');
+  console.log('selectedProduct:', selectedProduct?.name);
+  console.log('userImageUrl:', userImageUrl?.substring(0, 50) + '...');
+  console.log('gelatoGeneratedPreviewUrls:', gelatoGeneratedPreviewUrls);
+  console.log('gelatoGeneratedPreviewUrls length:', gelatoGeneratedPreviewUrls?.length);
+  console.log('gelatoGeneratedPreviewUrls type:', typeof gelatoGeneratedPreviewUrls);
+  console.log('==================================');
+
   const [imageLoaded, setImageLoaded] = useState(false);
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const [qualityWarnings, setQualityWarnings] = useState<string[]>([]);
@@ -64,6 +73,17 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
   // Determinar se devemos usar mockups da Gelato
   const hasGelatoMockups = gelatoGeneratedPreviewUrls && gelatoGeneratedPreviewUrls.length > 0;
   const shouldUseGelatoMockups = !supportsManualAdjustment && hasGelatoMockups;
+
+  // 🔍 DEBUG: Logs para decisão de renderização
+  console.log('=== PRODUCTCANVAS LOGIC DEBUG ===');
+  console.log('supportsManualAdjustment:', supportsManualAdjustment);
+  console.log('hasGelatoMockups:', hasGelatoMockups);
+  console.log('shouldUseGelatoMockups:', shouldUseGelatoMockups);
+  console.log('currentPreviewIndex:', currentPreviewIndex);
+  if (hasGelatoMockups) {
+    console.log('Current mockup URL:', gelatoGeneratedPreviewUrls![currentPreviewIndex]);
+  }
+  console.log('=================================');
 
   // Carregar dimensões da imagem do utilizador
   useEffect(() => {
