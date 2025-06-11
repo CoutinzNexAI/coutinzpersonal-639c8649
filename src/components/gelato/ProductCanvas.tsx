@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Cropper from 'react-easy-crop';
 import { Area, Point } from 'react-easy-crop/types';
@@ -204,16 +203,16 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
           {/* CENÁRIO 1: Produtos automáticos com mockups Gelato */}
           {shouldUseGelatoMockups ? (
             <>
-              <Image
-                src={gelatoGeneratedPreviewUrls![currentPreviewIndex]}
-                alt={`Preview profissional ${selectedProduct.name}`}
-                fill
-                className="object-contain"
-                priority
-                onError={() => {
-                  console.warn(`Failed to load Gelato preview: ${gelatoGeneratedPreviewUrls![currentPreviewIndex]}`);
-                }}
-              />
+              <div className="relative w-full h-full flex items-center justify-center">
+                <img
+                  src={gelatoGeneratedPreviewUrls![currentPreviewIndex]}
+                  alt={`Preview profissional ${selectedProduct.name} ${currentPreviewIndex + 1}/${gelatoGeneratedPreviewUrls!.length}`}
+                  className="max-w-full max-h-full object-contain"
+                  onError={() => {
+                    console.warn(`Failed to load Gelato preview: ${gelatoGeneratedPreviewUrls![currentPreviewIndex]}`);
+                  }}
+                />
+              </div>
               
               {/* Controlos do carrossel se houver múltiplos mockups */}
               {gelatoGeneratedPreviewUrls!.length > 1 && (
@@ -259,12 +258,10 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
           ) : (
             <>
               {/* CENÁRIO 2: Mockup inicial do produto */}
-              <Image
+              <img
                 src={selectedProduct.mockupInitialPath}
                 alt={`Mockup ${selectedProduct.name}`}
-                fill
                 className="object-contain"
-                priority
                 onError={() => {
                   console.warn(`Failed to load mockup: ${selectedProduct.mockupInitialPath}`);
                 }}
@@ -323,10 +320,9 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
                 >
-                  <Image
+                  <img
                     src={userImageUrl}
                     alt="Arte do utilizador"
-                    fill
                     className="object-cover rounded-sm"
                     style={{ 
                       filter: selectedProduct.category === 'mug' ? 'none' : 'none',
