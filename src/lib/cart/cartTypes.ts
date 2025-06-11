@@ -25,6 +25,7 @@ export interface CartItem {
       height: number;   // Altura do crop em percentagem da imagem original
     };
   };
+  draftOrderId?: string; // ID do Draft Order criado na Gelato (para fluxo automático)
   addedAt: Date;
 }
 

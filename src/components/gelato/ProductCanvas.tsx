@@ -6,7 +6,7 @@ import { Area, Point } from 'react-easy-crop/types';
 import { GelatoProduct } from '@/lib/gelato/gelatoProducts';
 import { validateImageForPrint } from '@/lib/gelato/printFileGenerator';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, ZoomIn, ZoomOut, Move, Check, X } from 'lucide-react';
+import { RotateCcw, ZoomIn, ZoomOut, Move, Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageAdjustments {
   x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
@@ -24,6 +24,7 @@ interface ImageAdjustments {
 interface ProductCanvasProps {
   selectedProduct: GelatoProduct;
   userImageUrl: string;
+  gelatoGeneratedPreviewUrls?: string[]; // Array de mockups gerados pela Gelato
   onPreviewReady?: (previewUrl: string, adjustments?: ImageAdjustments) => void;
   className?: string;
 }
@@ -31,6 +32,7 @@ interface ProductCanvasProps {
 const ProductCanvas: React.FC<ProductCanvasProps> = ({
   selectedProduct,
   userImageUrl,
+  gelatoGeneratedPreviewUrls,
   onPreviewReady,
   className = ''
 }) => {
@@ -52,9 +54,16 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
     rotation: 0
   });
 
+  // Estados para carrossel de mockups Gelato
+  const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
+
   // Verificar se o produto suporta ajuste manual
   const supportsManualAdjustment = selectedProduct.supportsManualAdjustment;
   const adjustmentLimits = selectedProduct.adjustmentLimits;
+
+  // Determinar se devemos usar mockups da Gelato
+  const hasGelatoMockups = gelatoGeneratedPreviewUrls && gelatoGeneratedPreviewUrls.length > 0;
+  const shouldUseGelatoMockups = !supportsManualAdjustment && hasGelatoMockups;
 
   // Carregar dimensões da imagem do utilizador
   useEffect(() => {
@@ -65,22 +74,14 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
       setUserImageDimensions({ width: img.width, height: img.height });
       setImageLoaded(true);
 
-      // Validar qualidade da imagem
-      const validation = validateImageForPrint(img.width, img.height, selectedProduct);
-      setQualityWarnings(validation.warnings);
-
-      // Inicializar zoom para preencher a área se suportar ajuste manual
+      // Validar qualidade da imagem para produtos com ajuste manual
       if (supportsManualAdjustment) {
-        const { printAreaCoords } = selectedProduct;
-        const imageAspect = img.width / img.height;
-        const printAreaAspect = printAreaCoords.width / printAreaCoords.height;
-        
-        // Calcular zoom inicial para preencher a área
-        const initialZoom = imageAspect > printAreaAspect ? 
-          printAreaCoords.height / printAreaCoords.width : 
-          printAreaCoords.width / printAreaCoords.height;
-        
-        setZoom(Math.max(initialZoom, adjustmentLimits?.minZoom || 0.5));
+        const validation = validateImageForPrint(img.width, img.height, selectedProduct);
+        setQualityWarnings(validation.warnings);
+
+        // Inicializar zoom para preencher a área se suportar ajuste manual
+        const initialZoom = Math.max(1, adjustmentLimits?.minZoom || 0.5);
+        setZoom(initialZoom);
       }
     };
     img.src = userImageUrl;
@@ -110,49 +111,19 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
     [crop, zoom, rotation, adjustmentLimits]
   );
 
-  // Calcular posicionamento automático da imagem do utilizador (para produtos sem ajuste manual)
-  const calculateImageStyle = () => {
-    const { printAreaCoords, mockupDimensions } = selectedProduct;
-    
-    // Calcular posição relativa baseada nas coordenadas do mockup
-    const left = (printAreaCoords.x / mockupDimensions.width) * 100;
-    const top = (printAreaCoords.y / mockupDimensions.height) * 100;
-    const width = (printAreaCoords.width / mockupDimensions.width) * 100;
-    const height = (printAreaCoords.height / mockupDimensions.height) * 100;
-
-    return {
-      position: 'absolute' as const,
-      left: `${left}%`,
-      top: `${top}%`,
-      width: `${width}%`,
-      height: `${height}%`,
-      objectFit: 'cover' as const,
-      borderRadius: selectedProduct.category === 'phone-case' ? '12px' : '0',
-      zIndex: 2
-    };
+  // Navegar mockups Gelato
+  const goToPreviousPreview = () => {
+    if (!hasGelatoMockups) return;
+    setCurrentPreviewIndex(prev => 
+      prev === 0 ? gelatoGeneratedPreviewUrls!.length - 1 : prev - 1
+    );
   };
 
-  // Calcular estilo da área de impressão para overlay
-  const calculatePrintAreaStyle = () => {
-    const { printAreaCoords, mockupDimensions } = selectedProduct;
-    
-    const left = (printAreaCoords.x / mockupDimensions.width) * 100;
-    const top = (printAreaCoords.y / mockupDimensions.height) * 100;
-    const width = (printAreaCoords.width / mockupDimensions.width) * 100;
-    const height = (printAreaCoords.height / mockupDimensions.height) * 100;
-
-    return {
-      position: 'absolute' as const,
-      left: `${left}%`,
-      top: `${top}%`,
-      width: `${width}%`,
-      height: `${height}%`,
-      border: '2px dashed rgba(59, 130, 246, 0.8)',
-      borderRadius: selectedProduct.category === 'phone-case' ? '12px' : '4px',
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      zIndex: 10,
-      pointerEvents: 'none' as const
-    };
+  const goToNextPreview = () => {
+    if (!hasGelatoMockups) return;
+    setCurrentPreviewIndex(prev => 
+      prev === gelatoGeneratedPreviewUrls!.length - 1 ? 0 : prev + 1
+    );
   };
 
   // Resetar ajustes
@@ -187,11 +158,15 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
     if (imageLoaded && userImageDimensions && onPreviewReady && !isAdjustmentMode) {
       if (supportsManualAdjustment) {
         onPreviewReady(userImageUrl, imageAdjustments);
+      } else if (shouldUseGelatoMockups) {
+        // Para produtos com mockups Gelato, passar o URL atual do carrossel
+        const currentMockupUrl = gelatoGeneratedPreviewUrls![currentPreviewIndex];
+        onPreviewReady(currentMockupUrl);
       } else {
         onPreviewReady(userImageUrl);
       }
     }
-  }, [imageLoaded, userImageDimensions, onPreviewReady, userImageUrl, isAdjustmentMode, supportsManualAdjustment, imageAdjustments]);
+  }, [imageLoaded, userImageDimensions, onPreviewReady, userImageUrl, isAdjustmentMode, supportsManualAdjustment, shouldUseGelatoMockups, gelatoGeneratedPreviewUrls, currentPreviewIndex, imageAdjustments]);
 
   return (
     <div className={`relative w-full max-w-lg mx-auto ${className}`}>
@@ -204,94 +179,133 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
           boxShadow: "0 20px 40px -12px rgba(139, 116, 88, 0.15), 0 8px 25px -8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
         }}
       >
-        {/* Mockup do Produto */}
+        {/* Renderização do Mockup */}
         <div className="relative w-full h-full">
-          <Image
-            src={selectedProduct.mockupPath}
-            alt={`Mockup ${selectedProduct.name}`}
-            fill
-            className="object-contain"
-            priority
-            onError={() => {
-              console.warn(`Failed to load mockup: ${selectedProduct.mockupPath}`);
-            }}
-          />
-          
-          {/* Modo de Ajuste Manual */}
-          {supportsManualAdjustment && isAdjustmentMode && userImageUrl && imageLoaded && (
+          {/* CENÁRIO 1: Produtos automáticos com mockups Gelato */}
+          {shouldUseGelatoMockups ? (
             <>
-              {/* Área de Crop Interativa */}
-              <div style={calculatePrintAreaStyle()}>
-                <Cropper
-                  image={userImageUrl}
-                  crop={crop}
-                  zoom={zoom}
-                  rotation={adjustmentLimits?.allowRotation ? rotation : 0}
-                  aspect={selectedProduct.gelatoPrintDimensionsMm.width / selectedProduct.gelatoPrintDimensionsMm.height}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onRotationChange={adjustmentLimits?.allowRotation ? setRotation : undefined}
-                  onCropComplete={onCropComplete}
-                  cropShape="rect"
-                  showGrid={false}
-                  style={{
-                    containerStyle: {
-                      width: '100%',
-                      height: '100%',
-                      position: 'relative'
-                    },
-                    mediaStyle: {
-                      borderRadius: selectedProduct.category === 'phone-case' ? '12px' : '0'
-                    }
-                  }}
-                  maxZoom={adjustmentLimits?.maxZoom || 3}
-                  minZoom={adjustmentLimits?.minZoom || 0.5}
-                />
-              </div>
-
-              {/* Overlay de instruções */}
-              <div className="absolute top-4 left-4 right-4 bg-black/80 text-white p-3 rounded-lg z-20 text-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <Move className="w-4 h-4" />
-                  <span className="font-medium">Ajustar Imagem</span>
-                </div>
-                <p className="text-xs opacity-90">
-                  Arraste para mover • {adjustmentLimits?.allowRotation ? 'Rode para rodar • ' : ''}Use os controlos para zoom
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* Modo Automático - Imagem do Utilizador Sobreposta */}
-          {!isAdjustmentMode && userImageUrl && imageLoaded && (
-            <motion.div
-              style={calculateImageStyle()}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            >
               <Image
-                src={userImageUrl}
-                alt="Arte do utilizador"
+                src={gelatoGeneratedPreviewUrls![currentPreviewIndex]}
+                alt={`Preview profissional ${selectedProduct.name}`}
                 fill
-                className="object-cover rounded-sm"
-                style={{ 
-                  filter: selectedProduct.category === 'mug' ? 'none' : 'none',
-                  transform: selectedProduct.category === 'phone-case' ? 'scale(0.95)' : 'none'
+                className="object-contain"
+                priority
+                onError={() => {
+                  console.warn(`Failed to load Gelato preview: ${gelatoGeneratedPreviewUrls![currentPreviewIndex]}`);
                 }}
               />
-            </motion.div>
-          )}
+              
+              {/* Controlos do carrossel se houver múltiplos mockups */}
+              {gelatoGeneratedPreviewUrls!.length > 1 && (
+                <>
+                  <button
+                    onClick={goToPreviousPreview}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={goToNextPreview}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Indicadores */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                    {gelatoGeneratedPreviewUrls!.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentPreviewIndex(index)}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          index === currentPreviewIndex ? 'bg-white' : 'bg-white/50'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              {/* CENÁRIO 2: Mockup inicial do produto */}
+              <Image
+                src={selectedProduct.mockupInitialPath}
+                alt={`Mockup ${selectedProduct.name}`}
+                fill
+                className="object-contain"
+                priority
+                onError={() => {
+                  console.warn(`Failed to load mockup: ${selectedProduct.mockupInitialPath}`);
+                }}
+              />
+              
+              {/* CENÁRIO 2A: Modo de ajuste manual para Canecas/Capas */}
+              {supportsManualAdjustment && isAdjustmentMode && userImageUrl && imageLoaded && (
+                <>
+                  {/* Área de Crop Interativa - usando coordenadas calculadas dinamicamente */}
+                  <div className="absolute inset-4 border-2 dashed border-blue-400 rounded-lg">
+                    <Cropper
+                      image={userImageUrl}
+                      crop={crop}
+                      zoom={zoom}
+                      rotation={adjustmentLimits?.allowRotation ? rotation : 0}
+                      aspect={selectedProduct.gelatoPrintDimensionsMm.width / selectedProduct.gelatoPrintDimensionsMm.height}
+                      onCropChange={setCrop}
+                      onZoomChange={setZoom}
+                      onRotationChange={adjustmentLimits?.allowRotation ? setRotation : undefined}
+                      onCropComplete={onCropComplete}
+                      cropShape="rect"
+                      showGrid={false}
+                      style={{
+                        containerStyle: {
+                          width: '100%',
+                          height: '100%',
+                          position: 'relative'
+                        },
+                        mediaStyle: {
+                          borderRadius: selectedProduct.category === 'phone-case' ? '12px' : '0'
+                        }
+                      }}
+                      maxZoom={adjustmentLimits?.maxZoom || 3}
+                      minZoom={adjustmentLimits?.minZoom || 0.5}
+                    />
+                  </div>
 
-          {/* Overlay da Área de Impressão (apenas no modo visual) */}
-          {supportsManualAdjustment && !isAdjustmentMode && userImageUrl && imageLoaded && (
-            <div style={calculatePrintAreaStyle()}>
-              <div className="absolute inset-2 bg-transparent border border-blue-400/60 rounded-sm">
-                <div className="absolute -top-6 left-0 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
-                  Área de Impressão
-                </div>
-              </div>
-            </div>
+                  {/* Overlay de instruções */}
+                  <div className="absolute top-4 left-4 right-4 bg-black/80 text-white p-3 rounded-lg z-20 text-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Move className="w-4 h-4" />
+                      <span className="font-medium">Ajustar Imagem</span>
+                    </div>
+                    <p className="text-xs opacity-90">
+                      Arraste para mover • {adjustmentLimits?.allowRotation ? 'Rode para rodar • ' : ''}Use os controlos para zoom
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* CENÁRIO 2B: Sobreposição da imagem do utilizador (apenas se não temos Gelato mockups) */}
+              {!isAdjustmentMode && userImageUrl && imageLoaded && !shouldUseGelatoMockups && (
+                <motion.div
+                  className="absolute inset-4 rounded-lg overflow-hidden"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                >
+                  <Image
+                    src={userImageUrl}
+                    alt="Arte do utilizador"
+                    fill
+                    className="object-cover rounded-sm"
+                    style={{ 
+                      filter: selectedProduct.category === 'mug' ? 'none' : 'none',
+                      transform: selectedProduct.category === 'phone-case' ? 'scale(0.95)' : 'none'
+                    }}
+                  />
+                </motion.div>
+              )}
+            </>
           )}
 
           {/* Overlay de Loading */}
@@ -318,13 +332,23 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
                 </motion.div>
                 <p className="text-sm font-medium text-ghibli-wood">A sua arte AI aparecerá aqui</p>
                 <p className="text-xs text-ghibli-earth/60 mt-1">
-                  {supportsManualAdjustment ? 'Com ajuste manual disponível' : 'Posicionamento automático'}
+                  {supportsManualAdjustment ? 'Com ajuste manual disponível' : 'Preview profissional automático'}
                 </p>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Indicator se estamos a usar Gelato mockups */}
+      {shouldUseGelatoMockups && (
+        <div className="mt-3 text-center">
+          <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-800">
+            <span>✨</span>
+            <span>Preview profissional gerado</span>
+          </div>
+        </div>
+      )}
 
       {/* Controlos do Editor (apenas para produtos com ajuste manual) */}
       {supportsManualAdjustment && userImageUrl && imageLoaded && (
@@ -425,8 +449,8 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
         </div>
       </div>
 
-      {/* Avisos de Qualidade */}
-      {qualityWarnings.length > 0 && (
+      {/* Avisos de Qualidade (apenas para produtos com ajuste manual) */}
+      {supportsManualAdjustment && qualityWarnings.length > 0 && (
         <motion.div 
           className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg"
           initial={{ opacity: 0, y: 10 }}
@@ -447,23 +471,6 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
             </div>
           </div>
         </motion.div>
-      )}
-
-      {/* Especificações Técnicas */}
-      {userImageDimensions && (
-        <div className="mt-4 p-3 bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-lg">
-          <h4 className="text-sm font-medium text-ghibli-wood mb-2">
-            📊 Especificações
-          </h4>
-          <div className="text-xs text-ghibli-earth space-y-1">
-            <div>Imagem: {userImageDimensions.width}×{userImageDimensions.height}px</div>
-            <div>Impressão: {selectedProduct.printFileResolution} DPI</div>
-            <div>Bleed: {selectedProduct.printFileBleed}mm</div>
-            {supportsManualAdjustment && imageAdjustments.scale !== 1 && (
-              <div>Zoom: {imageAdjustments.scale.toFixed(1)}x</div>
-            )}
-          </div>
-        </div>
       )}
     </div>
   );

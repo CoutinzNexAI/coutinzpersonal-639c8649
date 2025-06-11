@@ -1,14 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import sharp from 'sharp';
-import { PDFDocument, rgb } from 'pdf-lib';
 import { createClient } from '@supabase/supabase-js';
+import { getGelatoProduct } from '@/lib/gelato/gelatoProducts';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-import { getGelatoProduct } from '@/lib/gelato/gelatoProducts';
-import { calculatePrintDimensions, generatePrintFileName } from '@/lib/gelato/printFileGenerator';
 
 interface ImageAdjustments {
   x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
@@ -25,42 +23,57 @@ interface ImageAdjustments {
 
 interface GeneratePrintFileRequest {
   imageUrl: string;
-  productUid: string;
   productId: string; // PicTuz product ID
   userId?: string;
-  transformationId?: string;
-  imageAdjustments?: ImageAdjustments; // NOVO: Ajustes manuais da imagem
+  imageAdjustments?: ImageAdjustments; // Ajustes manuais da imagem
+}
+
+interface GeneratePrintFileResponse {
+  success: boolean;
+  printFileUrl?: string;
+  printFileId?: string;
+  error?: string;
 }
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<GeneratePrintFileResponse>
 ) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ 
+      success: false, 
+      error: 'Method not allowed' 
+    });
   }
 
   try {
-    const { imageUrl, productUid, productId, userId, transformationId, imageAdjustments }: GeneratePrintFileRequest = req.body;
+    const { imageUrl, productId, userId, imageAdjustments }: GeneratePrintFileRequest = req.body;
 
     // Validar dados de entrada
-    if (!imageUrl || !productUid || !productId) {
-      return res.status(400).json({ error: 'Dados incompletos: imageUrl, productUid e productId são obrigatórios' });
+    if (!imageUrl || !productId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Dados incompletos: imageUrl e productId são obrigatórios' 
+      });
     }
 
     // Obter informações do produto
     const product = getGelatoProduct(productId);
     if (!product) {
-      return res.status(404).json({ error: 'Produto não encontrado' });
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Produto não encontrado' 
+      });
     }
 
     console.log(`Generating print file for product: ${product.name}`);
-    console.log('Image adjustments:', imageAdjustments);
 
-    // Calcular dimensões de impressão
-    const printDimensions = calculatePrintDimensions(product);
-    
-    console.log('Print dimensions:', printDimensions);
+    // Calcular dimensões de destino em pixels para impressão
+    // Fórmula: (dimensão_mm / 25.4) * DPI = pixels
+    const targetWidthPx = Math.round((product.gelatoPrintDimensionsMm.width / 25.4) * product.printFileResolution);
+    const targetHeightPx = Math.round((product.gelatoPrintDimensionsMm.height / 25.4) * product.printFileResolution);
+
+    console.log(`Target print dimensions: ${targetWidthPx}x${targetHeightPx}px (${product.printFileResolution} DPI)`);
 
     // Download da imagem do utilizador
     const imageResponse = await fetch(imageUrl);
@@ -77,23 +90,14 @@ export default async function handler(
 
     console.log(`Original image: ${originalWidth}x${originalHeight}px`);
 
-    // Processar imagem com Sharp - APLICAR AJUSTES MANUAIS SE EXISTIREM
+    // Processar imagem com Sharp
     let processedImage = sharp(imageBuffer);
 
+    // APLICAR AJUSTES MANUAIS SE EXISTIREM (para Canecas/Capas)
     if (imageAdjustments && product.supportsManualAdjustment) {
-      console.log('Applying manual adjustments...');
+      console.log('Applying manual adjustments for manual adjustment product...');
 
-      // 1. ROTAÇÃO (se suportada e especificada)
-      if (imageAdjustments.rotation && product.adjustmentLimits?.allowRotation) {
-        console.log(`Applying rotation: ${imageAdjustments.rotation}°`);
-        processedImage = processedImage.rotate(imageAdjustments.rotation, { background: { r: 255, g: 255, b: 255, alpha: 1 } });
-        
-        // Recalcular dimensões após rotação
-        const rotatedMeta = await processedImage.metadata();
-        console.log(`After rotation: ${rotatedMeta.width}x${rotatedMeta.height}px`);
-      }
-
-      // 2. CROP (se especificado)
+      // 1. CROP (se especificado)
       if (imageAdjustments.cropArea) {
         const crop = imageAdjustments.cropArea;
         
@@ -113,157 +117,84 @@ export default async function handler(
         });
       }
 
-      // 3. ESCALA/ZOOM
+      // 2. ROTAÇÃO (se suportada e especificada)
+      if (imageAdjustments.rotation && product.adjustmentLimits?.allowRotation) {
+        console.log(`Applying rotation: ${imageAdjustments.rotation}°`);
+        processedImage = processedImage.rotate(imageAdjustments.rotation, { 
+          background: { r: 255, g: 255, b: 255, alpha: 1 } 
+        });
+      }
+
+      // 3. ESCALA/ZOOM (se especificado)
       if (imageAdjustments.scale && imageAdjustments.scale !== 1) {
         console.log(`Applying scale: ${imageAdjustments.scale}x`);
         
-        const targetWidth = Math.round(printDimensions.widthPx * imageAdjustments.scale);
-        const targetHeight = Math.round(printDimensions.heightPx * imageAdjustments.scale);
+        // Para ajustes manuais, aplicar escala antes do resize final
+        const scaledWidth = Math.round(targetWidthPx * imageAdjustments.scale);
+        const scaledHeight = Math.round(targetHeightPx * imageAdjustments.scale);
         
-        processedImage = processedImage.resize(targetWidth, targetHeight, {
+        processedImage = processedImage.resize(scaledWidth, scaledHeight, {
           fit: 'cover',
           position: 'center'
         });
       }
     }
 
-    // Redimensionar para as dimensões finais de impressão
-    const processedImageBuffer = await processedImage
-      .resize(printDimensions.widthPx, printDimensions.heightPx, {
-        fit: imageAdjustments && product.supportsManualAdjustment ? 'inside' : 'cover',
+    // REDIMENSIONAR PARA DIMENSÕES FINAIS DE IMPRESSÃO
+    // A Gelato recebe esta imagem e faz a otimização final (PDF, bleed, etc.)
+    const finalImageBuffer = await processedImage
+      .resize(targetWidthPx, targetHeightPx, {
+        fit: 'cover', // Preenche completamente a área
         position: 'center',
         background: { r: 255, g: 255, b: 255, alpha: 1 } // Fundo branco se necessário
       })
-      .png() // Converter para PNG para melhor qualidade
+      .jpeg({ 
+        quality: 95, // Alta qualidade para impressão profissional
+        progressive: false,
+        mozjpeg: true 
+      })
       .toBuffer();
 
-    console.log(`Final processed image: ${printDimensions.widthPx}x${printDimensions.heightPx}px`);
-
-    // Criar PDF/X-4 com pdf-lib
-    const pdfDoc = await PDFDocument.create();
-    
-    // Definir metadados PDF/X-4
-    pdfDoc.setTitle(`Print File - ${product.name}`);
-    pdfDoc.setSubject('Print-ready artwork');
-    pdfDoc.setCreator('PicTuz Print Generator');
-    pdfDoc.setProducer('PicTuz');
-    
-    // Calcular dimensões da página em pontos (1 mm = 2.834645669 pontos)
-    const mmToPoints = (mm: number) => mm * 2.834645669;
-    
-    const pageWidth = mmToPoints(product.gelatoPrintDimensionsMm.width + (product.printFileBleed * 2));
-    const pageHeight = mmToPoints(product.gelatoPrintDimensionsMm.height + (product.printFileBleed * 2));
-
-    console.log(`PDF dimensions: ${pageWidth}x${pageHeight} points`);
-
-    // Criar página
-    const page = pdfDoc.addPage([pageWidth, pageHeight]);
-
-    // Incorporar imagem no PDF
-    const pngImage = await pdfDoc.embedPng(processedImageBuffer);
-    
-    // Calcular posição e tamanho da imagem na página
-    const imageX = mmToPoints(product.gelatoPrintOffsetsMm.x + product.printFileBleed);
-    const imageY = mmToPoints(product.gelatoPrintOffsetsMm.y + product.printFileBleed);
-    const imageWidth = mmToPoints(product.gelatoPrintDimensionsMm.width);
-    const imageHeight = mmToPoints(product.gelatoPrintDimensionsMm.height);
-
-    // Desenhar imagem na página
-    page.drawImage(pngImage, {
-      x: imageX,
-      y: pageHeight - imageY - imageHeight, // PDF coordinates are bottom-up
-      width: imageWidth,
-      height: imageHeight
-    });
-
-    // Adicionar marcas de corte se necessário (para bleed)
-    if (product.printFileBleed > 0) {
-      const cropMarkLength = mmToPoints(5);
-      const cropMarkOffset = mmToPoints(2);
-      
-      // Marcas de corte nos cantos
-      const corners = [
-        { x: mmToPoints(product.printFileBleed), y: mmToPoints(product.printFileBleed) },
-        { x: pageWidth - mmToPoints(product.printFileBleed), y: mmToPoints(product.printFileBleed) },
-        { x: mmToPoints(product.printFileBleed), y: pageHeight - mmToPoints(product.printFileBleed) },
-        { x: pageWidth - mmToPoints(product.printFileBleed), y: pageHeight - mmToPoints(product.printFileBleed) }
-      ];
-
-      corners.forEach(corner => {
-        // Linha horizontal
-        page.drawLine({
-          start: { x: corner.x - cropMarkOffset - cropMarkLength, y: corner.y },
-          end: { x: corner.x - cropMarkOffset, y: corner.y },
-          thickness: 0.5,
-          color: rgb(0, 0, 0)
-        });
-        
-        // Linha vertical
-        page.drawLine({
-          start: { x: corner.x, y: corner.y - cropMarkOffset - cropMarkLength },
-          end: { x: corner.x, y: corner.y - cropMarkOffset },
-          thickness: 0.5,
-          color: rgb(0, 0, 0)
-        });
-      });
-    }
-
-    // Gerar PDF final
-    const pdfBytes = await pdfDoc.save();
+    console.log(`Final processed image: ${targetWidthPx}x${targetHeightPx}px`);
 
     // Gerar nome único do ficheiro
-    const fileName = generatePrintFileName(userId || 'anonymous', productId, 'pdf');
-
-    console.log(`Uploading PDF: ${fileName}`);
+    const timestamp = Date.now();
+    const userSuffix = userId ? `-${userId}` : '';
+    const fileName = `print-${productId}${userSuffix}-${timestamp}`;
+    const printFileId = fileName;
 
     // Upload para Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('print-files')
-      .upload(fileName, pdfBytes, {
-        contentType: 'application/pdf',
+      .upload(`${fileName}.jpg`, finalImageBuffer, {
+        contentType: 'image/jpeg',
+        cacheControl: '3600',
         upsert: true
       });
 
     if (uploadError) {
       console.error('Supabase upload error:', uploadError);
-      throw new Error('Erro ao fazer upload do ficheiro: ' + uploadError.message);
+      throw new Error(`Erro no upload: ${uploadError.message}`);
     }
 
-    // Obter URL público
-    const { data: urlData } = supabase.storage
+    // Obter URL público do ficheiro
+    const { data: { publicUrl } } = supabase.storage
       .from('print-files')
-      .getPublicUrl(fileName);
+      .getPublicUrl(`${fileName}.jpg`);
 
-    const fileUrl = urlData.publicUrl;
+    console.log(`Print file uploaded successfully: ${publicUrl}`);
 
-    console.log(`Print file generated successfully: ${fileUrl}`);
-
-    // Resposta de sucesso
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      fileUrl,
-      fileName,
-      printDimensions,
-      imageAdjustments: imageAdjustments || null,
-      metadata: {
-        productId,
-        productUid,
-        productName: product.name,
-        printSizeMm: product.gelatoPrintDimensionsMm,
-        bleedMm: product.printFileBleed,
-        resolutionDpi: product.printFileResolution,
-        fileSizeBytes: pdfBytes.length,
-        generatedAt: new Date().toISOString(),
-        manualAdjustments: !!imageAdjustments
-      }
+      printFileUrl: publicUrl,
+      printFileId: printFileId
     });
 
   } catch (error) {
     console.error('Error generating print file:', error);
-    
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Erro desconhecido ao gerar ficheiro de impressão'
+      error: 'Internal server error'
     });
   }
 }

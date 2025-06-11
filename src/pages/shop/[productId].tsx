@@ -39,6 +39,13 @@ const ProductDetailPage: React.FC = () => {
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  // NOVO: Estados para mockup da Gelato
+  const [gelatoMockupUrl, setGelatoMockupUrl] = useState<string>('');
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState(false);
+  // NOVO: Estados para Draft Order da Gelato
+  const [gelatoPreviewUrls, setGelatoPreviewUrls] = useState<string[]>([]);
+  const [draftOrderId, setDraftOrderId] = useState<string>('');
+  const [isCreatingDraft, setIsCreatingDraft] = useState(false);
 
   // Carregar produto baseado no ID
   useEffect(() => {
@@ -84,6 +91,104 @@ const ProductDetailPage: React.FC = () => {
     }
   }, [userInfo, product, session?.access_token, fetchUserLatestTransformation]);
 
+  // NOVO: Gerar mockup da Gelato quando imagem e produto estão disponíveis
+  const generateGelatoMockup = useCallback(async () => {
+    if (!selectedImageUrl || !product || !userInfo?.id || !session?.access_token) return;
+    
+    // Só gerar mockup para produtos sem ajuste manual
+    if (product.supportsManualAdjustment) return;
+
+    setIsGeneratingMockup(true);
+    
+    try {
+      const response = await fetch('/api/gelato/generate-mockup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          productId: productId as string,
+          userImageUrl: selectedImageUrl,
+          userId: userInfo.id
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.previewUrl) {
+        setGelatoMockupUrl(data.previewUrl);
+        console.log('Gelato mockup generated:', data.previewUrl);
+      } else {
+        console.error('Gelato mockup generation failed:', data.error);
+        // Fallback para mockup local se Gelato falhar
+        setGelatoMockupUrl('');
+      }
+    } catch (error) {
+      console.error('Error generating Gelato mockup:', error);
+      // Fallback para mockup local se houver erro
+      setGelatoMockupUrl('');
+    } finally {
+      setIsGeneratingMockup(false);
+    }
+  }, [selectedImageUrl, product, userInfo?.id, session?.access_token, productId]);
+
+  // Trigger Gelato mockup generation quando imagem muda
+  useEffect(() => {
+    generateGelatoMockup();
+  }, [generateGelatoMockup]);
+
+  // NOVO: Criar Draft Order na Gelato para produtos automáticos
+  const createDraftOrder = useCallback(async () => {
+    if (!selectedImageUrl || !product || !userInfo?.id || !session?.access_token) return;
+    
+    // Só criar draft para produtos sem ajuste manual
+    if (product.supportsManualAdjustment) return;
+
+    setIsCreatingDraft(true);
+    
+    try {
+      const response = await fetch('/api/gelato/mockups/create-draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          productId: productId as string,
+          userImageUrl: selectedImageUrl,
+          userId: userInfo.id
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setGelatoPreviewUrls(data.previewUrls || []);
+        setDraftOrderId(data.draftOrderId || '');
+        console.log('Draft order created:', data.draftOrderId);
+        console.log('Preview URLs:', data.previewUrls);
+      } else {
+        console.error('Draft order creation failed:', data.error);
+        // Fallback para preview local se Gelato falhar
+        setGelatoPreviewUrls([]);
+        setDraftOrderId('');
+      }
+    } catch (error) {
+      console.error('Error creating draft order:', error);
+      // Fallback para preview local se houver erro
+      setGelatoPreviewUrls([]);
+      setDraftOrderId('');
+    } finally {
+      setIsCreatingDraft(false);
+    }
+  }, [selectedImageUrl, product, userInfo?.id, session?.access_token, productId]);
+
+  // Trigger Draft Order creation quando imagem muda
+  useEffect(() => {
+    createDraftOrder();
+  }, [createDraftOrder]);
+
   const handlePreviewReady = (url: string, adjustments?: ImageAdjustments) => {
     setPreviewUrl(url);
     setImageAdjustments(adjustments);
@@ -108,7 +213,7 @@ const ProductDetailPage: React.FC = () => {
     setLoading(true);
 
     try {
-      // Adicionar item ao carrinho usando o CartService - AGORA COM AJUSTES DA IMAGEM E ID
+      // Adicionar item ao carrinho usando o CartService - COM DRAFT ORDER ID
       const cartItem = CartService.addToCart({
         productId: productId as string,
         productUid: product.productUid,
@@ -116,12 +221,13 @@ const ProductDetailPage: React.FC = () => {
         productCategory: product.category,
         userImageUrl: selectedImageUrl,
         userImageId: selectedImageId, // ✅ CRITICAL: Passar o ID da transformação
-        price: product.price || 29.99,
+        price: product.price,
         quantity: 1,
         customizations: {
           size: `${product.gelatoPrintDimensionsMm.width}×${product.gelatoPrintDimensionsMm.height}mm`
         },
-        imageAdjustments: imageAdjustments // NOVO: Passar os ajustes da imagem
+        imageAdjustments: imageAdjustments, // Passar os ajustes da imagem
+        draftOrderId: draftOrderId || undefined // ✅ NOVO: Passar Draft Order ID se existir
       });
 
       // Simular pequeno delay para UX
@@ -159,6 +265,10 @@ const ProductDetailPage: React.FC = () => {
   const handleSelectImageFromGallery = (imageUrl: string, imageId: string) => {
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId); // ✅ NOVO: Guardar o ID da transformação selecionada
+    // Reset estados Gelato quando nova imagem é selecionada
+    setGelatoMockupUrl('');
+    setGelatoPreviewUrls([]);
+    setDraftOrderId('');
     setIsGalleryModalOpen(false);
     toast.success('Arte selecionada!', {
       description: 'A sua transformação foi aplicada ao produto'
@@ -211,9 +321,20 @@ const ProductDetailPage: React.FC = () => {
                 <ProductCanvas
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
+                  gelatoGeneratedPreviewUrls={gelatoPreviewUrls}
                   onPreviewReady={handlePreviewReady}
                   className="w-full"
                 />
+
+                {/* Loading indicator para Draft Order */}
+                {isCreatingDraft && selectedImageUrl && !product.supportsManualAdjustment && (
+                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-sm text-blue-800">
+                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      <span>A gerar preview profissional...</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Botão para Selecionar Imagem */}
                 {!selectedImageUrl ? (
