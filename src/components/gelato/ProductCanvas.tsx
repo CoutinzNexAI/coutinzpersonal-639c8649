@@ -207,9 +207,16 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
                 <img
                   src={gelatoGeneratedPreviewUrls![currentPreviewIndex]}
                   alt={`Preview profissional ${selectedProduct.name} ${currentPreviewIndex + 1}/${gelatoGeneratedPreviewUrls!.length}`}
-                  className="max-w-full max-h-full object-contain"
-                  onError={() => {
+                  className="w-full h-full object-contain"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    display: 'block',
+                    objectFit: 'contain'
+                  }}
+                  onError={(e) => {
                     console.warn(`Failed to load Gelato preview: ${gelatoGeneratedPreviewUrls![currentPreviewIndex]}`);
+                    console.error('Image error:', e);
                   }}
                 />
               </div>
@@ -261,7 +268,13 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
               <img
                 src={selectedProduct.mockupInitialPath}
                 alt={`Mockup ${selectedProduct.name}`}
-                className="object-contain"
+                className="w-full h-full object-contain"
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  display: 'block',
+                  objectFit: 'contain'
+                }}
                 onError={() => {
                   console.warn(`Failed to load mockup: ${selectedProduct.mockupInitialPath}`);
                 }}
@@ -323,8 +336,12 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
                   <img
                     src={userImageUrl}
                     alt="Arte do utilizador"
-                    className="object-cover rounded-sm"
+                    className="w-full h-full object-cover rounded-sm"
                     style={{ 
+                      width: '100%',
+                      height: '100%',
+                      display: 'block',
+                      objectFit: 'cover',
                       filter: selectedProduct.category === 'mug' ? 'none' : 'none',
                       transform: selectedProduct.category === 'phone-case' ? 'scale(0.95)' : 'none'
                     }}
