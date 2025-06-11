@@ -153,63 +153,46 @@ export default async function handler(
       body: JSON.stringify(draftOrderPayload)
     });
 
-    console.log('Draft order response:', draftOrderResponse);
+    console.log('Draft order POST response received');
 
-    if (!draftOrderResponse.success || !draftOrderResponse.data) {
-      throw new Error(`Draft order creation failed: ${draftOrderResponse.error}`);
+    // IMPORTANTE: Só extrair o ID da resposta do POST, ignorar tudo o resto!
+    if (!draftOrderResponse || !draftOrderResponse.id) {
+      throw new Error(`Draft order creation failed: No ID in response`);
     }
 
-    const draftOrderId = draftOrderResponse.data.id;
+    const draftOrderId = draftOrderResponse.id; // Só precisamos do ID daqui!
     console.log('Draft order created with ID:', draftOrderId);
 
-    // PASSO 3: Buscar mockups do Draft Order com POLLING (resolver race condition)
-    console.log('Step 3: Fetching draft order mockups with polling...');
+    // PASSO 3: POLLING para buscar mockups (aguardar que Gelato os processe)
+    console.log('Step 3: Starting polling for mockups...');
 
-    let previewUrls: string[] = [];
+    // Variável para guardar os URLs finais quando os encontrarmos
+    let finalPreviewUrls: string[] = [];
     const maxAttempts = 6; // Máximo 6 tentativas (18 segundos total)
     const delay = 3000; // 3 segundos entre tentativas
 
+    // LOOP DE POLLING - só faz GETs
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       console.log(`Polling attempt ${attempt}/${maxAttempts}: Fetching order details for ${draftOrderId}...`);
 
       try {
-        const orderDetailsResponse = await gelatoFetch(`/v4/orders/${draftOrderId}`, {
+        // FAZ O GET USANDO O ID DO RASCUNHO
+        const getResponse = await gelatoFetch(`/v4/orders/${draftOrderId}`, {
           method: 'GET'
         });
 
-        if (orderDetailsResponse.success && orderDetailsResponse.data) {
-          const orderData = orderDetailsResponse.data as GelatoOrderData;
-          
-          // Tentar extrair previews de diferentes locais na resposta
-          if (orderData.items && orderData.items.length > 0) {
-            const item = orderData.items[0];
-            
-            // Verificar se há previews no item
-            if (item.previews && Array.isArray(item.previews) && item.previews.length > 0) {
-              previewUrls = item.previews.map((preview: GelatoPreview) => preview.url).filter(Boolean);
-            }
-            
-            // Verificar se há mockups no item
-            if (previewUrls.length === 0 && item.mockups && Array.isArray(item.mockups) && item.mockups.length > 0) {
-              previewUrls = item.mockups.map((mockup: GelatoPreview) => mockup.url).filter(Boolean);
-            }
-          }
+        // PROCURA OS PREVIEWS NA RESPOSTA DO GET, NÃO DO POST!
+        const previewsInResponse = getResponse?.items?.[0]?.previews;
 
-          // Verificar se há previews ao nível da ordem
-          if (previewUrls.length === 0 && orderData.previews && Array.isArray(orderData.previews) && orderData.previews.length > 0) {
-            previewUrls = orderData.previews.map((preview: GelatoPreview) => preview.url).filter(Boolean);
-          }
-
-          // Se encontramos mockups, sair do loop
-          if (previewUrls.length > 0) {
-            console.log(`✅ Success! Found ${previewUrls.length} mockup(s) after ${attempt} attempt(s).`);
-            break;
-          }
+        if (previewsInResponse && Array.isArray(previewsInResponse) && previewsInResponse.length > 0) {
+          console.log('✅ Sucesso! Mockups encontrados!');
+          finalPreviewUrls = previewsInResponse.map((p: GelatoPreview) => p.url).filter(Boolean); // Guarda os URLs
+          break; // Encontrámos, por isso saímos do loop
         }
 
-        // Se não encontrámos mockups e ainda há tentativas, aguardar
+        // Se não encontrámos, esperamos antes de tentar de novo
         if (attempt < maxAttempts) {
-          console.log(`⏳ No mockups found yet. Waiting ${delay}ms before next attempt...`);
+          console.log('⏳ Mockups ainda não estão prontos. A aguardar 3 segundos...');
           await new Promise(resolve => setTimeout(resolve, delay));
         }
 
@@ -227,21 +210,27 @@ export default async function handler(
       }
     }
 
-    // Verificar resultado do polling
-    if (previewUrls.length === 0) {
-      console.warn(`⚠️ Timeout: Gelato did not generate mockups within ${maxAttempts * delay / 1000} seconds.`);
-      // Não é erro crítico - retorna sucesso parcial para o frontend usar fallback
+    console.log(`Polling completed. Found ${finalPreviewUrls.length} preview URLs.`);
+
+    // VERIFICAR RESULTADO DO POLLING
+    if (finalPreviewUrls.length > 0) {
+      // Se chegámos aqui, temos os mockups! Responde ao frontend com sucesso.
+      return res.status(200).json({
+        success: true,
+        previewUrls: finalPreviewUrls,
+        draftOrderId: draftOrderId,
+        printFileUrl: printFileData.printFileUrl
+      });
+    } else {
+      // Se o loop terminou sem encontrar nada, retorna sucesso parcial (não erro crítico)
+      console.warn('⚠️ Timeout: Falha ao obter os mockups da Gelato a tempo.');
+      return res.status(200).json({
+        success: true,
+        previewUrls: [], // Array vazio - frontend usará fallback local
+        draftOrderId: draftOrderId,
+        printFileUrl: printFileData.printFileUrl
+      });
     }
-
-    console.log('Final extracted preview URLs:', previewUrls);
-
-    // Responder com sucesso
-    return res.status(200).json({
-      success: true,
-      previewUrls: previewUrls,
-      draftOrderId: draftOrderId,
-      printFileUrl: printFileData.printFileUrl
-    });
 
   } catch (error) {
     console.error('Error creating draft order:', error);
