@@ -189,8 +189,8 @@ export default async function handler(
 
     // Variável para guardar os URLs finais quando os encontrarmos
     let finalPreviewUrls: string[] = [];
-    const maxAttempts = 4; // Reduzir para 4 tentativas (16 segundos total) para evitar timeouts
-    const delay = 4000; // Aumentar para 4 segundos entre tentativas
+    const maxAttempts = 10; // 10 tentativas (60 segundos total) - baseado no teu teste manual
+    const delay = 6000; // 6 segundos entre tentativas (mais generoso para Gelato)
 
     // LOOP DE POLLING - só faz GETs
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
