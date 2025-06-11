@@ -127,8 +127,10 @@ export default async function handler(
       orderType: 'draft',
       orderReferenceId: orderReferenceId,
       customerReferenceId: userId,
+      "currency": "EUR", // <-- ADICIONADO! (ou USD, etc.)
       items: [
         {
+          "itemReferenceId": "item-draft-1", 
           productUid: product.productUid,
           quantity: 1,
           files: [
