@@ -155,7 +155,8 @@ export default async function handler(
           files: [
             {
               type: 'default', // Para canvas, posters, t-shirts
-              url: printFileData.printFileUrl
+              url: printFileData.printFileUrl,
+              fitMethod: "fit"
             }
           ]
         }
