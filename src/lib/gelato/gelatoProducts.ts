@@ -8,6 +8,11 @@ export interface GelatoProduct {
   price: number; // Preço base do produto
   category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case';
 
+  // PROPRIEDADES NECESSÁRIAS PARA A API products:create-from-template (DO FLUXO DRAFT ORDER)
+  gelatoTemplateId?: string; // ID do template Gelato (obrigatório para produtos que usam generate-mockup)
+  templateVariantId?: string; // ID da variante do template (obrigatório para produtos que usam generate-mockup)
+  printArea?: string; // Nome da camada no template (obrigatório para produtos que usam generate-mockup)
+
   // Propriedades para GERAÇÃO DO FICHEIRO DE IMPRESSÃO (O Teu Backend)
   printFileBleed: number; // em mm (requisito Gelato, mas não aplicamos no ficheiro)
   printFileResolution: number; // em DPI (padrão Gelato, para saber resolução ideal)
@@ -28,6 +33,10 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     mockupInitialPath: '/assets/mockups/canvas/canvas_20x20_unframed_blank_front.png',
     price: 30.00,
     category: 'canvas',
+    // CAMPOS NECESSÁRIOS PARA A API generate-mockup.ts
+    gelatoTemplateId: '686a0861-5ac4-4510-82bd-f2611ab7c9e0', // ID do template Gelato
+    templateVariantId: '1a0b41ff-116c-4e8d-aff8-d871a6a58218', // ID da variante do template
+    printArea: 'design_principal', // Nome da camada no template
     printFileBleed: 4, // mm
     printFileResolution: 300, // DPI
     gelatoPrintDimensionsMm: { width: 200, height: 200 }, // Dimensões reais de impressão Gelato em MM
@@ -43,6 +52,10 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     mockupInitialPath: '/assets/mockups/canvas/canvas_30x30_unframed_blank_front.png',
     price: 45.00,
     category: 'canvas',
+    // CAMPOS PARA MOCKUP GENERATION (se necessário)
+    gelatoTemplateId: '686a0861-5ac4-4510-82bd-f2611ab7c9e0', // Mesmo template, variante diferente
+    templateVariantId: '2b1c42ff-226d-5f9e-bgg9-e982b7b69229', // ID da variante 30x30 (exemplo)
+    printArea: 'design_principal',
     printFileBleed: 4,
     printFileResolution: 300,
     gelatoPrintDimensionsMm: { width: 300, height: 300 },
@@ -58,6 +71,10 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     mockupInitialPath: '/assets/mockups/tshirt/tshirt_m_white_blank_front.png',
     price: 25.00,
     category: 'apparel',
+    // CAMPOS PARA MOCKUP GENERATION T-SHIRT
+    gelatoTemplateId: 'f97b1972-6bd5-4621-93cf-e2722ba8c9f1', // Template T-shirt (exemplo)
+    templateVariantId: '3c2d53ff-337e-6a0f-cii0-f093c8c70330', // Variante M branco (exemplo)
+    printArea: 'design_front',
     printFileBleed: 4,
     printFileResolution: 300,
     gelatoPrintDimensionsMm: { width: 270, height: 320 }, // Área do peito M
@@ -73,6 +90,10 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     mockupInitialPath: '/assets/mockups/poster/poster_a4_blank.png',
     price: 15.00,
     category: 'poster',
+    // CAMPOS PARA MOCKUP GENERATION POSTER
+    gelatoTemplateId: 'h08c2083-7ce6-5732-04df-f3833cb9d0g2', // Template Poster (exemplo)
+    templateVariantId: '4d3e64ff-448f-7b1g-djj1-g104d9d81441', // Variante A4 premium (exemplo)
+    printArea: 'design_full',
     printFileBleed: 4,
     printFileResolution: 300,
     gelatoPrintDimensionsMm: { width: 210, height: 297 }, // A4 padrão
@@ -80,7 +101,7 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     supportsManualAdjustment: false,
   },
 
-  // CANECA CERÂMICA (COM AJUSTE MANUAL)
+  // CANECA CERÂMICA (COM AJUSTE MANUAL) - SEM MOCKUP GELATO POR ENQUANTO
   'mug_ceramic_white_330ml': {
     id: 'mug_ceramic_white_330ml',
     name: 'Caneca Cerâmica (Branca, 330ml)',
@@ -88,6 +109,7 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     mockupInitialPath: '/assets/mockups/mug/mug_white_blank.png',
     price: 18.00,
     category: 'mug',
+    // SEM gelatoTemplateId/templateVariantId/printArea - usa apenas ajuste manual local
     printFileBleed: 2,
     printFileResolution: 300,
     gelatoPrintDimensionsMm: { width: 200, height: 120 }, // Área lateral da caneca
@@ -100,7 +122,7 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     }
   },
 
-  // CAPA IPHONE 15 (COM AJUSTE MANUAL)
+  // CAPA IPHONE 15 (COM AJUSTE MANUAL) - SEM MOCKUP GELATO POR ENQUANTO
   'phone_case_iphone_15_clear': {
     id: 'phone_case_iphone_15_clear',
     name: 'Capa iPhone 15 (Transparente)',
@@ -108,6 +130,7 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     mockupInitialPath: '/assets/mockups/phone-case/iphone_15_case_blank.png',
     price: 22.00,
     category: 'phone-case',
+    // SEM gelatoTemplateId/templateVariantId/printArea - usa apenas ajuste manual local
     printFileBleed: 2,
     printFileResolution: 300,
     gelatoPrintDimensionsMm: { width: 70, height: 140 }, // Área traseira iPhone 15
