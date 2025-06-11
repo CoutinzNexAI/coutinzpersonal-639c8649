@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader2, Image as ImageIcon } from 'lucide-react';
@@ -173,13 +172,12 @@ export default function TransformationGalleryModal({
                     onClick={() => handleSelectImage(transformation)}
                   >
                     <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-transparent group-hover:border-teal-500 transition-colors">
-                      <Image
+                      <img
                         src={transformation.output_url}
                         alt={`Transformação ${formatStyleName(transformation.style_requested)}`}
                         className="w-full h-full object-cover"
-                        width={300}
-                        height={300}
                         loading="lazy"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                       {/* Overlay */}
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity flex items-center justify-center">
