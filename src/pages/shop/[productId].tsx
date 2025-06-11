@@ -39,9 +39,6 @@ const ProductDetailPage: React.FC = () => {
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
-  // NOVO: Estados para mockup da Gelato
-  const [gelatoMockupUrl, setGelatoMockupUrl] = useState<string>('');
-  const [isGeneratingMockup, setIsGeneratingMockup] = useState(false);
   // NOVO: Estados para Draft Order da Gelato
   const [gelatoPreviewUrls, setGelatoPreviewUrls] = useState<string[]>([]);
   const [draftOrderId, setDraftOrderId] = useState<string>('');
@@ -92,51 +89,7 @@ const ProductDetailPage: React.FC = () => {
   }, [userInfo, product, session?.access_token, fetchUserLatestTransformation]);
 
   // NOVO: Gerar mockup da Gelato quando imagem e produto estão disponíveis
-  const generateGelatoMockup = useCallback(async () => {
-    if (!selectedImageUrl || !product || !userInfo?.id || !session?.access_token) return;
-    
-    // Só gerar mockup para produtos sem ajuste manual
-    if (product.supportsManualAdjustment) return;
-
-    setIsGeneratingMockup(true);
-    
-    try {
-      const response = await fetch('/api/gelato/generate-mockup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          productId: productId as string,
-          userImageUrl: selectedImageUrl,
-          userId: userInfo.id
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.success && data.previewUrl) {
-        setGelatoMockupUrl(data.previewUrl);
-        console.log('Gelato mockup generated:', data.previewUrl);
-      } else {
-        console.error('Gelato mockup generation failed:', data.error);
-        // Fallback para mockup local se Gelato falhar
-        setGelatoMockupUrl('');
-      }
-    } catch (error) {
-      console.error('Error generating Gelato mockup:', error);
-      // Fallback para mockup local se houver erro
-      setGelatoMockupUrl('');
-    } finally {
-      setIsGeneratingMockup(false);
-    }
-  }, [selectedImageUrl, product, userInfo?.id, session?.access_token, productId]);
-
-  // Trigger Gelato mockup generation quando imagem muda
-  useEffect(() => {
-    generateGelatoMockup();
-  }, [generateGelatoMockup]);
+  // REMOVIDO: generateGelatoMockup - substituído por createDraftOrder
 
   // NOVO: Criar Draft Order na Gelato para produtos automáticos
   const createDraftOrder = useCallback(async () => {
@@ -266,7 +219,6 @@ const ProductDetailPage: React.FC = () => {
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId); // ✅ NOVO: Guardar o ID da transformação selecionada
     // Reset estados Gelato quando nova imagem é selecionada
-    setGelatoMockupUrl('');
     setGelatoPreviewUrls([]);
     setDraftOrderId('');
     setIsGalleryModalOpen(false);
