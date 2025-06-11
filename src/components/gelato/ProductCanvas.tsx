@@ -203,17 +203,12 @@ const ProductCanvas: React.FC<ProductCanvasProps> = ({
           {/* CENÁRIO 1: Produtos automáticos com mockups Gelato */}
           {shouldUseGelatoMockups ? (
             <>
-              <div className="relative w-full h-full flex items-center justify-center">
+              <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
                 <img
                   src={gelatoGeneratedPreviewUrls![currentPreviewIndex]}
-                  alt={`Preview profissional ${selectedProduct.name} ${currentPreviewIndex + 1}/${gelatoGeneratedPreviewUrls!.length}`}
-                  className="w-full h-full object-contain"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    display: 'block',
-                    objectFit: 'contain'
-                  }}
+                  alt={`Pré-visualização profissional do ${selectedProduct.name}`}
+                  className="max-w-full max-h-full object-contain"
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
                   onError={(e) => {
                     console.warn(`Failed to load Gelato preview: ${gelatoGeneratedPreviewUrls![currentPreviewIndex]}`);
                     console.error('Image error:', e);
