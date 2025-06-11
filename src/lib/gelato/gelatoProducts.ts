@@ -34,7 +34,7 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     price: 30.00,
     category: 'canvas',
     // CAMPOS NECESSÁRIOS PARA A API generate-mockup.ts
-    gelatoTemplateId: '686a0861-5ac4-4510-82bd-f2611ab7c9e0', // ID do template Gelato
+    gelatoTemplateId: '226735fe-2c51-45f3-8135-edf72628e17f', // ID do template Gelato
     templateVariantId: '1a0b41ff-116c-4e8d-aff8-d871a6a58218', // ID da variante do template
     printArea: 'design_principal', // Nome da camada no template
     printFileBleed: 4, // mm
