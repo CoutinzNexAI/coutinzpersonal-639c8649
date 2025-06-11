@@ -162,54 +162,78 @@ export default async function handler(
     const draftOrderId = draftOrderResponse.data.id;
     console.log('Draft order created with ID:', draftOrderId);
 
-    // PASSO 3: Buscar mockups do Draft Order
-    console.log('Step 3: Fetching draft order mockups...');
+    // PASSO 3: Buscar mockups do Draft Order com POLLING (resolver race condition)
+    console.log('Step 3: Fetching draft order mockups with polling...');
 
-    // Pequeno delay para permitir que a Gelato processe
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const orderDetailsResponse = await gelatoFetch(`/v4/orders/${draftOrderId}`, {
-      method: 'GET'
-    });
-
-    console.log('Order details response:', orderDetailsResponse);
-
-    if (!orderDetailsResponse.success || !orderDetailsResponse.data) {
-      // Se não conseguir buscar detalhes, retorna sucesso parcial
-      console.warn('Could not fetch order details, returning basic success');
-      return res.status(200).json({
-        success: true,
-        draftOrderId: draftOrderId,
-        printFileUrl: printFileData.printFileUrl,
-        previewUrls: [] // Array vazio, frontend usará fallback
-      });
-    }
-
-    // Extrair URLs de preview
-    const orderData = orderDetailsResponse.data as GelatoOrderData;
     let previewUrls: string[] = [];
+    const maxAttempts = 6; // Máximo 6 tentativas (18 segundos total)
+    const delay = 3000; // 3 segundos entre tentativas
 
-    // Tentar extrair previews de diferentes locais na resposta
-    if (orderData.items && orderData.items.length > 0) {
-      const item = orderData.items[0];
-      
-      // Verificar se há previews no item
-      if (item.previews && Array.isArray(item.previews)) {
-        previewUrls = item.previews.map((preview: GelatoPreview) => preview.url).filter(Boolean);
-      }
-      
-      // Verificar se há mockups no item
-      if (previewUrls.length === 0 && item.mockups && Array.isArray(item.mockups)) {
-        previewUrls = item.mockups.map((mockup: GelatoPreview) => mockup.url).filter(Boolean);
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      console.log(`Polling attempt ${attempt}/${maxAttempts}: Fetching order details for ${draftOrderId}...`);
+
+      try {
+        const orderDetailsResponse = await gelatoFetch(`/v4/orders/${draftOrderId}`, {
+          method: 'GET'
+        });
+
+        if (orderDetailsResponse.success && orderDetailsResponse.data) {
+          const orderData = orderDetailsResponse.data as GelatoOrderData;
+          
+          // Tentar extrair previews de diferentes locais na resposta
+          if (orderData.items && orderData.items.length > 0) {
+            const item = orderData.items[0];
+            
+            // Verificar se há previews no item
+            if (item.previews && Array.isArray(item.previews) && item.previews.length > 0) {
+              previewUrls = item.previews.map((preview: GelatoPreview) => preview.url).filter(Boolean);
+            }
+            
+            // Verificar se há mockups no item
+            if (previewUrls.length === 0 && item.mockups && Array.isArray(item.mockups) && item.mockups.length > 0) {
+              previewUrls = item.mockups.map((mockup: GelatoPreview) => mockup.url).filter(Boolean);
+            }
+          }
+
+          // Verificar se há previews ao nível da ordem
+          if (previewUrls.length === 0 && orderData.previews && Array.isArray(orderData.previews) && orderData.previews.length > 0) {
+            previewUrls = orderData.previews.map((preview: GelatoPreview) => preview.url).filter(Boolean);
+          }
+
+          // Se encontramos mockups, sair do loop
+          if (previewUrls.length > 0) {
+            console.log(`✅ Success! Found ${previewUrls.length} mockup(s) after ${attempt} attempt(s).`);
+            break;
+          }
+        }
+
+        // Se não encontrámos mockups e ainda há tentativas, aguardar
+        if (attempt < maxAttempts) {
+          console.log(`⏳ No mockups found yet. Waiting ${delay}ms before next attempt...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+      } catch (error) {
+        console.error(`Error in polling attempt ${attempt}:`, error);
+        
+        // Se é a última tentativa, continuar para resposta de fallback
+        if (attempt === maxAttempts) {
+          console.warn('All polling attempts failed, proceeding with fallback');
+          break;
+        }
+        
+        // Aguardar antes da próxima tentativa mesmo em caso de erro
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
 
-    // Verificar se há previews ao nível da ordem
-    if (previewUrls.length === 0 && orderData.previews && Array.isArray(orderData.previews)) {
-      previewUrls = orderData.previews.map((preview: GelatoPreview) => preview.url).filter(Boolean);
+    // Verificar resultado do polling
+    if (previewUrls.length === 0) {
+      console.warn(`⚠️ Timeout: Gelato did not generate mockups within ${maxAttempts * delay / 1000} seconds.`);
+      // Não é erro crítico - retorna sucesso parcial para o frontend usar fallback
     }
 
-    console.log('Extracted preview URLs:', previewUrls);
+    console.log('Final extracted preview URLs:', previewUrls);
 
     // Responder com sucesso
     return res.status(200).json({
