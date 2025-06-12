@@ -1,8 +1,7 @@
 // src/lib/gelato/gelatoApi.ts
 
 const GELATO_API_BASE_URL = 'https://order.gelatoapis.com';
-const GELATO_API_BASE_ECOMMERCE_URL = 'https://ecommerce.gelatoapis.com'; // Nova base URL para ecommerce API
-const API_KEY = process.env.GELATO_API_KEY;
+export const GELATO_API_BASE_ECOMMERCE_URL = 'https://ecommerce.gelatoapis.com';const API_KEY = process.env.GELATO_API_KEY;
 const GELATO_STORE_ID = process.env.GELATO_STORE_ID; // <--- VAI PRECISAR DISTO NAS VARS DE AMBIENTE
 
 if (!API_KEY) {
@@ -114,3 +113,4 @@ export async function createGelatoStoreProduct(payload: GelatoProductCreationPay
 
   return response.json();
 } 
+
