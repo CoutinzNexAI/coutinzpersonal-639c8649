@@ -14,6 +14,15 @@ interface CreateDraftRequest {
   userId: string; // ID do utilizador
 }
 
+interface GelatoVariantObject {
+  id: string;
+  title: string;
+  // Podes adicionar outras propriedades se fores usá-las, mas 'id' é o mínimo necessário aqui
+  // productUid?: string;
+  // variantOptions?: any[];
+  // imagePlaceholders?: any[];
+}
+
 interface CreateDraftResponse {
   success: boolean;
   previewUrls?: string[];
@@ -114,6 +123,30 @@ export default async function handler(
     }
 
     console.log(`✅ Produto encontrado: ${product.name} (${product.productUid})`);
+    console.log(`🔄 A buscar detalhes do template: ${product.gelatoTemplateId}`);
+  try {
+  // Certifica-te que 'gelatoFetch' está importado de '@/lib/gelato/gelatoApi'
+  const templateDetails = await gelatoFetch(`/v1/templates/${product.gelatoTemplateId}`, { method: 'GET' });
+  console.log('📄 Detalhes completos do template Gelato:', JSON.stringify(templateDetails, null, 2));
+
+  // A CORREÇÃO ESTÁ AQUI:
+  // Usa a nova interface 'GelatoVariantObject' em vez de 'any'
+  const expectedTemplateVariantId = product.templateVariantId;
+  const foundVariant = (templateDetails.variants as GelatoVariantObject[]).find(
+    (v: GelatoVariantObject) => v.id === expectedTemplateVariantId
+  );
+
+  if (!foundVariant) {
+    console.warn(`⚠️ AVISO: A variante com ID ${expectedTemplateVariantId} NÃO foi encontrada no template ${product.gelatoTemplateId}`);
+    // Podes lançar um erro ou continuar, mas é bom ter o aviso.
+  } else {
+    console.log(`✅ A variante ${expectedTemplateVariantId} foi encontrada no template.`);
+  }
+
+} catch (templateError) {
+  console.error('❌ ERRO ao buscar detalhes do template Gelato:', templateError);
+}
+
 
     // PASSO 1: Gerar ficheiro de impressão de alta resolução
     console.log('🔄 PASSO 1: A gerar o ficheiro de impressão...');
@@ -162,7 +195,7 @@ export default async function handler(
                {
                  name: product.printArea!, // Usar printArea do produto
                  fileUrl: printFileData.printFileUrl,
-                 fitMethod: 'meet' as const // 'meet' = fit completo, 'slice' = crop/zoom
+                 fitMethod: 'slice' as const // 'meet' = fit completo, 'slice' = crop/zoom
                }
              ],
              position: 1
