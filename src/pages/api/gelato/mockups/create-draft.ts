@@ -3,8 +3,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getGelatoProduct, GELATO_CONSTANTS } from '@/lib/gelato/gelatoProducts';
-// Importa GELATO_API_BASE_ECOMMERCE_URL daqui (aqui está o erro, tinha de vir de 'gelatoApi')
-import { gelatoFetch, createGelatoStoreProduct, GELATO_API_BASE_ECOMMERCE_URL } from '@/lib/gelato/gelatoApi'; // <-- Certifica-te que isto está bem
+// Importa GELATO_API_BASE_ECOMMERCE_URL (se for necessário noutros locais aqui, senão pode ser removido)
+import { gelatoFetch, createGelatoStoreProduct, GELATO_API_BASE_ECOMMERCE_URL } from '@/lib/gelato/gelatoApi';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,26 +17,7 @@ interface CreateDraftRequest {
   userId: string; // ID do utilizador
 }
 
-// Interface para a resposta da variante do Get Template API
-interface GelatoVariantObject {
-  id: string;
-  title: string;
-  // Adiciona outras propriedades se precisares delas para o teu 'product.templateVariantId'
-  // productUid?: string;
-  // variantOptions?: { name: string; value: string; }[];
-  // imagePlaceholders?: { name: string; printArea: string; height: number; width: number; }[];
-}
-
-interface CreateDraftResponse {
-  success: boolean;
-  previewUrls?: string[];
-  draftOrderId?: string;
-  printFileUrl?: string;
-  error?: string;
-  details?: string; // Para informação adicional de debug
-}
-
-// Interfaces para resposta da Gelato API (polling)
+// Interfaces para resposta da Gelato API (polling e outros)
 interface GelatoPreview {
   url: string;
 }
@@ -50,6 +31,15 @@ interface GelatoOrderData {
   id: string;
   items?: GelatoOrderItem[];
   previews?: GelatoPreview[];
+}
+
+interface CreateDraftResponse {
+  success: boolean;
+  previewUrls?: string[];
+  draftOrderId?: string;
+  printFileUrl?: string;
+  error?: string;
+  details?: string; // Para informação adicional de debug
 }
 
 export default async function handler(
@@ -128,32 +118,9 @@ export default async function handler(
 
     console.log(`✅ Produto encontrado: ${product.name} (${product.productUid})`);
 
-    // --- CÓDIGO TEMPORÁRIO PARA OBTER DETALHES DO TEMPLATE ---
-    console.log(`🔄 A buscar detalhes do template: ${product.gelatoTemplateId}`);
-    try {
-      // CORREÇÃO: Passar o URL COMPLETO com a base de ECOMMERCE para gelatoFetch
-      const templateDetails = await gelatoFetch(
-        `${GELATO_API_BASE_ECOMMERCE_URL}/v1/templates/${product.gelatoTemplateId}`,
-        { method: 'GET' }
-      );
-      console.log('📄 Detalhes completos do template Gelato:', JSON.stringify(templateDetails, null, 2));
-
-      // Usar a interface 'GelatoVariantObject'
-      const expectedTemplateVariantId = product.templateVariantId;
-      const foundVariant = (templateDetails.variants as GelatoVariantObject[]).find(
-        (v: GelatoVariantObject) => v.id === expectedTemplateVariantId
-      );
-
-      if (!foundVariant) {
-        console.warn(`⚠️ AVISO: A variante com ID ${expectedTemplateVariantId} NÃO foi encontrada no template ${product.gelatoTemplateId}`);
-      } else {
-        console.log(`✅ A variante ${expectedTemplateVariantId} foi encontrada no template.`);
-      }
-
-    } catch (templateError) {
-      console.error('❌ ERRO ao buscar detalhes do template Gelato:', templateError);
-    }
-    // --- FIM DO CÓDIGO TEMPORÁRIO ---
+    // --- CÓDIGO TEMPORÁRIO PARA OBTER DETALHES DO TEMPLATE REMOVIDO AQUI ---
+    // Já obtivemos o templateVariantId correto e atualizamos o gelatoProducts.ts,
+    // então este bloco não é mais necessário para a operação normal.
 
     // PASSO 1: Gerar ficheiro de impressão de alta resolução
     console.log('🔄 PASSO 1: A gerar o ficheiro de impressão...');
@@ -189,6 +156,9 @@ export default async function handler(
     // PASSO 1.5: Criar produto na loja Gelato (para ativar Mirror Wrap e múltiplos mockups 3D)
     console.log('🔄 PASSO 1.5: A criar produto na loja Gelato...');
 
+    let createdStoreProductId: string | undefined;
+    let createdStoreProductVariantId: string | undefined;
+
     try {
       const productCreationPayload = {
         templateId: product.gelatoTemplateId!, // Usar o templateId do produto
@@ -202,7 +172,7 @@ export default async function handler(
               {
                 name: product.printArea!, // Usar printArea do produto
                 fileUrl: printFileData.printFileUrl,
-                fitMethod: 'slice' as const // 'meet' = fit completo, 'slice' = crop/zoom
+                fitMethod: 'slice' as const // 'slice' para o Mirror Wrap
               }
             ],
             position: 1
@@ -218,10 +188,24 @@ export default async function handler(
       const storeProductResponse = await createGelatoStoreProduct(productCreationPayload);
       console.log('✅ SUCESSO no Passo 1.5: Produto criado na loja Gelato:', storeProductResponse);
 
+      // CAPTURA OS IDs DO PRODUTO DA LOJA E DA VARIANTE PARA O PASSO 2
+      createdStoreProductId = storeProductResponse.id;
+      // Assume que só criamos uma variante, pega a primeira
+      createdStoreProductVariantId = storeProductResponse.variants?.[0]?.id;
+
+      if (!createdStoreProductVariantId) {
+        console.warn('⚠️ AVISO: A variante do produto da loja não foi encontrada na resposta da criação do produto.');
+        // Se este for um erro crítico, podes optar por lançar um erro aqui.
+      } else {
+        console.log(`✅ IDs do produto da loja capturados: ProductId=${createdStoreProductId}, VariantId=${createdStoreProductVariantId}`);
+      }
+
     } catch (storeProductError) {
       // Registar o erro mas permitir que o processo continue
       console.warn('⚠️ AVISO: Falha na criação do produto na loja Gelato (processo continua):', storeProductError);
       console.warn('⚠️ Detalhes:', storeProductError instanceof Error ? storeProductError.message : String(storeProductError));
+      // Se não quiseres que o processo continue se a criação do produto na loja falhar:
+      // return res.status(500).json({ success: false, error: 'Failed to create product in Gelato store' });
     }
 
     // PASSO 2: Criar Draft Order na Gelato
@@ -263,15 +247,29 @@ export default async function handler(
       items: [
         {
           itemReferenceId: `item-${productId}-${user.id}-${Date.now()}`, // Mais único
-          productUid: product.productUid,
+          // productUid: product.productUid, // REMOVIDO: Agora usamos storeProductId/storeProductVariantId
           quantity: 1,
           files: [
             {
               type: 'default', // Para canvas, posters, t-shirts
               url: printFileData.printFileUrl,
-              fitMethod: 'slice' as const // <--- ADICIONA ESTA LINHA AQUI!
+              fitMethod: 'slice' as const // ADICIONADO AQUI PARA CONSISTÊNCIA
             }
-          ]
+          ],
+          // ADICIONADO: Ligar o item da order ao produto da loja criado no PASSO 1.5
+          // Fazer uma verificação para garantir que os IDs existem antes de usar,
+          // se a criação do produto na loja não for sempre bem-sucedida.
+          ...(createdStoreProductId && createdStoreProductVariantId ? {
+              storeProductId: createdStoreProductId,
+              storeProductVariantId: createdStoreProductVariantId,
+          } : {
+              // Fallback se a criação do produto na loja falhar,
+              // ou se não quiseres ligar a ordem ao produto da loja neste caso.
+              // A Gelato ainda precisa de um productUid ou de storeProduct/VariantIds.
+              // Se a ordem for criada sem storeProductId, ela irá usar o productUid.
+              // Manter productUid se storeProductId não for definido
+              productUid: product.productUid,
+          }),
         }
       ]
     };
