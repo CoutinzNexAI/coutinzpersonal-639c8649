@@ -1,7 +1,10 @@
+// src/pages/api/gelato/mockups/create-draft.ts
+
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getGelatoProduct, GELATO_CONSTANTS } from '@/lib/gelato/gelatoProducts';
-import { gelatoFetch, createGelatoStoreProduct } from '@/lib/gelato/gelatoApi';
+// Importa GELATO_API_BASE_ECOMMERCE_URL daqui (aqui está o erro, tinha de vir de 'gelatoApi')
+import { gelatoFetch, createGelatoStoreProduct, GELATO_API_BASE_ECOMMERCE_URL } from '@/lib/gelato/gelatoApi'; // <-- Certifica-te que isto está bem
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,13 +17,14 @@ interface CreateDraftRequest {
   userId: string; // ID do utilizador
 }
 
+// Interface para a resposta da variante do Get Template API
 interface GelatoVariantObject {
   id: string;
   title: string;
-  // Podes adicionar outras propriedades se fores usá-las, mas 'id' é o mínimo necessário aqui
+  // Adiciona outras propriedades se precisares delas para o teu 'product.templateVariantId'
   // productUid?: string;
-  // variantOptions?: any[];
-  // imagePlaceholders?: any[];
+  // variantOptions?: { name: string; value: string; }[];
+  // imagePlaceholders?: { name: string; printArea: string; height: number; width: number; }[];
 }
 
 interface CreateDraftResponse {
@@ -32,7 +36,7 @@ interface CreateDraftResponse {
   details?: string; // Para informação adicional de debug
 }
 
-// Interfaces para resposta da Gelato API
+// Interfaces para resposta da Gelato API (polling)
 interface GelatoPreview {
   url: string;
 }
@@ -59,42 +63,42 @@ export default async function handler(
 
   if (req.method !== 'POST') {
     console.log("❌ ERRO: Método não permitido:", req.method);
-    return res.status(405).json({ 
-      success: false, 
-      error: 'Method not allowed' 
+    return res.status(405).json({
+      success: false,
+      error: 'Method not allowed'
     });
   }
 
   try {
     console.log("🔐 PASSO 0: A verificar autenticação...");
-    
+
     // Verificar GELATO_STORE_ID
     if (!process.env.GELATO_STORE_ID) {
       console.log("❌ ERRO: GELATO_STORE_ID não está configurado");
-      return res.status(500).json({ 
-        success: false, 
-        error: 'GELATO_STORE_ID not configured' 
+      return res.status(500).json({
+        success: false,
+        error: 'GELATO_STORE_ID not configured'
       });
     }
-    
+
     // Verificar autenticação do utilizador
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.log("❌ ERRO: Token de autorização em falta");
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Unauthorized - missing token' 
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - missing token'
       });
     }
-    
+
     const token = authHeader.substring(7);
     const { data: { user }, error } = await supabase.auth.getUser(token);
-    
+
     if (error || !user) {
       console.log("❌ ERRO: Token inválido:", error?.message);
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Unauthorized - invalid token' 
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - invalid token'
       });
     }
 
@@ -123,34 +127,37 @@ export default async function handler(
     }
 
     console.log(`✅ Produto encontrado: ${product.name} (${product.productUid})`);
+
+    // --- CÓDIGO TEMPORÁRIO PARA OBTER DETALHES DO TEMPLATE ---
     console.log(`🔄 A buscar detalhes do template: ${product.gelatoTemplateId}`);
-  try {
-  // Certifica-te que 'gelatoFetch' está importado de '@/lib/gelato/gelatoApi'
-  const templateDetails = await gelatoFetch(`/v1/templates/${product.gelatoTemplateId}`, { method: 'GET' });
-  console.log('📄 Detalhes completos do template Gelato:', JSON.stringify(templateDetails, null, 2));
+    try {
+      // CORREÇÃO: Passar o URL COMPLETO com a base de ECOMMERCE para gelatoFetch
+      const templateDetails = await gelatoFetch(
+        `${GELATO_API_BASE_ECOMMERCE_URL}/v1/templates/${product.gelatoTemplateId}`,
+        { method: 'GET' }
+      );
+      console.log('📄 Detalhes completos do template Gelato:', JSON.stringify(templateDetails, null, 2));
 
-  // A CORREÇÃO ESTÁ AQUI:
-  // Usa a nova interface 'GelatoVariantObject' em vez de 'any'
-  const expectedTemplateVariantId = product.templateVariantId;
-  const foundVariant = (templateDetails.variants as GelatoVariantObject[]).find(
-    (v: GelatoVariantObject) => v.id === expectedTemplateVariantId
-  );
+      // Usar a interface 'GelatoVariantObject'
+      const expectedTemplateVariantId = product.templateVariantId;
+      const foundVariant = (templateDetails.variants as GelatoVariantObject[]).find(
+        (v: GelatoVariantObject) => v.id === expectedTemplateVariantId
+      );
 
-  if (!foundVariant) {
-    console.warn(`⚠️ AVISO: A variante com ID ${expectedTemplateVariantId} NÃO foi encontrada no template ${product.gelatoTemplateId}`);
-    // Podes lançar um erro ou continuar, mas é bom ter o aviso.
-  } else {
-    console.log(`✅ A variante ${expectedTemplateVariantId} foi encontrada no template.`);
-  }
+      if (!foundVariant) {
+        console.warn(`⚠️ AVISO: A variante com ID ${expectedTemplateVariantId} NÃO foi encontrada no template ${product.gelatoTemplateId}`);
+      } else {
+        console.log(`✅ A variante ${expectedTemplateVariantId} foi encontrada no template.`);
+      }
 
-} catch (templateError) {
-  console.error('❌ ERRO ao buscar detalhes do template Gelato:', templateError);
-}
-
+    } catch (templateError) {
+      console.error('❌ ERRO ao buscar detalhes do template Gelato:', templateError);
+    }
+    // --- FIM DO CÓDIGO TEMPORÁRIO ---
 
     // PASSO 1: Gerar ficheiro de impressão de alta resolução
     console.log('🔄 PASSO 1: A gerar o ficheiro de impressão...');
-    
+
     const printFileResponse = await fetch(`${req.headers.origin || 'http://localhost:3000'}/api/gelato/generate-print-file`, {
       method: 'POST',
       headers: {
@@ -171,7 +178,7 @@ export default async function handler(
 
     const printFileData = await printFileResponse.json();
     console.log("📄 Resposta generate-print-file:", printFileData);
-    
+
     if (!printFileData.success || !printFileData.printFileUrl) {
       console.log("❌ ERRO: Geração do ficheiro de impressão falhou:", printFileData.error);
       throw new Error(`Print file generation failed: ${printFileData.error}`);
@@ -181,36 +188,36 @@ export default async function handler(
 
     // PASSO 1.5: Criar produto na loja Gelato (para ativar Mirror Wrap e múltiplos mockups 3D)
     console.log('🔄 PASSO 1.5: A criar produto na loja Gelato...');
-    
+
     try {
       const productCreationPayload = {
-        templateId: '1788fb1e-20ee-4ff0-b956-d624f0d5653b', // gelatoTemplateId fornecido
+        templateId: product.gelatoTemplateId!, // Usar o templateId do produto
         title: `Custom Canvas ${user.id}-${Date.now()}`, // Título único
         description: `Canvas personalizado criado para o utilizador ${user.id}`,
         isVisibleInTheOnlineStore: false, // Não visível na loja por ser para draft/teste
-                 variants: [
-           {
-             templateVariantId: product.templateVariantId!, // Usar o templateVariantId correto do nosso mapeamento
-             imagePlaceholders: [
-               {
-                 name: product.printArea!, // Usar printArea do produto
-                 fileUrl: printFileData.printFileUrl,
-                 fitMethod: 'slice' as const // 'meet' = fit completo, 'slice' = crop/zoom
-               }
-             ],
-             position: 1
-           }
-         ],
-                 tags: ['custom', 'canvas', 'photoia'],
+        variants: [
+          {
+            templateVariantId: product.templateVariantId!, // Usar o templateVariantId correto do nosso mapeamento
+            imagePlaceholders: [
+              {
+                name: product.printArea!, // Usar printArea do produto
+                fileUrl: printFileData.printFileUrl,
+                fitMethod: 'slice' as const // 'meet' = fit completo, 'slice' = crop/zoom
+              }
+            ],
+            position: 1
+          }
+        ],
+        tags: ['custom', 'canvas', 'photoia'],
         productType: 'Canvas',
         vendor: 'PhotoIA'
       };
 
       console.log('📤 Payload para criação do produto:', JSON.stringify(productCreationPayload, null, 2));
-      
+
       const storeProductResponse = await createGelatoStoreProduct(productCreationPayload);
       console.log('✅ SUCESSO no Passo 1.5: Produto criado na loja Gelato:', storeProductResponse);
-      
+
     } catch (storeProductError) {
       // Registar o erro mas permitir que o processo continue
       console.warn('⚠️ AVISO: Falha na criação do produto na loja Gelato (processo continua):', storeProductError);
@@ -221,7 +228,7 @@ export default async function handler(
     console.log('🔄 PASSO 2: A criar o Draft Order na Gelato...');
 
     const orderReferenceId = `${GELATO_CONSTANTS.DRAFT_ORDER_PREFIX}-${productId}-${user.id}-${Date.now()}`;
-    
+
     const draftOrderPayload = {
       orderType: 'draft',
       orderReferenceId: orderReferenceId,
@@ -330,13 +337,13 @@ export default async function handler(
       } catch (error) {
         console.error(`❌ ERRO na tentativa de polling ${attempt}:`, error);
         console.error(`❌ Detalhes do erro:`, error instanceof Error ? error.message : String(error));
-        
+
         // Se é a última tentativa, continuar para resposta de fallback
         if (attempt === maxAttempts) {
           console.warn('⚠️ Todas as tentativas de polling falharam, continuando com fallback');
           break;
         }
-        
+
         // Aguardar antes da próxima tentativa mesmo em caso de erro
         console.log(`⏳ Aguardando ${delay}ms antes de tentar novamente...`);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -347,7 +354,7 @@ export default async function handler(
 
     // VERIFICAR RESULTADO DO POLLING
     console.log('🔄 PASSO 4: A enviar resposta para o frontend...');
-    
+
     if (finalPreviewUrls.length > 0) {
       // Se chegámos aqui, temos os mockups! Responde ao frontend com sucesso.
       console.log('✅ SUCESSO COMPLETO: Enviando resposta com mockups da Gelato');
@@ -373,11 +380,11 @@ export default async function handler(
     console.error('--- [CRASH] ERRO APANHADO NO CATCH-ALL ---', error);
     console.error('--- [CRASH] Stack trace completo ---', error instanceof Error ? error.stack : 'No stack trace');
     console.error('--- [CRASH] Tipo do erro ---', typeof error);
-    
+
     return res.status(500).json({
       success: false,
       error: 'Internal Server Error',
       details: error instanceof Error ? error.message : String(error)
     });
   }
-} 
+}
