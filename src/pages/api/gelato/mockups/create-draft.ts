@@ -162,7 +162,7 @@ export default async function handler(
                {
                  name: product.printArea!, // Usar printArea do produto
                  fileUrl: printFileData.printFileUrl,
-                 fitMethod: 'slice' as const
+                 fitMethod: 'meet' as const // 'meet' = fit completo, 'slice' = crop/zoom
                }
              ],
              position: 1

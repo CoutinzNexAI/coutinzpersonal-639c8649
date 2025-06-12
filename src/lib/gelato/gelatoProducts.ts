@@ -83,22 +83,21 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
   },
 
   // POSTER A4
-  'poster_a4_premium_paper': {
-    id: 'poster_a4_premium_paper',
-    name: 'Poster A4 (Papel Premium)',
-    productUid: 'poster_a4_210x297-mm_premium-paper_0-0', // A confirmar UID real
-    mockupInitialPath: '/assets/mockups/poster/poster_a4_blank.png',
-    price: 15.00,
+  'fine_arts_poster_250x250_simplified': {
+    id: 'fine_arts_poster_250x250_simplified',
+    name: 'Poster Fine Art (25x25cm)',
+    productUid: 'fine_arts_poster_geo_simplified_product_12-0_ver_250x250-mm-10x10-inch_200-gsm-80lb-enhanced-uncoated',
+    mockupInitialPath: '/assets/mockups/poster/poster_25x25_blank_front.png', // Adapta para o teu mockup local
+    price: 25.00, // Preço de exemplo, adapta
     category: 'poster',
-    // CAMPOS PARA MOCKUP GENERATION POSTER
-    gelatoTemplateId: 'h08c2083-7ce6-5732-04df-f3833cb9d0g2', // Template Poster (exemplo)
-    templateVariantId: '4d3e64ff-448f-7b1g-djj1-g104d9d81441', // Variante A4 premium (exemplo)
-    printArea: 'design_full',
-    printFileBleed: 4,
+    gelatoTemplateId: '2e876b51-c44b-4a66-8be5-20cae7f41fa8', // O NOVO template ID para este Poster
+    templateVariantId: '2e876b51-c44b-4a66-8be5-20cae7f41fa8', // <-- ***MUITO IMPORTANTE: SUBSTITUIR ESTE ID***
+    printArea: 'layer1', // Confirma que a camada no template do poster é 'layer1'
+    printFileBleed: 3, // Bleed típico para posters, confirma na doc ou template
     printFileResolution: 300,
-    gelatoPrintDimensionsMm: { width: 210, height: 297 }, // A4 padrão
-    gelatoPrintOffsetsMm: { x: 0, y: 0 }, // Full bleed poster
-    supportsManualAdjustment: false,
+    gelatoPrintDimensionsMm: { width: 250, height: 250 },
+    gelatoPrintOffsetsMm: { x: 0, y: 0 }, // Posters geralmente não têm offset
+    supportsManualAdjustment: false, // Posters geralmente não precisam de ajuste manual
   },
 
   // CANECA CERÂMICA (COM AJUSTE MANUAL) - SEM MOCKUP GELATO POR ENQUANTO
