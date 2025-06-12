@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getGelatoProduct, GELATO_CONSTANTS } from '@/lib/gelato/gelatoProducts';
-import { gelatoFetch } from '@/lib/gelato/gelatoApi';
+import { gelatoFetch, createGelatoStoreProduct } from '@/lib/gelato/gelatoApi';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -58,6 +58,15 @@ export default async function handler(
 
   try {
     console.log("🔐 PASSO 0: A verificar autenticação...");
+    
+    // Verificar GELATO_STORE_ID
+    if (!process.env.GELATO_STORE_ID) {
+      console.log("❌ ERRO: GELATO_STORE_ID não está configurado");
+      return res.status(500).json({ 
+        success: false, 
+        error: 'GELATO_STORE_ID not configured' 
+      });
+    }
     
     // Verificar autenticação do utilizador
     const authHeader = req.headers.authorization;
@@ -137,19 +146,83 @@ export default async function handler(
 
     console.log('✅ SUCESSO no Passo 1: Ficheiro gerado:', printFileData.printFileUrl.substring(0, 80) + '...');
 
+    // PASSO 1.5: Criar produto na loja Gelato (para ativar Mirror Wrap e múltiplos mockups 3D)
+    console.log('🔄 PASSO 1.5: A criar produto na loja Gelato...');
+    
+    try {
+      const productCreationPayload = {
+        templateId: '1788fb1e-20ee-4ff0-b956-d624f0d5653b', // gelatoTemplateId fornecido
+        title: `Custom Canvas ${user.id}-${Date.now()}`, // Título único
+        description: `Canvas personalizado criado para o utilizador ${user.id}`,
+        isVisibleInTheOnlineStore: false, // Não visível na loja por ser para draft/teste
+                 variants: [
+           {
+             templateVariantId: product.templateVariantId!, // Usar o templateVariantId correto do nosso mapeamento
+             imagePlaceholders: [
+               {
+                 name: product.printArea!, // Usar printArea do produto
+                 fileUrl: printFileData.printFileUrl,
+                 fitMethod: 'slice' as const
+               }
+             ],
+             position: 1
+           }
+         ],
+                 tags: ['custom', 'canvas', 'photoia'],
+        productType: 'Canvas',
+        vendor: 'PhotoIA'
+      };
+
+      console.log('📤 Payload para criação do produto:', JSON.stringify(productCreationPayload, null, 2));
+      
+      const storeProductResponse = await createGelatoStoreProduct(productCreationPayload);
+      console.log('✅ SUCESSO no Passo 1.5: Produto criado na loja Gelato:', storeProductResponse);
+      
+    } catch (storeProductError) {
+      // Registar o erro mas permitir que o processo continue
+      console.warn('⚠️ AVISO: Falha na criação do produto na loja Gelato (processo continua):', storeProductError);
+      console.warn('⚠️ Detalhes:', storeProductError instanceof Error ? storeProductError.message : String(storeProductError));
+    }
+
     // PASSO 2: Criar Draft Order na Gelato
     console.log('🔄 PASSO 2: A criar o Draft Order na Gelato...');
 
-    const orderReferenceId = `${GELATO_CONSTANTS.DRAFT_ORDER_PREFIX}-${productId}-${userId}-${Date.now()}`;
+    const orderReferenceId = `${GELATO_CONSTANTS.DRAFT_ORDER_PREFIX}-${productId}-${user.id}-${Date.now()}`;
     
     const draftOrderPayload = {
       orderType: 'draft',
       orderReferenceId: orderReferenceId,
-      customerReferenceId: userId,
-      "currency": "EUR", // <-- ADICIONADO! (ou USD, etc.)
+      customerReferenceId: user.id, // Usar user.id em vez de userId
+      currency: "EUR",
+      shippingAddress: {
+        firstName: "Test",
+        lastName: "User",
+        companyName: "",
+        addressLine1: "Rua de Teste, 123",
+        addressLine2: "",
+        city: "Lisboa",
+        postCode: "1000-001",
+        state: "",
+        country: "PT",
+        email: "test@example.com",
+        phone: "+351912345678"
+      },
+      returnAddress: {
+        firstName: "PhotoIA",
+        lastName: "Store",
+        companyName: "PhotoIA",
+        addressLine1: "Rua PhotoIA, 456",
+        addressLine2: "",
+        city: "Porto",
+        postCode: "4000-001",
+        state: "",
+        country: "PT",
+        email: "returns@photoia.com",
+        phone: "+351912345679"
+      },
       items: [
         {
-          "itemReferenceId": "item-draft-1", 
+          itemReferenceId: `item-${productId}-${user.id}-${Date.now()}`, // Mais único
           productUid: product.productUid,
           quantity: 1,
           files: [
@@ -189,8 +262,8 @@ export default async function handler(
 
     // Variável para guardar os URLs finais quando os encontrarmos
     let finalPreviewUrls: string[] = [];
-    const maxAttempts = 10; // 10 tentativas (60 segundos total) - baseado no teu teste manual
-    const delay = 6000; // 6 segundos entre tentativas (mais generoso para Gelato)
+    const maxAttempts = 15; // 15 tentativas (aumentado para dar mais tempo)
+    const delay = 8000; // 8 segundos entre tentativas (aumentado para polling mais generoso)
 
     // LOOP DE POLLING - só faz GETs
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
