@@ -1,6 +1,5 @@
 // src/lib/gelato/gelatoApi.ts
 
-// NOTA: GELATO_API_BASE_ECOMMERCE_URL é exportado aqui para ser usado noutros ficheiros.
 export const GELATO_API_BASE_ECOMMERCE_URL = 'https://ecommerce.gelatoapis.com';
 const GELATO_API_BASE_URL = 'https://order.gelatoapis.com'; // Base URL para a API de Orders
 
@@ -17,14 +16,10 @@ if (!API_KEY) {
  * @param options As opções da requisição (method, body, headers, etc.)
  */
 export const gelatoFetch = async (endpoint: string, options?: RequestInit) => {
-  // Determina a base URL a usar. Se o endpoint já começar com 'https://', usa-o diretamente.
-  // Caso contrário, assume que é para a API de Orders (base URL padrão).
   const baseUrl = endpoint.startsWith('https://') ? '' : GELATO_API_BASE_URL;
-
-  const fullUrl = `${baseUrl}${endpoint}`; // Constrói o URL completo
+  const fullUrl = `${baseUrl}${endpoint}`;
 
   try {
-    // Adiciona este log para vermos o URL exato que está a ser chamado
     console.log(`[gelatoFetch] A chamar URL: ${fullUrl}`); 
 
     const response = await fetch(fullUrl, {
@@ -67,7 +62,7 @@ export const testGelatoConnection = async () => {
   }
 };
 
-// Interfaces para a nova função (mantidas)
+// Interfaces para a nova função
 interface GelatoImagePlaceholder {
   name: string;
   fileUrl: string;
@@ -92,10 +87,13 @@ interface GelatoProductCreationPayload {
   vendor?: string;
 }
 
-interface GelatoProductCreationResponse {
+// CORREÇÃO: Esta interface agora tem a tipagem específica para 'status'
+export interface GelatoProductCreationResponse {
   id: string;
   title: string;
-  status: string;
+  status: 'created' | 'publishing' | 'active' | 'publishing_error'; // Tipagem mais específica
+  // Adiciona a propriedade variants aqui para que a resposta a inclua, se necessário
+  variants?: { id: string; title: string; productUid: string }[];
   [key: string]: unknown;
 }
 

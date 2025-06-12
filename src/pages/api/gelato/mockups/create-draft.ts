@@ -3,6 +3,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getGelatoProduct, GELATO_CONSTANTS } from '@/lib/gelato/gelatoProducts';
+// Importa GELATO_API_BASE_ECOMMERCE_URL (para usar na URL da API Get Template)
 import { gelatoFetch, createGelatoStoreProduct, GELATO_API_BASE_ECOMMERCE_URL } from '@/lib/gelato/gelatoApi';
 
 const supabase = createClient(
@@ -35,11 +36,14 @@ interface GelatoOrderData {
   previews?: GelatoPreview[];
 }
 
+// Interface para a resposta do Get Store Product API
 interface GelatoStoreProductResponse {
   id: string;
   title: string;
-  status: string;
-  variants?: { id: string; title: string; productUid: string }[]; // Para capturar a variante criada
+  // A tipagem 'status' é crucial para o polling
+  status: 'created' | 'publishing' | 'active' | 'publishing_error';
+  isReadyToPublish?: boolean;
+  variants?: { id: string; title: string; productUid: string }[];
   [key: string]: unknown;
 }
 
@@ -56,7 +60,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<CreateDraftResponse>
 ) {
-  // Pista inicial para sabermos que a função começou
   console.log("--- [INÍCIO] /api/gelato/mockups/create-draft ---");
   console.log("Request method:", req.method);
   console.log("Request body keys:", Object.keys(req.body || {}));
@@ -72,7 +75,6 @@ export default async function handler(
   try {
     console.log("🔐 PASSO 0: A verificar autenticação...");
 
-    // Verificar GELATO_STORE_ID
     if (!process.env.GELATO_STORE_ID) {
       console.log("❌ ERRO: GELATO_STORE_ID não está configurado");
       return res.status(500).json({
@@ -81,7 +83,6 @@ export default async function handler(
       });
     }
 
-    // Verificar autenticação do utilizador
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.log("❌ ERRO: Token de autorização em falta");
@@ -107,7 +108,6 @@ export default async function handler(
     const { productId, userImageUrl, userId }: CreateDraftRequest = req.body;
     console.log("📋 Dados recebidos:", { productId, userImageUrl: userImageUrl?.substring(0, 50) + '...', userId });
 
-    // Validações básicas
     if (!productId || !userImageUrl || !userId) {
       console.log("❌ ERRO: Campos obrigatórios em falta:", { productId: !!productId, userImageUrl: !!userImageUrl, userId: !!userId });
       return res.status(400).json({
@@ -116,7 +116,6 @@ export default async function handler(
       });
     }
 
-    // Buscar produto no nosso mapeamento
     const product = getGelatoProduct(productId);
     if (!product) {
       console.log("❌ ERRO: Produto não encontrado:", productId);
@@ -193,10 +192,10 @@ export default async function handler(
       const storeProductInitialResponse: GelatoStoreProductResponse = await createGelatoStoreProduct(productCreationPayload);
       console.log('✅ SUCESSO inicial no Passo 1.5: Produto criado na loja Gelato (resposta inicial):', storeProductInitialResponse);
 
-      // --- NOVO PASSO: POLLING PARA O PRODUTO DA LOJA ---
-      console.log('🔄 PASSO 1.6: A iniciar polling para confirmar variantes do produto da loja...');
-      const maxStoreProductAttempts = 10; // Menos tentativas que o mockup final, pois é mais rápido
-      const storeProductDelay = 5000; // 5 segundos entre tentativas
+      // --- NOVO PASSO: POLLING PARA O PRODUTO DA LOJA ATÉ FICAR PRONTO ---
+      console.log('🔄 PASSO 1.6: A iniciar polling para confirmar que o produto da loja está pronto...');
+      const maxStoreProductAttempts = 15;
+      const storeProductDelay = 8000;
 
       let storeProductReadyResponse: GelatoStoreProductResponse | undefined;
 
@@ -211,17 +210,23 @@ export default async function handler(
 
           console.log(`--> 📨 Resposta GET do produto da loja tentativa ${attempt}:`, JSON.stringify(getStoreProductResponse, null, 2));
 
-          if (getStoreProductResponse.variants && getStoreProductResponse.variants.length > 0) {
-            console.log(`✅ SUCESSO no Polling do produto da loja! Variantes encontradas na tentativa ${attempt}!`);
+          // Condição de sucesso: Variantes preenchidas E status é 'active'
+          // 'isReadyToPublish' também pode ser um bom indicador, mas 'active' é mais final
+          if (getStoreProductResponse.variants && getStoreProductResponse.variants.length > 0 && getStoreProductResponse.status === 'active') {
+            console.log(`✅ SUCESSO no Polling do produto da loja! Variantes e status 'active' encontrados na tentativa ${attempt}!`);
             storeProductReadyResponse = getStoreProductResponse;
             break;
+          } else if (getStoreProductResponse.status === 'publishing_error') {
+            console.error(`❌ ERRO: Produto da loja com status 'publishing_error'. Não é possível continuar.`);
+            throw new Error('Store product publishing failed.'); // Interrompe o processo se o produto falhar
           }
         } catch (pollError) {
           console.warn(`⚠️ AVISO: Erro na tentativa de polling do produto da loja ${attempt}:`, pollError instanceof Error ? pollError.message : String(pollError));
+          // Se o erro for um 404 temporário, pode ser que ainda não esteja disponível. Continua a tentar.
         }
 
         if (attempt < maxStoreProductAttempts) {
-          console.log(`⏳ Variantes do produto da loja ainda não prontas. A aguardar ${storeProductDelay}ms antes da próxima tentativa...`);
+          console.log(`⏳ Produto da loja ainda não está 'active' ou sem variantes. A aguardar ${storeProductDelay}ms antes da próxima tentativa...`);
           await new Promise(resolve => setTimeout(resolve, storeProductDelay));
         }
       }
@@ -231,15 +236,17 @@ export default async function handler(
         createdStoreProductVariantId = storeProductReadyResponse.variants[0].id; // Pega o ID da primeira variante
         console.log(`✅ IDs do produto da loja capturados APÓS POLLING: ProductId=${createdStoreProductId}, VariantId=${createdStoreProductVariantId}`);
       } else {
-        console.warn('⚠️ AVISO: Não foi possível obter as variantes do produto da loja após polling. A ordem pode não ter mockups corretos.');
-        // Se isto for crítico, podes lançar um erro aqui em vez de continuar.
+        console.warn('⚠️ AVISO: Não foi possível obter as variantes ou o status "active" do produto da loja após polling. A ordem será criada com productUid (sem mirror wrap).');
+        // Se a criação da ordem for *impossível* sem o storeProductId/VariantId, lança um erro aqui.
+        // Por agora, vamos permitir o fallback para productUid.
       }
       // --- FIM DO NOVO PASSO DE POLLING ---
 
 
     } catch (storeProductError) {
-      console.warn('⚠️ AVISO: Falha na criação do produto na loja Gelato (processo continua):', storeProductError);
+      console.warn('⚠️ AVISO: Falha na criação do produto na loja Gelato (processo continua). A ordem será criada com productUid (sem mirror wrap).', storeProductError);
       console.warn('⚠️ Detalhes:', storeProductError instanceof Error ? storeProductError.message : String(storeProductError));
+      // Se a criação inicial do produto na loja falhar, os IDs permanecerão undefined, e a ordem usará o fallback.
     }
 
     // PASSO 2: Criar Draft Order na Gelato
@@ -315,7 +322,6 @@ export default async function handler(
     console.log('📨 Resposta do Draft Order POST recebida');
     console.log('📨 Resposta completa:', JSON.stringify(draftOrderResponse, null, 2));
 
-    // IMPORTANTE: Só extrair o ID da resposta do POST, ignorar tudo o resto!
     if (!draftOrderResponse || !draftOrderResponse.id) {
       console.log("❌ ERRO: Resposta do Draft Order não tem ID:", draftOrderResponse);
       throw new Error(`Draft order creation failed: No ID in response`);
@@ -324,7 +330,7 @@ export default async function handler(
     const draftOrderId = draftOrderResponse.id;
     console.log('✅ SUCESSO no Passo 2: Draft Order criado. ID:', draftOrderId);
 
-    // PASSO 3: POLLING para buscar mockups da ORDEM (aguardar que Gelato os processe)
+    // PASSO 3: POLLING para buscar mockups da ORDEM
     console.log('🔄 PASSO 3: A iniciar polling para buscar os mockups da ordem...');
 
     let finalPreviewUrls: string[] = [];
@@ -372,7 +378,6 @@ export default async function handler(
 
     console.log(`🏁 Polling da ordem completado. Encontrados ${finalPreviewUrls.length} URLs de preview.`);
 
-    // VERIFICAR RESULTADO DO POLLING
     console.log('🔄 PASSO 4: A enviar resposta para o frontend...');
 
     if (finalPreviewUrls.length > 0) {
