@@ -235,6 +235,10 @@ export default async function handler(
         createdStoreProductId = storeProductReadyResponse.id;
         createdStoreProductVariantId = storeProductReadyResponse.variants[0].id; // Pega o ID da primeira variante
         console.log(`✅ IDs do produto da loja capturados APÓS POLLING: ProductId=${createdStoreProductId}, VariantId=${createdStoreProductVariantId}`);
+        // --- NOVO: Pequeno atraso adicional para garantir a propagação ---
+        console.log(`⏳ Aguardando um breve momento para garantir que o produto da loja está totalmente propagado...`);
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Espera 3 segundos
+                // --- FIM DO NOVO ATRASO ---
       } else {
         console.warn('⚠️ AVISO: Não foi possível obter as variantes ou o status "active" do produto da loja após polling. A ordem será criada com productUid (sem mirror wrap).');
         // Se a criação da ordem for *impossível* sem o storeProductId/VariantId, lança um erro aqui.
