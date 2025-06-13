@@ -63,24 +63,23 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
     supportsManualAdjustment: false,
   },
 
-  // T-SHIRT UNISSEXO M
-  'tshirt_unisex_m_white_crewneck': {
-    id: 'tshirt_unisex_m_white_crewneck',
-    name: 'T-shirt Unissexo (M, Branco, Gola Redonda)',
-    productUid: 'apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_classic_gsi_m_gco_white_gpr_4-4',
-    mockupInitialPath: '/assets/mockups/tshirt/tshirt_m_white_blank_front.png',
-    price: 25.00,
-    category: 'apparel',
-    // CAMPOS PARA MOCKUP GENERATION T-SHIRT
-    gelatoTemplateId: 'f97b1972-6bd5-4621-93cf-e2722ba8c9f1', // Template T-shirt (exemplo)
-    templateVariantId: '3c2d53ff-337e-6a0f-cii0-f093c8c70330', // Variante M branco (exemplo)
-    printArea: 'design_front',
-    printFileBleed: 4,
-    printFileResolution: 300,
-    gelatoPrintDimensionsMm: { width: 270, height: 320 }, // Área do peito M
-    gelatoPrintOffsetsMm: { x: 45, y: 45 }, // Offset do centro do peito
-    supportsManualAdjustment: false, // T-shirt usa posicionamento automático
-  },
+  // T-SHIRT UNISSEXO S
+    'tshirt_unisex_s_white_crewneck_premium': { // Exemplo de um novo ID para esta t-shirt específica
+      id: 'tshirt_unisex_s_white_crewneck_premium',
+      name: 'T-shirt Unissexo (S, Branco, Gola Redonda Premium)',
+      productUid: 'apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_prm_gsi_s_gco_white_gpr_4-0_bella-and-canvas_3001', // UID que forneceste
+      mockupInitialPath: '/assets/mockups/tshirt/tshirt_s_white_blank_front.png', // Adapta ao teu mockup
+      price: 28.00, // Preço de exemplo
+      category: 'apparel',
+      gelatoTemplateId: '65304b9f-3bbe-4e47-ba23-e5ed267a18f5', // Template ID da t-shirt que forneceste
+      templateVariantId: 'ID_TEMPORARIO_OU_DEIXAR_VAZIO_POR_ENQUANTO', // VAMOS OBTER ESTE
+      printArea: 'AREA_DAS_COSTAS_TEMPORARIO', // VAMOS OBTER ESTE
+      printFileBleed: 4,
+      printFileResolution: 300,
+      gelatoPrintDimensionsMm: { width: 250, height: 300 }, // Dimensões da área de impressão, ajustar conforme template
+      gelatoPrintOffsetsMm: { x: 0, y: 0 },
+      supportsManualAdjustment: false,
+    },
 
   // POSTER A4
   'fine_arts_poster_250x250_simplified': {
