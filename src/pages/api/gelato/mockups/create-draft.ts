@@ -41,7 +41,7 @@ interface GelatoStoreProductResponse {
   status: 'created' | 'publishing' | 'active' | 'publishing_error';
   isReadyToPublish?: boolean;
   variants?: { id: string; title: string; productUid: string }[];
-  publishedAt?: string | null; // Adicionado para verificar quando o produto está realmente publicado
+  publishedAt?: string | null;
   [key: string]: unknown;
 }
 
@@ -192,8 +192,8 @@ export default async function handler(
 
       // --- NOVO PASSO: POLLING PARA O PRODUTO DA LOJA ATÉ FICAR PRONTO E PUBLICADO ---
       console.log('🔄 PASSO 1.6: A iniciar polling para confirmar que o produto da loja está pronto e publicado...');
-      const maxStoreProductAttempts = 20; // Aumentado para dar mais tempo para publicação
-      const storeProductDelay = 10000; // Aumentado o delay para 10 segundos
+      const maxStoreProductAttempts = 20;
+      const storeProductDelay = 10000;
 
       let storeProductReadyResponse: GelatoStoreProductResponse | undefined;
 
@@ -208,13 +208,13 @@ export default async function handler(
 
           console.log(`--> 📨 Resposta GET do produto da loja tentativa ${attempt}:`, JSON.stringify(getStoreProductResponse, null, 2));
 
-          // Condição de sucesso: Variantes preenchidas E status é 'active' E publishedAt não é null
+          // CONDIÇÃO DE SUCESSO REVISADA: Apenas variantes preenchidas E status é 'active'.
+          // Removemos a verificação de 'publishedAt' porque parece não ser preenchido para este fluxo.
           if (
             getStoreProductResponse.variants && getStoreProductResponse.variants.length > 0 &&
-            getStoreProductResponse.status === 'active' &&
-            getStoreProductResponse.publishedAt !== null && getStoreProductResponse.publishedAt !== undefined
+            getStoreProductResponse.status === 'active'
           ) {
-            console.log(`✅ SUCESSO no Polling do produto da loja! Variantes, status 'active' E 'publishedAt' encontrados na tentativa ${attempt}!`);
+            console.log(`✅ SUCESSO no Polling do produto da loja! Variantes e status 'active' encontrados na tentativa ${attempt}!`);
             storeProductReadyResponse = getStoreProductResponse;
             break;
           } else if (getStoreProductResponse.status === 'publishing_error') {
@@ -226,7 +226,7 @@ export default async function handler(
         }
 
         if (attempt < maxStoreProductAttempts) {
-          console.log(`⏳ Produto da loja ainda não está 'active' e/ou publicado. A aguardar ${storeProductDelay}ms antes da próxima tentativa...`);
+          console.log(`⏳ Produto da loja ainda não está 'active' e/ou com variantes. A aguardar ${storeProductDelay}ms antes da próxima tentativa...`);
           await new Promise(resolve => setTimeout(resolve, storeProductDelay));
         }
       }
@@ -236,8 +236,7 @@ export default async function handler(
         createdStoreProductVariantId = storeProductReadyResponse.variants[0].id;
         console.log(`✅ IDs do produto da loja capturados APÓS POLLING: ProductId=${createdStoreProductId}, VariantId=${createdStoreProductVariantId}`);
       } else {
-        console.warn('⚠️ AVISO: Não foi possível obter as variantes, status "active" ou "publishedAt" do produto da loja após polling. A ordem será criada com productUid (sem mirror wrap).');
-        // Se a criação da ordem for *impossível* sem o storeProductId/VariantId, lança um erro aqui.
+        console.warn('⚠️ AVISO: Não foi possível obter as variantes ou o status "active" do produto da loja após polling. A ordem será criada com productUid (sem mirror wrap).');
       }
       // --- FIM DO NOVO PASSO DE POLLING ---
 
