@@ -3,7 +3,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getGelatoProduct, GELATO_CONSTANTS } from '@/lib/gelato/gelatoProducts';
-// Importa GELATO_API_BASE_ECOMMERCE_URL (para usar na URL da API Get Template)
 import { gelatoFetch, createGelatoStoreProduct, GELATO_API_BASE_ECOMMERCE_URL } from '@/lib/gelato/gelatoApi';
 
 const supabase = createClient(
@@ -25,7 +24,6 @@ interface GelatoPreview {
 interface GelatoOrderItem {
   previews?: GelatoPreview[];
   mockups?: GelatoPreview[];
-  // Adiciona isto para a resposta do Get Order
   files?: { url: string, type: string, fitMethod?: string }[];
   processedFileUrl?: string;
 }
@@ -36,14 +34,14 @@ interface GelatoOrderData {
   previews?: GelatoPreview[];
 }
 
-// Interface para a resposta do Get Store Product API
+// Atualiza GelatoStoreProductResponse para incluir 'status', 'isReadyToPublish' e 'publishedAt'
 interface GelatoStoreProductResponse {
   id: string;
   title: string;
-  // A tipagem 'status' é crucial para o polling
   status: 'created' | 'publishing' | 'active' | 'publishing_error';
   isReadyToPublish?: boolean;
   variants?: { id: string; title: string; productUid: string }[];
+  publishedAt?: string | null; // Adicionado para verificar quando o produto está realmente publicado
   [key: string]: unknown;
 }
 
@@ -192,10 +190,10 @@ export default async function handler(
       const storeProductInitialResponse: GelatoStoreProductResponse = await createGelatoStoreProduct(productCreationPayload);
       console.log('✅ SUCESSO inicial no Passo 1.5: Produto criado na loja Gelato (resposta inicial):', storeProductInitialResponse);
 
-      // --- NOVO PASSO: POLLING PARA O PRODUTO DA LOJA ATÉ FICAR PRONTO ---
-      console.log('🔄 PASSO 1.6: A iniciar polling para confirmar que o produto da loja está pronto...');
-      const maxStoreProductAttempts = 15;
-      const storeProductDelay = 8000;
+      // --- NOVO PASSO: POLLING PARA O PRODUTO DA LOJA ATÉ FICAR PRONTO E PUBLICADO ---
+      console.log('🔄 PASSO 1.6: A iniciar polling para confirmar que o produto da loja está pronto e publicado...');
+      const maxStoreProductAttempts = 20; // Aumentado para dar mais tempo para publicação
+      const storeProductDelay = 10000; // Aumentado o delay para 10 segundos
 
       let storeProductReadyResponse: GelatoStoreProductResponse | undefined;
 
@@ -210,39 +208,36 @@ export default async function handler(
 
           console.log(`--> 📨 Resposta GET do produto da loja tentativa ${attempt}:`, JSON.stringify(getStoreProductResponse, null, 2));
 
-          // Condição de sucesso: Variantes preenchidas E status é 'active'
-          // 'isReadyToPublish' também pode ser um bom indicador, mas 'active' é mais final
-          if (getStoreProductResponse.variants && getStoreProductResponse.variants.length > 0 && getStoreProductResponse.status === 'active') {
-            console.log(`✅ SUCESSO no Polling do produto da loja! Variantes e status 'active' encontrados na tentativa ${attempt}!`);
+          // Condição de sucesso: Variantes preenchidas E status é 'active' E publishedAt não é null
+          if (
+            getStoreProductResponse.variants && getStoreProductResponse.variants.length > 0 &&
+            getStoreProductResponse.status === 'active' &&
+            getStoreProductResponse.publishedAt !== null && getStoreProductResponse.publishedAt !== undefined
+          ) {
+            console.log(`✅ SUCESSO no Polling do produto da loja! Variantes, status 'active' E 'publishedAt' encontrados na tentativa ${attempt}!`);
             storeProductReadyResponse = getStoreProductResponse;
             break;
           } else if (getStoreProductResponse.status === 'publishing_error') {
             console.error(`❌ ERRO: Produto da loja com status 'publishing_error'. Não é possível continuar.`);
-            throw new Error('Store product publishing failed.'); // Interrompe o processo se o produto falhar
+            throw new Error('Store product publishing failed.');
           }
         } catch (pollError) {
           console.warn(`⚠️ AVISO: Erro na tentativa de polling do produto da loja ${attempt}:`, pollError instanceof Error ? pollError.message : String(pollError));
-          // Se o erro for um 404 temporário, pode ser que ainda não esteja disponível. Continua a tentar.
         }
 
         if (attempt < maxStoreProductAttempts) {
-          console.log(`⏳ Produto da loja ainda não está 'active' ou sem variantes. A aguardar ${storeProductDelay}ms antes da próxima tentativa...`);
+          console.log(`⏳ Produto da loja ainda não está 'active' e/ou publicado. A aguardar ${storeProductDelay}ms antes da próxima tentativa...`);
           await new Promise(resolve => setTimeout(resolve, storeProductDelay));
         }
       }
 
       if (storeProductReadyResponse && storeProductReadyResponse.variants && storeProductReadyResponse.variants.length > 0) {
         createdStoreProductId = storeProductReadyResponse.id;
-        createdStoreProductVariantId = storeProductReadyResponse.variants[0].id; // Pega o ID da primeira variante
+        createdStoreProductVariantId = storeProductReadyResponse.variants[0].id;
         console.log(`✅ IDs do produto da loja capturados APÓS POLLING: ProductId=${createdStoreProductId}, VariantId=${createdStoreProductVariantId}`);
-        // --- NOVO: Pequeno atraso adicional para garantir a propagação ---
-        console.log(`⏳ Aguardando um breve momento para garantir que o produto da loja está totalmente propagado...`);
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Espera 3 segundos
-                // --- FIM DO NOVO ATRASO ---
       } else {
-        console.warn('⚠️ AVISO: Não foi possível obter as variantes ou o status "active" do produto da loja após polling. A ordem será criada com productUid (sem mirror wrap).');
+        console.warn('⚠️ AVISO: Não foi possível obter as variantes, status "active" ou "publishedAt" do produto da loja após polling. A ordem será criada com productUid (sem mirror wrap).');
         // Se a criação da ordem for *impossível* sem o storeProductId/VariantId, lança um erro aqui.
-        // Por agora, vamos permitir o fallback para productUid.
       }
       // --- FIM DO NOVO PASSO DE POLLING ---
 
@@ -250,7 +245,6 @@ export default async function handler(
     } catch (storeProductError) {
       console.warn('⚠️ AVISO: Falha na criação do produto na loja Gelato (processo continua). A ordem será criada com productUid (sem mirror wrap).', storeProductError);
       console.warn('⚠️ Detalhes:', storeProductError instanceof Error ? storeProductError.message : String(storeProductError));
-      // Se a criação inicial do produto na loja falhar, os IDs permanecerão undefined, e a ordem usará o fallback.
     }
 
     // PASSO 2: Criar Draft Order na Gelato
@@ -297,7 +291,7 @@ export default async function handler(
             {
               type: 'default',
               url: printFileData.printFileUrl,
-              fitMethod: 'slice' as const // Para o Mirror Wrap
+              fitMethod: 'slice' as const
             }
           ],
           // Ligar o item da order ao produto da loja criado no PASSO 1.5 APÓS POLLING
@@ -306,7 +300,6 @@ export default async function handler(
               storeProductVariantId: createdStoreProductVariantId,
           } : {
               // Fallback: se o polling do produto da loja falhar, usa o productUid diretamente.
-              // Isto pode resultar na falta do mirror wrap nas orders, mas permite que a ordem seja criada.
               productUid: product.productUid,
           }),
         }
