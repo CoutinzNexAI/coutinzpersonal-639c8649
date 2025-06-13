@@ -64,22 +64,22 @@ export const PIC_TUZ_GELATO_PRODUCT_MAP: Record<string, GelatoProduct> = {
   },
 
   // T-SHIRT UNISSEXO S
-    'tshirt_unisex_s_white_crewneck_premium': { // Exemplo de um novo ID para esta t-shirt específica
-      id: 'tshirt_unisex_s_white_crewneck_premium',
-      name: 'T-shirt Unissexo (S, Branco, Gola Redonda Premium)',
-      productUid: 'apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_prm_gsi_s_gco_white_gpr_4-0_bella-and-canvas_3001', // UID que forneceste
-      mockupInitialPath: '/assets/mockups/tshirt/tshirt_s_white_blank_front.png', // Adapta ao teu mockup
-      price: 28.00, // Preço de exemplo
-      category: 'apparel',
-      gelatoTemplateId: '65304b9f-3bbe-4e47-ba23-e5ed267a18f5', // Template ID da t-shirt que forneceste
-      templateVariantId: 'ID_TEMPORARIO_OU_DEIXAR_VAZIO_POR_ENQUANTO', // VAMOS OBTER ESTE
-      printArea: 'AREA_DAS_COSTAS_TEMPORARIO', // VAMOS OBTER ESTE
-      printFileBleed: 4,
-      printFileResolution: 300,
-      gelatoPrintDimensionsMm: { width: 250, height: 300 }, // Dimensões da área de impressão, ajustar conforme template
-      gelatoPrintOffsetsMm: { x: 0, y: 0 },
-      supportsManualAdjustment: false,
-    },
+    'tshirt_unisex_s_white_crewneck_premium': {
+    id: 'tshirt_unisex_s_white_crewneck_premium',
+    name: 'T-shirt Unissexo (S, Branco, Gola Redonda Premium)',
+    productUid: 'apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_prm_gsi_s_gco_white_gpr_4-0_bella-and-canvas_3001',
+    mockupInitialPath: '/assets/mockups/tshirt/tshirt_s_white_blank_front.png', // Adapta ao teu mockup
+    price: 28.00,
+    category: 'apparel',
+    gelatoTemplateId: '65304b9f-3bbe-4e47-ba23-e5ed267a18f5', // Template ID da t-shirt
+    templateVariantId: '2878ef11-ecc6-4e9f-9e68-b8b17c1b3727', // <--- ATUALIZA ESTE ID!
+    printArea: 'joaomadalena.png', // <--- ATUALIZA ESTE NOME (para as costas)!
+    printFileBleed: 4,
+    printFileResolution: 300,
+    gelatoPrintDimensionsMm: { width: 256, height: 256 }, // Dimensões do mockup (da camada joaomadalena.png)
+    gelatoPrintOffsetsMm: { x: 0, y: 0 }, // Se necessário, ajustar offset
+    supportsManualAdjustment: false,
+  },
 
   // POSTER A4
   'fine_arts_poster_250x250_simplified': {
