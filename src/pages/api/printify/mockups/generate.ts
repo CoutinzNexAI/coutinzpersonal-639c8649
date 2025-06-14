@@ -292,7 +292,7 @@ export default async function handler(
 
     console.log('📤 Payload for Printify product creation:', JSON.stringify(printifyProductPayload, null, 2));
 
-    const printifyProductResponse = await printifyFetch(`/v1/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
+    const printifyProductResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
       method: 'POST',
       body: JSON.stringify(printifyProductPayload)
     });
