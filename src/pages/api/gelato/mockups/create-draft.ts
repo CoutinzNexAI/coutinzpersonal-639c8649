@@ -3,8 +3,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { getGelatoProduct, GELATO_CONSTANTS } from '@/lib/gelato/gelatoProducts';
-// Ajuste a importação de GELATO_CONSTANTS se necessário, dependendo de onde vem productUid.
-import { gelatoFetch, createGelatoStoreProduct, GELATO_API_BASE_ECOMMERCE_URL, GelatoProductCreationResponse } from '@/lib/gelato/gelatoApi';
+import { gelatoFetch, createGelatoStoreProduct, GELATO_API_BASE_ECOMMERCE_URL } from '@/lib/gelato/gelatoApi';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +16,14 @@ interface CreateDraftRequest {
   userId: string; // ID do utilizador
 }
 
-// Interfaces para resposta da Gelato API (polling e outros)
+// Interface para a resposta da variante do Get Template API (pode ser mais completa se soubermos mais campos)
+interface GelatoVariantObject {
+  id: string;
+  title: string;
+  imagePlaceholders?: { name: string; printArea: string; height: number; width: number; }[];
+  // Adiciona outras propriedades se fores usá-las
+}
+
 interface GelatoPreview {
   url: string;
 }
@@ -29,14 +35,16 @@ interface GelatoOrderItem {
   processedFileUrl?: string;
 }
 
-interface GelatoOrderData {
+// Atualiza GelatoStoreProductResponse para incluir 'status', 'isReadyToPublish' e 'publishedAt'
+export interface GelatoStoreProductResponse {
   id: string;
-  items?: GelatoOrderItem[];
-  previews?: GelatoPreview[];
+  title: string;
+  status: 'created' | 'publishing' | 'active' | 'publishing_error';
+  isReadyToPublish?: boolean;
+  variants?: { id: string; title: string; productUid: string }[];
+  publishedAt?: string | null;
+  [key: string]: unknown;
 }
-
-// Não precisamos mais de GelatoStoreProductResponse aqui se não fizermos polling do produto da loja
-// export interface GelatoStoreProductResponse { /* ... */ }
 
 interface CreateDraftResponse {
   success: boolean;
@@ -96,10 +104,11 @@ export default async function handler(
 
     console.log("✅ Autenticação bem-sucedida. User ID:", user.id);
 
-    const { productId, userImageUrl, userId }: CreateDraftRequest = req.body;
+    const { productId, userImageUrl, userId }: CreateDraftRequest = req.body; // productId virá agora do frontend
 
     console.log("📋 Dados recebidos:", { productId, userImageUrl: userImageUrl?.substring(0, 50) + '...', userId });
 
+    // Validações básicas
     if (!productId || !userImageUrl || !userId) {
       console.log("❌ ERRO: Campos obrigatórios em falta:", { productId: !!productId, userImageUrl: !!userImageUrl, userId: !!userId });
       return res.status(400).json({
@@ -108,7 +117,8 @@ export default async function handler(
       });
     }
 
-    const product = getGelatoProduct(productId);
+    // Buscar produto no nosso mapeamento
+    const product = getGelatoProduct(productId); // Agora usa o productId do request
     if (!product) {
       console.log("❌ ERRO: Produto não encontrado no mapeamento:", productId);
       return res.status(404).json({
@@ -119,39 +129,48 @@ export default async function handler(
 
     console.log(`✅ Produto encontrado no mapeamento: ${product.name} (${product.productUid})`);
 
-    // PASSO 1.5: Criar produto na loja Gelato (OPCIONAL, NÃO É MAIS CRÍTICO PARA A ORDEM)
-    // Este passo ainda é útil se quiseres que o produto apareça no teu dashboard da Gelato Store.
-    // O polling foi removido porque a ordem já não depende de storeProductId/VariantId.
+    // --- CÓDIGO TEMPORÁRIO PARA OBTER DETALHES DO TEMPLATE DA T-SHIRT (AGORA CRÍTICO) ---
+    console.log(`🔄 A buscar detalhes do template da T-shirt: ${product.gelatoTemplateId}`);
     try {
-      if (product.gelatoTemplateId && product.templateVariantId && product.printArea) {
-         const productCreationPayload = {
-            templateId: product.gelatoTemplateId,
-            title: `Custom ${product.name} ${user.id}-${Date.now()}`,
-            description: `${product.name} personalizado criado para o utilizador ${user.id}`,
-            isVisibleInTheOnlineStore: false,
-            variants: [{
-                templateVariantId: product.templateVariantId,
-                imagePlaceholders: [{
-                    name: product.printArea,
-                    fileUrl: userImageUrl, // Ou printFileData.printFileUrl se ainda a gerar
-                    fitMethod: 'slice' as const
-                }],
-                position: 1
-            }],
-            tags: ['custom', product.category, 'photoia'],
-            productType: product.category === 'apparel' ? 'Apparel' : product.category === 'canvas' ? 'Canvas' : 'Printable Material',
-            vendor: 'PhotoIA'
-         };
-         console.log('📤 Payload para criação do produto na loja (Passo 1.5 - Opcional):', JSON.stringify(productCreationPayload, null, 2));
-         const storeProductResponse = await createGelatoStoreProduct(productCreationPayload);
-         // createdStoreProductId = storeProductResponse.id; // Não precisamos deste ID para a ordem
-         console.log('✅ Produto criado na loja Gelato (Passo 1.5 - Opcional):', storeProductResponse.id);
+      const templateDetails = await gelatoFetch(
+        `${GELATO_API_BASE_ECOMMERCE_URL}/v1/templates/${product.gelatoTemplateId}`,
+        { method: 'GET' }
+      );
+      console.log('📄 Detalhes completos do template Gelato da T-shirt:', JSON.stringify(templateDetails, null, 2));
+
+      // Verificar se o templateVariantId está correto, aplicando a lógica de "falhar cedo"
+      const expectedTemplateVariantId = product.templateVariantId;
+      const foundVariant = (templateDetails.variants as GelatoVariantObject[]).find(
+        (v: GelatoVariantObject) => v.id === expectedTemplateVariantId
+      );
+
+      if (!foundVariant) {
+        console.error(`❌ ERRO CRÍTICO: A variante com ID "${expectedTemplateVariantId}" NÃO foi encontrada no template "${product.gelatoTemplateId}".`);
+        console.error(`❌ ISTO PRECISA DE SER CORRIGIDO EM gelatoProducts.ts ANTES DE CONTINUAR.`);
+        // Retornar um erro 500 ou 400 para parar o fluxo
+        return res.status(500).json({
+          success: false,
+          error: `Template variant "${expectedTemplateVariantId}" not found for template "${product.gelatoTemplateId}". Please update gelatoProducts.ts.`,
+          details: JSON.stringify(templateDetails.variants)
+        });
       } else {
-         console.log('ℹ️ Produto não tem template Gelato configurado para criação na loja (Passo 1.5 ignorado).');
+        console.log(`✅ A variante "${expectedTemplateVariantId}" foi encontrada no template.`);
       }
-    } catch (storeProductError) {
-      console.warn('⚠️ AVISO: Falha na criação do produto na loja Gelato (Passo 1.5 ignorado devido a erro).', storeProductError);
+
+      // Vais usar estes logs para encontrar o templateVariantId e os nomes das camadas (imagePlaceholders)
+      // Para as costas da T-shirt e para a frente (se houver, para saber o nome)
+
+      // LEMBRE-SE: REMOVER ESTE BLOCO APÓS OBTERES OS IDs E NOMES NECESSÁRIOS E ATUALIZARES gelatoProducts.ts
+    } catch (templateError) {
+      console.error('❌ ERRO CRÍTICO ao buscar detalhes do template Gelato da T-shirt:', templateError);
+      // Aqui, o erro do gelatoFetch (e.g. 404) é re-lançado e apanhado pelo catch-all no final
+      return res.status(500).json({
+        success: false,
+        error: `Failed to fetch t-shirt template details for template "${product.gelatoTemplateId}".`,
+        details: templateError instanceof Error ? templateError.message : String(templateError)
+      });
     }
+    // --- FIM DO CÓDIGO TEMPORÁRIO ---
 
 
     // PASSO 1: Gerar ficheiro de impressão de alta resolução
@@ -184,9 +203,96 @@ export default async function handler(
 
     console.log('✅ SUCESSO no Passo 1: Ficheiro gerado:', printFileData.printFileUrl.substring(0, 80) + '...');
 
+    // PASSO 1.5: Criar produto na loja Gelato
+    console.log('🔄 PASSO 1.5: A criar produto na loja Gelato...');
 
-    // PASSO 2: Criar Draft Order na Gelato (AGORA USANDO SOMENTE productUid)
-    console.log('🔄 PASSO 2: A criar o Draft Order na Gelato (usando productUid)...');
+    let createdStoreProductId: string | undefined;
+    let createdStoreProductVariantId: string | undefined;
+
+    try {
+      const productCreationPayload = {
+        templateId: product.gelatoTemplateId!,
+        title: `Custom ${product.name} ${user.id}-${Date.now()}`, // Título mais descritivo
+        description: `${product.name} personalizado criado para o utilizador ${user.id}`,
+        isVisibleInTheOnlineStore: false,
+        variants: [
+          {
+            templateVariantId: product.templateVariantId!,
+            imagePlaceholders: [
+              {
+                name: product.printArea!, // O nome da camada de impressão (ex: "layer1" ou "back_design")
+                fileUrl: printFileData.printFileUrl,
+                fitMethod: 'slice' as const
+              }
+            ],
+            position: 1
+          }
+        ],
+        tags: ['custom', product.category, 'photoia'], // Tags dinâmicas
+        productType: product.category === 'apparel' ? 'Apparel' : product.category === 'canvas' ? 'Canvas' : 'Printable Material', // Adapta productType
+        vendor: 'PhotoIA'
+      };
+
+      console.log('📤 Payload para criação do produto:', JSON.stringify(productCreationPayload, null, 2));
+
+      const storeProductInitialResponse: GelatoStoreProductResponse = await createGelatoStoreProduct(productCreationPayload);
+      console.log('✅ SUCESSO inicial no Passo 1.5: Produto criado na loja Gelato (resposta inicial):', storeProductInitialResponse);
+
+      // --- POLLING PARA O PRODUTO DA LOJA ATÉ FICAR PRONTO ---
+      console.log('🔄 PASSO 1.6: A iniciar polling para confirmar que o produto da loja está pronto...');
+      const maxStoreProductAttempts = 20;
+      const storeProductDelay = 10000;
+
+      let storeProductReadyResponse: GelatoStoreProductResponse | undefined;
+
+      for (let attempt = 1; attempt <= maxStoreProductAttempts; attempt++) {
+        console.log(`--> 🔍 Tentativa de polling do produto da loja ${attempt}/${maxStoreProductAttempts}: A buscar detalhes do produto ${storeProductInitialResponse.id}...`);
+
+        try {
+          const getStoreProductResponse: GelatoStoreProductResponse = await gelatoFetch(
+            `${GELATO_API_BASE_ECOMMERCE_URL}/v1/stores/${process.env.GELATO_STORE_ID}/products/${storeProductInitialResponse.id}`,
+            { method: 'GET' }
+          );
+
+          console.log(`--> 📨 Resposta GET do produto da loja tentativa ${attempt}:`, JSON.stringify(getStoreProductResponse, null, 2));
+
+          if (
+            getStoreProductResponse.variants && getStoreProductResponse.variants.length > 0 &&
+            getStoreProductResponse.status === 'active'
+          ) {
+            console.log(`✅ SUCESSO no Polling do produto da loja! Variantes e status 'active' encontrados na tentativa ${attempt}!`);
+            storeProductReadyResponse = getStoreProductResponse;
+            break;
+          } else if (getStoreProductResponse.status === 'publishing_error') {
+            console.error(`❌ ERRO: Produto da loja com status 'publishing_error'. Não é possível continuar.`);
+            throw new Error('Store product publishing failed.');
+          }
+        } catch (pollError) {
+          console.warn(`⚠️ AVISO: Erro na tentativa de polling do produto da loja ${attempt}:`, pollError instanceof Error ? pollError.message : String(pollError));
+        }
+
+        if (attempt < maxStoreProductAttempts) {
+          console.log(`⏳ Produto da loja ainda não está 'active' e/ou com variantes. A aguardar ${storeProductDelay}ms antes da próxima tentativa...`);
+          await new Promise(resolve => setTimeout(resolve, storeProductDelay));
+        }
+      }
+
+      if (storeProductReadyResponse && storeProductReadyResponse.variants && storeProductReadyResponse.variants.length > 0) {
+        createdStoreProductId = storeProductReadyResponse.id;
+        createdStoreProductVariantId = storeProductReadyResponse.variants[0].id;
+        console.log(`✅ IDs do produto da loja capturados APÓS POLLING: ProductId=${createdStoreProductId}, VariantId=${createdStoreProductVariantId}`);
+      } else {
+        console.warn('⚠️ AVISO: Não foi possível obter as variantes ou o status "active" do produto da loja após polling. A ordem será criada com productUid (sem mockups corretos).');
+      }
+
+
+    } catch (storeProductError) {
+      console.warn('⚠️ AVISO: Falha na criação do produto na loja Gelato (processo continua). A ordem será criada com productUid (sem mockups corretos).', storeProductError);
+      console.warn('⚠️ Detalhes:', storeProductError instanceof Error ? storeProductError.message : String(storeProductError));
+    }
+
+    // PASSO 2: Criar Draft Order na Gelato
+    console.log('🔄 PASSO 2: A criar o Draft Order na Gelato...');
 
     const orderReferenceId = `${GELATO_CONSTANTS.DRAFT_ORDER_PREFIX}-${productId}-${user.id}-${Date.now()}`;
 
@@ -224,19 +330,23 @@ export default async function handler(
       items: [
         {
           itemReferenceId: `item-${productId}-${user.id}-${Date.now()}`,
-          quantity: 1,
-          // A GRANDE MUDANÇA: AGORA, SEMPRE USAMOS O productUid OBTIDO DO NOSSO MAP.
-          // NÃO há fallback ou lógica condicional aqui. É sempre este.
           productUid: product.productUid,
+          quantity: 1,
           files: [
             {
               type: 'default',
               url: printFileData.printFileUrl,
-              fitMethod: 'slice' as const // Mantém fitMethod para a Gelato aplicar
+              fitMethod: 'slice' as const
             }
           ],
-          // REMOVIDO: storeProductId e storeProductVariantId para o item da ordem
-          // Porque a API de Orders não os usa diretamente para a ligação
+          // Ligar o item da order ao produto da loja criado no PASSO 1.5 APÓS POLLING
+          ...(createdStoreProductId && createdStoreProductVariantId ? {
+              storeProductId: createdStoreProductId,
+              storeProductVariantId: createdStoreProductVariantId,
+          } : {
+              // Fallback: se o polling do produto da loja falhar, usa o productUid diretamente.
+              productUid: product.productUid,
+          }),
         }
       ]
     };
