@@ -1,7 +1,7 @@
 
 import { useRef, useEffect } from 'react';
 import {
-  Clock as e,
+  Clock,
   PerspectiveCamera as t,
   Scene as i,
   WebGLRenderer as s,
@@ -25,32 +25,33 @@ import {
 import { RoomEnvironment as z } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 class x {
-  #e;
-  canvas;
-  camera;
-  cameraMinAspect;
-  cameraMaxAspect;
-  cameraFov;
-  maxPixelRatio;
-  minPixelRatio;
-  scene;
-  renderer;
-  #t;
+  canvas: any;
+  camera: any;
+  cameraMinAspect: any;
+  cameraMaxAspect: any;
+  cameraFov: any;
+  maxPixelRatio: any;
+  minPixelRatio: any;
+  scene: any;
+  renderer: any;
+  #t: any;
   size = { width: 0, height: 0, wWidth: 0, wHeight: 0, ratio: 0, pixelRatio: 0 };
   render = this.#i;
-  onBeforeRender = () => { };
-  onAfterRender = () => { };
-  onAfterResize = () => { };
+  onBeforeRender = (time: any) => { };
+  onAfterRender = (time: any) => { };
+  onAfterResize = (size: any) => { };
   #s = false;
   #n = false;
   isDisposed = false;
-  #o;
-  #r;
-  #a: number | undefined;
-  #c = new e();
+  #o: any;
+  #r: any;
+  #a: any;
+  #c = new Clock();
   #h = { elapsed: 0, delta: 0 };
-  #l: number | undefined;
-  constructor(e) {
+  #l: any;
+  #e: any;
+  
+  constructor(e: any) {
     this.#e = { ...e };
     this.#m();
     this.#d();
@@ -104,7 +105,7 @@ class x {
     this.#o?.disconnect();
     document.removeEventListener("visibilitychange", this.#v.bind(this));
   }
-  #u(e: IntersectionObserverEntry[]) {
+  #u(e: any) {
     this.#s = e[0].isIntersecting;
     this.#s ? this.#w() : this.#z();
   }
@@ -115,7 +116,7 @@ class x {
   }
   #f() {
     if (this.#a) clearTimeout(this.#a);
-    this.#a = window.setTimeout(this.resize.bind(this), 100);
+    this.#a = setTimeout(this.resize.bind(this), 100);
   }
   resize() {
     let e, t;
@@ -123,8 +124,8 @@ class x {
       e = this.#e.size.width;
       t = this.#e.size.height;
     } else if (this.#e.size === "parent" && this.canvas.parentNode) {
-      e = (this.canvas.parentNode as HTMLElement).offsetWidth;
-      t = (this.canvas.parentNode as HTMLElement).offsetHeight;
+      e = this.canvas.parentNode.offsetWidth;
+      t = this.canvas.parentNode.offsetHeight;
     } else {
       e = window.innerWidth;
       t = window.innerHeight;
@@ -138,31 +139,31 @@ class x {
   }
   #x() {
     this.camera.aspect = this.size.width / this.size.height;
-    if ((this.camera as any).isPerspectiveCamera && this.cameraFov) {
+    if (this.camera.isPerspectiveCamera && this.cameraFov) {
       if (this.cameraMinAspect && this.camera.aspect < this.cameraMinAspect) {
         this.#A(this.cameraMinAspect);
       } else if (this.cameraMaxAspect && this.camera.aspect > this.cameraMaxAspect) {
         this.#A(this.cameraMaxAspect);
       } else {
-        (this.camera as any).fov = this.cameraFov;
+        this.camera.fov = this.cameraFov;
       }
     }
     this.camera.updateProjectionMatrix();
     this.updateWorldSize();
   }
-  #A(e: number) {
+  #A(e: any) {
     const t = Math.tan(o.degToRad(this.cameraFov / 2)) / (this.camera.aspect / e);
-    (this.camera as any).fov = 2 * o.radToDeg(Math.atan(t));
+    this.camera.fov = 2 * o.radToDeg(Math.atan(t));
   }
   updateWorldSize() {
-    if ((this.camera as any).isPerspectiveCamera) {
-      const e = ((this.camera as any).fov * Math.PI) / 180;
+    if (this.camera.isPerspectiveCamera) {
+      const e = (this.camera.fov * Math.PI) / 180;
       this.size.wHeight =
         2 * Math.tan(e / 2) * this.camera.position.length();
       this.size.wWidth = this.size.wHeight * this.camera.aspect;
-    } else if ((this.camera as any).isOrthographicCamera) {
-      this.size.wHeight = (this.camera as any).top - (this.camera as any).bottom;
-      this.size.wWidth = (this.camera as any).right - (this.camera as any).left;
+    } else if (this.camera.isOrthographicCamera) {
+      this.size.wHeight = this.camera.top - this.camera.bottom;
+      this.size.wWidth = this.camera.right - this.camera.left;
     }
   }
   #b() {
@@ -200,7 +201,7 @@ class x {
   }
   #z() {
     if (this.#n) {
-      if (this.#l) cancelAnimationFrame(this.#l);
+      cancelAnimationFrame(this.#l);
       this.#n = false;
       this.#c.stop();
     }
@@ -209,20 +210,20 @@ class x {
     this.renderer.render(this.scene, this.camera);
   }
   clear() {
-    this.scene.traverse((e) => {
+    this.scene.traverse((e: any) => {
       if (
-        (e as any).isMesh &&
-        typeof (e as any).material === "object" &&
-        (e as any).material !== null
+        e.isMesh &&
+        typeof e.material === "object" &&
+        e.material !== null
       ) {
-        Object.keys((e as any).material).forEach((t) => {
-          const i = (e as any).material[t];
+        Object.keys(e.material).forEach((t) => {
+          const i = e.material[t];
           if (i !== null && typeof i === "object" && typeof i.dispose === "function") {
             i.dispose();
           }
         });
-        (e as any).material.dispose();
-        (e as any).geometry.dispose();
+        e.material.dispose();
+        e.geometry.dispose();
       }
     });
     this.scene.clear();
@@ -240,19 +241,7 @@ class x {
 const b = new Map(),
   A = new r();
 let R = false;
-
-interface PointerConfig {
-  domElement: HTMLElement;
-  position?: r;
-  nPosition?: r;
-  hover?: boolean;
-  onEnter?: (config: any) => void;
-  onMove?: (config: any) => void;
-  onClick?: (config: any) => void;
-  onLeave?: (config: any) => void;
-}
-
-function S(e: PointerConfig) {
+function S(e: any) {
   const t = {
     position: new r(),
     nPosition: new r(),
@@ -263,7 +252,7 @@ function S(e: PointerConfig) {
     onLeave() { },
     ...e,
   };
-  (function (e: HTMLElement, t: any) {
+  (function (e: any, t: any) {
     if (!b.has(e)) {
       b.set(e, t);
       if (!R) {
@@ -274,7 +263,7 @@ function S(e: PointerConfig) {
       }
     }
   })(e.domElement, t);
-  (t as any).dispose = () => {
+  t.dispose = () => {
     const t = e.domElement;
     b.delete(t);
     if (b.size === 0) {
@@ -285,7 +274,7 @@ function S(e: PointerConfig) {
   };
   return t;
 }
-function M(e: PointerEvent) {
+function M(e: any) {
   A.x = e.clientX;
   A.y = e.clientY;
   for (const [elem, t] of b) {
@@ -303,7 +292,7 @@ function M(e: PointerEvent) {
     }
   }
 }
-function C(e: PointerEvent) {
+function C(e: any) {
   A.x = e.clientX;
   A.y = e.clientY;
   for (const [elem, t] of b) {
@@ -320,14 +309,14 @@ function L() {
     }
   }
 }
-function P(e: any, t: DOMRect) {
+function P(e: any, t: any) {
   const { position: i, nPosition: s } = e;
   i.x = A.x - t.left;
   i.y = A.y - t.top;
   s.x = (i.x / t.width) * 2 - 1;
   s.y = (-i.y / t.height) * 2 + 1;
 }
-function D(e: DOMRect) {
+function D(e: any) {
   const { x: t, y: i } = A;
   const { left: s, top: n, width: o, height: r } = e;
   return t >= s && t <= s + o && i >= n && i <= n + r;
@@ -345,29 +334,14 @@ const j = new a();
 const H = new a();
 const T = new a();
 
-interface PhysicsConfig {
-  count: number;
-  maxX: number;
-  maxY: number;
-  maxZ: number;
-  minSize: number;
-  maxSize: number;
-  size0: number;
-  gravity: number;
-  friction: number;
-  wallBounce: number;
-  maxVelocity: number;
-  controlSphere0: boolean;
-}
-
 class W {
-  config: PhysicsConfig;
+  config: any;
   positionData: Float32Array;
   velocityData: Float32Array;
   sizeData: Float32Array;
   center: a;
-
-  constructor(e: PhysicsConfig) {
+  
+  constructor(e: any) {
     this.config = e;
     this.positionData = new Float32Array(3 * e.count).fill(0);
     this.velocityData = new Float32Array(3 * e.count).fill(0);
@@ -393,7 +367,7 @@ class W {
       t[i] = k(e.minSize, e.maxSize);
     }
   }
-  update(e: { delta: number }) {
+  update(e: any) {
     const { config: t, center: i, positionData: s, sizeData: n, velocityData: o } = this;
     let r = 0;
     if (t.controlSphere0) {
@@ -479,8 +453,7 @@ class W {
 
 class Y extends c {
   uniforms: any;
-  onBeforeCompile2?: (shader: any) => void;
-
+  
   constructor(e: any) {
     super(e);
     this.uniforms = {
@@ -490,7 +463,7 @@ class Y extends c {
       thicknessPower: { value: 2 },
       thicknessScale: { value: 10 },
     };
-    (this as any).defines.USE_UV = "";
+    this.defines.USE_UV = "";
     this.onBeforeCompile = (e: any) => {
       Object.assign(e.uniforms, this.uniforms);
       e.fragmentShader =
@@ -500,12 +473,12 @@ class Y extends c {
         "void main() {",
         "\n        void RE_Direct_Scattering(const in IncidentLight directLight, const in vec2 uv, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, inout ReflectedLight reflectedLight) {\n          vec3 scatteringHalf = normalize(directLight.direction + (geometryNormal * thicknessDistortion));\n          float scatteringDot = pow(saturate(dot(geometryViewDir, -scatteringHalf)), thicknessPower) * thicknessScale;\n          #ifdef USE_COLOR\n            vec3 scatteringIllu = (scatteringDot + thicknessAmbient) * vColor;\n          #else\n            vec3 scatteringIllu = (scatteringDot + thicknessAmbient) * diffuse;\n          #endif\n          reflectedLight.directDiffuse += scatteringIllu * thicknessAttenuation * directLight.color;\n        }\n\n        void main() {\n      "
       );
-      const t = h.lights_fragment_begin.replaceAll(
-        "RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );",
+      const t = h.lights_fragment_begin.replace(
+        /RE_Direct\( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight \);/g,
         "\n          RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );\n          RE_Direct_Scattering(directLight, vUv, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, reflectedLight);\n        "
       );
       e.fragmentShader = e.fragmentShader.replace("#include <lights_fragment_begin>", t);
-      if (this.onBeforeCompile2) this.onBeforeCompile2(e);
+      if ((this as any).onBeforeCompile2) (this as any).onBeforeCompile2(e);
     };
   }
 }
@@ -543,14 +516,14 @@ class Z extends d {
   physics: W;
   ambientLight: f;
   light: u;
-
-  constructor(e: any, t: any = {}) {
+  
+  constructor(e: any, t = {}) {
     const i = { ...X, ...t };
     const s = new z();
     const n = new p(e, 0.04).fromScene(s).texture;
     const o = new g();
     const r = new Y({ envMap: n, ...i.materialParams });
-    (r as any).envMapRotation.x = -Math.PI / 2;
+    r.envMapRotation.x = -Math.PI / 2;
     super(o, r, i.count);
     this.config = i;
     this.physics = new W(i);
@@ -566,21 +539,21 @@ class Z extends d {
     this.light = new u(this.config.colors[0], this.config.lightIntensity);
     this.add(this.light);
   }
-  setColors(e: number[]) {
+  setColors(e: any) {
     if (Array.isArray(e) && e.length > 1) {
-      const t = (function (e: number[]) {
-        let t: number[], i: l[];
-        function setColors(e: number[]) {
+      const t = (function (e: any) {
+        let t: any, i: any;
+        function setColors(e: any) {
           t = e;
           i = [];
-          t.forEach((col) => {
+          t.forEach((col: any) => {
             i.push(new l(col));
           });
         }
         setColors(e);
         return {
           setColors,
-          getColorAt: function (ratio: number, out = new l()) {
+          getColorAt: function (ratio: any, out = new l()) {
             const scaled = Math.max(0, Math.min(1, ratio)) * (t.length - 1);
             const idx = Math.floor(scaled);
             const start = i[idx];
@@ -600,10 +573,10 @@ class Z extends d {
           this.light.color.copy(t.getColorAt(idx / this.count));
         }
       }
-      (this as any).instanceColor.needsUpdate = true;
+      this.instanceColor!.needsUpdate = true;
     }
   }
-  update(e: { delta: number }) {
+  update(e: any) {
     this.physics.update(e);
     for (let idx = 0; idx < this.count; idx++) {
       U.position.fromArray(this.physics.positionData, 3 * idx);
@@ -616,11 +589,11 @@ class Z extends d {
       this.setMatrixAt(idx, U.matrix);
       if (idx === 0) this.light.position.copy(U.position);
     }
-    (this as any).instanceMatrix.needsUpdate = true;
+    this.instanceMatrix.needsUpdate = true;
   }
 }
 
-function createBallpit(e: HTMLCanvasElement, t: any = {}) {
+function createBallpit(e: any, t = {}) {
   const i = new x({
     canvas: e,
     size: "parent",
@@ -639,7 +612,7 @@ function createBallpit(e: HTMLCanvasElement, t: any = {}) {
   let c = false;
   const h = S({
     domElement: e,
-    onMove(time: any) {
+    onMove() {
       n.setFromCamera(h.nPosition, i.camera);
       i.camera.getWorldDirection(o.normal);
       n.ray.intersectPlane(o, r);
@@ -658,43 +631,33 @@ function createBallpit(e: HTMLCanvasElement, t: any = {}) {
     s = new Z(i.renderer, e);
     i.scene.add(s);
   }
-  i.onBeforeRender = (time: any) => {
-    if (!c) s.update(time);
+  i.onBeforeRender = (e: any) => {
+    if (!c) s.update(e);
   };
-  i.onAfterResize = (size: any) => {
-    s.config.maxX = size.wWidth / 2;
-    s.config.maxY = size.wHeight / 2;
+  i.onAfterResize = (e: any) => {
+    s.config.maxX = e.wWidth / 2;
+    s.config.maxY = e.wHeight / 2;
   };
   return {
     three: i,
     get spheres() {
       return s;
     },
-    setCount(e: number) {
+    setCount(e: any) {
       initialize({ ...s.config, count: e });
     },
     togglePause() {
       c = !c;
     },
     dispose() {
-      (h as any).dispose();
+      h.dispose();
       i.dispose();
     },
   };
 }
 
-interface BallpitProps {
-  className?: string;
-  followCursor?: boolean;
-  count?: number;
-  gravity?: number;
-  friction?: number;
-  wallBounce?: number;
-  colors?: number[];
-}
-
-const Ballpit = ({ className = '', followCursor = true, ...props }: BallpitProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+const Ballpit = ({ className = '', followCursor = true, ...props }: any) => {
+  const canvasRef = useRef(null);
   const spheresInstanceRef = useRef<any>(null);
 
   useEffect(() => {

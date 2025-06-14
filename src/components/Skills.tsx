@@ -2,24 +2,25 @@
 import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress"; 
-import { Code, Layout, Terminal, Database, PenTool, Lightbulb, Sparkles, Zap } from 'lucide-react';
+import { Code, Layout, Terminal, Database, PenTool, Lightbulb, Sparkles, Zap, Users, Calendar } from 'lucide-react';
 
 type Skill = {
   name: string;
   level: number;
-  category: 'frontend' | 'backend' | 'design' | 'other';
+  category: 'frontend' | 'backend' | 'design' | 'other' | 'management';
   icon: React.ElementType;
   description: string;
 };
 
 const skills: Skill[] = [
-  { name: 'React', level: 95, category: 'frontend', icon: Code, description: 'Building dynamic UIs' },
-  { name: 'TypeScript', level: 90, category: 'frontend', icon: Code, description: 'Type-safe development' },
-  { name: 'CSS/Tailwind', level: 85, category: 'frontend', icon: Layout, description: 'Modern styling' },
-  { name: 'Node.js', level: 80, category: 'backend', icon: Terminal, description: 'Server-side magic' },
-  { name: 'PostgreSQL', level: 75, category: 'backend', icon: Database, description: 'Data management' },
-  { name: 'UI/UX Design', level: 85, category: 'design', icon: PenTool, description: 'User experience' },
+  { name: 'Python', level: 85, category: 'backend', icon: Code, description: 'Versatile programming' },
+  { name: 'Website Development', level: 95, category: 'frontend', icon: Layout, description: 'Full-stack web solutions' },
+  { name: 'Data Science', level: 75, category: 'backend', icon: Database, description: 'Data analysis & insights' },
+  { name: 'UI/UX Design', level: 85, category: 'design', icon: PenTool, description: 'User experience design' },
+  { name: 'Business Management', level: 75, category: 'management', icon: Terminal, description: 'Strategic leadership' },
   { name: 'Problem Solving', level: 95, category: 'other', icon: Lightbulb, description: 'Creative solutions' },
+  { name: 'Teamwork', level: 80, category: 'management', icon: Users, description: 'Collaborative excellence' },
+  { name: 'Planning', level: 95, category: 'management', icon: Calendar, description: 'Strategic success foundation ⭐' },
 ];
 
 const categoryColors = {
@@ -27,6 +28,7 @@ const categoryColors = {
   backend: 'bg-gradient-to-r from-purple-500/20 to-violet-500/20 text-violet-300 border-violet-500/30',
   design: 'bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-rose-300 border-rose-500/30',
   other: 'bg-gradient-to-r from-orange-500/20 to-yellow-500/20 text-yellow-300 border-yellow-500/30',
+  management: 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-emerald-300 border-emerald-500/30',
 };
 
 const Skills = () => {

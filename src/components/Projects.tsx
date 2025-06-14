@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { FileImage, Link, Sparkles, Zap, Eye } from 'lucide-react';
+import { FileImage, Link, Sparkles, Zap, Eye, Construction } from 'lucide-react';
 import { Button } from './ui/button';
 
 type Project = {
@@ -11,35 +11,29 @@ type Project = {
   tags: string[];
   link: string;
   gradient: string;
+  status?: 'live' | 'in-progress';
 };
 
 const projects: Project[] = [
   {
     id: 1,
-    title: "Ghibli Style Image Transformer",
-    description: "An AI-powered tool that transforms ordinary photos into Studio Ghibli-inspired artwork. Built with TensorFlow and React for seamless user experience.",
+    title: "Pictuz.com",
+    description: "My first major deployed project! An innovative AI-powered image transformation platform that converts ordinary photos into stunning artistic creations. Built with cutting-edge machine learning algorithms and modern web technologies for seamless user experience.",
     image: "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?q=80&w=1000",
-    tags: ["AI", "React", "TensorFlow", "Image Processing"],
-    link: "#",
-    gradient: "from-blue-500/20 to-purple-500/20"
+    tags: ["AI", "React", "Machine Learning", "First Deploy"],
+    link: "https://pictuz.com",
+    gradient: "from-blue-500/20 to-purple-500/20",
+    status: 'live'
   },
   {
     id: 2,
-    title: "Portfolio Website",
-    description: "A futuristic personal website showcasing skills, experience and projects with interactive elements, beautiful animations, and cutting-edge design.",
+    title: "ARM Website",
+    description: "A comprehensive web platform currently under development. This project showcases modern web development practices with responsive design, interactive elements, and optimized performance. Stay tuned for the official launch!",
     image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=1000",
-    tags: ["React", "TypeScript", "Tailwind CSS", "3D"],
+    tags: ["React", "TypeScript", "Tailwind CSS", "Work in Progress"],
     link: "#",
-    gradient: "from-cyan-500/20 to-blue-500/20"
-  },
-  {
-    id: 3,
-    title: "Smart Home Dashboard",
-    description: "A responsive dashboard for controlling and monitoring smart home devices with real-time updates, energy statistics, and beautiful data visualization.",
-    image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?q=80&w=1000",
-    tags: ["React", "IoT", "WebSockets", "Chart.js"],
-    link: "#",
-    gradient: "from-green-500/20 to-teal-500/20"
+    gradient: "from-cyan-500/20 to-blue-500/20",
+    status: 'in-progress'
   },
 ];
 
@@ -65,7 +59,7 @@ const Projects = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto px-2 md:px-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto px-2 md:px-0">
           {projects.map((project, index) => (
             <div 
               key={project.id}
@@ -97,6 +91,20 @@ const Projects = () => {
                     <div className={`absolute inset-0 bg-gradient-to-t ${project.gradient} to-transparent opacity-60`} />
                     <div className="absolute inset-0 bg-gradient-to-t from-cosmic-black via-transparent to-transparent" />
                     
+                    {/* Status indicator */}
+                    {project.status === 'in-progress' && (
+                      <div className="absolute top-4 right-4 bg-yellow-500/90 text-black px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                        <Construction size={12} />
+                        Under Construction
+                      </div>
+                    )}
+                    
+                    {project.status === 'live' && (
+                      <div className="absolute top-4 right-4 bg-green-500/90 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                        ✨ Live Project
+                      </div>
+                    )}
+                    
                     {/* Hover overlay */}
                     <div className={`absolute inset-0 bg-cosmic-blue/20 transition-opacity duration-300 ${
                       hoveredId === project.id ? 'opacity-100' : 'opacity-0'
@@ -110,7 +118,7 @@ const Projects = () => {
                     <h3 className="text-lg md:text-xl font-bold transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cosmic-blue group-hover:to-cosmic-purple line-clamp-2">
                       {project.title}
                     </h3>
-                    <p className="text-gray-300 text-sm md:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-3">
+                    <p className="text-gray-300 text-sm md:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-4">
                       {project.description}
                     </p>
                     
@@ -119,22 +127,42 @@ const Projects = () => {
                       {project.tags.map((tag, tagIndex) => (
                         <span 
                           key={tagIndex}
-                          className="text-xs bg-gradient-to-r from-cosmic-blue/20 to-cosmic-purple/20 text-cosmic-blue px-2 md:px-3 py-1 rounded-full border border-cosmic-blue/30 group-hover:scale-105 transition-transform duration-300 backdrop-blur-sm"
+                          className={`text-xs px-2 md:px-3 py-1 rounded-full border transition-transform duration-300 backdrop-blur-sm ${
+                            tag === 'First Deploy' 
+                              ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 border-yellow-500/30 group-hover:scale-110' 
+                              : tag === 'Work in Progress'
+                              ? 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-amber-300 border-amber-500/30 group-hover:scale-105'
+                              : 'bg-gradient-to-r from-cosmic-blue/20 to-cosmic-purple/20 text-cosmic-blue border-cosmic-blue/30 group-hover:scale-105'
+                          }`}
                         >
                           {tag}
                         </span>
                       ))}
                     </div>
                     
-                    {/* Simplified project button */}
+                    {/* Project button */}
                     <Button 
                       asChild
-                      className="w-full bg-cosmic-purple hover:bg-cosmic-blue transition-colors duration-300"
+                      className={`w-full transition-colors duration-300 ${
+                        project.status === 'live' 
+                          ? 'bg-cosmic-purple hover:bg-cosmic-blue' 
+                          : 'bg-gray-600 hover:bg-gray-500 cursor-not-allowed'
+                      }`}
                       size="sm"
+                      disabled={project.status === 'in-progress'}
                     >
-                      <a href={project.link} className="flex items-center justify-center gap-2">
-                        <Link size={14} />
-                        <span>View Project</span>
+                      <a href={project.status === 'live' ? project.link : '#'} className="flex items-center justify-center gap-2">
+                        {project.status === 'live' ? (
+                          <>
+                            <Link size={14} />
+                            <span>Visit Project</span>
+                          </>
+                        ) : (
+                          <>
+                            <Construction size={14} />
+                            <span>Coming Soon</span>
+                          </>
+                        )}
                       </a>
                     </Button>
                   </div>
@@ -149,7 +177,7 @@ const Projects = () => {
           ))}
         </div>
         
-        {/* Fixed call to action */}
+        {/* Call to action */}
         <div className="text-center mt-12 md:mt-16 px-4">
           <p className="text-gray-300 mb-4 md:mb-6 text-sm md:text-base">Want to see more of my work?</p>
           <Button 
