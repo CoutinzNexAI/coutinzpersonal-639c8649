@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getPrintifyProduct } from '@/lib/printify/printifyProducts';
 import { printifyFetch } from '@/lib/printify/printifyApi';
 import { PrintifyProduct, PrintifyImagePlaceholder } from '@/lib/printify/printifyTypes';
+import generatePrintFileHandler from '@/pages/api/printify/generate-print-file';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,6 +38,15 @@ interface CreateDraftResponse {
   error?: string;
   details?: string;
   debug?: Record<string, unknown>; // Para depuração temporária
+}
+
+// Interface para a resposta do handler de generate-print-file
+interface GeneratePrintFileResponseInternal {
+  success: boolean;
+  printifyImageId?: string;
+  printFileUrl?: string; // Manter para debug/referência
+  printFileId?: string; // Manter para debug/referência
+  error?: string;
 }
 
 export default async function handler(
@@ -187,32 +197,47 @@ export default async function handler(
 
     console.log('✅ Printify placeholder details:', printifyPlaceholder);
 
-    // PASSO 2: Chamar generate-print-file.ts (passando o placeholder Printify)
+    // PASSO 2: Chamar generate-print-file.ts diretamente (passando o placeholder Printify)
     console.log('🔄 STEP 2: Generating print-ready file and uploading to Printify Media Library...');
-    const generateFileResponse = await fetch(`${req.headers.origin || 'http://localhost:3000'}/api/printify/generate-print-file`, {
+
+    // Criar objetos req e res simulados para passar ao handler interno
+    const mockGeneratePrintFileReq: NextApiRequest = {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: {
         imageUrl: userImageUrl,
         productId: productId,
         userId: userId,
-        imageAdjustments: product.supportsManualAdjustment ? imageAdjustments : undefined, // Passa ajustes se for produto manual
-        printifyPlaceholder: printifyPlaceholder // PASSA O PLACEHOLDER AQUI
-      })
-    });
+        imageAdjustments: product.supportsManualAdjustment ? imageAdjustments : undefined,
+        printifyPlaceholder: printifyPlaceholder
+      }
+    } as NextApiRequest;
 
-    if (!generateFileResponse.ok) {
-      const errorData = await generateFileResponse.json();
-      console.error("❌ ERROR: Failed to generate print file and upload to Printify:", errorData);
-      throw new Error(`Print file generation failed: ${errorData.error}`);
+    // Criar um objeto res simulado para capturar a resposta
+    let generateFileData: GeneratePrintFileResponseInternal | undefined;
+    const mockGeneratePrintFileRes = {
+      status: (statusCode: number) => {
+        return mockGeneratePrintFileRes; // Permite chain .status().json()
+      },
+      json: (data: GeneratePrintFileResponseInternal) => {
+        generateFileData = data;
+        return mockGeneratePrintFileRes;
+      },
+      setHeader: () => mockGeneratePrintFileRes,
+      end: () => mockGeneratePrintFileRes,
+    } as unknown as NextApiResponse;
+
+    // Chamar o handler diretamente
+    await generatePrintFileHandler(mockGeneratePrintFileReq, mockGeneratePrintFileRes);
+
+    if (!generateFileData || !generateFileData.success || !generateFileData.printifyImageId) {
+      console.error("❌ ERROR: Print file generation failed (internal call):", generateFileData?.error || "No data");
+      throw new Error(`Print file generation failed: ${generateFileData?.error || "Unknown error"}`);
     }
 
-    const generateFileData = await generateFileResponse.json();
     const printifyImageId = generateFileData.printifyImageId;
-    if (!printifyImageId) {
-      throw new Error('Printify image ID not returned from generate-print-file.');
-    }
-
     console.log(`✅ STEP 2 Success: Image uploaded to Printify Media Library with ID: ${printifyImageId}`);
 
     // PASSO 3: Criar Produto Printify Temporário (para Mockups)
