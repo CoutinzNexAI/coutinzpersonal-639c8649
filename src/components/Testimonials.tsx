@@ -1,6 +1,10 @@
 
-import React from 'react';
-import { Star, MessageCircle, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { Star, MessageCircle, User, Plus, Send } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from "@/hooks/use-toast";
 import { 
   Carousel, 
   CarouselContent, 
@@ -84,6 +88,47 @@ const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) => (
 );
 
 const Testimonials = () => {
+  const { toast } = useToast();
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    role: '',
+    company: '',
+    text: '',
+    rating: 5
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleRatingChange = (rating: number) => {
+    setFormData({
+      ...formData,
+      rating
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulate form submission
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setFormData({ name: '', role: '', company: '', text: '', rating: 5 });
+      setShowForm(false);
+      toast({
+        title: "Testimonial submitted!",
+        description: "Thank you for your feedback. It will be reviewed and published soon."
+      });
+    }, 1500);
+  };
+
   return (
     <section id="testimonials" className="section-padding bg-cosmic-black/50">
       <div className="container mx-auto px-4">
@@ -109,6 +154,125 @@ const Testimonials = () => {
               <CarouselNext className="relative static right-0 translate-y-0 bg-cosmic-purple/10 hover:bg-cosmic-purple/20 border-cosmic-purple/20" />
             </div>
           </Carousel>
+        </div>
+
+        {/* Add Testimonial Section */}
+        <div className="mt-16 text-center">
+          {!showForm ? (
+            <div className="glass-panel p-8 max-w-md mx-auto">
+              <h3 className="text-xl font-bold mb-4 cosmic-gradient-text">Share Your Experience</h3>
+              <p className="text-gray-300 mb-6">
+                Worked with me? I'd love to hear about your experience!
+              </p>
+              <Button 
+                onClick={() => setShowForm(true)}
+                className="bg-cosmic-purple hover:bg-cosmic-blue transition-colors duration-300 flex items-center gap-2"
+              >
+                <Plus size={16} />
+                Write a Testimonial
+              </Button>
+            </div>
+          ) : (
+            <div className="glass-panel p-8 max-w-2xl mx-auto">
+              <h3 className="text-xl font-bold mb-6 cosmic-gradient-text">Write Your Testimonial</h3>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="name" className="block text-gray-400 mb-1">Name</label>
+                    <Input
+                      id="name"
+                      name="name"
+                      placeholder="Your name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      className="bg-cosmic-black/50 border-white/10 focus:border-cosmic-blue"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="role" className="block text-gray-400 mb-1">Role</label>
+                    <Input
+                      id="role"
+                      name="role"
+                      placeholder="Your job title"
+                      value={formData.role}
+                      onChange={handleInputChange}
+                      required
+                      className="bg-cosmic-black/50 border-white/10 focus:border-cosmic-blue"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="company" className="block text-gray-400 mb-1">Company</label>
+                  <Input
+                    id="company"
+                    name="company"
+                    placeholder="Your company"
+                    value={formData.company}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-cosmic-black/50 border-white/10 focus:border-cosmic-blue"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="text" className="block text-gray-400 mb-1">Your Experience</label>
+                  <Textarea
+                    id="text"
+                    name="text"
+                    placeholder="Tell others about your experience working with me..."
+                    value={formData.text}
+                    onChange={handleInputChange}
+                    required
+                    rows={4}
+                    className="bg-cosmic-black/50 border-white/10 focus:border-cosmic-blue"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 mb-2">Rating</label>
+                  <div className="flex gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        size={24}
+                        className={`cursor-pointer transition-colors ${
+                          i < formData.rating ? "text-cosmic-purple fill-cosmic-purple" : "text-gray-500"
+                        }`}
+                        onClick={() => handleRatingChange(i + 1)}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowForm(false)}
+                    className="flex-1 border-white/10 hover:bg-white/5"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 bg-cosmic-purple hover:bg-cosmic-blue transition-colors duration-300 flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      "Submitting..."
+                    ) : (
+                      <>
+                        <Send size={16} />
+                        Submit Testimonial
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </section>
