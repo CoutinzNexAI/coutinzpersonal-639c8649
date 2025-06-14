@@ -237,15 +237,15 @@ html {
   }
   
   .glass-panel {
-    @apply bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl;
+    @apply bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-xl md:rounded-2xl shadow-2xl;
     box-shadow: 
-      0 25px 45px rgba(0, 0, 0, 0.4),
+      0 15px 35px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.2),
       0 0 30px rgba(139, 92, 246, 0.1);
   }
   
   .glass-panel-enhanced {
-    @apply bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-2xl border-2 border-white/30 rounded-3xl shadow-2xl;
+    @apply bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-2xl border-2 border-white/30 rounded-2xl md:rounded-3xl shadow-2xl;
     box-shadow: 
       0 35px 60px rgba(0, 0, 0, 0.5),
       inset 0 2px 0 rgba(255, 255, 255, 0.3),
@@ -253,12 +253,12 @@ html {
   }
   
   .section-title {
-    @apply text-4xl md:text-6xl font-bold mb-16 cosmic-gradient-text animate-neon-glow;
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-8 md:mb-16 cosmic-gradient-text animate-neon-glow;
     font-family: 'Orbitron', monospace;
   }
   
   .section-padding {
-    @apply py-24 md:py-32;
+    @apply py-16 md:py-24 lg:py-32;
   }
   
   .cosmic-gradient-text {
@@ -315,11 +315,32 @@ html {
   .backface-hidden {
     backface-visibility: hidden;
   }
+
+  /* Mobile-specific utilities */
+  .hover-scale-mobile {
+    @apply md:hover:scale-105 transition-transform duration-300;
+  }
+
+  .mobile-text-lg {
+    @apply text-base md:text-lg;
+  }
+
+  .mobile-text-xl {
+    @apply text-lg md:text-xl;
+  }
+
+  .mobile-padding {
+    @apply px-4 md:px-6 lg:px-8;
+  }
+
+  .mobile-margin {
+    @apply mx-4 md:mx-6 lg:mx-8;
+  }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -328,7 +349,7 @@ html {
 
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(to bottom, #8b5cf6, #06b6d4);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -344,4 +365,43 @@ html {
 ::-moz-selection {
   background: rgba(139, 92, 246, 0.3);
   color: white;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .section-padding {
+    @apply py-12;
+  }
+
+  .glass-panel {
+    @apply mx-2;
+  }
+
+  /* Reduce animations on mobile for better performance */
+  .animate-float,
+  .animate-float-slow {
+    animation: none;
+  }
+
+  /* Hide complex background elements on mobile */
+  .mobile-hide {
+    display: none;
+  }
+
+  /* Optimize touch targets */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Improve mobile touch interactions */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  .group:hover .group-hover\:scale-105 {
+    transform: none;
+  }
 }
