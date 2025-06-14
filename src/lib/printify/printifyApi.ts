@@ -8,28 +8,30 @@ if (!PRINTIFY_API_TOKEN) {
 export async function printifyFetch(endpoint: string, options: RequestInit = {}) {
   const url = endpoint.startsWith('http') ? endpoint : PRINTIFY_BASE_URL + endpoint.replace(/^\//, '');
 
-  const defaultHeaders: HeadersInit = {
+  // Criar um objeto simples para os headers
+  const headersToSend: Record<string, string> = {
     'Authorization': `Bearer ${PRINTIFY_API_TOKEN}`,
     'Content-Type': 'application/json',
     'User-Agent': 'PicTuz-App',
   };
 
-  const combinedHeaders = new Headers(defaultHeaders);
+  // Combinar com os headers passados nas options, sobrescrevendo se houver conflito
   if (options.headers) {
+    // Converter Headers ou string[][] para um objeto simples
     const incomingHeaders = new Headers(options.headers);
     incomingHeaders.forEach((value, key) => {
-      combinedHeaders.set(key, value);
+      headersToSend[key] = value;
     });
   }
 
   try {
     console.log(`[printifyFetch] Calling URL: ${url}`);
-    console.log(`[printifyFetch] Headers:`, Object.fromEntries(combinedHeaders.entries()));
+    console.log(`[printifyFetch] Headers:`, headersToSend); // Log do objeto simples
     console.log(`[printifyFetch] Method:`, options.method || 'GET');
 
     const response = await fetch(url, {
       ...options,
-      headers: combinedHeaders,
+      headers: headersToSend, // Passa o objeto simples
     });
 
     // Adicionar este log para DEBUG
