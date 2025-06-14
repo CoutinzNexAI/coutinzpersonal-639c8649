@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Cropper from 'react-easy-crop';
 import { Area, Point } from 'react-easy-crop/types';
-import { GelatoProduct } from '@/lib/gelato/gelatoProducts';
+import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { validateImageForPrint } from '@/lib/gelato/printFileGenerator';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, ZoomIn, ZoomOut, Move, Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -21,7 +21,7 @@ interface ImageAdjustments {
 }
 
 interface ProductCanvasProps {
-  selectedProduct: GelatoProduct;
+  selectedProduct: PrintifyProductMapping;
   userImageUrl: string;
   gelatoGeneratedPreviewUrls?: string[]; // Array de mockups gerados pela Gelato
   onPreviewReady?: (previewUrl: string, adjustments?: ImageAdjustments) => void;

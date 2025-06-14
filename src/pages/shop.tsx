@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getGelatoProductsByCategory, GelatoProduct } from '@/lib/gelato/gelatoProducts';
+import { getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import SocialProof from '@/components/gelato/SocialProof';
 
 const ShopPage: React.FC = () => {
@@ -129,7 +129,7 @@ const ShopPage: React.FC = () => {
                       {/* Products Count & CTA */}
                       <div className="flex items-center justify-between">
                         <div className="text-xs text-ghibli-earth/70">
-                          {Object.keys(getGelatoProductsByCategory(category.id as GelatoProduct['category'])).length} produtos
+                          {Object.keys(getPrintifyProductsByCategory(category.id as PrintifyProductMapping['category'])).length} produtos
                         </div>
                         <div className="text-xs text-ghibli-moss font-medium group-hover:text-ghibli-wood transition-colors">
                           Ver produtos →

@@ -1,8 +1,8 @@
-import { GelatoProduct } from './gelatoProducts';
+import { PrintifyProductMapping } from '../printify/printifyProducts';
 
 export interface PrintFileOptions {
   imageUrl: string;
-  product: GelatoProduct;
+  product: PrintifyProductMapping;
   outputFormat: 'pdf' | 'png' | 'jpeg';
   userId: string;
 }
@@ -60,7 +60,7 @@ export const generatePrintFile = async (options: PrintFileOptions): Promise<Prin
  * Calcula as dimensões finais do ficheiro de impressão
  * baseado nas dimensões reais da Gelato em mm
  */
-export const calculatePrintDimensions = (product: GelatoProduct): { 
+export const calculatePrintDimensions = (product: PrintifyProductMapping): { 
   widthPx: number; 
   heightPx: number; 
   widthMm: number; 
@@ -95,7 +95,7 @@ export const calculatePrintDimensions = (product: GelatoProduct): {
 export const validateImageForPrint = (
   imageWidth: number, 
   imageHeight: number, 
-  product: GelatoProduct
+  product: PrintifyProductMapping
 ): { valid: boolean; warnings: string[]; minDimensions: { width: number; height: number } } => {
   const warnings: string[] = [];
   const printDimensions = calculatePrintDimensions(product);

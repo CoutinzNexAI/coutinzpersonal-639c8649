@@ -9,7 +9,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCanvas from '@/components/gelato/ProductCanvas';
 import TransformationGalleryModal from '@/components/gelato/TransformationGalleryModal';
-import { getGelatoProduct, GelatoProduct } from '@/lib/gelato/gelatoProducts';
+import { getPrintifyProduct, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import SocialProof from '@/components/gelato/SocialProof';
 import { CartService } from '@/lib/cart/cartService';
@@ -32,7 +32,7 @@ const ProductDetailPage: React.FC = () => {
   const { productId } = router.query;
   const { userInfo, session } = useAuth();
   
-  const [product, setProduct] = useState<GelatoProduct | null>(null);
+  const [product, setProduct] = useState<PrintifyProductMapping | null>(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -47,7 +47,7 @@ const ProductDetailPage: React.FC = () => {
   // Carregar produto baseado no ID
   useEffect(() => {
     if (typeof productId === 'string') {
-      const foundProduct = getGelatoProduct(productId);
+      const foundProduct = getPrintifyProduct(productId);
       setProduct(foundProduct);
       
       if (!foundProduct) {

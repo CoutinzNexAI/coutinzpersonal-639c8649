@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import { PIC_TUZ_GELATO_PRODUCT_MAP } from '@/lib/gelato/gelatoProducts';
+import { PIC_TUZ_PRINTIFY_PRODUCT_MAP } from '@/lib/printify/printifyProducts';
 // import { gelatoFetch } from '@/lib/gelato/gelatoApi';
 
 interface GenerateMockupRequest {
@@ -64,7 +64,7 @@ export default async function handler(
     }
 
     // Buscar produto no nosso mapeamento
-    const gelatoProduct = PIC_TUZ_GELATO_PRODUCT_MAP[productId];
+    const gelatoProduct = PIC_TUZ_PRINTIFY_PRODUCT_MAP[productId];
     if (!gelatoProduct) {
       return res.status(404).json({
         success: false,

@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getGelatoProductsByCategory } from '@/lib/gelato/gelatoProducts';
+import { getPrintifyProductsByCategory } from '@/lib/printify/printifyProducts';
 
 const ApparelShopPage: React.FC = () => {
-  const apparelProducts = getGelatoProductsByCategory('apparel');
+  const apparelProducts = getPrintifyProductsByCategory('apparel');
   const productIds = Object.keys(apparelProducts);
 
   return (
