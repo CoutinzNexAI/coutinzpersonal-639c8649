@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import { getPrintifyProduct, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
+import ProductCanvas from '@/components/printify/ProductCanvas';
 
 interface ImageAdjustments {
   x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
@@ -36,10 +37,10 @@ const ProductDetailPage: React.FC = () => {
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
-  // NOVO: Estados para Draft Order da Gelato
-  const [gelatoPreviewUrls, setGelatoPreviewUrls] = useState<string[]>([]);
-  const [draftOrderId, setDraftOrderId] = useState<string>('');
-  const [isCreatingDraft, setIsCreatingDraft] = useState(false);
+  // NOVO: Estados para Printify
+  const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
+  const [printifyImageId, setPrintifyImageId] = useState<string>('');
+  const [printifyProductId, setPrintifyProductId] = useState<string>('');
 
   // Carregar produto baseado no ID
   useEffect(() => {
@@ -85,81 +86,17 @@ const ProductDetailPage: React.FC = () => {
     }
   }, [userInfo, product, session?.access_token, fetchUserLatestTransformation]);
 
-  // NOVO: Gerar mockup da Gelato quando imagem e produto estão disponíveis
-  // REMOVIDO: generateGelatoMockup - substituído por createDraftOrder
-
-  // NOVO: Criar Draft Order na Gelato para produtos automáticos
-  const createDraftOrder = useCallback(async () => {
-    if (!selectedImageUrl || !product || !userInfo?.id || !session?.access_token) return;
-    
-    // Só criar draft para produtos sem ajuste manual
-    if (product.supportsManualAdjustment) return;
-
-    setIsCreatingDraft(true);
-    
-    try {
-      const response = await fetch('/api/gelato/mockups/create-draft', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          productId: productId as string,
-          userImageUrl: selectedImageUrl,
-          userId: userInfo.id
-        })
-      });
-
-      const data = await response.json();
-      
-      // 🔍 DEBUG: Logs detalhados para ver o que está a chegar do backend
-      console.log('=== RESPOSTA COMPLETA DO BACKEND ===');
-      console.log('Response status:', response.status);
-      console.log('Data completo:', data);
-      console.log('data.success:', data.success);
-      console.log('data.previewUrls:', data.previewUrls);
-      console.log('Type of previewUrls:', typeof data.previewUrls);
-      console.log('Length of previewUrls:', data.previewUrls?.length);
-      console.log('data.draftOrderId:', data.draftOrderId);
-      console.log('===================================');
-      
-      if (data.success) {
-        // 🔍 A LINHA MAIS IMPORTANTE PARA O DEBUG AGORA:
-        console.log('✅ URLs dos mockups recebidos no frontend:', data.previewUrls);
-        
-        setGelatoPreviewUrls(data.previewUrls || []);
-        setDraftOrderId(data.draftOrderId || '');
-        
-        console.log('🔄 Estados atualizados no frontend:');
-        console.log('- gelatoPreviewUrls será:', data.previewUrls || []);
-        console.log('- draftOrderId será:', data.draftOrderId || '');
-      } else {
-        console.error('❌ API respondeu com sucesso mas success=false:', data);
-        console.error('❌ Erro recebido:', data.error);
-        // Fallback para preview local se Gelato falhar
-        setGelatoPreviewUrls([]);
-        setDraftOrderId('');
-      }
-    } catch (error) {
-      console.error('Error creating draft order:', error);
-      // Fallback para preview local se houver erro
-      setGelatoPreviewUrls([]);
-      setDraftOrderId('');
-    } finally {
-      setIsCreatingDraft(false);
-    }
-  }, [selectedImageUrl, product, userInfo?.id, session?.access_token, productId]);
-
-  // Trigger Draft Order creation quando imagem muda
-  useEffect(() => {
-    createDraftOrder();
-  }, [createDraftOrder]);
-
-  const handlePreviewReady = (url: string, adjustments?: ImageAdjustments) => {
-    setPreviewUrl(url);
-    setImageAdjustments(adjustments);
-  };
+  // Função para lidar com os mockups gerados pelo ProductCanvas
+  const handlePreviewReady = useCallback((data: {
+    previewUrls: string[];
+    printifyImageId: string;
+    printifyProductId: string;
+  }) => {
+    setPrintifyPreviewUrls(data.previewUrls);
+    setPrintifyImageId(data.printifyImageId);
+    setPrintifyProductId(data.printifyProductId);
+    console.log('✅ Printify mockups received:', data);
+  }, []);
 
   const handleAddToCart = async () => {
     if (!product || !selectedImageUrl) {
@@ -180,7 +117,7 @@ const ProductDetailPage: React.FC = () => {
     setLoading(true);
 
     try {
-      // Adicionar item ao carrinho usando o CartService - COM DRAFT ORDER ID
+      // Adicionar item ao carrinho usando o CartService - COM PRINTIFY IDs
       const cartItem = CartService.addToCart({
         productId: productId as string,
         productUid: product.productUid,
@@ -194,7 +131,8 @@ const ProductDetailPage: React.FC = () => {
           size: `${product.gelatoPrintDimensionsMm.width}×${product.gelatoPrintDimensionsMm.height}mm`
         },
         imageAdjustments: imageAdjustments, // Passar os ajustes da imagem
-        draftOrderId: draftOrderId || undefined // ✅ NOVO: Passar Draft Order ID se existir
+        printifyImageId: printifyImageId || undefined, // ✅ NOVO: Passar Printify Image ID
+        printifyProductId: printifyProductId || undefined // ✅ NOVO: Passar Printify Product ID
       });
 
       // Simular pequeno delay para UX
@@ -232,9 +170,10 @@ const ProductDetailPage: React.FC = () => {
   const handleSelectImageFromGallery = (imageUrl: string, imageId: string) => {
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId); // ✅ NOVO: Guardar o ID da transformação selecionada
-    // Reset estados Gelato quando nova imagem é selecionada
-    setGelatoPreviewUrls([]);
-    setDraftOrderId('');
+    // Reset estados Printify quando nova imagem é selecionada
+    setPrintifyPreviewUrls([]);
+    setPrintifyImageId('');
+    setPrintifyProductId('');
     setIsGalleryModalOpen(false);
     toast.success('Arte selecionada!', {
       description: 'A sua transformação foi aplicada ao produto'
@@ -284,37 +223,36 @@ const ProductDetailPage: React.FC = () => {
                   👁️ Pré-visualização
                 </h2>
                 
-                {/* TODO: Migrar ProductCanvas para Printify */}
-                <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <p className="text-gray-500">Preview em desenvolvimento</p>
-                </div>
-
-                {/* Loading indicator para Draft Order */}
-                {isCreatingDraft && selectedImageUrl && !product.supportsManualAdjustment && (
-                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="flex items-center gap-2 text-sm text-blue-800">
-                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      <span>A gerar preview profissional...</span>
+                {/* ProductCanvas Printify */}
+                {selectedImageUrl && userInfo?.id ? (
+                  <ProductCanvas
+                    selectedProduct={product}
+                    userImageUrl={selectedImageUrl}
+                    userId={userInfo.id}
+                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                    onPreviewReady={handlePreviewReady}
+                    imageAdjustments={imageAdjustments}
+                  />
+                ) : (
+                  <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-gray-500 mb-4">
+                        {userInfo 
+                          ? 'Selecione uma imagem para ver a pré-visualização' 
+                          : 'Faça login para personalizar este produto'}
+                      </p>
+                      <Button 
+                        onClick={handleSelectDifferentImage}
+                        className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white"
+                      >
+                        {userInfo ? '🎨 Escolher Arte AI' : '🎨 Criar Transformação AI'}
+                      </Button>
                     </div>
                   </div>
                 )}
 
                 {/* Botão para Selecionar Imagem */}
-                {!selectedImageUrl ? (
-                  <div className="mt-6 text-center">
-                    <p className="text-ghibli-earth mb-4">
-                      {userInfo 
-                        ? 'Escolha uma das suas transformações AI' 
-                        : 'Faça login para personalizar este produto'}
-                    </p>
-                    <Button 
-                      onClick={handleSelectDifferentImage}
-                      className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white"
-                    >
-                      {userInfo ? '🎨 Escolher Arte AI' : '🎨 Criar Transformação AI'}
-                    </Button>
-                  </div>
-                ) : (
+                {selectedImageUrl && (
                   <div className="mt-6 space-y-3">
                     {/* Indicador de Arte Selecionada */}
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
@@ -325,140 +263,94 @@ const ProductDetailPage: React.FC = () => {
                     </div>
                     
                     {/* Botão para trocar */}
-                    <div className="text-center">
-                      <Button 
-                        variant="outline"
-                        onClick={handleSelectDifferentImage}
-                        className="border-ghibli-sand text-ghibli-earth hover:bg-ghibli-sand/30"
-                      >
-                        🔄 Escolher Arte Diferente
-                      </Button>
-                    </div>
+                    <Button 
+                      variant="outline"
+                      onClick={handleSelectDifferentImage}
+                      className="w-full"
+                    >
+                      🔄 Trocar Arte
+                    </Button>
                   </div>
                 )}
               </motion.div>
             </div>
 
-            {/* Detalhes do Produto */}
+            {/* Informações do Produto */}
             <div className="space-y-6">
               <motion.div
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-ghibli font-bold text-ghibli-wood mb-4">
+                <h1 className="text-3xl font-bold text-ghibli-wood mb-4">
                   {product.name}
                 </h1>
-
-                {/* Preço */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 mb-6">
-                  <div className="text-2xl font-bold text-ghibli-wood">
-                    {product.price ? `€${product.price}` : 'A partir de €29.99'}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-ghibli-earth">+ envio</span>
-                                         <span className="text-green-600 font-medium">• Envio grátis {'>'}€50</span>
-                  </div>
+                
+                <div className="text-2xl font-semibold text-ghibli-moss mb-6">
+                  €{product.price.toFixed(2)}
                 </div>
 
-                {/* Especificações */}
-                <div className="bg-white/80 backdrop-blur-sm border border-ghibli-sand/30 rounded-lg p-6 mb-6">
-                  <h3 className="font-semibold text-ghibli-wood mb-4">📋 Especificações</h3>
-                  <div className="space-y-3 text-sm text-ghibli-earth">
-                    <div className="flex justify-between">
-                      <span>Dimensões:</span>
-                      <span>{product.gelatoPrintDimensionsMm.width}×{product.gelatoPrintDimensionsMm.height}mm</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Resolução:</span>
-                      <span>{product.printFileResolution} DPI</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Categoria:</span>
-                      <span className="capitalize">{product.category}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Bleed:</span>
-                      <span>{product.printFileBleed}mm</span>
-                    </div>
+                <div className="space-y-4 text-ghibli-earth">
+                  <div>
+                    <h3 className="font-semibold mb-2">📏 Especificações</h3>
+                    <ul className="space-y-1 text-sm">
+                      <li>• Dimensões: {product.gelatoPrintDimensionsMm.width}×{product.gelatoPrintDimensionsMm.height}mm</li>
+                      <li>• Categoria: {product.category}</li>
+                      <li>• Impressão profissional de alta qualidade</li>
+                      <li>• Entrega rápida e segura</li>
+                    </ul>
                   </div>
-                </div>
 
-                {/* Características do Produto */}
-                <div className="space-y-3 mb-8">
-                  {product.category === 'canvas' && (
-                    <>
-                      <div className="flex items-center gap-2 text-sm text-ghibli-earth">
-                        <span>🌳</span>
-                        <span>Moldura de madeira FSC certificada</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-ghibli-earth">
-                        <span>🎨</span>
-                        <span>Canvas de alta qualidade para cores vívidas</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-ghibli-earth">
-                        <span>📦</span>
-                        <span>Pronto a pendurar, embalagem segura</span>
-                      </div>
-                    </>
+                  {product.supportsManualAdjustment && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-blue-800 mb-2">🎛️ Ajustes Personalizados</h4>
+                      <p className="text-sm text-blue-700">
+                        Este produto permite ajustar a posição, zoom e rotação da sua imagem 
+                        para um resultado perfeito.
+                      </p>
+                    </div>
                   )}
+                </div>
+
+                <div className="mt-8">
+                  <Button
+                    onClick={handleAddToCart}
+                    disabled={!selectedImageUrl || loading}
+                    className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white py-3 text-lg font-semibold"
+                    size="lg"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        A adicionar...
+                      </>
+                    ) : (
+                      <>🛒 Adicionar ao Carrinho</>
+                    )}
+                  </Button>
                   
-                  {product.category === 'apparel' && (
-                    <>
-                      <div className="flex items-center gap-2 text-sm text-ghibli-earth">
-                        <span>👕</span>
-                        <span>100% Algodão orgânico</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-ghibli-earth">
-                        <span>🌱</span>
-                        <span>Produção sustentável</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-ghibli-earth">
-                        <span>✨</span>
-                        <span>Impressão durável e resistente a lavagens</span>
-                      </div>
-                    </>
+                  {!selectedImageUrl && (
+                    <p className="text-sm text-ghibli-earth mt-2 text-center">
+                      Selecione uma arte AI para continuar
+                    </p>
                   )}
-                </div>
-
-                {/* Botão Adicionar ao Carrinho */}
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={!selectedImageUrl || loading}
-                  className="w-full bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white disabled:opacity-50 disabled:bg-gray-400 py-4 text-lg font-semibold shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-95"
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      A adicionar...
-                    </div>
-                  ) : (
-                    '🛒 Adicionar ao Carrinho'
-                  )}
-                </Button>
-
-                {/* Informação de Envio */}
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-2 text-sm text-green-800">
-                    <span>🚚</span>
-                    <span>Envio grátis para Portugal em compras superiores a €50</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-green-700 mt-1">
-                    <span>⏱️</span>
-                    <span>Produção em 3-5 dias úteis + envio</span>
-                  </div>
                 </div>
               </motion.div>
             </div>
           </div>
-
-          {/* TODO: Migrar SocialProof para Printify */}
         </main>
-        
-        <Footer />
 
-        {/* TODO: Migrar TransformationGalleryModal para Printify */}
+        <Footer />
       </div>
+
+      {/* TODO: Adicionar TransformationsModal quando necessário */}
+      {/* {isGalleryModalOpen && (
+        <TransformationsModal
+          isOpen={isGalleryModalOpen}
+          onClose={() => setIsGalleryModalOpen(false)}
+          onSelectImage={handleSelectImageFromGallery}
+        />
+      )} */}
     </>
   );
 };

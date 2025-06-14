@@ -1,7 +1,7 @@
 export interface CartItem {
   id: string;
   productId: string; // PicTuz product slug
-  productUid: string; // Gelato productUid
+  productUid?: string; // Gelato productUid (opcional para compatibilidade)
   productName: string;
   productCategory: string;
   userImageUrl: string;
@@ -25,7 +25,11 @@ export interface CartItem {
       height: number;   // Altura do crop em percentagem da imagem original
     };
   };
+  // Campos Gelato (para compatibilidade)
   draftOrderId?: string; // ID do Draft Order criado na Gelato (para fluxo automático)
+  // Novos campos Printify
+  printifyImageId?: string; // ID da imagem na Printify Media Library
+  printifyProductId?: string; // ID do produto temporário criado na Printify
   addedAt: Date;
 }
 
