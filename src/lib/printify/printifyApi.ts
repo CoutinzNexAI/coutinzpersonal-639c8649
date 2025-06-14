@@ -8,41 +8,50 @@ if (!PRINTIFY_API_TOKEN) {
 export async function printifyFetch(endpoint: string, options: RequestInit = {}) {
   const url = endpoint.startsWith('http') ? endpoint : PRINTIFY_BASE_URL + endpoint.replace(/^\//, '');
 
-  // Criar um objeto simples para os headers
   const headersToSend: Record<string, string> = {
     'Authorization': `Bearer ${PRINTIFY_API_TOKEN}`,
     'Content-Type': 'application/json',
     'User-Agent': 'PicTuz-App',
+    // Adicionar headers para prevenir cache
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
   };
 
-  // Combinar com os headers passados nas options, sobrescrevendo se houver conflito
+  // Combinar com os headers passados nas options, sobrescrevendo apenas se forem fornecidos explicitamente
   if (options.headers) {
-    // Converter Headers ou string[][] para um objeto simples
     const incomingHeaders = new Headers(options.headers);
     incomingHeaders.forEach((value, key) => {
-      headersToSend[key] = value;
+      // Não sobrescrever Authorization, Content-Type, User-Agent se já definidos a menos que seja intencional
+      if (!['authorization', 'content-type', 'user-agent', 'cache-control', 'pragma'].includes(key.toLowerCase())) {
+        headersToSend[key] = value;
+      }
     });
   }
 
   try {
     console.log(`[printifyFetch] Calling URL: ${url}`);
-    console.log(`[printifyFetch] Headers:`, headersToSend); // Log do objeto simples
+    console.log(`[printifyFetch] Headers:`, headersToSend);
     console.log(`[printifyFetch] Method:`, options.method || 'GET');
+
+    // Log do corpo da requisição para POST/PUT/PATCH
+    if (options.body && ['POST', 'PUT', 'PATCH'].includes((options.method || 'GET').toUpperCase())) {
+      console.log(`[printifyFetch] Body:`, options.body);
+    }
 
     const response = await fetch(url, {
       ...options,
-      headers: headersToSend, // Passa o objeto simples
+      headers: headersToSend,
     });
 
-    // Adicionar este log para DEBUG
     if (!response.ok) {
       const errorBody = await response.json().catch(() => response.text());
       console.error(`❌ Printify API Error (${response.status} ${response.statusText}) for ${url}:`, errorBody);
       throw new Error(`Printify API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorBody)}`);
     }
+
     return response.json();
   } catch (error) {
-    console.error('❌ printifyFetch error:', error);
+    console.error(`❌ printifyFetch error:`, error);
     throw error;
   }
 }
