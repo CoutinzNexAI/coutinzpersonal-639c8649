@@ -2,7 +2,7 @@ const PRINTIFY_API_TOKEN = process.env.PRINTIFY_API_TOKEN;
 const PRINTIFY_BASE_URL = 'https://api.printify.com/v1/';
 
 if (!PRINTIFY_API_TOKEN) {
-  throw new Error('PRINTIFY_API_TOKEN is not defined in environment variables');
+  throw new Error('PRINTIFY_API_TOKEN is not defined in environment variables. Please set this in Vercel or your .env.local file.');
 }
 
 export async function printifyFetch(endpoint: string, options: RequestInit = {}) {
@@ -24,20 +24,19 @@ export async function printifyFetch(endpoint: string, options: RequestInit = {})
 
   try {
     console.log(`[printifyFetch] Calling URL: ${url}`);
+    console.log(`[printifyFetch] Headers:`, Object.fromEntries(combinedHeaders.entries()));
+    console.log(`[printifyFetch] Method:`, options.method || 'GET');
 
     const response = await fetch(url, {
       ...options,
       headers: combinedHeaders,
     });
 
+    // Adicionar este log para DEBUG
     if (!response.ok) {
-      let errorDetails;
-      try {
-        errorDetails = await response.json();
-      } catch {
-        errorDetails = await response.text();
-      }
-      throw new Error(`Printify API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorDetails)}`);
+      const errorBody = await response.json().catch(() => response.text());
+      console.error(`❌ Printify API Error (${response.status} ${response.statusText}) for ${url}:`, errorBody);
+      throw new Error(`Printify API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorBody)}`);
     }
     return response.json();
   } catch (error) {
