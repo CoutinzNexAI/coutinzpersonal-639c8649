@@ -36,6 +36,7 @@ interface CreateDraftResponse {
   printifyProductId?: string;
   error?: string;
   details?: string;
+  debug?: Record<string, unknown>; // Para depuração temporária
 }
 
 export default async function handler(
@@ -43,8 +44,44 @@ export default async function handler(
   res: NextApiResponse<CreateDraftResponse>
 ) {
   console.log("--- [INÍCIO] /api/printify/mockups/generate ---");
-  console.log("Request method:", req.method);
-  console.log("Request body keys:", Object.keys(req.body || {}));
+  
+  // 🔍 LOGS DE DEPURAÇÃO DETALHADOS
+  console.log("🔍 [DEBUG] Request method:", req.method);
+  console.log("🔍 [DEBUG] Request URL:", req.url);
+  console.log("🔍 [DEBUG] Request headers:", JSON.stringify(req.headers, null, 2));
+  console.log("🔍 [DEBUG] Request body type:", typeof req.body);
+  console.log("🔍 [DEBUG] Request body keys:", Object.keys(req.body || {}));
+  console.log("🔍 [DEBUG] Request body content:", JSON.stringify(req.body, null, 2));
+  console.log("🔍 [DEBUG] Request query:", JSON.stringify(req.query, null, 2));
+  console.log("🔍 [DEBUG] User-Agent:", req.headers['user-agent']);
+  console.log("🔍 [DEBUG] Content-Type:", req.headers['content-type']);
+  console.log("🔍 [DEBUG] Content-Length:", req.headers['content-length']);
+
+  // Suporte para OPTIONS (CORS preflight)
+  if (req.method === 'OPTIONS') {
+    console.log("✅ [DEBUG] OPTIONS preflight request - setting CORS headers");
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    return res.status(200).end();
+  }
+
+  // Temporariamente aceitar GET para depuração
+  if (req.method === 'GET') {
+    console.log("⚠️ [DEBUG] GET request received - returning debug info");
+    return res.status(200).json({
+      success: false,
+      error: 'GET request received for debugging',
+      debug: {
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        body: req.body,
+        query: req.query
+      }
+    });
+  }
 
   if (req.method !== 'POST') {
     console.log("❌ ERRO: Método não permitido:", req.method);
