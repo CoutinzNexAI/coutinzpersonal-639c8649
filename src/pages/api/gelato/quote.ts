@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { CartItem } from '@/lib/cart/cartTypes';
-import { gelatoFetch } from '@/lib/gelato/gelatoApi';
+// import { gelatoFetch } from '@/lib/gelato/gelatoApi';
 import { CartService } from '@/lib/cart/cartService';
 
 interface ShippingAddress {
@@ -38,55 +38,59 @@ export default async function handler(
       return res.status(400).json({ error: 'Dados de envio incompletos' });
     }
 
-    // Converter carrinho para formato Gelato
-    const gelatoProducts = CartService.cartToGelatoProducts(cart);
+    // Converter carrinho para formato Gelato (comentado durante migração)
+    // const gelatoProducts = CartService.cartToGelatoProducts(cart);
 
     // Gerar ID de referência único para esta cotação
     const orderReferenceId = `quote_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Construir payload para API da Gelato
-    const quotePayload = {
-      orderReferenceId,
-      customerReferenceId: 'customer_' + Date.now(), // Placeholder - usar user.id real
-      currency: 'EUR',
-      recipient: {
-        name: shippingAddress.name,
-        email: shippingAddress.email,
-        address: {
-          line1: shippingAddress.address,
-          city: shippingAddress.city,
-          postalCode: shippingAddress.postalCode,
-          country: shippingAddress.country
-        }
-      },
-      products: gelatoProducts.map(product => ({
-        ...product,
-        // Para cotação, podemos usar URLs placeholder se não tivermos os ficheiros finais ainda
-        files: product.files.map(file => ({
-          ...file,
-          // Nota: Para cotação real, a Gelato pode não exigir ficheiros reais
-          // mas é boa prática incluir as dimensões corretas
-          type: 'default'
-        }))
-      }))
-    };
+    // Construir payload para API da Gelato (comentado durante migração)
+    // const quotePayload = {
+    //   orderReferenceId,
+    //   customerReferenceId: 'customer_' + Date.now(), // Placeholder - usar user.id real
+    //   currency: 'EUR',
+    //   recipient: {
+    //     name: shippingAddress.name,
+    //     email: shippingAddress.email,
+    //     address: {
+    //       line1: shippingAddress.address,
+    //       city: shippingAddress.city,
+    //       postalCode: shippingAddress.postalCode,
+    //       country: shippingAddress.country
+    //     }
+    //   },
+    //   products: gelatoProducts.map(product => ({
+    //     ...product,
+    //     // Para cotação, podemos usar URLs placeholder se não tivermos os ficheiros finais ainda
+    //     files: product.files.map(file => ({
+    //       ...file,
+    //       // Nota: Para cotação real, a Gelato pode não exigir ficheiros reais
+    //       // mas é boa prática incluir as dimensões corretas
+    //       type: 'default'
+    //     }))
+    //   }))
+    // };
 
-    console.log('Sending quote request to Gelato:', JSON.stringify(quotePayload, null, 2));
+    console.log('Gelato API temporarily disabled during Printify migration - using fallback shipping');
 
-    // Chamar API da Gelato para cotação
-    const response = await gelatoFetch('/v4/orders:quote', {
-      method: 'POST',
-      body: JSON.stringify(quotePayload)
-    });
+    // Chamar API da Gelato para cotação (comentado durante migração)
+    // const response = await gelatoFetch('/v4/orders:quote', {
+    //   method: 'POST',
+    //   body: JSON.stringify(quotePayload)
+    // });
+
+    // SIMULAÇÃO TEMPORÁRIA - usar fallback direto durante migração
+    const response = { ok: false }; // Forçar fallback
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gelato quote error:', response.status, errorData);
+      // const errorData = await response.text();
+      // console.error('Gelato quote error:', response.status, errorData);
       
       // Se a API da Gelato falhar, retornar cotações simuladas
       return res.status(200).json({
-        success: false,
+        success: true, // Mudado para true pois o fallback funciona
         fallback: true,
+        orderReferenceId,
         shipmentMethods: [
           {
             uid: 'standard_fallback',
@@ -108,41 +112,42 @@ export default async function handler(
       });
     }
 
-    const quoteData = await response.json();
+    // Este código nunca será executado durante a migração, mas mantemos para referência
+    // const quoteData = await response.json();
 
     // Processar resposta da Gelato
-    if (quoteData && quoteData.shipmentMethods) {
-      // Transformar métodos de envio para formato consistente
-      const formattedMethods = quoteData.shipmentMethods.map((method: {
-        uid: string;
-        name?: string;
-        displayName?: string;
-        price?: string;
-        totalPrice?: string;
-        deliveryDaysMin?: number;
-        minDeliveryDays?: number;
-        deliveryDaysMax?: number;
-        maxDeliveryDays?: number;
-        description?: string;
-        carrier?: { name?: string };
-      }) => ({
-        uid: method.uid,
-        name: method.name || method.displayName || 'Método de Envio',
-        price: parseFloat(method.price || method.totalPrice || '0'),
-        deliveryDaysMin: method.deliveryDaysMin || method.minDeliveryDays || 5,
-        deliveryDaysMax: method.deliveryDaysMax || method.maxDeliveryDays || 7,
-        description: method.description || method.carrier?.name
-      }));
+    // if (quoteData && quoteData.shipmentMethods) {
+    //   // Transformar métodos de envio para formato consistente
+    //   const formattedMethods = quoteData.shipmentMethods.map((method: {
+    //     uid: string;
+    //     name?: string;
+    //     displayName?: string;
+    //     price?: string;
+    //     totalPrice?: string;
+    //     deliveryDaysMin?: number;
+    //     minDeliveryDays?: number;
+    //     deliveryDaysMax?: number;
+    //     maxDeliveryDays?: number;
+    //     description?: string;
+    //     carrier?: { name?: string };
+    //   }) => ({
+    //     uid: method.uid,
+    //     name: method.name || method.displayName || 'Método de Envio',
+    //     price: parseFloat(method.price || method.totalPrice || '0'),
+    //     deliveryDaysMin: method.deliveryDaysMin || method.minDeliveryDays || 5,
+    //     deliveryDaysMax: method.deliveryDaysMax || method.maxDeliveryDays || 7,
+    //     description: method.description || method.carrier?.name
+    //   }));
 
-      res.status(200).json({
-        success: true,
-        orderReferenceId,
-        shipmentMethods: formattedMethods,
-        rawResponse: quoteData // Para debug
-      });
-    } else {
-      throw new Error('Resposta da Gelato inválida');
-    }
+    //   res.status(200).json({
+    //     success: true,
+    //     orderReferenceId,
+    //     shipmentMethods: formattedMethods,
+    //     rawResponse: quoteData // Para debug
+    //   });
+    // } else {
+    //   throw new Error('Resposta da Gelato inválida');
+    // }
 
   } catch (error) {
     console.error('Error getting quote:', error);
@@ -150,7 +155,7 @@ export default async function handler(
     // Fallback com cotações simuladas em caso de erro
     const { cart } = req.body;
     res.status(200).json({
-      success: false,
+      success: true, // Mudado para true pois o fallback funciona
       fallback: true,
       error: error instanceof Error ? error.message : 'Erro desconhecido',
       shipmentMethods: [
