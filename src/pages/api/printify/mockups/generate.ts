@@ -65,36 +65,39 @@ export default async function handler(
       });
     }
 
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log("❌ ERRO: Token de autorização em falta");
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized - missing token'
-      });
-    }
+    //const authHeader = req.headers.authorization;
+    //if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    //  console.log("❌ ERRO: Token de autorização em falta");
+    //  return res.status(401).json({
+    //    success: false,
+    //    error: 'Unauthorized - missing token'
+    //  });
+    //}
 
-    const token = authHeader.substring(7);
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    //const token = authHeader.substring(7);
+    //const { data: { user }, error } = await supabase.auth.getUser(token);
 
-    if (error || !user) {
-      console.log("❌ ERRO: Token inválido:", error?.message);
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized - invalid token'
-      });
-    }
+    //if (error || !user) {
+    //  console.log("❌ ERRO: Token inválido:", error?.message);
+    //  return res.status(401).json({
+    //    success: false,
+    //    error: 'Unauthorized - invalid token'
+    //  });
+    //}
 
-    console.log("✅ Autenticação bem-sucedida. User ID:", user.id);
+    //console.log("✅ Autenticação bem-sucedida. User ID:", user.id);
 
-    const { productId, userImageUrl, userId, imageAdjustments }: CreateDraftRequest = req.body;
+    //const { productId, userImageUrl, userId, imageAdjustments }: CreateDraftRequest = req.body;
 
-    console.log("📋 Dados recebidos:", { 
-      productId, 
-      userImageUrl: userImageUrl?.substring(0, 50) + '...', 
-      userId,
-      hasImageAdjustments: !!imageAdjustments
-    });
+    //console.log("📋 Dados recebidos:", { 
+      //productId, 
+      //userImageUrl: userImageUrl?.substring(0, 50) + '...', 
+      //userId,
+      //hasImageAdjustments: !!imageAdjustments
+    //});
+
+    const user = { id: 'test-user-ficticio-123' };
+    const { productId, userImageUrl, userId, imageAdjustments } = req.body;
 
     // Validações básicas
     if (!productId || !userImageUrl || !userId) {
