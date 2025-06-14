@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { gelatoFetch } from '@/lib/gelato/gelatoApi';
+// import { gelatoFetch } from '@/lib/gelato/gelatoApi';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -9,18 +9,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (action === 'search') {
           // Buscar pedidos existentes - POST para manter consistência com Gelato API
-          const searchData = await gelatoFetch('/v4/orders:search', {
-            method: 'POST',
-            body: JSON.stringify(bodyData) // Filtros vindos do body da requisição
-          });
-          return res.status(200).json(searchData);
+          // const searchData = await gelatoFetch('/v4/orders:search', {
+          //   method: 'POST',
+          //   body: JSON.stringify(bodyData) // Filtros vindos do body da requisição
+          // });
+          // return res.status(200).json(searchData);
+          return res.status(503).json({ message: 'Gelato API temporarily disabled during migration' });
         } else {
           // Criar novo pedido
-          const orderData = await gelatoFetch('/v4/orders', {
-            method: 'POST',
-            body: JSON.stringify(req.body)
-          });
-          return res.status(201).json(orderData);
+          // const orderData = await gelatoFetch('/v4/orders', {
+          //   method: 'POST',
+          //   body: JSON.stringify(req.body)
+          // });
+          // return res.status(201).json(orderData);
+          return res.status(503).json({ message: 'Gelato API temporarily disabled during migration' });
         }
       }
 

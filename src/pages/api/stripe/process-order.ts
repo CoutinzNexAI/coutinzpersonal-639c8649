@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 import { supabaseAdmin } from '../../../lib/supabase/admin';
-import { gelatoFetch } from '../../../lib/gelato/gelatoApi';
+// import { gelatoFetch } from '../../../lib/gelato/gelatoApi';
 
 // Interface para shipping details
 interface ShippingDetails {
@@ -17,20 +17,20 @@ interface ShippingDetails {
   };
 }
 
-// Interface para endereço Gelato
-interface GelatoShippingAddress {
-  companyName?: string | null;
-  firstName: string;
-  lastName: string;
-  addressLine1: string;
-  addressLine2?: string | null;
-  city: string;
-  postCode: string;
-  state?: string | null;
-  country: string;
-  email: string;
-  phone?: string | null;
-}
+// Interface para endereço Gelato (comentada temporariamente)
+// interface GelatoShippingAddress {
+//   companyName?: string | null;
+//   firstName: string;
+//   lastName: string;
+//   addressLine1: string;
+//   addressLine2?: string | null;
+//   city: string;
+//   postCode: string;
+//   state?: string | null;
+//   country: string;
+//   email: string;
+//   phone?: string | null;
+// }
 
 // Interface para cart item (compatível com cartTypes.ts)
 interface CartItem {
@@ -220,9 +220,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Formato do endereço para Gelato
+    // Formato do endereço para Gelato (comentado temporariamente)
     const nameParts = customerName.split(' ');
-    const gelatoShippingAddress: GelatoShippingAddress = {
+    const gelatoShippingAddress = {
       companyName: null,
       firstName: nameParts[0] || '',
       lastName: nameParts.slice(1).join(' ') || '',
@@ -352,43 +352,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('🧹 Dados temporários do checkout removidos');
 
-    // 7. CHAMADA BLOQUEANTE À API GELATO
-    let gelatoOrderResult;
+    // 7. CHAMADA BLOQUEANTE À API GELATO (COMENTADA TEMPORARIAMENTE)
+    // let gelatoOrderResult;
     
     try {
-      console.log('🚀 Enviando pedido para Gelato API...');
+      console.log('🚀 Enviando pedido para Gelato API... (SIMULADO)');
       
-      // Construir payload para Gelato baseado nos cart items completos
-      const gelatoItems = cartItems.map((item: CartItem) => ({
-        itemReferenceId: item.id, // ✅ ADICIONADO: ID único obrigatório para cada item
-        productUid: item.productUid || 'canvas_200x200-mm-8x8-inch_canvas_wood-fsc-slim_4-0_ver', // Usar o productUid real do cart
-        quantity: item.quantity || 1,
-        files: [
-          {
-            type: 'default',
-            url: item.userImageUrl // ✅ CORRIGIDO: Usar a imagem real em vez do placeholder
-          }
-        ]
-      }));
+      // // Construir payload para Gelato baseado nos cart items completos
+      // const gelatoItems = cartItems.map((item: CartItem) => ({
+      //   itemReferenceId: item.id, // ✅ ADICIONADO: ID único obrigatório para cada item
+      //   productUid: item.productUid || 'canvas_200x200-mm-8x8-inch_canvas_wood-fsc-slim_4-0_ver', // Usar o productUid real do cart
+      //   quantity: item.quantity || 1,
+      //   files: [
+      //     {
+      //       type: 'default',
+      //       url: item.userImageUrl // ✅ CORRIGIDO: Usar a imagem real em vez do placeholder
+      //     }
+      //   ]
+      // }));
 
-      const gelatoPayload = {
-        orderType: "order",
-        orderReferenceId: savedOrder.id,
-        customerReferenceId: savedOrder.user_id,
-        currency: savedOrder.currency,
-        items: gelatoItems,
-        shippingAddress: gelatoShippingAddress,
-        shipmentMethodUid: shippingMethodData.uid // Usar dados do checkout temporário
+      // const gelatoPayload = {
+      //   orderType: "order",
+      //   orderReferenceId: savedOrder.id,
+      //   customerReferenceId: savedOrder.user_id,
+      //   currency: savedOrder.currency,
+      //   items: gelatoItems,
+      //   shippingAddress: gelatoShippingAddress,
+      //   shipmentMethodUid: shippingMethodData.uid // Usar dados do checkout temporário
+      // };
+
+      // console.log('📤 Payload Gelato:', JSON.stringify(gelatoPayload, null, 2));
+
+      // gelatoOrderResult = await gelatoFetch('/v4/orders', {
+      //   method: 'POST',
+      //   body: JSON.stringify(gelatoPayload)
+      // });
+
+      // console.log('✅ Pedido enviado para Gelato com sucesso:', gelatoOrderResult);
+
+      // SIMULAÇÃO TEMPORÁRIA - será substituído pela Printify na Fase 5
+      const gelatoOrderResult = { 
+        id: 'temp-gelato-order-' + Date.now(), 
+        fulfillmentStatus: 'submitted' 
       };
-
-      console.log('📤 Payload Gelato:', JSON.stringify(gelatoPayload, null, 2));
-
-      gelatoOrderResult = await gelatoFetch('/v4/orders', {
-        method: 'POST',
-        body: JSON.stringify(gelatoPayload)
-      });
-
-      console.log('✅ Pedido enviado para Gelato com sucesso:', gelatoOrderResult);
 
       // 8. ATUALIZAR DB COM SUCESSO GELATO
       const { error: updateError } = await supabaseAdmin
