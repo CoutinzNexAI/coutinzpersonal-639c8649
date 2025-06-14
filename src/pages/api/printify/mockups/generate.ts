@@ -313,7 +313,7 @@ export default async function handler(
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       console.log(`--> 🔍 Attempt ${attempt}/${maxAttempts}: Fetching Printify product ${createdPrintifyProductId} details...`);
       try {
-        const getProductResponse: PrintifyProduct = await printifyFetch(`/v1/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
+        const getProductResponse: PrintifyProduct = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
 
         if (getProductResponse.images && getProductResponse.images.length > 0) {
           console.log(`✅ SUCCESS in Printify product polling! Mockups found on attempt ${attempt}!`);
