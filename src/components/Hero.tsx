@@ -257,7 +257,7 @@ const Hero = () => {
               handle="coutinzpersonal"
               status="Online"
               contactText="Contact Me"
-              avatarUrl="/placeholder.svg"
+              avatarUrl="/lovable-uploads/0d8bf004-03c0-4431-a697-dfaa69ea7d44.png"
               showUserInfo={true}
               enableTilt={true}
               className="w-full max-w-sm mx-auto"
