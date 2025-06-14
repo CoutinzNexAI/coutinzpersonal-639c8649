@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { PIC_TUZ_GELATO_PRODUCT_MAP } from '@/lib/gelato/gelatoProducts';
-import { gelatoFetch } from '@/lib/gelato/gelatoApi';
+// import { gelatoFetch } from '@/lib/gelato/gelatoApi';
 
 interface GenerateMockupRequest {
   productId: string; // Nossa chave interna (ex: "canvas_200x200_square_slim_unframed")
@@ -89,39 +89,59 @@ export default async function handler(
       });
     }
 
-    // Preparar payload para Gelato E-commerce API
-    const gelatoPayload = {
-      templateId: gelatoProduct.gelatoTemplateId,
-      title: `Arte AI para Cliente ${userId} - ${gelatoProduct.name}`,
-      isVisibleInTheOnlineStore: false, // Produto "fantasma" apenas para mockup
-      variants: [
-        {
-          templateVariantId: gelatoProduct.templateVariantId,
-          imagePlaceholders: [
-            {
-              name: gelatoProduct.printArea, // Nome da camada (ex: "design_principal")
-              fileUrl: userImageUrl
-            }
-          ]
-        }
-      ]
+    // Preparar payload para Gelato E-commerce API (comentado durante migração)
+    // const gelatoPayload = {
+    //   templateId: gelatoProduct.gelatoTemplateId,
+    //   title: `Arte AI para Cliente ${userId} - ${gelatoProduct.name}`,
+    //   isVisibleInTheOnlineStore: false, // Produto "fantasma" apenas para mockup
+    //   variants: [
+    //     {
+    //       templateVariantId: gelatoProduct.templateVariantId,
+    //       imagePlaceholders: [
+    //         {
+    //           name: gelatoProduct.printArea, // Nome da camada (ex: "design_principal")
+    //           fileUrl: userImageUrl
+    //         }
+    //       ]
+    //     }
+    //   ]
+    // };
+
+    console.log('Gelato API temporarily disabled during Printify migration');
+
+    // Chamar Gelato E-commerce API (comentado durante migração)
+    // const gelatoResponse = await gelatoFetch(
+    //   `/v1/stores/${storeId}/products:create-from-template`,
+    //   {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify(gelatoPayload)
+    //   }
+    // );
+
+    // console.log('Gelato E-commerce API response:', gelatoResponse);
+
+    // SIMULAÇÃO TEMPORÁRIA - será substituído pela Printify na Fase 5
+    const gelatoResponse = {
+      success: true,
+      data: {
+        id: 'temp-gelato-product-' + Date.now(),
+        previewUrl: userImageUrl, // Usar a imagem do user como preview temporário
+        variants: [
+          {
+            previewUrl: userImageUrl,
+            mockups: [
+              {
+                previewUrl: userImageUrl
+              }
+            ]
+          }
+        ]
+      },
+      error: null
     };
-
-    console.log('Calling Gelato E-commerce API with payload:', JSON.stringify(gelatoPayload, null, 2));
-
-    // Chamar Gelato E-commerce API
-    const gelatoResponse = await gelatoFetch(
-      `/v1/stores/${storeId}/products:create-from-template`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(gelatoPayload)
-      }
-    );
-
-    console.log('Gelato E-commerce API response:', gelatoResponse);
 
     // Extrair URLs de preview da resposta
     if (!gelatoResponse.success || !gelatoResponse.data) {
