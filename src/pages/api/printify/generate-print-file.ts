@@ -1,7 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import sharp from 'sharp';
 import { createClient } from '@supabase/supabase-js';
-import { getGelatoProduct } from '@/lib/gelato/gelatoProducts';
+import { getPrintifyProduct } from '@/lib/printify/printifyProducts';
+import { printifyFetch } from '@/lib/printify/printifyApi';
+import { PrintifyImagePlaceholder } from '@/lib/printify/printifyTypes';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,12 +28,14 @@ interface GeneratePrintFileRequest {
   productId: string; // PicTuz product ID
   userId?: string;
   imageAdjustments?: ImageAdjustments; // Ajustes manuais da imagem
+  printifyPlaceholder?: PrintifyImagePlaceholder; // Dimensões e posição do placeholder da Printify
 }
 
 interface GeneratePrintFileResponse {
   success: boolean;
-  printFileUrl?: string;
-  printFileId?: string;
+  printifyImageId?: string; // O novo ID da Printify
+  printFileUrl?: string; // Manter para debug/referência
+  printFileId?: string; // Manter para debug/referência
   error?: string;
 }
 
@@ -47,7 +51,7 @@ export default async function handler(
   }
 
   try {
-    const { imageUrl, productId, userId, imageAdjustments }: GeneratePrintFileRequest = req.body;
+    const { imageUrl, productId, userId, imageAdjustments, printifyPlaceholder }: GeneratePrintFileRequest = req.body;
 
     // Validar dados de entrada
     if (!imageUrl || !productId) {
@@ -58,22 +62,28 @@ export default async function handler(
     }
 
     // Obter informações do produto
-    const product = getGelatoProduct(productId);
+    const product = getPrintifyProduct(productId);
     if (!product) {
       return res.status(404).json({ 
         success: false, 
-        error: 'Produto não encontrado' 
+        error: 'Product not found' 
       });
     }
 
     console.log(`Generating print file for product: ${product.name}`);
 
-    // Calcular dimensões de destino em pixels para impressão
-    // Fórmula: (dimensão_mm / 25.4) * DPI = pixels
-    const targetWidthPx = Math.round((product.gelatoPrintDimensionsMm.width / 25.4) * product.printFileResolution);
-    const targetHeightPx = Math.round((product.gelatoPrintDimensionsMm.height / 25.4) * product.printFileResolution);
+    // Calcular dimensões de destino em pixels para impressão usando placeholder Printify
+    const targetWidthPx = imageAdjustments?.cropArea ? undefined : printifyPlaceholder?.width;
+    const targetHeightPx = imageAdjustments?.cropArea ? undefined : printifyPlaceholder?.height;
 
-    console.log(`Target print dimensions: ${targetWidthPx}x${targetHeightPx}px (${product.printFileResolution} DPI)`);
+    if (!targetWidthPx || !targetHeightPx) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Printify placeholder dimensions are required' 
+      });
+    }
+
+    console.log(`Target print dimensions from Printify placeholder: ${targetWidthPx}x${targetHeightPx}px`);
 
     // Download da imagem do utilizador
     const imageResponse = await fetch(imageUrl);
@@ -118,7 +128,7 @@ export default async function handler(
       }
 
       // 2. ROTAÇÃO (se suportada e especificada)
-      if (imageAdjustments.rotation && product.adjustmentLimits?.allowRotation) {
+      if (imageAdjustments.rotation) {
         console.log(`Applying rotation: ${imageAdjustments.rotation}°`);
         processedImage = processedImage.rotate(imageAdjustments.rotation, { 
           background: { r: 255, g: 255, b: 255, alpha: 1 } 
@@ -141,7 +151,6 @@ export default async function handler(
     }
 
     // REDIMENSIONAR PARA DIMENSÕES FINAIS DE IMPRESSÃO
-    // A Gelato recebe esta imagem e faz a otimização final (PDF, bleed, etc.)
     const finalImageBuffer = await processedImage
       .resize(targetWidthPx, targetHeightPx, {
         fit: 'cover', // Preenche completamente a área
@@ -157,14 +166,13 @@ export default async function handler(
 
     console.log(`Final processed image: ${targetWidthPx}x${targetHeightPx}px`);
 
-    // Gerar nome único do ficheiro
+    // Opcional: Upload para Supabase Storage (para debug/backup)
     const timestamp = Date.now();
     const userSuffix = userId ? `-${userId}` : '';
     const fileName = `print-${productId}${userSuffix}-${timestamp}`;
     const printFileId = fileName;
 
-    // Upload para Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadSupabaseError } = await supabase.storage
       .from('print-files')
       .upload(`${fileName}.jpg`, finalImageBuffer, {
         contentType: 'image/jpeg',
@@ -172,22 +180,41 @@ export default async function handler(
         upsert: true
       });
 
-    if (uploadError) {
-      console.error('Supabase upload error:', uploadError);
-      throw new Error(`Erro no upload: ${uploadError.message}`);
+    if (uploadSupabaseError) {
+      console.error('Supabase upload error:', uploadSupabaseError);
+      // throw new Error(`Erro no upload para Supabase: ${uploadSupabaseError.message}`); // Decidir se é fatal
     }
 
-    // Obter URL público do ficheiro
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl: supabasePublicUrl } } = supabase.storage
       .from('print-files')
       .getPublicUrl(`${fileName}.jpg`);
 
-    console.log(`Print file uploaded successfully: ${publicUrl}`);
+    console.log(`Print file uploaded to Supabase: ${supabasePublicUrl}`);
+
+    // **NOVO: Upload para Printify Media Library**
+    console.log('🔄 Uploading image to Printify Media Library...');
+    const printifyUploadResponse = await printifyFetch('/uploads/images.json', {
+      method: 'POST',
+      body: JSON.stringify({
+        file_name: `${fileName}.jpg`,
+        url: supabasePublicUrl // Usar URL do Supabase para upload para Printify (recomendado para ficheiros grandes)
+        // Ou 'contents': finalImageBuffer.toString('base64') para base64 direto (evitar para ficheiros grandes)
+      })
+    });
+
+    if (!printifyUploadResponse || !printifyUploadResponse.id) {
+      console.error('Printify upload response error:', printifyUploadResponse);
+      throw new Error('Failed to upload image to Printify Media Library.');
+    }
+
+    const printifyImageId = printifyUploadResponse.id;
+    console.log(`✅ Image uploaded to Printify Media Library. ID: ${printifyImageId}`);
 
     return res.status(200).json({
       success: true,
-      printFileUrl: publicUrl,
-      printFileId: printFileId
+      printifyImageId: printifyImageId,
+      printFileUrl: supabasePublicUrl, // Manter para debug
+      printFileId: printFileId // Manter para debug
     });
 
   } catch (error) {
