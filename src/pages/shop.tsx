@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
-import SocialProof from '@/components/gelato/SocialProof';
 
 const ShopPage: React.FC = () => {
   const categories = [
@@ -198,15 +197,7 @@ const ShopPage: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Social Proof Section */}
-          <motion.div 
-            className="mt-20"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.0 }}
-          >
-            <SocialProof />
-          </motion.div>
+
         </main>
         
         <Footer />

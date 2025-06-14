@@ -1,7 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 import { supabaseAdmin } from '../../../lib/supabase/admin';
-// import { gelatoFetch } from '../../../lib/gelato/gelatoApi';
+import { printifyFetch } from '../../../lib/printify/printifyApi';
+import { PrintifyShippingAddress, PrintifyOrderCreationPayload } from '../../../lib/printify/printifyTypes';
+import { getPrintifyProduct, PrintifyProductMapping } from '../../../lib/printify/printifyProducts';
 
 // Interface para shipping details
 interface ShippingDetails {
@@ -17,21 +19,6 @@ interface ShippingDetails {
   };
 }
 
-// Interface para endereço Gelato (comentada temporariamente)
-// interface GelatoShippingAddress {
-//   companyName?: string | null;
-//   firstName: string;
-//   lastName: string;
-//   addressLine1: string;
-//   addressLine2?: string | null;
-//   city: string;
-//   postCode: string;
-//   state?: string | null;
-//   country: string;
-//   email: string;
-//   phone?: string | null;
-// }
-
 // Interface para cart item (compatível com cartTypes.ts)
 interface CartItem {
   id: string;
@@ -41,6 +28,7 @@ interface CartItem {
   productCategory: string;
   userImageUrl: string;
   userImageId?: string;
+  printifyImageId?: number; // ID da imagem na Printify
   price: number;
   quantity: number;
   customizations?: {
@@ -83,6 +71,14 @@ interface CheckoutTempData {
     total: number;
   };
 }
+
+// Mapeamento de métodos de envio para códigos Printify
+const SHIPPING_METHOD_MAP: Record<string, number> = {
+  'standard': 1,
+  'express': 2,
+  'priority': 3,
+  'overnight': 4
+};
 
 // Função utilitária para extrair transformation_id do URL de output
 function extractTransformationIdFromUrl(outputUrl: string): string | null {
@@ -220,20 +216,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Formato do endereço para Gelato (comentado temporariamente)
+    // Formato do endereço para Printify
     const nameParts = customerName.split(' ');
-    const gelatoShippingAddress = {
-      companyName: null,
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
-      addressLine1: rawAddress.line1,
-      addressLine2: rawAddress.line2 || null,
-      city: rawAddress.city,
-      postCode: rawAddress.postal_code,
-      state: rawAddress.state || null,
-      country: rawAddress.country,
+    const printifyShippingAddress: PrintifyShippingAddress = {
+      first_name: nameParts[0] || '',
+      last_name: nameParts.slice(1).join(' ') || '',
       email: customerEmail,
-      phone: customerPhone,
+      phone: customerPhone || undefined,
+      address1: rawAddress.line1,
+      address2: rawAddress.line2 || undefined,
+      city: rawAddress.city,
+      region: rawAddress.state || undefined,
+      zip: rawAddress.postal_code,
+      country: rawAddress.country
     };
 
     // 4. PREPARAR DADOS DO PEDIDO PARA DB
@@ -271,8 +266,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       currency: 'EUR',
       quantity: firstItem.quantity || 1,
       
-      // ✅ STRIPE E GELATO IDS
-      gelato_order_id: null, // Será preenchido após chamada Gelato
+      // ✅ PRINTIFY IDS (atualizados)
+      printify_order_id: null, // Será preenchido após chamada Printify
       order_reference: orderReference, // ✅ Referência interna dos metadata
       
       // ✅ CAMPOS CRÍTICOS DO CLIENTE
@@ -281,14 +276,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customer_phone: customerPhone,
       
       // ✅ DADOS FINANCEIROS - NOMES CORRECTOS DAS COLUNAS
-      total_amount: financialData.total, // ✅ CORRIGIDO: era total_amount não total_amount
-      subtotal_amount: financialData.subtotal, // ✅ CORRIGIDO: era subtotal não subtotal_amount  
-      shipping_amount: financialData.shipping, // ✅ CORRIGIDO: era shipping_cost não shipping_amount
-      tax_amount: financialData.tax, // ✅ CORRECTO: tax_amount
+      total_amount: financialData.total,
+      subtotal_amount: financialData.subtotal,
+      shipping_amount: financialData.shipping,
+      tax_amount: financialData.tax,
       
       // ✅ DADOS JSONB
       customizations: firstItem.customizations || null,
-      shipping_info: gelatoShippingAddress, // ✅ OBRIGATÓRIO: JSONB do endereço
+      shipping_info: printifyShippingAddress, // ✅ OBRIGATÓRIO: JSONB do endereço
       payment_info: { // JSONB com info do pagamento
         stripe_session_id: sessionId,
         stripe_payment_intent_id: typeof session.payment_intent === 'string' 
@@ -300,9 +295,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       items: cartItems, // Array JSONB completo dos itens do carrinho
       
-      // ✅ STATUS INICIAL - CORRIGIDO
-      status: 'processing', // ✅ CORRIGIDO: Valor válido da CHECK constraint
-      gelato_status: 'payment_processed_db_saved', // ✅ CORRIGIDO: Estado interno do PicTuz
+      // ✅ STATUS INICIAL - CORRIGIDO PARA PRINTIFY
+      status: 'processing',
+      printify_status: 'payment_processed_db_saved', // ✅ Estado interno do PicTuz
       
       // ✅ CAMPOS DE TRACKING (nulls por agora)
       tracking_number: null,
@@ -313,7 +308,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       updated_at: new Date().toISOString()
     };
 
-    console.log('💾 Salvando pedido na base de dados com schema completo...');
+    console.log('💾 Salvando pedido na base de dados com schema Printify...');
     console.log('📋 Dados do pedido preparados:', {
       user_id: orderData.user_id,
       transformation_id: orderData.transformation_id,
@@ -325,7 +320,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // 5. INSERÇÃO CRÍTICA NA BASE DE DADOS (DEVE SER BEM-SUCEDIDA)
     const { data: savedOrder, error: dbError } = await supabaseAdmin
-      .from('gelato_orders')
+      .from('printify_orders') // ✅ ATUALIZADO: tabela printify_orders
       .insert(orderData)
       .select()
       .single();
@@ -352,99 +347,145 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('🧹 Dados temporários do checkout removidos');
 
-    // 7. CHAMADA BLOQUEANTE À API GELATO (COMENTADA TEMPORARIAMENTE)
-    // let gelatoOrderResult;
-    
+    // 7. CHAMADA BLOQUEANTE À API PRINTIFY
     try {
-      console.log('🚀 Enviando pedido para Gelato API... (SIMULADO)');
+      console.log('🚀 Enviando pedido para Printify API...');
       
-      // // Construir payload para Gelato baseado nos cart items completos
-      // const gelatoItems = cartItems.map((item: CartItem) => ({
-      //   itemReferenceId: item.id, // ✅ ADICIONADO: ID único obrigatório para cada item
-      //   productUid: item.productUid || 'canvas_200x200-mm-8x8-inch_canvas_wood-fsc-slim_4-0_ver', // Usar o productUid real do cart
-      //   quantity: item.quantity || 1,
-      //   files: [
-      //     {
-      //       type: 'default',
-      //       url: item.userImageUrl // ✅ CORRIGIDO: Usar a imagem real em vez do placeholder
-      //     }
-      //   ]
-      // }));
+      // Mapear método de envio
+      const shippingMethodId = SHIPPING_METHOD_MAP[shippingMethodData.uid] || 1; // Default: standard
+      
+      // Construir line_items para Printify baseado nos cart items completos
+      const printifyLineItems = [];
 
-      // const gelatoPayload = {
-      //   orderType: "order",
-      //   orderReferenceId: savedOrder.id,
-      //   customerReferenceId: savedOrder.user_id,
-      //   currency: savedOrder.currency,
-      //   items: gelatoItems,
-      //   shippingAddress: gelatoShippingAddress,
-      //   shipmentMethodUid: shippingMethodData.uid // Usar dados do checkout temporário
-      // };
+      for (const item of cartItems) {
+        const productMapping = getPrintifyProduct(item.productId);
+        if (!productMapping) {
+          throw new Error(`Product mapping not found: ${item.productId}`);
+        }
 
-      // console.log('📤 Payload Gelato:', JSON.stringify(gelatoPayload, null, 2));
+        if (!productMapping.printifyBlueprintId || !productMapping.printifyPrintProviderId || !productMapping.printifyVariantIds) {
+          throw new Error(`Product ${item.productId} missing Printify configuration`);
+        }
 
-      // gelatoOrderResult = await gelatoFetch('/v4/orders', {
-      //   method: 'POST',
-      //   body: JSON.stringify(gelatoPayload)
-      // });
+        // Para produtos com imagem customizada
+        if (item.userImageUrl && item.printifyImageId) {
+          const lineItem = {
+            product_id: productMapping.printifyBlueprintId,
+            variant_id: productMapping.printifyVariantIds[0], // Usar primeira variante
+            print_provider_id: productMapping.printifyPrintProviderId,
+            quantity: item.quantity,
+            print_areas: [
+              {
+                variant_ids: productMapping.printifyVariantIds,
+                placeholders: [
+                  {
+                    position: productMapping.printArea || 'front',
+                    images: [
+                      {
+                        id: item.printifyImageId,
+                        x: item.imageAdjustments?.x || 0.5,
+                        y: item.imageAdjustments?.y || 0.5,
+                        scale: item.imageAdjustments?.scale || 1,
+                        angle: item.imageAdjustments?.rotation || 0
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          };
+          printifyLineItems.push(lineItem);
+        } else {
+          // Para produtos sem customização (se aplicável)
+          const lineItem = {
+            product_id: productMapping.printifyBlueprintId,
+            variant_id: productMapping.printifyVariantIds[0],
+            print_provider_id: productMapping.printifyPrintProviderId,
+            quantity: item.quantity
+          };
+          printifyLineItems.push(lineItem);
+        }
+      }
 
-      // console.log('✅ Pedido enviado para Gelato com sucesso:', gelatoOrderResult);
-
-      // SIMULAÇÃO TEMPORÁRIA - será substituído pela Printify na Fase 5
-      const gelatoOrderResult = { 
-        id: 'temp-gelato-order-' + Date.now(), 
-        fulfillmentStatus: 'submitted' 
+      // Construir payload para Printify
+      const printifyPayload: PrintifyOrderCreationPayload = {
+        external_id: `PICTUZ-${Date.now()}-${savedOrder.user_id.substring(0, 8)}`,
+        line_items: printifyLineItems,
+        shipping_method: shippingMethodId,
+        address_to: printifyShippingAddress
       };
 
-      // 8. ATUALIZAR DB COM SUCESSO GELATO
+      console.log('📤 Payload Printify:', JSON.stringify(printifyPayload, null, 2));
+
+      // Chamar API Printify
+      const shopId = process.env.PRINTIFY_SHOP_ID;
+      if (!shopId) {
+        throw new Error('PRINTIFY_SHOP_ID not configured');
+      }
+
+      const printifyOrderResult = await printifyFetch(`/v1/shops/${shopId}/orders.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(printifyPayload)
+      });
+
+      if (!printifyOrderResult.success) {
+        throw new Error(printifyOrderResult.error || 'Failed to create order in Printify');
+      }
+
+      console.log('✅ Pedido enviado para Printify com sucesso:', printifyOrderResult.data);
+
+      // 8. ATUALIZAR DB COM SUCESSO PRINTIFY
       const { error: updateError } = await supabaseAdmin
-        .from('gelato_orders')
+        .from('printify_orders')
         .update({
-          gelato_order_id: gelatoOrderResult.id,
-          gelato_status: gelatoOrderResult.fulfillmentStatus || 'submitted',
-          status: 'processing', // Agora está realmente em processamento na Gelato
+          printify_order_id: printifyOrderResult.data?.id,
+          printify_status: printifyOrderResult.data?.status || 'submitted',
+          status: 'processing', // Agora está realmente em processamento na Printify
           updated_at: new Date().toISOString()
         })
         .eq('id', savedOrder.id);
 
       if (updateError) {
-        console.error('⚠️ ERRO: Falha ao atualizar DB com ID Gelato:', updateError);
+        console.error('⚠️ ERRO: Falha ao atualizar DB com ID Printify:', updateError);
         // Não é crítico, mas deve ser registado
       }
 
       // 9. RESPOSTA DE SUCESSO COMPLETO
       return res.status(200).json({
         success: true,
-        message: "Pedido processado com sucesso e enviado para a Gelato!",
+        message: "Pedido processado com sucesso e enviado para a Printify!",
         orderId: savedOrder.id,
         orderReference: orderReference,
-        gelatoOrderId: gelatoOrderResult.id,
+        printifyOrderId: printifyOrderResult.data?.id,
         status: 'processing',
-        estimatedDelivery: '4-5 dias úteis',
+        estimatedDelivery: '7-14 dias úteis',
         customerEmail: customerEmail,
         customerName: customerName,
         total: savedOrder.total_amount
       });
 
-    } catch (gelatoError: unknown) {
-      console.error('❌ ERRO CRÍTICO: Falha ao enviar pedido para a Gelato API:', gelatoError);
+    } catch (printifyError: unknown) {
+      console.error('❌ ERRO CRÍTICO: Falha ao enviar pedido para a Printify API:', printifyError);
       
-      // 10. MARCAR COMO ERRO GELATO NA DB
-      const errorMessage = gelatoError instanceof Error ? gelatoError.message : 'Erro desconhecido na API Gelato';
+      // 10. MARCAR COMO ERRO PRINTIFY NA DB
+      const errorMessage = printifyError instanceof Error ? printifyError.message : 'Erro desconhecido na API Printify';
       
       await supabaseAdmin
-        .from('gelato_orders')
+        .from('printify_orders')
         .update({
-          gelato_status: 'failed_gelato_api',
-          status: 'failed', // ✅ CORRIGIDO: Usar 'failed' (será adicionado à constraint)
+          printify_status: 'failed_printify_api',
+          status: 'failed',
           updated_at: new Date().toISOString()
         })
         .eq('id', savedOrder.id);
 
-      // 11. RESPOSTA DE ERRO GELATO (PAGAMENTO FOI PROCESSADO MAS GELATO FALHOU)
+      // 11. RESPOSTA DE ERRO PRINTIFY (PAGAMENTO FOI PROCESSADO MAS PRINTIFY FALHOU)
       return res.status(500).json({
         success: false,
-        message: "O pagamento foi processado, mas houve um erro ao enviar o pedido para a Gelato. Contacte o suporte.",
+        message: "O pagamento foi processado, mas houve um erro ao enviar o pedido para a Printify. Contacte o suporte.",
         orderId: savedOrder.id,
         orderReference: orderReference,
         error: errorMessage,

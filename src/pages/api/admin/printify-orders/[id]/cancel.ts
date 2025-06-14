@@ -2,18 +2,18 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { withAdminAuth, AuthenticatedUser } from '@/lib/auth/withAdminAuth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
-// Função para fazer chamadas à API da Gelato
-async function gelatoFetch(endpoint: string, options?: RequestInit) {
-  const baseURL = process.env.GELATO_API_BASE_URL || 'https://order.gelatoapis.com';
-  const apiKey = process.env.GELATO_API_KEY;
+// Função para fazer chamadas à API da Printify
+async function printifyFetch(endpoint: string, options?: RequestInit) {
+  const baseURL = 'https://api.printify.com';
+  const apiToken = process.env.PRINTIFY_API_TOKEN;
 
-  if (!apiKey) {
-    throw new Error('GELATO_API_KEY não configurado');
+  if (!apiToken) {
+    throw new Error('PRINTIFY_API_TOKEN não configurado');
   }
 
   const response = await fetch(`${baseURL}${endpoint}`, {
     headers: {
-      'X-API-KEY': apiKey,
+      'Authorization': `Bearer ${apiToken}`,
       'Content-Type': 'application/json',
       ...options?.headers,
     },
@@ -23,7 +23,7 @@ async function gelatoFetch(endpoint: string, options?: RequestInit) {
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
     throw new Error(
-      `Gelato API Error: ${response.status} - ${errorData?.message || response.statusText}`
+      `Printify API Error: ${response.status} - ${errorData?.message || response.statusText}`
     );
   }
 
@@ -47,7 +47,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
 
     // 1. Buscar o pedido no nosso banco de dados
     const { data: order, error: orderError } = await supabaseAdmin
-      .from('gelato_orders')
+      .from('printify_orders')
       .select('*')
       .eq('id', id)
       .single();
@@ -57,27 +57,28 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
       return;
     }
 
-    if (!order.gelato_order_id) {
-      res.status(400).json({ message: 'Pedido não tem ID da Gelato associado.' });
+    if (!order.printify_order_id) {
+      res.status(400).json({ message: 'Pedido não tem ID da Printify associado.' });
       return;
     }
 
-    // 2. Verificar o status atual do pedido na Gelato
-    let gelatoOrder;
+    // 2. Verificar o status atual do pedido na Printify
+    let printifyOrder;
     try {
-      gelatoOrder = await gelatoFetch(`/v4/orders/${order.gelato_order_id}`);
+      const shopId = process.env.PRINTIFY_SHOP_ID;
+      printifyOrder = await printifyFetch(`/v1/shops/${shopId}/orders/${order.printify_order_id}.json`);
     } catch (error) {
-      console.error('Erro ao buscar pedido na Gelato:', error);
+      console.error('Erro ao buscar pedido na Printify:', error);
       res.status(500).json({ 
-        message: 'Erro ao verificar status do pedido na Gelato.',
+        message: 'Erro ao verificar status do pedido na Printify.',
         error: error instanceof Error ? error.message : 'Erro desconhecido'
       });
       return;
     }
 
     // 3. Verificar se o pedido pode ser cancelado
-    const currentStatus = gelatoOrder.status;
-    const cancelableStatuses = ['draft', 'pending', 'payment_pending', 'approved'];
+    const currentStatus = printifyOrder.status;
+    const cancelableStatuses = ['pending', 'on-hold'];
 
     if (!cancelableStatuses.includes(currentStatus)) {
       res.status(400).json({ 
@@ -88,19 +89,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
       return;
     }
 
-    // 4. Cancelar o pedido na Gelato
+    // 4. Cancelar o pedido na Printify
     let cancelResponse;
     try {
-      cancelResponse = await gelatoFetch(`/v4/orders/${order.gelato_order_id}:cancel`, {
+      const shopId = process.env.PRINTIFY_SHOP_ID;
+      cancelResponse = await printifyFetch(`/v1/shops/${shopId}/orders/${order.printify_order_id}/cancel.json`, {
         method: 'POST',
         body: JSON.stringify({
           reason: `Cancelado pelo admin: ${user.email} (${user.id})`
         })
       });
     } catch (error) {
-      console.error('Erro ao cancelar pedido na Gelato:', error);
+      console.error('Erro ao cancelar pedido na Printify:', error);
       res.status(500).json({ 
-        message: 'Erro ao cancelar pedido na Gelato.',
+        message: 'Erro ao cancelar pedido na Printify.',
         error: error instanceof Error ? error.message : 'Erro desconhecido'
       });
       return;
@@ -108,10 +110,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
 
     // 5. Atualizar o status no nosso banco de dados
     const { error: updateError } = await supabaseAdmin
-      .from('gelato_orders')
+      .from('printify_orders')
       .update({
         status: 'cancelled',
-        gelato_status: 'cancelled',
+        printify_status: 'cancelled',
         updated_at: new Date().toISOString()
       })
       .eq('id', id);
@@ -123,7 +125,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
 
     // 6. Log da ação
     console.log(`Pedido ${id} cancelado pelo admin ${user.email}:`, {
-      gelato_order_id: order.gelato_order_id,
+      printify_order_id: order.printify_order_id,
       previous_status: currentStatus,
       cancel_response: cancelResponse
     });
@@ -131,12 +133,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
     res.status(200).json({
       message: 'Pedido cancelado com sucesso.',
       order_id: id,
-      gelato_order_id: order.gelato_order_id,
+      printify_order_id: order.printify_order_id,
       previous_status: currentStatus,
       new_status: 'cancelled',
       cancelled_by: user.email,
       cancelled_at: new Date().toISOString(),
-      gelato_response: cancelResponse
+      printify_response: cancelResponse
     });
 
   } catch (error) {

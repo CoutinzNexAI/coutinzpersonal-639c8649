@@ -193,7 +193,7 @@ export default async function handler(
 
     // **NOVO: Upload para Printify Media Library**
     console.log('🔄 Uploading image to Printify Media Library...');
-    const printifyUploadResponse = await printifyFetch('/uploads/images.json', {
+    const printifyUploadResponse = await printifyFetch('/v1/uploads/images.json', {
       method: 'POST',
       body: JSON.stringify({
         file_name: `${fileName}.jpg`,

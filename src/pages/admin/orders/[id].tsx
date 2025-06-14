@@ -107,7 +107,7 @@ const AdminOrderDetailPage = () => {
         return;
       }
 
-      const response = await fetch(`/api/admin/gelato-orders?id=${id}`, {
+      const response = await fetch(`/api/admin/printify-orders?id=${id}`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }
@@ -150,7 +150,7 @@ const AdminOrderDetailPage = () => {
         return;
       }
 
-      const response = await fetch(`/api/admin/gelato-orders/${order.id}/cancel`, {
+      const response = await fetch(`/api/admin/printify-orders/${order.id}/cancel`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,

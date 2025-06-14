@@ -7,11 +7,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import ProductCanvas from '@/components/gelato/ProductCanvas';
-import TransformationGalleryModal from '@/components/gelato/TransformationGalleryModal';
 import { getPrintifyProduct, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
-import SocialProof from '@/components/gelato/SocialProof';
 import { CartService } from '@/lib/cart/cartService';
 
 interface ImageAdjustments {
@@ -287,13 +284,10 @@ const ProductDetailPage: React.FC = () => {
                   👁️ Pré-visualização
                 </h2>
                 
-                <ProductCanvas
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  gelatoGeneratedPreviewUrls={gelatoPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  className="w-full"
-                />
+                {/* TODO: Migrar ProductCanvas para Printify */}
+                <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <p className="text-gray-500">Preview em desenvolvimento</p>
+                </div>
 
                 {/* Loading indicator para Draft Order */}
                 {isCreatingDraft && selectedImageUrl && !product.supportsManualAdjustment && (
@@ -458,25 +452,12 @@ const ProductDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Social Proof Section */}
-          <motion.div 
-            className="mt-16 lg:mt-20"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-          >
-            <SocialProof />
-          </motion.div>
+          {/* TODO: Migrar SocialProof para Printify */}
         </main>
         
         <Footer />
 
-        {/* Modal da Galeria de Transformações */}
-        <TransformationGalleryModal
-          isOpen={isGalleryModalOpen}
-          onClose={() => setIsGalleryModalOpen(false)}
-          onSelectImage={handleSelectImageFromGallery}
-        />
+        {/* TODO: Migrar TransformationGalleryModal para Printify */}
       </div>
     </>
   );

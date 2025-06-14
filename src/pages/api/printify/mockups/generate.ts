@@ -164,7 +164,7 @@ export default async function handler(
     // PASSO 1.5: Obter Detalhes do Placeholder da Printify
     console.log('🔄 STEP 1.5: Fetching Printify blueprint variant details...');
     const printifyVariantsResponse = await printifyFetch(
-      `/blueprints/${product.printifyBlueprintId}/print_providers/${product.printifyPrintProviderId}/variants.json`
+      `/catalog/blueprints/${product.printifyBlueprintId}/print_providers/${product.printifyPrintProviderId}/variants.json`
     );
 
     const selectedPrintifyVariant = printifyVariantsResponse.variants.find(
@@ -267,7 +267,7 @@ export default async function handler(
 
     console.log('📤 Payload for Printify product creation:', JSON.stringify(printifyProductPayload, null, 2));
 
-    const printifyProductResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
+    const printifyProductResponse = await printifyFetch(`/v1/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
       method: 'POST',
       body: JSON.stringify(printifyProductPayload)
     });
@@ -288,7 +288,7 @@ export default async function handler(
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       console.log(`--> 🔍 Attempt ${attempt}/${maxAttempts}: Fetching Printify product ${createdPrintifyProductId} details...`);
       try {
-        const getProductResponse: PrintifyProduct = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
+        const getProductResponse: PrintifyProduct = await printifyFetch(`/v1/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
 
         if (getProductResponse.images && getProductResponse.images.length > 0) {
           console.log(`✅ SUCCESS in Printify product polling! Mockups found on attempt ${attempt}!`);
@@ -309,7 +309,7 @@ export default async function handler(
     // Opcional: Apagar o produto Printify temporário se for apenas para mockups
     // console.log(`🗑️ Deleting temporary Printify product ${createdPrintifyProductId}...`);
     // try {
-    //     await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`, { method: 'DELETE' });
+    //     await printifyFetch(`/v1/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`, { method: 'DELETE' });
     //     console.log('✅ Temporary Printify product deleted.');
     // } catch (deleteError) {
     //     console.warn('⚠️ WARNING: Failed to delete temporary Printify product:', deleteError);

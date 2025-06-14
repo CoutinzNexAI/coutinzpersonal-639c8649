@@ -13,7 +13,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         if (id && typeof id === 'string') {
           // Buscar pedido específico
           const { data: order, error } = await supabaseAdmin
-            .from('gelato_orders')
+            .from('printify_orders')
             .select(`
               *,
               users:user_id (
@@ -34,7 +34,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         } else {
           // Buscar todos os pedidos com paginação
           const { data: orders, error, count } = await supabaseAdmin
-            .from('gelato_orders')
+            .from('printify_orders')
             .select(`
               *,
               users:user_id (
@@ -63,7 +63,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
       case 'POST': {
         const { 
           status, 
-          gelato_status, 
+          printify_status, 
           user_email, 
           product_name,
           start_date,
@@ -73,7 +73,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         } = req.body;
 
         let query = supabaseAdmin
-          .from('gelato_orders')
+          .from('printify_orders')
           .select(`
             *,
             users:user_id (
@@ -86,8 +86,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         if (status) {
           query = query.eq('status', status);
         }
-        if (gelato_status) {
-          query = query.eq('gelato_status', gelato_status);
+        if (printify_status) {
+          query = query.eq('printify_status', printify_status);
         }
         if (product_name) {
           query = query.ilike('product_name', `%${product_name}%`);
@@ -150,7 +150,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
       }
     }
   } catch (error) {
-    console.error('Erro na API /api/admin/gelato-orders:', error);
+    console.error('Erro na API /api/admin/printify-orders:', error);
     res.status(500).json({ 
       message: 'Erro interno do servidor', 
       error: error instanceof Error ? error.message : 'Erro desconhecido' 

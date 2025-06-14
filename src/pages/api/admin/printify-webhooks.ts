@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 interface WebhookFilters {
   event_type?: string;
   processed?: boolean;
-  gelato_order_id?: string;
+  printify_order_id?: string;
   start_date?: string;
   end_date?: string;
   page?: number;
@@ -22,7 +22,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         if (id && typeof id === 'string') {
           // Buscar webhook específico
           const { data: webhook, error } = await supabaseAdmin
-            .from('gelato_webhooks')
+            .from('printify_webhooks')
             .select('*')
             .eq('id', id)
             .single();
@@ -37,7 +37,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         } else {
           // Buscar todos os webhooks com paginação
           const { data: webhooks, error, count } = await supabaseAdmin
-            .from('gelato_webhooks')
+            .from('printify_webhooks')
             .select('*', { count: 'exact' })
             .order('created_at', { ascending: false })
             .range(Number(offset), Number(offset) + Number(limit) - 1);
@@ -63,7 +63,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         const { 
           event_type, 
           processed, 
-          gelato_order_id,
+          printify_order_id,
           start_date,
           end_date,
           page = 1,
@@ -71,7 +71,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         } = filters;
 
         let query = supabaseAdmin
-          .from('gelato_webhooks')
+          .from('printify_webhooks')
           .select('*', { count: 'exact' });
 
         // Aplicar filtros
@@ -81,8 +81,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         if (typeof processed === 'boolean') {
           query = query.eq('processed', processed);
         }
-        if (gelato_order_id) {
-          query = query.eq('gelato_order_id', gelato_order_id);
+        if (printify_order_id) {
+          query = query.eq('printify_order_id', printify_order_id);
         }
         if (start_date) {
           query = query.gte('created_at', start_date);
@@ -129,7 +129,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         }
 
         const { data: webhook, error } = await supabaseAdmin
-          .from('gelato_webhooks')
+          .from('printify_webhooks')
           .update({ processed })
           .eq('id', id)
           .select()
@@ -160,7 +160,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
         cutoffDate.setDate(cutoffDate.getDate() - older_than_days);
 
         const { data: deletedWebhooks, error } = await supabaseAdmin
-          .from('gelato_webhooks')
+          .from('printify_webhooks')
           .delete()
           .lt('created_at', cutoffDate.toISOString())
           .select();
@@ -185,7 +185,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
       }
     }
   } catch (error) {
-    console.error('Erro na API /api/admin/gelato-webhooks:', error);
+    console.error('Erro na API /api/admin/printify-webhooks:', error);
     res.status(500).json({ 
       message: 'Erro interno do servidor', 
       error: error instanceof Error ? error.message : 'Erro desconhecido' 

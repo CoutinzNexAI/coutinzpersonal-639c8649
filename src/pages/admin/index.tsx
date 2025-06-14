@@ -81,8 +81,8 @@ const AdminDashboard = () => {
 
       // Carregar estatísticas dos pedidos
       const { data: ordersData, error: ordersError } = await supabase
-        .from('gelato_orders')
-        .select('status, gelato_status, price, currency');
+        .from('printify_orders')
+        .select('status, printify_status, price, currency');
 
       if (ordersError) {
         console.error('Erro ao carregar pedidos:', ordersError);
@@ -90,7 +90,7 @@ const AdminDashboard = () => {
 
       // Carregar estatísticas dos webhooks
       const { data: webhooksData, error: webhooksError } = await supabase
-        .from('gelato_webhooks')
+        .from('printify_webhooks')
         .select('processed, created_at');
 
       if (webhooksError) {
@@ -188,11 +188,11 @@ const AdminDashboard = () => {
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => window.open('https://app.gelato.com', '_blank')}
+              onClick={() => window.open('https://printify.com/app', '_blank')}
               className="flex items-center gap-2"
             >
               <ExternalLink className="h-4 w-4" />
-              Dashboard Gelato
+              Dashboard Printify
             </Button>
           </div>
         </div>

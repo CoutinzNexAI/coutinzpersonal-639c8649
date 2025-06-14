@@ -120,7 +120,7 @@ const AdminOrdersPage = () => {
         return;
       }
 
-      const response = await fetch('/api/admin/gelato-orders', {
+      const response = await fetch('/api/admin/printify-orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
