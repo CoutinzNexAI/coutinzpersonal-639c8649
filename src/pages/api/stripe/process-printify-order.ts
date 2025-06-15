@@ -565,7 +565,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         estimatedDelivery: '7-14 dias úteis',
         customerEmail: customerEmail,
         customerName: customerName,
-        total: savedOrder.total_amount
+        total: savedOrder.total_amount || 0, // ✅ GARANTIR QUE É UM NÚMERO
+        subtotal: savedOrder.subtotal_amount || 0, // ✅ ADICIONAR SUBTOTAL
+        shipping: savedOrder.shipping_amount || 0, // ✅ ADICIONAR SHIPPING
+        tax: savedOrder.tax_amount || 0, // ✅ ADICIONAR TAX
       });
 
     } catch (printifyError: unknown) {
@@ -590,7 +593,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderId: savedOrder.id,
         orderReference: orderReference,
         error: errorMessage,
-        supportNeeded: true
+        supportNeeded: true,
+        // ✅ INCLUIR DADOS FINANCEIROS MESMO EM ERRO PARA EVITAR UNDEFINED
+        customerEmail: customerEmail,
+        customerName: customerName,
+        status: 'failed',
+        total: savedOrder.total_amount || 0,
+        subtotal: savedOrder.subtotal_amount || 0,
+        shipping: savedOrder.shipping_amount || 0,
+        tax: savedOrder.tax_amount || 0,
       });
     }
 

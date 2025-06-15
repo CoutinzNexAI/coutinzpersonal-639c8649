@@ -13,12 +13,16 @@ interface OrderResult {
   message: string;
   orderId: string;
   orderReference: string;
-  gelatoOrderId?: string;
+  printifyOrderId?: string; // ✅ ATUALIZADO: printifyOrderId em vez de gelatoOrderId
+  gelatoOrderId?: string; // ✅ MANTER PARA COMPATIBILIDADE
   status: string;
   estimatedDelivery?: string;
   customerEmail: string;
   customerName: string;
   total: number;
+  subtotal?: number; // ✅ ADICIONAR CAMPOS FINANCEIROS OPCIONAIS
+  shipping?: number;
+  tax?: number;
   error?: string;
   supportNeeded?: boolean;
 }
@@ -222,7 +226,7 @@ const CheckoutSuccessPage: React.FC = () => {
                 
                 <div>
                   <span className="font-medium text-ghibli-earth">Total:</span>
-                  <span className="ml-2 font-bold text-ghibli-moss">€{orderResult.total.toFixed(2)}</span>
+                  <span className="ml-2 font-bold text-ghibli-moss">€{(orderResult.total || 0).toFixed(2)}</span>
                 </div>
                 
                 <div>
@@ -253,10 +257,14 @@ const CheckoutSuccessPage: React.FC = () => {
                   </div>
                 )}
                 
-                {orderResult.gelatoOrderId && (
+                {(orderResult.printifyOrderId || orderResult.gelatoOrderId) && (
                   <div className="md:col-span-2">
-                    <span className="font-medium text-ghibli-earth">ID Gelato:</span>
-                    <span className="ml-2 font-mono text-ghibli-wood">{orderResult.gelatoOrderId}</span>
+                    <span className="font-medium text-ghibli-earth">
+                      {orderResult.printifyOrderId ? 'ID Printify:' : 'ID Gelato:'}
+                    </span>
+                    <span className="ml-2 font-mono text-ghibli-wood">
+                      {orderResult.printifyOrderId || orderResult.gelatoOrderId}
+                    </span>
                   </div>
                 )}
               </div>
@@ -272,7 +280,7 @@ const CheckoutSuccessPage: React.FC = () => {
                       <span className="font-medium">Pedido em Produção</span>
                     </div>
                     <p className="text-sm text-green-700">
-                      O seu pedido foi enviado para a Gelato e está agora em produção. 
+                      O seu pedido foi enviado para a Printify e está agora em produção. 
                       Receberá updates por email sobre o progresso.
                     </p>
                   </div>
