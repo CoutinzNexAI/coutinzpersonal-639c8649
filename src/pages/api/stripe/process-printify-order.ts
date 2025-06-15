@@ -453,6 +453,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       console.log('📤 Payload Printify:', JSON.stringify(printifyPayload, null, 2));
 
+      // --- NOVO: Tentar calcular o custo de envio primeiro ---
+      console.log('🔄 Verificando custos de envio com a Printify API...');
+      const shippingCalculationPayload = {
+        line_items: printifyLineItems, // Use os mesmos line_items que vai usar no pedido final
+        address_to: printifyShippingAddress, // Use o mesmo address_to que vai usar no pedido final
+      };
+
+      const shippingCostsResponse = await printifyFetch(
+        `/shops/${process.env.PRINTIFY_SHOP_ID}/orders/shipping.json`,
+        {
+          method: 'POST',
+          body: JSON.stringify(shippingCalculationPayload),
+        }
+      );
+      console.log('✅ Resposta de Cálculo de Envio Printify:', shippingCostsResponse);
+
+      // A Printify devolve um objeto com os métodos disponíveis (standard, express, etc.)
+      // Ex: { "standard": 1000, "priority": 5000 }
+
+      // Valide se o shipping_method que está a usar (ex: 2 para 'priority') está na resposta
+      let validShippingMethodFound = false;
+      let chosenShippingCost = 0;
+      let chosenShippingMethodName = '';
+
+      // Mapear o número do método de volta para o nome que a Printify usa na resposta
+      const shippingMethodMap: { [key: number]: string } = {
+        1: 'standard',
+        2: 'priority',
+        3: 'printify_express',
+        4: 'economy',
+      };
+
+      const requestedMethodName = shippingMethodMap[shippingMethodId]; // O seu shipping_method (ex: 2 -> 'priority')
+
+      if (requestedMethodName && shippingCostsResponse[requestedMethodName]) {
+        validShippingMethodFound = true;
+        chosenShippingCost = shippingCostsResponse[requestedMethodName];
+        chosenShippingMethodName = requestedMethodName;
+        console.log(`✅ Método de envio "${chosenShippingMethodName}" (${shippingMethodId}) disponível. Custo: ${chosenShippingCost}`);
+      } else {
+        console.error(`❌ ERRO: Método de envio "${requestedMethodName}" (${shippingMethodId}) NÃO DISPONÍVEL para esta morada/produto.`);
+        throw new Error(`Failed to create order: Shipping method "${requestedMethodName}" is not available.`);
+      }
+      // --- FIM: Tentar calcular o custo de envio primeiro ---
+
       // Chamar API Printify
       const shopId = process.env.PRINTIFY_SHOP_ID;
       if (!shopId) {
