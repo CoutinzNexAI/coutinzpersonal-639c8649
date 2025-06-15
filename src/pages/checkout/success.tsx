@@ -38,8 +38,11 @@ const CheckoutSuccessPage: React.FC = () => {
         setLoading(true);
         
         console.log('🔄 Processando pedido após pagamento...');
+        console.log('Frontend: Chamando endpoint de processamento de pedido:', '/api/stripe/process-printify-order');
+        console.log('Frontend: Método da chamada:', 'POST');
+        console.log('Frontend: Session ID:', session_id);
         
-        const response = await fetch('/api/stripe/process-order', {
+        const response = await fetch('/api/stripe/process-printify-order', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
