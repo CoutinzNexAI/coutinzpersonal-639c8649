@@ -126,9 +126,26 @@ const ProductDetailPage: React.FC = () => {
       return;
     }
 
+    // ✅ GARANTIR: Que os valores não são undefined
+    const printifyVariantId = product.printifyVariantIds[0];
+    if (!printifyVariantId) {
+      toast.error('ID da variante do produto não encontrado. Contacte o suporte.');
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // ✅ DEBUG: Log dos valores antes de adicionar ao carrinho
+      console.log('🛒 Adicionando ao carrinho com valores:', {
+        productId: productId as string,
+        printifyProductId,
+        printifyImageId,
+        printifyVariantId,
+        selectedImageUrl,
+        selectedImageId
+      });
+
       // Adicionar item ao carrinho usando o CartService - COM PRINTIFY IDs
       const cartItem = CartService.addToCart({
         productId: productId as string,
@@ -143,10 +160,17 @@ const ProductDetailPage: React.FC = () => {
           size: `${product.gelatoPrintDimensionsMm.width}×${product.gelatoPrintDimensionsMm.height}mm`
         },
         imageAdjustments: imageAdjustments, // Passar os ajustes da imagem
-        printifyImageId: printifyImageId || undefined, // ✅ NOVO: Passar Printify Image ID
-        printifyProductId: printifyProductId || undefined, // ✅ NOVO: Passar Printify Product ID
-        printifyVariantId: product.printifyVariantIds?.[0] || undefined // ✅ NOVO: Passar Printify Variant ID (primeiro da lista)
+        printifyImageId: printifyImageId, // ✅ GARANTIDO: Não é undefined
+        printifyProductId: printifyProductId, // ✅ GARANTIDO: Não é undefined
+        printifyVariantId: printifyVariantId // ✅ GARANTIDO: Não é undefined
       });
+
+      // ✅ DEBUG: Log do item adicionado ao carrinho
+      console.log('✅ Item adicionado ao carrinho:', cartItem);
+
+      // ✅ DEBUG: Log do carrinho completo após adição
+      const currentCart = CartService.getCart();
+      console.log('🛒 Carrinho completo após adição:', currentCart);
 
       // Simular pequeno delay para UX
       await new Promise(resolve => setTimeout(resolve, 500));

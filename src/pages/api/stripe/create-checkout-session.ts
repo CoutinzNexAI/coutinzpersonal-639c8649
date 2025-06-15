@@ -10,6 +10,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2025-04-30.basil'
 });
 
+// Interface para item do carrinho
+interface CartItem {
+  productName: string;
+  price: number;
+  quantity: number;
+  productUid: string;
+  userImageId?: string;
+  userImageUrl?: string;
+  customizations?: { size?: string };
+  printifyProductId?: string;
+  printifyVariantId?: number;
+  printifyImageId?: string;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -37,6 +51,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('💾 Salvando dados do checkout temporariamente...');
 
+    // ✅ DEBUG: Log dos items do carrinho para verificar campos Printify
+    console.log('🛒 Items do carrinho recebidos:', JSON.stringify(items, null, 2));
+    
+    // Verificar se algum item tem campos Printify
+    const itemsWithPrintify = items.filter((item: CartItem) => item.printifyProductId && item.printifyVariantId);
+    console.log(`📊 Items com campos Printify: ${itemsWithPrintify.length}/${items.length}`);
+
     // Salvar dados do checkout temporariamente para recuperar depois
     const { error: tempSaveError } = await supabaseAdmin
       .from('checkout_sessions_temp')
@@ -63,15 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('✅ Dados do checkout salvos temporariamente:', checkoutReference);
 
     // Criar line items para o Stripe
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: {
-      productName: string;
-      price: number;
-      quantity: number;
-      productUid: string;
-      userImageId?: string;
-      userImageUrl?: string;
-      customizations?: { size?: string };
-    }) => ({
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: CartItem) => ({
       price_data: {
         currency: 'eur',
         product_data: {
