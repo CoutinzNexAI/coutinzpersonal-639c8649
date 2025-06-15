@@ -52,12 +52,15 @@ export interface PrintifyOrderCreationPayload {
 }
 
 // Printify Line Item Creation
+// DOIS MODOS DE USO:
+// 1. Para produtos já existentes na loja: product_id + variant_id + quantity
+// 2. Para criação "on-the-fly": blueprint_id + print_provider_id + print_areas + variant_id + quantity
 export interface PrintifyLineItemCreation {
-  product_id?: string;
-  variant_id: number;
-  blueprint_id?: number;
-  print_provider_id?: number;
-  print_areas?: {
+  product_id?: string; // Para produtos já existentes na loja
+  variant_id: number; // Sempre obrigatório
+  blueprint_id?: number; // Para criação "on-the-fly"
+  print_provider_id?: number; // Para criação "on-the-fly"
+  print_areas?: { // Para criação "on-the-fly"
     position: string;
     images: {
       id: string;

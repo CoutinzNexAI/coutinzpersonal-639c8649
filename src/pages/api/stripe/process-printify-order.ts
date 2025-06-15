@@ -359,6 +359,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Construir line_items para Printify baseado nos cart items completos
       // NOTA: Esta lógica foi atualizada para usar produtos já criados na loja Printify
       // em vez de criar produtos on-the-fly com blueprint_id + print_areas
+      // 
+      // IMPORTANTE: Para produtos já existentes na loja Printify, usar APENAS:
+      // - product_id: ID do produto criado
+      // - variant_id: ID da variante do produto  
+      // - quantity: Quantidade do pedido
+      //
+      // NÃO incluir print_provider_id, blueprint_id ou print_areas pois isso
+      // faz a API pensar que queremos criar um produto "on-the-fly"
       const printifyLineItems = [];
 
       for (const item of cartItems) {
@@ -367,13 +375,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           throw new Error(`Missing Printify Product ID or Variant ID in cart item: ${item.id}`);
         }
 
-        // Para produtos já criados na loja Printify, usar apenas product_id e variant_id
+        // --- CONSTRÓI O line_item APENAS PARA UM PRODUTO EXISTENTE NA LOJA PRINTIFY ---
         const lineItem = {
-          product_id: item.printifyProductId, // ID de string do produto criado na Fase 3
-          variant_id: item.printifyVariantId, // ID da variante desse produto (number)
+          product_id: item.printifyProductId, // O ID de STRING do produto JÁ criado na Printify (ex: "684edb998a7f6f02b7057248")
+          variant_id: item.printifyVariantId, // O ID numérico da variante desse produto (ex: 82238)
           quantity: item.quantity || 1,
-          // NOTA: Removemos print_provider_id e print_areas porque o produto já foi criado
-          // com a imagem customizada na Fase 3 (mockup generation)
+          // NÃO INCLUIR print_provider_id, blueprint_id, nem print_areas AQUI
+          // Estes campos são apenas para criação "on-the-fly" de produtos
         };
         
         printifyLineItems.push(lineItem);
@@ -480,4 +488,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       error: 'Erro interno do servidor: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
     });
   }
-} 
+}
