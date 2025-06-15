@@ -74,12 +74,24 @@ interface CheckoutTempData {
   };
 }
 
-// Mapeamento de métodos de envio para códigos Printify
+// Mapeamento de métodos de envio (UIDs internos/Gelato) para códigos Printify
+// Adapta estes UIDs para os que vêm do tempData.shipping_method.uid
 const SHIPPING_METHOD_MAP: Record<string, number> = {
+  // UIDs do sistema Gelato anterior
+  'gelato_standard_shipping_uid': 1, // Exemplo: UID do sistema para standard
+  'gelato_express_shipping_uid': 2,  // Exemplo: UID do sistema para express/priority
+  
+  // UIDs diretos (caso o frontend envie diretamente)
   'standard': 1,
-  'express': 2,
-  'priority': 3,
-  'overnight': 4
+  'priority': 2,
+  'express': 3,
+  'economy': 4,
+  
+  // Possíveis UIDs específicos do sistema (adicionar conforme necessário)
+  'standard_shipping': 1,
+  'express_shipping': 2,
+  'priority_shipping': 2,
+  'overnight_shipping': 4
 };
 
 // ✅ CONSTANTE: Telefone placeholder para Portugal
@@ -409,8 +421,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       console.log('🚀 Enviando pedido para Printify API...');
       
-      // Mapear método de envio
-      const shippingMethodId = SHIPPING_METHOD_MAP[shippingMethodData.uid] || 1; // Default: standard
+      // Mapear método de envio (FORÇAR PARA STANDARD PARA TESTE FINAL)
+      const shippingMethodId = 1; // FORÇADO PARA STANDARD (código 1) para o teste final
+      
+      // Log do mapeamento para debug
+      console.log('🚚 Mapeamento de método de envio:', {
+        originalUid: shippingMethodData.uid,
+        mappedId: SHIPPING_METHOD_MAP[shippingMethodData.uid],
+        forcedId: shippingMethodId,
+        note: 'FORÇADO PARA STANDARD (1) para teste final'
+      });
       
       // Construir line_items para Printify baseado nos cart items completos
       // NOTA: Esta lógica foi atualizada para usar produtos já criados na loja Printify
