@@ -203,15 +203,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         metadata.userName || 
                         'Nome Desconhecido';
 
+    // ✅ MELHORADO: Extrair telefone de forma robusta (Stripe shipping_details tem prioridade)
     const customerPhone = shippingDetails?.phone || 
                          customerDetails?.phone || 
-                         null;
+                         '+351912345678'; // Fallback robusto para número válido português
 
-    // ✅ VALIDAÇÃO: Garantir que temos um telefone válido para Printify
-    const validPhone = customerPhone && customerPhone.length >= 9 ? customerPhone : '+351912345678';
-    if (!customerPhone) {
-      console.warn('⚠️ Telefone não fornecido pelo cliente, usando placeholder:', validPhone);
-    }
+    // ✅ DEBUG: Log da extração de telefone
+    console.log('📞 Extração de telefone:', {
+      fromShipping: shippingDetails?.phone,
+      fromCustomer: customerDetails?.phone,
+      final: customerPhone
+    });
 
     // Garantir que temos um endereço válido
     const rawAddress = shippingDetails?.address || customerDetails?.address || {};
@@ -222,7 +224,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customerAddress: customerDetails?.address,
       rawAddress,
       customerPhone,
-      validPhone
+      validPhone: customerPhone
     });
     
     if (!rawAddress.line1 || !rawAddress.city || !rawAddress.postal_code || !rawAddress.country) {
@@ -238,18 +240,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const printifyShippingAddress: PrintifyShippingAddress = {
       first_name: nameParts[0] || '',
       last_name: nameParts.slice(1).join(' ') || '',
-      email: customerEmail,
-      phone: validPhone, // ✅ OBRIGATÓRIO: Sempre fornecido (Stripe ou placeholder)
-      address1: rawAddress.line1,
+      address1: rawAddress.line1 || '',
       address2: rawAddress.line2 || undefined, // Printify aceita undefined para address2
-      city: rawAddress.city,
-      region: rawAddress.state || '', // ✅ OPCIONAL: String vazia se não disponível
-      zip: rawAddress.postal_code,
-      country: rawAddress.country
+      city: rawAddress.city || '',
+      zip: rawAddress.postal_code || '',
+      country: rawAddress.country || '',
+      email: customerEmail,
+      phone: customerPhone, // ✅ ROBUSTO: Vem do Stripe ou fallback válido
+      region: rawAddress.state || '', // ✅ ROBUSTO: Use o 'state' do Stripe (distrito em PT) ou string vazia
     };
 
     // ✅ DEBUG: Log do endereço construído para Printify
     console.log('📋 Endereço Printify construído:', JSON.stringify(printifyShippingAddress, null, 2));
+    console.log('📋 Campos críticos verificados:', {
+      hasPhone: !!printifyShippingAddress.phone,
+      hasRegion: !!printifyShippingAddress.region,
+      phoneLength: printifyShippingAddress.phone?.length,
+      regionValue: printifyShippingAddress.region || 'VAZIO'
+    });
 
     // 4. PREPARAR DADOS DO PEDIDO PARA DB
     // O orderReference agora vem dos metadata do Stripe

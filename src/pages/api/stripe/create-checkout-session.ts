@@ -144,7 +144,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH', 'US', 'CA', 'GB']
       },
       phone_number_collection: {
-        enabled: false
+        enabled: true // ✅ FORÇAR: Recolha obrigatória do telefone
       },
       billing_address_collection: 'auto',
       // Definir opções de envio
