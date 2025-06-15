@@ -14,6 +14,7 @@ interface OrderResult {
   orderId: string;
   orderReference: string;
   printifyOrderId?: string; // ✅ ATUALIZADO: printifyOrderId em vez de gelatoOrderId
+  printifyStatus?: string; // ✅ ADICIONAR: Status real da Printify (pending, on-hold, etc.)
   gelatoOrderId?: string; // ✅ MANTER PARA COMPATIBILIDADE
   status: string;
   estimatedDelivery?: string;
@@ -250,6 +251,19 @@ const CheckoutSuccessPage: React.FC = () => {
                   </span>
                 </div>
                 
+                {orderResult.printifyStatus && (
+                  <div>
+                    <span className="font-medium text-ghibli-earth">Status Printify:</span>
+                    <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                      ['pending', 'on-hold', 'created'].includes(orderResult.printifyStatus) ? 'bg-blue-100 text-blue-800' :
+                      ['processing', 'submitted'].includes(orderResult.printifyStatus) ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {orderResult.printifyStatus}
+                    </span>
+                  </div>
+                )}
+                
                 {orderResult.estimatedDelivery && (
                   <div>
                     <span className="font-medium text-ghibli-earth">Entrega:</span>
@@ -280,8 +294,10 @@ const CheckoutSuccessPage: React.FC = () => {
                       <span className="font-medium">Pedido em Produção</span>
                     </div>
                     <p className="text-sm text-green-700">
-                      O seu pedido foi enviado para a Printify e está agora em produção. 
-                      Receberá updates por email sobre o progresso.
+                      {orderResult.printifyStatus === 'pending' || orderResult.printifyStatus === 'on-hold' 
+                        ? 'O seu pedido foi criado na Printify e está aguardando aprovação do comerciante. Receberá updates por email sobre o progresso.'
+                        : 'O seu pedido foi enviado para a Printify e está agora em produção. Receberá updates por email sobre o progresso.'
+                      }
                     </p>
                   </div>
                 </div>
