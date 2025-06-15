@@ -423,7 +423,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         throw new Error('PRINTIFY_SHOP_ID not configured');
       }
 
-      const printifyOrderResult = await printifyFetch(`/v1/shops/${shopId}/orders.json`, {
+      const printifyOrderResult = await printifyFetch(`/shops/${shopId}/orders.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
