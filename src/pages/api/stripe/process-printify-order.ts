@@ -82,6 +82,9 @@ const SHIPPING_METHOD_MAP: Record<string, number> = {
   'overnight': 4
 };
 
+// ✅ CONSTANTE: Telefone placeholder para Portugal
+const PHONE_PLACEHOLDER = '+351912345678';
+
 // Função utilitária para extrair transformation_id do URL de output
 function extractTransformationIdFromUrl(outputUrl: string): string | null {
   try {
@@ -206,13 +209,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // ✅ MELHORADO: Extrair telefone de forma robusta (Stripe shipping_details tem prioridade)
     const customerPhone = shippingDetails?.phone || 
                          customerDetails?.phone || 
-                         '+351912345678'; // Fallback robusto para número válido português
+                         null;
+
+    // ✅ VALIDAÇÃO: Garantir que temos um telefone válido para Printify
+    if (!customerPhone || customerPhone.length < 5) {
+      console.warn('⚠️ Telefone não fornecido pelo cliente ou inválido, usando placeholder:', PHONE_PLACEHOLDER);
+      // Idealmente o Stripe deveria forçar a recolha do telefone
+    }
+
+    const finalPhone = customerPhone || PHONE_PLACEHOLDER; // Garante que há um número válido
+    const finalRegion = shippingDetails?.address?.state || ''; // Use o 'state' do Stripe
 
     // ✅ DEBUG: Log da extração de telefone
     console.log('📞 Extração de telefone:', {
       fromShipping: shippingDetails?.phone,
       fromCustomer: customerDetails?.phone,
-      final: customerPhone
+      final: finalPhone
     });
 
     // Garantir que temos um endereço válido
@@ -223,8 +235,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       shippingAddress: shippingDetails?.address,
       customerAddress: customerDetails?.address,
       rawAddress,
-      customerPhone,
-      validPhone: customerPhone
+      customerPhone: finalPhone,
+      validPhone: finalPhone,
+      extractedRegion: rawAddress.state,
+      finalRegion: finalRegion
     });
     
     if (!rawAddress.line1 || !rawAddress.city || !rawAddress.postal_code || !rawAddress.country) {
@@ -246,8 +260,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       zip: rawAddress.postal_code || '',
       country: rawAddress.country || '',
       email: customerEmail,
-      phone: customerPhone, // ✅ ROBUSTO: Vem do Stripe ou fallback válido
-      region: rawAddress.state || '', // ✅ ROBUSTO: Use o 'state' do Stripe (distrito em PT) ou string vazia
+      phone: finalPhone, // ✅ ROBUSTO: Vem do Stripe ou fallback válido
+      region: finalRegion, // ✅ ROBUSTO: Use o 'state' do Stripe (distrito em PT) ou string vazia
     };
 
     // ✅ DEBUG: Log do endereço construído para Printify
@@ -258,6 +272,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       phoneLength: printifyShippingAddress.phone?.length,
       regionValue: printifyShippingAddress.region || 'VAZIO'
     });
+
+    // ✅ VALIDAÇÃO: Verificar se região foi fornecida pelo Stripe
+    if (!finalRegion || finalRegion.length < 2) {
+      console.warn('⚠️ AVISO: Região (distrito) não fornecida pelo Stripe ou muito curta:', finalRegion);
+      console.warn('⚠️ Isto pode causar falha na validação da Printify');
+      // Não vamos falhar aqui, mas vamos registar o aviso
+      // Se a Printify rejeitar, será visível nos logs
+    }
 
     // 4. PREPARAR DADOS DO PEDIDO PARA DB
     // O orderReference agora vem dos metadata do Stripe
@@ -301,7 +323,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // ✅ CAMPOS CRÍTICOS DO CLIENTE
       customer_email: customerEmail,
       customer_name: customerName,
-      customer_phone: customerPhone,
+      customer_phone: finalPhone,
       
       // ✅ DADOS FINANCEIROS - NOMES CORRECTOS DAS COLUNAS
       total_amount: financialData.total,

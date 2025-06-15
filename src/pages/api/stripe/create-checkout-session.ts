@@ -142,6 +142,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Configurar recolha obrigatória de endereço de envio
       shipping_address_collection: {
         allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH', 'US', 'CA', 'GB']
+        // ✅ NOTA: O Stripe força automaticamente a recolha de line1, city, postal_code, state e country
+        // quando shipping_address_collection está ativo
       },
       phone_number_collection: {
         enabled: true // ✅ FORÇAR: Recolha obrigatória do telefone
