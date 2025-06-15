@@ -9,7 +9,7 @@ interface ShippingCalculationRequest {
   line_items: Array<{
     productId: string; // ID interno do produto
     quantity: number;
-    printifyImageId?: number; // ID da imagem na Printify (se aplicável)
+    printifyImageId?: string; // ID da imagem na Printify (se aplicável)
   }>;
   address_to: {
     first_name: string;

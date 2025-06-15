@@ -30,6 +30,7 @@ export interface CartItem {
   // Novos campos Printify
   printifyImageId?: string; // ID da imagem na Printify Media Library
   printifyProductId?: string; // ID do produto temporário criado na Printify
+  printifyVariantId?: number; // ID da variante do produto na Printify (number conforme API)
   addedAt: Date;
 }
 

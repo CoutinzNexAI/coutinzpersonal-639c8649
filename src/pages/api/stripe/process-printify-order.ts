@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { supabaseAdmin } from '../../../lib/supabase/admin';
 import { printifyFetch } from '../../../lib/printify/printifyApi';
 import { PrintifyShippingAddress, PrintifyOrderCreationPayload } from '../../../lib/printify/printifyTypes';
-import { getPrintifyProduct, PrintifyProductMapping } from '../../../lib/printify/printifyProducts';
+// import { getPrintifyProduct, PrintifyProductMapping } from '../../../lib/printify/printifyProducts'; // Não necessário para produtos já criados
 
 // Interface para shipping details
 interface ShippingDetails {
@@ -28,7 +28,9 @@ interface CartItem {
   productCategory: string;
   userImageUrl: string;
   userImageId?: string;
-  printifyImageId?: number; // ID da imagem na Printify
+  printifyImageId?: string; // ID da imagem na Printify
+  printifyProductId?: string; // ID do produto temporário criado na Printify
+  printifyVariantId?: number; // ID da variante do produto na Printify (number conforme API)
   price: number;
   quantity: number;
   customizations?: {
@@ -355,56 +357,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const shippingMethodId = SHIPPING_METHOD_MAP[shippingMethodData.uid] || 1; // Default: standard
       
       // Construir line_items para Printify baseado nos cart items completos
+      // NOTA: Esta lógica foi atualizada para usar produtos já criados na loja Printify
+      // em vez de criar produtos on-the-fly com blueprint_id + print_areas
       const printifyLineItems = [];
 
       for (const item of cartItems) {
-        const productMapping = getPrintifyProduct(item.productId);
-        if (!productMapping) {
-          throw new Error(`Product mapping not found: ${item.productId}`);
+        // Verificar se o item tem os IDs do produto criado na Printify (Fase 3)
+        if (!item.printifyProductId || !item.printifyVariantId) {
+          throw new Error(`Missing Printify Product ID or Variant ID in cart item: ${item.id}`);
         }
 
-        if (!productMapping.printifyBlueprintId || !productMapping.printifyPrintProviderId || !productMapping.printifyVariantIds) {
-          throw new Error(`Product ${item.productId} missing Printify configuration`);
-        }
-
-        // Para produtos com imagem customizada
-        if (item.userImageUrl && item.printifyImageId) {
-          const lineItem = {
-            product_id: productMapping.printifyBlueprintId,
-            variant_id: productMapping.printifyVariantIds[0], // Usar primeira variante
-            print_provider_id: productMapping.printifyPrintProviderId,
-            quantity: item.quantity,
-            print_areas: [
-              {
-                variant_ids: productMapping.printifyVariantIds,
-                placeholders: [
-                  {
-                    position: productMapping.printArea || 'front',
-                    images: [
-                      {
-                        id: item.printifyImageId,
-                        x: item.imageAdjustments?.x || 0.5,
-                        y: item.imageAdjustments?.y || 0.5,
-                        scale: item.imageAdjustments?.scale || 1,
-                        angle: item.imageAdjustments?.rotation || 0
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          };
-          printifyLineItems.push(lineItem);
-        } else {
-          // Para produtos sem customização (se aplicável)
-          const lineItem = {
-            product_id: productMapping.printifyBlueprintId,
-            variant_id: productMapping.printifyVariantIds[0],
-            print_provider_id: productMapping.printifyPrintProviderId,
-            quantity: item.quantity
-          };
-          printifyLineItems.push(lineItem);
-        }
+        // Para produtos já criados na loja Printify, usar apenas product_id e variant_id
+        const lineItem = {
+          product_id: item.printifyProductId, // ID de string do produto criado na Fase 3
+          variant_id: item.printifyVariantId, // ID da variante desse produto (number)
+          quantity: item.quantity || 1,
+          // NOTA: Removemos print_provider_id e print_areas porque o produto já foi criado
+          // com a imagem customizada na Fase 3 (mockup generation)
+        };
+        
+        printifyLineItems.push(lineItem);
       }
 
       // Construir payload para Printify

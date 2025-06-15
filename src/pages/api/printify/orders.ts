@@ -9,7 +9,7 @@ interface OrderRequestPayload {
   line_items: Array<{
     productId: string; // ID interno do produto (ex: 'canvas_200x200_square_slim_unframed')
     userImageUrl: string; // URL da imagem do utilizador
-    printifyImageId?: number; // ID da imagem na Printify (se já foi carregada)
+    printifyImageId?: string; // ID da imagem na Printify (se já foi carregada)
     quantity: number;
     imageAdjustments?: {
       x: number;
