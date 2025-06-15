@@ -115,6 +115,17 @@ const ProductDetailPage: React.FC = () => {
       return;
     }
 
+    // ✅ NOVO: Validação dos IDs Printify necessários
+    if (!printifyProductId || !printifyImageId) {
+      toast.error('Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.');
+      return;
+    }
+
+    if (!product.printifyVariantIds || product.printifyVariantIds.length === 0) {
+      toast.error('Configuração de produto inválida. Contacte o suporte.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -133,7 +144,8 @@ const ProductDetailPage: React.FC = () => {
         },
         imageAdjustments: imageAdjustments, // Passar os ajustes da imagem
         printifyImageId: printifyImageId || undefined, // ✅ NOVO: Passar Printify Image ID
-        printifyProductId: printifyProductId || undefined // ✅ NOVO: Passar Printify Product ID
+        printifyProductId: printifyProductId || undefined, // ✅ NOVO: Passar Printify Product ID
+        printifyVariantId: product.printifyVariantIds?.[0] || undefined // ✅ NOVO: Passar Printify Variant ID (primeiro da lista)
       });
 
       // Simular pequeno delay para UX
@@ -331,7 +343,7 @@ const ProductDetailPage: React.FC = () => {
               <div className="space-y-4">
                 <Button
                   onClick={handleAddToCart}
-                  disabled={!selectedImageUrl || loading}
+                  disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId}
                   className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white py-3 text-lg font-semibold"
                   size="lg"
                 >
@@ -339,6 +351,13 @@ const ProductDetailPage: React.FC = () => {
                     <>
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                       A adicionar...
+                    </>
+                  ) : !selectedImageUrl ? (
+                    'Escolha uma Arte'
+                  ) : (!printifyProductId || !printifyImageId) ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      A gerar mockups...
                     </>
                   ) : (
                     'Adicionar ao Carrinho'
