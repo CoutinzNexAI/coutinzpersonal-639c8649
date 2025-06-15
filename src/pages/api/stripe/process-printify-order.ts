@@ -207,8 +207,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                          customerDetails?.phone || 
                          null;
 
+    // ✅ VALIDAÇÃO: Garantir que temos um telefone válido para Printify
+    const validPhone = customerPhone && customerPhone.length >= 9 ? customerPhone : '+351912345678';
+    if (!customerPhone) {
+      console.warn('⚠️ Telefone não fornecido pelo cliente, usando placeholder:', validPhone);
+    }
+
     // Garantir que temos um endereço válido
     const rawAddress = shippingDetails?.address || customerDetails?.address || {};
+    
+    // ✅ DEBUG: Log dos dados brutos do endereço do Stripe
+    console.log('📍 Dados brutos do endereço Stripe:', {
+      shippingAddress: shippingDetails?.address,
+      customerAddress: customerDetails?.address,
+      rawAddress,
+      customerPhone,
+      validPhone
+    });
     
     if (!rawAddress.line1 || !rawAddress.city || !rawAddress.postal_code || !rawAddress.country) {
       console.error('❌ Endereço de envio incompleto:', rawAddress);
@@ -224,14 +239,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       first_name: nameParts[0] || '',
       last_name: nameParts.slice(1).join(' ') || '',
       email: customerEmail,
-      phone: customerPhone || undefined,
+      phone: validPhone, // ✅ OBRIGATÓRIO: Sempre fornecido (Stripe ou placeholder)
       address1: rawAddress.line1,
-      address2: rawAddress.line2 || undefined,
+      address2: rawAddress.line2 || undefined, // Printify aceita undefined para address2
       city: rawAddress.city,
-      region: rawAddress.state || undefined,
+      region: rawAddress.state || '', // ✅ OPCIONAL: String vazia se não disponível
       zip: rawAddress.postal_code,
       country: rawAddress.country
     };
+
+    // ✅ DEBUG: Log do endereço construído para Printify
+    console.log('📋 Endereço Printify construído:', JSON.stringify(printifyShippingAddress, null, 2));
 
     // 4. PREPARAR DADOS DO PEDIDO PARA DB
     // O orderReference agora vem dos metadata do Stripe

@@ -34,7 +34,7 @@ export interface PrintifyShippingAddress {
   first_name: string;
   last_name: string;
   email: string;
-  phone?: string;
+  phone: string;
   address1: string;
   address2?: string;
   city: string;
