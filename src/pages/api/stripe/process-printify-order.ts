@@ -218,7 +218,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const finalPhone = customerPhone || PHONE_PLACEHOLDER; // Garante que há um número válido
-    const finalRegion = shippingDetails?.address?.state || ''; // Use o 'state' do Stripe
 
     // ✅ DEBUG: Log da extração de telefone
     console.log('📞 Extração de telefone:', {
@@ -229,6 +228,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Garantir que temos um endereço válido
     const rawAddress = shippingDetails?.address || customerDetails?.address || {};
+    const finalRegion = rawAddress.state || metadata.debug_region || 'Porto'; // ✅ FIXO: Use distrito português válido
+
+    // ✅ DEBUG: Log da extração de região
+    console.log('📍 Extração de região:', {
+      fromStripeState: rawAddress.state,
+      fromMetadata: metadata.debug_region,
+      final: finalRegion,
+      reasoning: rawAddress.state ? 'Stripe forneceu state' : metadata.debug_region ? 'Usando metadata debug' : 'Usando fallback Porto'
+    });
     
     // ✅ DEBUG: Log dos dados brutos do endereço do Stripe
     console.log('📍 Dados brutos do endereço Stripe:', {

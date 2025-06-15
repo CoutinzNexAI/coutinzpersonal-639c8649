@@ -137,7 +137,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         total: total.toString(),
         shippingMethodUid: shippingMethod.uid,
         shippingMethodName: shippingMethod.name,
-        itemsCount: items.length.toString()
+        itemsCount: items.length.toString(),
+        // ✅ DEBUG: Metadata para testar region se Stripe não a fornecer
+        debug_region: 'Porto' // Fallback para teste - pode ser removido em produção
       },
       // Configurar recolha obrigatória de endereço de envio
       shipping_address_collection: {
