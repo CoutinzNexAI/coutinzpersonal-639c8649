@@ -11,6 +11,7 @@ import { getPrintifyProduct, PrintifyProductMapping } from '@/lib/printify/print
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
 import ProductCanvas from '@/components/printify/ProductCanvas';
+import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 
 interface ImageAdjustments {
   x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
@@ -33,11 +34,11 @@ const ProductDetailPage: React.FC = () => {
   const [product, setProduct] = useState<PrintifyProductMapping | null>(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
-  // NOVO: Estados para Printify
+  
+  // Estados para Printify
   const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
   const [printifyImageId, setPrintifyImageId] = useState<string>('');
   const [printifyProductId, setPrintifyProductId] = useState<string>('');
@@ -157,19 +158,19 @@ const ProductDetailPage: React.FC = () => {
     }
   };
 
-  const handleSelectDifferentImage = () => {
+  const handleOpenGallery = () => {
     if (userInfo) {
-      // Se o utilizador está autenticado, abrir modal da galeria
       setIsGalleryModalOpen(true);
     } else {
       // Se não está autenticado, redirecionar para login/home
+      toast.error('Faça login para aceder às suas transformações');
       router.push('/');
     }
   };
 
   const handleSelectImageFromGallery = (imageUrl: string, imageId: string) => {
     setSelectedImageUrl(imageUrl);
-    setSelectedImageId(imageId); // ✅ NOVO: Guardar o ID da transformação selecionada
+    setSelectedImageId(imageId);
     // Reset estados Printify quando nova imagem é selecionada
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
@@ -178,6 +179,15 @@ const ProductDetailPage: React.FC = () => {
     toast.success('Arte selecionada!', {
       description: 'A sua transformação foi aplicada ao produto'
     });
+  };
+
+  const handleResetSelection = () => {
+    setSelectedImageUrl('');
+    setSelectedImageId(null);
+    setPrintifyPreviewUrls([]);
+    setPrintifyImageId('');
+    setPrintifyProductId('');
+    setImageAdjustments(undefined);
   };
 
   if (!product) {
@@ -201,156 +211,190 @@ const ProductDetailPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
-          {/* Breadcrumb simplificado */}
-          <div className="mb-8">
-            <nav className="text-sm text-ghibli-earth">
-              <Link href="/shop" className="hover:text-ghibli-moss transition-colors">
-                ← Voltar à Loja
-              </Link>
-            </nav>
-          </div>
+        <main className="container mx-auto px-4 py-8">
+          {/* Breadcrumb */}
+          <nav className="mb-8">
+            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
+              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
+              <li className="text-ghibli-earth/50">/</li>
+              <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
+              <li className="text-ghibli-earth/50">/</li>
+              <li className="text-ghibli-moss font-medium">{product.name}</li>
+            </ol>
+          </nav>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
-            {/* Editor Visual */}
-            <div className="space-y-6">
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                <h2 className="text-2xl font-semibold text-ghibli-wood mb-4">
-                  👁️ Pré-visualização
-                </h2>
-                
-                {/* ProductCanvas Printify */}
-                {selectedImageUrl && userInfo?.id ? (
-                  <ProductCanvas
-                    selectedProduct={product}
-                    userImageUrl={selectedImageUrl}
-                    userId={userInfo.id}
-                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                    onPreviewReady={handlePreviewReady}
-                    imageAdjustments={imageAdjustments}
-                  />
-                ) : (
-                  <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-gray-500 mb-4">
-                        {userInfo 
-                          ? 'Selecione uma imagem para ver a pré-visualização' 
-                          : 'Faça login para personalizar este produto'}
-                      </p>
-                      <Button 
-                        onClick={handleSelectDifferentImage}
-                        className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white"
-                      >
-                        {userInfo ? '🎨 Escolher Arte AI' : '🎨 Criar Transformação AI'}
-                      </Button>
-                    </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Coluna da Esquerda - ProductCanvas */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <ProductCanvas
+                selectedProduct={product}
+                userImageUrl={selectedImageUrl}
+                userId={userInfo?.id}
+                printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                onPreviewReady={handlePreviewReady}
+                onSelectImage={handleOpenGallery}
+                imageAdjustments={imageAdjustments}
+              />
+            </motion.div>
+
+            {/* Coluna da Direita - Informações do Produto */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="space-y-6"
+            >
+              {/* Título e Preço */}
+              <div>
+                <h1 className="text-3xl font-bold text-ghibli-earth mb-2">
+                  {product.name}
+                </h1>
+                <p className="text-2xl font-semibold text-ghibli-moss">
+                  €{product.price.toFixed(2)}
+                </p>
+              </div>
+
+              {/* Descrição */}
+              <div className="prose prose-sm text-ghibli-earth/80">
+                <p>
+                  Transforme as suas criações AI em produtos físicos de alta qualidade. 
+                  Este {product.name.toLowerCase()} é impresso com tecnologia profissional 
+                  e materiais premium para garantir durabilidade e cores vibrantes.
+                </p>
+              </div>
+
+              {/* Especificações */}
+              <div className="bg-white/50 rounded-lg p-4 space-y-3">
+                <h3 className="font-semibold text-ghibli-earth">Especificações</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-ghibli-earth/60">Dimensões:</span>
+                    <p className="font-medium">{product.gelatoPrintDimensionsMm.width}×{product.gelatoPrintDimensionsMm.height}mm</p>
                   </div>
-                )}
+                  <div>
+                    <span className="text-ghibli-earth/60">Categoria:</span>
+                    <p className="font-medium capitalize">{product.category}</p>
+                  </div>
+                  <div>
+                    <span className="text-ghibli-earth/60">Material:</span>
+                    <p className="font-medium">Premium</p>
+                  </div>
+                  <div>
+                    <span className="text-ghibli-earth/60">Impressão:</span>
+                    <p className="font-medium">Alta Qualidade</p>
+                  </div>
+                </div>
+              </div>
 
-                {/* Botão para Selecionar Imagem */}
-                {selectedImageUrl && (
-                  <div className="mt-6 space-y-3">
-                    {/* Indicador de Arte Selecionada */}
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <div className="flex items-center gap-2 text-sm text-green-800">
-                        <span>✅</span>
-                        <span>Arte AI aplicada com sucesso!</span>
+              {/* Seleção de Imagem */}
+              {selectedImageUrl && (
+                <div className="bg-white/50 rounded-lg p-4">
+                  <h3 className="font-semibold text-ghibli-earth mb-3">Arte Selecionada</h3>
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src={selectedImageUrl}
+                      alt="Arte selecionada"
+                      className="w-16 h-16 rounded-lg object-cover border-2 border-ghibli-moss"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm text-ghibli-earth/80">
+                        A sua transformação AI está pronta para impressão
+                      </p>
+                      <div className="flex gap-2 mt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleOpenGallery}
+                          className="text-xs"
+                        >
+                          Trocar Arte
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleResetSelection}
+                          className="text-xs"
+                        >
+                          Remover
+                        </Button>
                       </div>
                     </div>
-                    
-                    {/* Botão para trocar */}
-                    <Button 
+                  </div>
+                </div>
+              )}
+
+              {/* Botões de Ação */}
+              <div className="space-y-4">
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={!selectedImageUrl || loading}
+                  className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white py-3 text-lg font-semibold"
+                  size="lg"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      A adicionar...
+                    </>
+                  ) : (
+                    'Adicionar ao Carrinho'
+                  )}
+                </Button>
+
+                {!selectedImageUrl && userInfo && (
+                  <Button
+                    onClick={handleOpenGallery}
+                    variant="outline"
+                    className="w-full border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white"
+                    size="lg"
+                  >
+                    Escolher Arte
+                  </Button>
+                )}
+
+                {!userInfo && (
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800 mb-2">
+                      Faça login para personalizar este produto com as suas criações AI
+                    </p>
+                    <Button
+                      onClick={() => router.push('/')}
                       variant="outline"
-                      onClick={handleSelectDifferentImage}
-                      className="w-full"
+                      className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
                     >
-                      🔄 Trocar Arte
+                      Fazer Login
                     </Button>
                   </div>
                 )}
-              </motion.div>
-            </div>
+              </div>
 
-            {/* Informações do Produto */}
-            <div className="space-y-6">
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <h1 className="text-3xl font-bold text-ghibli-wood mb-4">
-                  {product.name}
-                </h1>
-                
-                <div className="text-2xl font-semibold text-ghibli-moss mb-6">
-                  €{product.price.toFixed(2)}
-                </div>
-
-                <div className="space-y-4 text-ghibli-earth">
-                  <div>
-                    <h3 className="font-semibold mb-2">📏 Especificações</h3>
-                    <ul className="space-y-1 text-sm">
-                      <li>• Dimensões: {product.gelatoPrintDimensionsMm.width}×{product.gelatoPrintDimensionsMm.height}mm</li>
-                      <li>• Categoria: {product.category}</li>
-                      <li>• Impressão profissional de alta qualidade</li>
-                      <li>• Entrega rápida e segura</li>
-                    </ul>
-                  </div>
-
-                  {product.supportsManualAdjustment && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-blue-800 mb-2">🎛️ Ajustes Personalizados</h4>
-                      <p className="text-sm text-blue-700">
-                        Este produto permite ajustar a posição, zoom e rotação da sua imagem 
-                        para um resultado perfeito.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-8">
-                  <Button
-                    onClick={handleAddToCart}
-                    disabled={!selectedImageUrl || loading}
-                    className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white py-3 text-lg font-semibold"
-                    size="lg"
-                  >
-                    {loading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                        A adicionar...
-                      </>
-                    ) : (
-                      <>🛒 Adicionar ao Carrinho</>
-                    )}
-                  </Button>
-                  
-                  {!selectedImageUrl && (
-                    <p className="text-sm text-ghibli-earth mt-2 text-center">
-                      Selecione uma arte AI para continuar
-                    </p>
-                  )}
-                </div>
-              </motion.div>
-            </div>
+              {/* Informações de Entrega */}
+              <div className="bg-ghibli-moss/10 rounded-lg p-4">
+                <h3 className="font-semibold text-ghibli-earth mb-2">Entrega e Garantia</h3>
+                <ul className="text-sm text-ghibli-earth/80 space-y-1">
+                  <li>✓ Entrega gratuita em encomendas superiores a €50</li>
+                  <li>✓ Impressão e envio em 3-5 dias úteis</li>
+                  <li>✓ Garantia de qualidade de 30 dias</li>
+                  <li>✓ Suporte ao cliente dedicado</li>
+                </ul>
+              </div>
+            </motion.div>
           </div>
         </main>
 
         <Footer />
       </div>
 
-      {/* TODO: Adicionar TransformationsModal quando necessário */}
-      {/* {isGalleryModalOpen && (
-        <TransformationsModal
-          isOpen={isGalleryModalOpen}
-          onClose={() => setIsGalleryModalOpen(false)}
-          onSelectImage={handleSelectImageFromGallery}
-        />
-      )} */}
+      {/* Modal de Galeria de Transformações */}
+      <TransformationGalleryModal
+        isOpen={isGalleryModalOpen}
+        onClose={() => setIsGalleryModalOpen(false)}
+        onSelectImage={handleSelectImageFromGallery}
+      />
     </>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,14 +20,15 @@ interface ImageAdjustments {
 
 interface ProductCanvasProps {
   selectedProduct: PrintifyProductMapping;
-  userImageUrl: string;
-  userId: string;
+  userImageUrl?: string;
+  userId?: string;
   printifyGeneratedPreviewUrls?: string[];
   onPreviewReady: (data: {
     previewUrls: string[];
     printifyImageId: string;
     printifyProductId: string;
   }) => void;
+  onSelectImage?: () => void;
   imageAdjustments?: ImageAdjustments;
 }
 
@@ -46,9 +47,10 @@ export default function ProductCanvas({
   userId,
   printifyGeneratedPreviewUrls = [],
   onPreviewReady,
+  onSelectImage,
   imageAdjustments
 }: ProductCanvasProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
@@ -61,9 +63,9 @@ export default function ProductCanvas({
   }, [userImageUrl, userId, selectedProduct, hasGenerated]);
 
   const handleGenerateMockup = async () => {
-    if (!userImageUrl || !userId || isGenerating) return;
+    if (!userImageUrl || !userId || isLoadingMockups) return;
 
-    setIsGenerating(true);
+    setIsLoadingMockups(true);
     setError(null);
 
     try {
@@ -102,7 +104,7 @@ export default function ProductCanvas({
       console.error('Error generating mockup:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
-      setIsGenerating(false);
+      setIsLoadingMockups(false);
     }
   };
 
@@ -118,6 +120,67 @@ export default function ProductCanvas({
     );
   };
 
+  // Estado inicial - sem imagem selecionada
+  const renderEmptyState = () => (
+    <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+      {/* Placeholder image */}
+      <div className="mb-6">
+        <img
+          src="/fotocanva.png"
+          alt="Escolha uma foto para personalizar"
+          className="w-48 h-48 object-contain opacity-60"
+        />
+      </div>
+      
+      {/* Call to action */}
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          Personalize o seu {selectedProduct.name}
+        </h3>
+        <p className="text-sm text-gray-500 mb-6 max-w-md">
+          Escolha uma das suas transformações AI para ver como ficará no produto
+        </p>
+        
+        <Button
+          onClick={onSelectImage}
+          className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+          size="lg"
+        >
+          <Camera className="w-5 h-5 mr-2" />
+          Escolher Foto
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Estado de carregamento com overlay
+  const renderLoadingOverlay = () => (
+    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex flex-col items-center justify-center z-10">
+      <div className="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-4 text-center">
+        <div className="relative mb-4">
+          <svg className="w-12 h-12 mx-auto text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <Sparkles className="absolute inset-0 w-6 h-6 m-auto text-blue-600 animate-pulse" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          A gerar pré-visualização 3D...
+        </h3>
+        <p className="text-sm text-gray-600">
+          Estamos a criar mockups profissionais do seu produto. 
+          Isto pode demorar até 30 segundos.
+        </p>
+        <div className="mt-4 flex items-center justify-center space-x-1">
+          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
+          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+        </div>
+      </div>
+    </div>
+  );
+
+  // Preview inicial com imagem do utilizador
   const renderInitialPreview = () => (
     <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden">
       {/* Background mockup */}
@@ -143,46 +206,17 @@ export default function ProductCanvas({
       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
         <Button
           onClick={handleGenerateMockup}
-          disabled={isGenerating}
+          disabled={isLoadingMockups}
           className="bg-white text-gray-900 hover:bg-gray-100 shadow-lg"
           size="lg"
         >
-          {isGenerating ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              A gerar pré-visualização...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4 mr-2" />
-              Gerar Pré-visualização 3D
-            </>
-          )}
+          <Sparkles className="w-4 h-4 mr-2" />
+          Gerar Pré-visualização 3D
         </Button>
       </div>
-    </div>
-  );
 
-  const renderLoadingState = () => (
-    <div className="w-full h-96 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex flex-col items-center justify-center">
-      <div className="relative">
-        <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-        <Sparkles className="absolute inset-0 w-6 h-6 m-auto text-blue-600 animate-pulse" />
-      </div>
-      <div className="mt-6 text-center">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          A gerar pré-visualização 3D...
-        </h3>
-        <p className="text-sm text-gray-600 max-w-md">
-          Estamos a criar mockups profissionais do seu produto. 
-          Isto pode demorar até 30 segundos.
-        </p>
-      </div>
-      <div className="mt-4 flex items-center space-x-2">
-        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
-        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-      </div>
+      {/* Loading overlay */}
+      {isLoadingMockups && renderLoadingOverlay()}
     </div>
   );
 
@@ -226,11 +260,14 @@ export default function ProductCanvas({
             </Badge>
           </div>
         )}
+
+        {/* Loading overlay for regeneration */}
+        {isLoadingMockups && renderLoadingOverlay()}
       </div>
 
       {/* Thumbnail navigation */}
       {printifyGeneratedPreviewUrls.length > 1 && (
-        <div className="flex space-x-2 justify-center">
+        <div className="flex space-x-2 justify-center mb-4">
           {printifyGeneratedPreviewUrls.map((url, index) => (
             <button
               key={index}
@@ -251,20 +288,31 @@ export default function ProductCanvas({
         </div>
       )}
 
-      {/* Regenerate button */}
-      <div className="mt-4 text-center">
+      {/* Action buttons */}
+      <div className="flex gap-3 justify-center">
         <Button
           variant="outline"
           onClick={() => {
             setHasGenerated(false);
             handleGenerateMockup();
           }}
-          disabled={isGenerating}
+          disabled={isLoadingMockups}
           className="text-sm"
         >
           <RotateCw className="w-4 h-4 mr-2" />
           Gerar Novamente
         </Button>
+        
+        {onSelectImage && (
+          <Button
+            variant="outline"
+            onClick={onSelectImage}
+            className="text-sm"
+          >
+            <Camera className="w-4 h-4 mr-2" />
+            Trocar Foto
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -282,17 +330,29 @@ export default function ProductCanvas({
       <p className="text-sm text-gray-600 text-center mb-4 max-w-md">
         {error || 'Ocorreu um erro inesperado. Tente novamente.'}
       </p>
-      <Button
-        onClick={() => {
-          setError(null);
-          setHasGenerated(false);
-          handleGenerateMockup();
-        }}
-        disabled={isGenerating}
-      >
-        <RotateCw className="w-4 h-4 mr-2" />
-        Tentar Novamente
-      </Button>
+      <div className="flex gap-3">
+        <Button
+          onClick={() => {
+            setError(null);
+            setHasGenerated(false);
+            handleGenerateMockup();
+          }}
+          disabled={isLoadingMockups}
+        >
+          <RotateCw className="w-4 h-4 mr-2" />
+          Tentar Novamente
+        </Button>
+        
+        {onSelectImage && (
+          <Button
+            variant="outline"
+            onClick={onSelectImage}
+          >
+            <Camera className="w-4 h-4 mr-2" />
+            Escolher Outra Foto
+          </Button>
+        )}
+      </div>
     </div>
   );
 
@@ -308,10 +368,11 @@ export default function ProductCanvas({
           </p>
         </div>
 
-        {error ? (
+        {/* Renderização condicional baseada no estado */}
+        {!userImageUrl ? (
+          renderEmptyState()
+        ) : error ? (
           renderErrorState()
-        ) : isGenerating ? (
-          renderLoadingState()
         ) : printifyGeneratedPreviewUrls.length > 0 ? (
           renderGeneratedPreviews()
         ) : (
@@ -319,7 +380,7 @@ export default function ProductCanvas({
         )}
 
         {/* Manual adjustment notice */}
-        {selectedProduct.supportsManualAdjustment && (
+        {selectedProduct.supportsManualAdjustment && userImageUrl && (
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800">
               💡 Este produto suporta ajustes manuais. Pode ajustar a posição, 
