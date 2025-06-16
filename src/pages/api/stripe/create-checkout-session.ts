@@ -184,24 +184,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               { label: 'Aveiro', value: 'Aveiro' },
               { label: 'Beja', value: 'Beja' },
               { label: 'Braga', value: 'Braga' },
-              { label: 'Bragança', value: 'Bragança' },
-              { label: 'Castelo Branco', value: 'Castelo Branco' },
+              { label: 'Bragança', value: 'Braganca' }, // Corrigido
+              { label: 'Castelo Branco', value: 'CasteloBranco' }, // Corrigido
               { label: 'Coimbra', value: 'Coimbra' },
-              { label: 'Évora', value: 'Évora' },
+              { label: 'Évora', value: 'Evora' }, // Corrigido
               { label: 'Faro', value: 'Faro' },
               { label: 'Guarda', value: 'Guarda' },
               { label: 'Leiria', value: 'Leiria' },
               { label: 'Lisboa', value: 'Lisboa' },
               { label: 'Portalegre', value: 'Portalegre' },
               { label: 'Porto', value: 'Porto' },
-              { label: 'Santarém', value: 'Santarém' },
-              { label: 'Setúbal', value: 'Setúbal' },
-              { label: 'Viana do Castelo', value: 'Viana do Castelo' },
-              { label: 'Vila Real', value: 'Vila Real' },
+              { label: 'Santarém', value: 'Santarem' }, // Corrigido
+              { label: 'Setúbal', value: 'Setubal' }, // Corrigido
+              { label: 'Viana do Castelo', value: 'VianaDoCastelo' }, // Corrigido
+              { label: 'Vila Real', value: 'VilaReal' }, // Corrigido
               { label: 'Viseu', value: 'Viseu' },
               // Regiões Autónomas (se suportadas)
-              { label: 'Açores', value: 'Açores' },
-              { label: 'Madeira', value: 'Madeira' },
+              { label: 'Açores', value: 'Acores' }, // Corrigido
+              { label: 'Madeira', value: 'Madeira' }, // Corrigido
             ],
             default_value: 'Porto', // Define um valor padrão para facilitar o teste
           },

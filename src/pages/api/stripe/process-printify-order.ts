@@ -5,6 +5,30 @@ import { printifyFetch } from '../../../lib/printify/printifyApi';
 import { PrintifyShippingAddress, PrintifyOrderCreationPayload } from '../../../lib/printify/printifyTypes';
 // import { getPrintifyProduct, PrintifyProductMapping } from '../../../lib/printify/printifyProducts'; // Não necessário para produtos já criados
 
+// ✅ Mapeamento para normalizar nomes de distritos de valores alfanuméricos para nomes completos
+const REGION_MAP: Record<string, string> = {
+  'Aveiro': 'Aveiro',
+  'Beja': 'Beja',
+  'Braga': 'Braga',
+  'Braganca': 'Bragança', // Correção
+  'CasteloBranco': 'Castelo Branco', // Correção
+  'Coimbra': 'Coimbra',
+  'Evora': 'Évora', // Correção
+  'Faro': 'Faro',
+  'Guarda': 'Guarda',
+  'Leiria': 'Leiria',
+  'Lisboa': 'Lisboa',
+  'Portalegre': 'Portalegre',
+  'Porto': 'Porto',
+  'Santarem': 'Santarém', // Correção
+  'Setubal': 'Setúbal', // Correção
+  'VianaDoCastelo': 'Viana do Castelo', // Correção
+  'VilaReal': 'Vila Real', // Correção
+  'Viseu': 'Viseu',
+  'Acores': 'Açores', // Correção
+  'Madeira': 'Madeira', // Correção
+};
+
 // Interface para shipping details
 interface ShippingDetails {
   name?: string;
@@ -239,24 +263,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // ✅ NOVO: Extrair o valor do custom_field 'district'
-    // Acessar custom_fields pode ser diferente dependendo da versão do Stripe API ou como o webhook/redirecionamento está configurado.
-    // Para session.custom_fields:
+    // 'session.custom_fields' é um array de objetos { key: 'district', value: 'Porto' }
     const customFields = session.custom_fields || [];
     const districtField = customFields.find(field => field.key === 'district');
-    const extractedDistrict = districtField?.text?.value || districtField?.dropdown?.value || null; // Pode ser 'text' ou 'dropdown'
+    // O valor do dropdown virá em 'text.value' ou 'dropdown.value' dependendo do tipo/Stripe API version.
+    // Usamos 'value' que é o valor alfanumérico.
+    const rawDistrictValueFromStripe = districtField?.dropdown?.value || districtField?.text?.value || null;
+
+    // ✅ NOVO: Aplicar o mapeamento para normalizar o nome do distrito
+    const finalRegion = rawDistrictValueFromStripe ? REGION_MAP[rawDistrictValueFromStripe] || rawDistrictValueFromStripe : '';
+    // Se o mapeamento falhar, usa o valor raw, ou um fallback vazio se for null.
+    // Garante que finalRegion não é null ou undefined.
 
     // Garantir que temos um endereço válido
     const rawAddress = shippingDetails?.address || customerDetails?.address || {};
-    // Usar o distrito extraído para a finalRegion - prioriza o custom_field, depois o state normal, depois o fallback
-    const finalRegion = extractedDistrict || rawAddress.state || metadata.debug_region || 'Porto'; // ✅ FIXO: Use distrito português válido
 
     // ✅ DEBUG: Log da extração de região
     console.log('📍 Extração de região:', {
-      fromCustomField: extractedDistrict,
+      fromCustomField: rawDistrictValueFromStripe,
+      mappedDistrict: rawDistrictValueFromStripe ? REGION_MAP[rawDistrictValueFromStripe] : null,
       fromStripeState: rawAddress.state,
       fromMetadata: metadata.debug_region,
       final: finalRegion,
-      reasoning: extractedDistrict ? 'Custom field district fornecido' : rawAddress.state ? 'Stripe forneceu state' : metadata.debug_region ? 'Usando metadata debug' : 'Usando fallback Porto'
+      reasoning: rawDistrictValueFromStripe ? 'Custom field district fornecido e mapeado' : rawAddress.state ? 'Stripe forneceu state' : metadata.debug_region ? 'Usando metadata debug' : 'Usando fallback vazio'
     });
     
     // ✅ DEBUG: Log dos dados brutos do endereço do Stripe

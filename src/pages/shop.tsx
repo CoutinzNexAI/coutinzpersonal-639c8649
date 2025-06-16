@@ -10,7 +10,7 @@ const ShopPage: React.FC = () => {
   const categories = [
     {
       id: 'canvas',
-      name: 'Quadros Canvas',
+      name: 'Quadros',
       description: 'Transforme as suas criações em quadros de arte',
       icon: '🖼️',
       image: '/assets/mockups/canvas/canvas_20x20_mockup_blank_front.png',
@@ -18,19 +18,11 @@ const ShopPage: React.FC = () => {
     },
     {
       id: 'apparel',
-      name: 'T-shirts',
+      name: 'Roupa',
       description: 'Vista as suas criações AI',
       icon: '👕',
       image: '/assets/mockups/tshirt/tshirt_m_white_mockup_front.png',
       href: '/shop/apparel'
-    },
-    {
-      id: 'poster',
-      name: 'Posters',
-      description: 'Arte em papel premium',
-      icon: '📄',
-      image: '/assets/mockups/poster/poster_a4_mockup_blank.png',
-      href: '/shop/poster'
     },
     {
       id: 'mug',
