@@ -143,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       // Configurar recolha obrigatória de endereço de envio
       shipping_address_collection: {
-        allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH', 'US', 'CA', 'GB']
+        allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH', 'US', 'CA', 'GB'],
         // ✅ NOTA: O Stripe força automaticamente a recolha de line1, city, postal_code, state e country
         // quando shipping_address_collection está ativo
       },
@@ -174,8 +174,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
       ],
-      // Campos personalizados opcionais
-      custom_fields: [
+      custom_fields: [ // ✅ NOVO: Campo personalizado para o Distrito
+        {
+          key: 'district',
+          label: { type: 'custom', custom: 'Distrito' },
+          type: 'dropdown',
+          dropdown: {
+            options: [
+              { label: 'Aveiro', value: 'Aveiro' },
+              { label: 'Beja', value: 'Beja' },
+              { label: 'Braga', value: 'Braga' },
+              { label: 'Bragança', value: 'Bragança' },
+              { label: 'Castelo Branco', value: 'Castelo Branco' },
+              { label: 'Coimbra', value: 'Coimbra' },
+              { label: 'Évora', value: 'Évora' },
+              { label: 'Faro', value: 'Faro' },
+              { label: 'Guarda', value: 'Guarda' },
+              { label: 'Leiria', value: 'Leiria' },
+              { label: 'Lisboa', value: 'Lisboa' },
+              { label: 'Portalegre', value: 'Portalegre' },
+              { label: 'Porto', value: 'Porto' },
+              { label: 'Santarém', value: 'Santarém' },
+              { label: 'Setúbal', value: 'Setúbal' },
+              { label: 'Viana do Castelo', value: 'Viana do Castelo' },
+              { label: 'Vila Real', value: 'Vila Real' },
+              { label: 'Viseu', value: 'Viseu' },
+              // Regiões Autónomas (se suportadas)
+              { label: 'Açores', value: 'Açores' },
+              { label: 'Madeira', value: 'Madeira' },
+            ],
+            default_value: 'Porto', // Define um valor padrão para facilitar o teste
+          },
+        },
         {
           key: 'order_notes',
           label: {

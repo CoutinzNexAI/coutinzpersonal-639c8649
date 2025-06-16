@@ -238,16 +238,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       final: finalPhone
     });
 
+    // ✅ NOVO: Extrair o valor do custom_field 'district'
+    // Acessar custom_fields pode ser diferente dependendo da versão do Stripe API ou como o webhook/redirecionamento está configurado.
+    // Para session.custom_fields:
+    const customFields = session.custom_fields || [];
+    const districtField = customFields.find(field => field.key === 'district');
+    const extractedDistrict = districtField?.text?.value || districtField?.dropdown?.value || null; // Pode ser 'text' ou 'dropdown'
+
     // Garantir que temos um endereço válido
     const rawAddress = shippingDetails?.address || customerDetails?.address || {};
-    const finalRegion = rawAddress.state || metadata.debug_region || 'Porto'; // ✅ FIXO: Use distrito português válido
+    // Usar o distrito extraído para a finalRegion - prioriza o custom_field, depois o state normal, depois o fallback
+    const finalRegion = extractedDistrict || rawAddress.state || metadata.debug_region || 'Porto'; // ✅ FIXO: Use distrito português válido
 
     // ✅ DEBUG: Log da extração de região
     console.log('📍 Extração de região:', {
+      fromCustomField: extractedDistrict,
       fromStripeState: rawAddress.state,
       fromMetadata: metadata.debug_region,
       final: finalRegion,
-      reasoning: rawAddress.state ? 'Stripe forneceu state' : metadata.debug_region ? 'Usando metadata debug' : 'Usando fallback Porto'
+      reasoning: extractedDistrict ? 'Custom field district fornecido' : rawAddress.state ? 'Stripe forneceu state' : metadata.debug_region ? 'Usando metadata debug' : 'Usando fallback Porto'
     });
     
     // ✅ DEBUG: Log dos dados brutos do endereço do Stripe
