@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw, Camera, Upload } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -285,32 +285,7 @@ export default function ProductCanvas({
         </div>
       )}
 
-      {/* Action buttons */}
-      <div className="flex gap-3 justify-center">
-        <Button
-          variant="outline"
-          onClick={() => {
-            setHasGenerated(false);
-            handleGenerateMockup();
-          }}
-          disabled={isLoadingMockups}
-          className="text-sm"
-        >
-          <RotateCw className="w-4 h-4 mr-2" />
-          Gerar Novamente
-        </Button>
-        
-        {onSelectImage && (
-          <Button
-            variant="outline"
-            onClick={onSelectImage}
-            className="text-sm"
-          >
-            <Camera className="w-4 h-4 mr-2" />
-            Trocar Foto
-          </Button>
-        )}
-      </div>
+
     </div>
   );
 
@@ -340,15 +315,7 @@ export default function ProductCanvas({
           Tentar Novamente
         </Button>
         
-        {onSelectImage && (
-          <Button
-            variant="outline"
-            onClick={onSelectImage}
-          >
-            <Camera className="w-4 h-4 mr-2" />
-            Escolher Outra Foto
-          </Button>
-        )}
+
       </div>
     </div>
   );
