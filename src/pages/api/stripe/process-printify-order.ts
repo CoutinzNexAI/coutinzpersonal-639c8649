@@ -448,6 +448,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       for (const item of cartItems) {
         // Verificar se o item tem os IDs do produto criado na Printify (Fase 3)
         if (!item.printifyProductId || !item.printifyVariantId) {
+          console.error('❌ ERRO: Missing Printify Product ID or Variant ID in cart item:', {
+            itemId: item.id,
+            printifyProductId: item.printifyProductId,
+            printifyVariantId: item.printifyVariantId
+          });
           throw new Error(`Missing Printify Product ID or Variant ID in cart item: ${item.id}`);
         }
 
@@ -460,6 +465,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Estes campos são apenas para criação "on-the-fly" de produtos
         };
         
+        console.log('✅ Line item criado:', lineItem);
         printifyLineItems.push(lineItem);
       }
 
@@ -524,6 +530,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         throw new Error('PRINTIFY_SHOP_ID not configured');
       }
 
+      console.log('🚀 Chamando API Printify para criar pedido...');
       const printifyOrderResult = await printifyFetch(`/shops/${shopId}/orders.json`, {
         method: 'POST',
         headers: {
@@ -532,27 +539,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         body: JSON.stringify(printifyPayload)
       });
 
+      console.log('📥 Resposta da API Printify:', JSON.stringify(printifyOrderResult, null, 2));
+
       // ✅ CORRIGIDO: A resposta da Printify é o próprio objeto do pedido, não tem .success
       // Verificar se o pedido foi criado com sucesso baseado no status
       if (!printifyOrderResult || !printifyOrderResult.id) {
-        throw new Error('Failed to create order in Printify: No order ID returned');
+        throw new Error('Failed to create order in Printify: No order ID returned.');
       }
+
+      // A Printify pode devolver 'on-hold' (mais comum para ações do comerciante), 'pending', 'canceled', etc.
+      // Vamos considerar 'on-hold' ou 'pending' como sucesso inicial, e outros como erro.
+      const printifyOrderStatus = printifyOrderResult.status || 'unknown'; // Garante que status não é undefined
+      const printifyOrderId = printifyOrderResult.id;
+
+      console.log('✅ Pedido enviado para Printify com sucesso. ID:', printifyOrderId, 'Status:', printifyOrderStatus);
 
       // ✅ CORRIGIDO: Status 'pending', 'on-hold', 'created' são SUCESSOS, não erros
       const validSuccessStatuses = ['pending', 'on-hold', 'created', 'submitted', 'processing'];
-      if (!validSuccessStatuses.includes(printifyOrderResult.status)) {
-        throw new Error(`Failed to create order in Printify with status: ${printifyOrderResult.status}`);
+      if (!validSuccessStatuses.includes(printifyOrderStatus)) {
+        throw new Error(`Failed to create order in Printify with status: ${printifyOrderStatus}`);
       }
-
-      console.log('✅ Pedido enviado para Printify com sucesso:', printifyOrderResult);
 
       // 8. ATUALIZAR DB COM SUCESSO PRINTIFY
       const { error: updateError } = await supabaseAdmin
         .from('printify_orders')
         .update({
-          printify_order_id: printifyOrderResult.id, // ✅ CORRIGIDO: ID direto do objeto
-          printify_status: printifyOrderResult.status, // ✅ CORRIGIDO: Status direto do objeto
-          status: 'processing', // Status interno do PicTuz
+          printify_order_id: printifyOrderId,
+          printify_status: printifyOrderStatus, // Status real do pedido Printify
+          status: 'processing', // Status interno do seu sistema (ou 'on-hold' se quiser refletir)
           updated_at: new Date().toISOString()
         })
         .eq('id', savedOrder.id);
@@ -568,8 +582,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: "Pedido processado com sucesso e enviado para a Printify!",
         orderId: savedOrder.id,
         orderReference: orderReference,
-        printifyOrderId: printifyOrderResult.id, // ✅ CORRIGIDO: ID direto do objeto
-        printifyStatus: printifyOrderResult.status, // ✅ ADICIONAR: Status real da Printify
+        printifyOrderId: printifyOrderId,
+        printifyStatus: printifyOrderStatus, // Status real da Printify
         status: 'processing',
         estimatedDelivery: '7-14 dias úteis',
         customerEmail: customerEmail,
