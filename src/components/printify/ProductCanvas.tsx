@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw, Camera } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw, Camera, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -143,38 +143,35 @@ export default function ProductCanvas({
         
         <Button
           onClick={onSelectImage}
-          className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+          className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white shadow-lg px-8 py-3"
           size="lg"
         >
-          <Camera className="w-5 h-5 mr-2" />
+          <Upload className="w-5 h-5 mr-2" />
           Escolher Foto
         </Button>
       </div>
     </div>
   );
 
-  // Estado de carregamento com overlay
+  // Estado de carregamento com overlay melhorado
   const renderLoadingOverlay = () => (
     <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex flex-col items-center justify-center z-10">
       <div className="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-4 text-center">
-        <div className="relative mb-4">
-          <svg className="w-12 h-12 mx-auto text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <Sparkles className="absolute inset-0 w-6 h-6 m-auto text-blue-600 animate-pulse" />
+        <div className="relative mb-4 flex items-center justify-center">
+          <Loader2 className="w-12 h-12 text-ghibli-moss animate-spin" />
+          <Sparkles className="absolute w-6 h-6 text-ghibli-moss animate-pulse" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-ghibli-earth mb-2">
           A gerar pré-visualização 3D...
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-ghibli-earth/70">
           Estamos a criar mockups profissionais do seu produto. 
           Isto pode demorar até 30 segundos.
         </p>
         <div className="mt-4 flex items-center justify-center space-x-1">
-          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" />
-          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" />
+          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
         </div>
       </div>
     </div>

@@ -204,7 +204,7 @@ const ProductDetailPage: React.FC = () => {
     }
   };
 
-  const handleSelectImageFromGallery = (imageUrl: string, imageId: string) => {
+  const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId);
     // Reset estados Printify quando nova imagem é selecionada
@@ -213,8 +213,11 @@ const ProductDetailPage: React.FC = () => {
     setPrintifyProductId('');
     setIsGalleryModalOpen(false);
     toast.success('Arte selecionada!', {
-      description: 'A sua transformação foi aplicada ao produto'
+      description: 'A gerar mockups automaticamente...'
     });
+    
+    // Disparar geração de mockups automaticamente após seleção
+    // O ProductCanvas irá detectar a mudança da userImageUrl e gerar automaticamente
   };
 
   const handleResetSelection = () => {
@@ -259,12 +262,13 @@ const ProductDetailPage: React.FC = () => {
             </ol>
           </nav>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Coluna da Esquerda - ProductCanvas */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Coluna da Esquerda - ProductCanvas (2 colunas de largura) */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
+              className="lg:col-span-2"
             >
               <ProductCanvas
                 selectedProduct={product}
@@ -277,12 +281,12 @@ const ProductDetailPage: React.FC = () => {
               />
             </motion.div>
 
-            {/* Coluna da Direita - Informações do Produto */}
+            {/* Coluna da Direita - Informações do Produto (1 coluna de largura) */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-6"
+              className="lg:col-span-1 space-y-4"
             >
               {/* Título e Preço */}
               <div>
@@ -303,57 +307,53 @@ const ProductDetailPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Especificações */}
-              <div className="bg-white/50 rounded-lg p-4 space-y-3">
-                <h3 className="font-semibold text-ghibli-earth">Especificações</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-ghibli-earth/60">Dimensões:</span>
-                    <p className="font-medium">{product.gelatoPrintDimensionsMm.width}×{product.gelatoPrintDimensionsMm.height}mm</p>
+              {/* Especificações Minimalistas */}
+              <div className="bg-white/50 rounded-lg p-3 space-y-2">
+                <h3 className="font-semibold text-ghibli-earth text-sm">Detalhes</h3>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-ghibli-earth/60">Tamanho:</span>
+                    <span className="font-medium">{product.gelatoPrintDimensionsMm.width}×{product.gelatoPrintDimensionsMm.height}mm</span>
                   </div>
-                  <div>
-                    <span className="text-ghibli-earth/60">Categoria:</span>
-                    <p className="font-medium capitalize">{product.category}</p>
+                  <div className="flex justify-between">
+                    <span className="text-ghibli-earth/60">Qualidade:</span>
+                    <span className="font-medium">Premium</span>
                   </div>
-                  <div>
-                    <span className="text-ghibli-earth/60">Material:</span>
-                    <p className="font-medium">Premium</p>
-                  </div>
-                  <div>
-                    <span className="text-ghibli-earth/60">Impressão:</span>
-                    <p className="font-medium">Alta Qualidade</p>
+                  <div className="flex justify-between">
+                    <span className="text-ghibli-earth/60">Entrega:</span>
+                    <span className="font-medium">3-5 dias</span>
                   </div>
                 </div>
               </div>
 
               {/* Seleção de Imagem */}
               {selectedImageUrl && (
-                <div className="bg-white/50 rounded-lg p-4">
-                  <h3 className="font-semibold text-ghibli-earth mb-3">Arte Selecionada</h3>
-                  <div className="flex items-center space-x-4">
+                <div className="bg-white/50 rounded-lg p-3">
+                  <h3 className="font-semibold text-ghibli-earth mb-2 text-sm">Arte Selecionada</h3>
+                  <div className="flex items-center space-x-3">
                     <img
                       src={selectedImageUrl}
                       alt="Arte selecionada"
-                      className="w-16 h-16 rounded-lg object-cover border-2 border-ghibli-moss"
+                      className="w-12 h-12 rounded-lg object-cover border-2 border-ghibli-moss"
                     />
                     <div className="flex-1">
-                      <p className="text-sm text-ghibli-earth/80">
-                        A sua transformação AI está pronta para impressão
+                      <p className="text-xs text-ghibli-earth/80 mb-2">
+                        Transformação AI aplicada
                       </p>
-                      <div className="flex gap-2 mt-2">
+                      <div className="flex gap-2">
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
                           onClick={handleOpenGallery}
-                          className="text-xs"
+                          className="text-xs bg-ghibli-moss hover:bg-ghibli-moss/90 h-7"
                         >
                           Trocar Arte
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="destructive"
                           size="sm"
                           onClick={handleResetSelection}
-                          className="text-xs"
+                          className="text-xs h-7"
                         >
                           Remover
                         </Button>
@@ -415,14 +415,13 @@ const ProductDetailPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Informações de Entrega */}
-              <div className="bg-ghibli-moss/10 rounded-lg p-4">
-                <h3 className="font-semibold text-ghibli-earth mb-2">Entrega e Garantia</h3>
-                <ul className="text-sm text-ghibli-earth/80 space-y-1">
-                  <li>✓ Entrega gratuita em encomendas superiores a €50</li>
-                  <li>✓ Impressão e envio em 3-5 dias úteis</li>
-                  <li>✓ Garantia de qualidade de 30 dias</li>
-                  <li>✓ Suporte ao cliente dedicado</li>
+              {/* Informações de Entrega Minimalistas */}
+              <div className="bg-ghibli-moss/10 rounded-lg p-3">
+                <h3 className="font-semibold text-ghibli-earth mb-2 text-sm">Garantias</h3>
+                <ul className="text-xs text-ghibli-earth/80 space-y-1">
+                  <li>✓ Entrega gratuita {'>'}€50</li>
+                  <li>✓ Envio em 3-5 dias</li>
+                  <li>✓ Garantia 30 dias</li>
                 </ul>
               </div>
             </motion.div>
