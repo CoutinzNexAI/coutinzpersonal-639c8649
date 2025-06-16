@@ -541,24 +541,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       console.log('📥 Resposta da API Printify:', JSON.stringify(printifyOrderResult, null, 2));
 
-      // ✅ CORRIGIDO: A resposta da Printify é o próprio objeto do pedido, não tem .success
-      // Verificar se o pedido foi criado com sucesso baseado no status
+      // ✅ FINALIZADOR: A resposta da Printify é o próprio objeto do pedido.
+      // Se printifyOrderResult tiver um id, assume que a criação foi um sucesso.
       if (!printifyOrderResult || !printifyOrderResult.id) {
+        // Se não houver um objeto ou ID de pedido, então é um erro real.
         throw new Error('Failed to create order in Printify: No order ID returned.');
       }
 
-      // A Printify pode devolver 'on-hold' (mais comum para ações do comerciante), 'pending', 'canceled', etc.
-      // Vamos considerar 'on-hold' ou 'pending' como sucesso inicial, e outros como erro.
-      const printifyOrderStatus = printifyOrderResult.status || 'unknown'; // Garante que status não é undefined
       const printifyOrderId = printifyOrderResult.id;
+      // O status na resposta de criação pode ser 'on-hold', 'pending', ou até undefined.
+      // Usar 'on-hold' como default se não for fornecido para refletir o estado real na Printify.
+      const printifyOrderStatus = printifyOrderResult.status || 'on-hold'; // Default para 'on-hold'
 
       console.log('✅ Pedido enviado para Printify com sucesso. ID:', printifyOrderId, 'Status:', printifyOrderStatus);
-
-      // ✅ CORRIGIDO: Status 'pending', 'on-hold', 'created' são SUCESSOS, não erros
-      const validSuccessStatuses = ['pending', 'on-hold', 'created', 'submitted', 'processing'];
-      if (!validSuccessStatuses.includes(printifyOrderStatus)) {
-        throw new Error(`Failed to create order in Printify with status: ${printifyOrderStatus}`);
-      }
 
       // 8. ATUALIZAR DB COM SUCESSO PRINTIFY
       const { error: updateError } = await supabaseAdmin
