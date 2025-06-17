@@ -171,11 +171,21 @@ export default async function handler(
 
     // Buscar produto no nosso mapeamento
     const product = getPrintifyProduct(productId);
-    if (!product || !product.printifyBlueprintId || !product.printifyPrintProviderId || !product.printifyVariantIds) {
+    if (!product || !product.printifyBlueprintId || !product.printifyPrintProviderId) {
       console.log("❌ ERROR: Product not found in Printify mapping or missing Printify IDs:", productId);
       return res.status(404).json({
         success: false,
         error: `Product not found in Printify mapping or missing Printify IDs: ${productId}`
+      });
+    }
+
+    // Verificar se tem variants (para capas) ou printifyVariantIds (para outros produtos)
+    const hasVariants = (product.variants && product.variants.length > 0) || (product.printifyVariantIds && product.printifyVariantIds.length > 0);
+    if (!hasVariants) {
+      console.log("❌ ERROR: Product has no variants or printifyVariantIds:", productId);
+      return res.status(404).json({
+        success: false,
+        error: `Product has no variants configured: ${productId}`
       });
     }
 
@@ -188,7 +198,16 @@ export default async function handler(
     );
 
     // Determinar qual variante usar
-    const targetVariantId = selectedPrintifyVariantId || product.printifyVariantIds![0];
+    let targetVariantId: number;
+    if (selectedPrintifyVariantId) {
+      targetVariantId = selectedPrintifyVariantId;
+    } else if (product.variants && product.variants.length > 0) {
+      targetVariantId = product.variants[0].id;
+    } else if (product.printifyVariantIds && product.printifyVariantIds.length > 0) {
+      targetVariantId = product.printifyVariantIds[0];
+    } else {
+      throw new Error('No variant ID available for the product');
+    }
     console.log('🎯 Target variant ID:', targetVariantId);
 
     const selectedPrintifyVariant = printifyVariantsResponse.variants.find(

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -59,14 +59,12 @@ export default function ProductCanvas({
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
 
-  // Auto-generate mockup when component mounts (if not already generated)
+  // Reset hasGenerated when variant changes (for phone cases)
   useEffect(() => {
-    if (!hasGenerated && userImageUrl && userId && selectedProduct) {
-      handleGenerateMockup();
-    }
-  }, [userImageUrl, userId, selectedProduct, hasGenerated]);
+    setHasGenerated(false);
+  }, [selectedPrintifyVariantId]);
 
-  const handleGenerateMockup = async () => {
+  const handleGenerateMockup = useCallback(async () => {
     if (!userImageUrl || !userId || isLoadingMockups) return;
 
     setIsLoadingMockups(true);
@@ -111,7 +109,19 @@ export default function ProductCanvas({
     } finally {
       setIsLoadingMockups(false);
     }
-  };
+  }, [userImageUrl, userId, isLoadingMockups, selectedProduct, imageAdjustments, selectedPrintifyVariantId, onPreviewReady]);
+
+  // Auto-generate mockup when component mounts (if not already generated)
+  useEffect(() => {
+    // Para capas de telemóvel, só gera se uma variante foi selecionada
+    const shouldGenerate = selectedProduct.id === 'custom_phone_case' 
+      ? (userImageUrl && userId && selectedProduct && selectedPrintifyVariantId)
+      : (userImageUrl && userId && selectedProduct);
+
+    if (!hasGenerated && shouldGenerate) {
+      handleGenerateMockup();
+    }
+  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, hasGenerated, handleGenerateMockup]);
 
   const handlePreviousPreview = () => {
     setCurrentPreviewIndex((prev) => 
@@ -126,37 +136,75 @@ export default function ProductCanvas({
   };
 
   // Estado inicial - sem imagem selecionada
-  const renderEmptyState = () => (
-    <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden flex flex-col items-center justify-center">
-      {/* Placeholder image */}
-      <div className="mb-6">
-        <img
-          src="/fotocanva.png"
-          alt="Escolha uma foto para personalizar"
-          className="w-48 h-48 object-contain opacity-60"
-        />
-      </div>
-      
-      {/* Call to action */}
-      <div className="text-center">
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">
-          Personalize o seu {selectedProduct.name}
-        </h3>
-        <p className="text-sm text-gray-500 mb-6 max-w-md">
-          Escolha uma das suas transformações AI para ver como ficará no produto
-        </p>
+  const renderEmptyState = () => {
+    // Para capas de telemóvel, mostrar o mockup inicial (capa.png)
+    if (selectedProduct.id === 'custom_phone_case') {
+      return (
+        <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden">
+          {/* Mockup inicial da capa */}
+          <img
+            src={selectedProduct.mockupInitialPath}
+            alt={`${selectedProduct.name} mockup inicial`}
+            className="absolute inset-0 w-full h-full object-contain"
+          />
+          
+          {/* Overlay com call to action */}
+          <div className="absolute inset-0 bg-black bg-opacity-20 flex flex-col items-center justify-center">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 text-center max-w-sm mx-4">
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                Personalize a sua {selectedProduct.name}
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Escolha uma arte AI e um modelo de telemóvel para começar
+              </p>
+              
+              <Button
+                onClick={onSelectImage}
+                className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white shadow-lg"
+                size="lg"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Escolher Arte
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Para outros produtos, mostrar estado vazio tradicional
+    return (
+      <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+        {/* Placeholder image */}
+        <div className="mb-6">
+          <img
+            src="/fotocanva.png"
+            alt="Escolha uma foto para personalizar"
+            className="w-48 h-48 object-contain opacity-60"
+          />
+        </div>
         
-        <Button
-          onClick={onSelectImage}
-          className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white shadow-lg px-8 py-3"
-          size="lg"
-        >
-          <Upload className="w-5 h-5 mr-2" />
-          Escolher Foto
-        </Button>
+        {/* Call to action */}
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            Personalize o seu {selectedProduct.name}
+          </h3>
+          <p className="text-sm text-gray-500 mb-6 max-w-md">
+            Escolha uma das suas transformações AI para ver como ficará no produto
+          </p>
+          
+          <Button
+            onClick={onSelectImage}
+            className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white shadow-lg px-8 py-3"
+            size="lg"
+          >
+            <Upload className="w-5 h-5 mr-2" />
+            Escolher Foto
+          </Button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Estado de carregamento com overlay melhorado
   const renderLoadingOverlay = () => (
