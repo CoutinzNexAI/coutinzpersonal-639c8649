@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -46,6 +47,9 @@ const PhoneCaseDetailPage: React.FC = () => {
 
   // Estado específico para seleção de variante da capa
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
+
+  // Estado para armazenar dados da última transformação (sem aplicar automaticamente)
+  const [latestTransformationData, setLatestTransformationData] = useState<{ url: string; id: string } | null>(null);
 
   // Carregar produto baseado no ID
   useEffect(() => {
@@ -110,8 +114,8 @@ const PhoneCaseDetailPage: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.outputUrl && data.id) {
-          setSelectedImageUrl(data.outputUrl);
-          setSelectedImageId(data.id);
+          // Armazenar os dados sem aplicar automaticamente
+          setLatestTransformationData({ url: data.outputUrl, id: data.id });
         }
       }
     } catch (error) {
@@ -270,6 +274,23 @@ const PhoneCaseDetailPage: React.FC = () => {
     setImageAdjustments(undefined);
   };
 
+  const handleUseLatestArt = () => {
+    if (latestTransformationData) {
+      setSelectedImageUrl(latestTransformationData.url);
+      setSelectedImageId(latestTransformationData.id);
+      toast.success('Última arte aplicada!', {
+        description: 'A gerar mockups automaticamente...'
+      });
+      // A auto-geração no ProductCanvas será disparada pela atualização de selectedImageUrl
+    }
+  };
+
+  const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
+    if (imageAdjustments) {
+      setImageAdjustments({ ...imageAdjustments, ...adjustments });
+    }
+  };
+
   if (!product) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand flex items-center justify-center">
@@ -397,6 +418,33 @@ const PhoneCaseDetailPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Botão "Usar Última Arte" - só aparece se não há arte selecionada mas há última arte disponível */}
+              {!selectedImageUrl && latestTransformationData && userInfo && (
+                <div className="bg-blue-50/50 rounded-lg p-3">
+                  <h3 className="font-semibold text-ghibli-earth mb-2 text-sm">Arte Sugerida</h3>
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src={latestTransformationData.url}
+                      alt="Última arte criada"
+                      className="w-12 h-12 rounded-lg object-cover border-2 border-blue-400"
+                    />
+                    <div className="flex-1">
+                      <p className="text-xs text-ghibli-earth/80 mb-2">
+                        Última transformação criada
+                      </p>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={handleUseLatestArt}
+                        className="text-xs bg-blue-600 hover:bg-blue-700 h-7"
+                      >
+                        Usar Esta Arte
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Seleção de Imagem */}
               {selectedImageUrl && (
                 <div className="bg-white/50 rounded-lg p-3">
@@ -428,6 +476,34 @@ const PhoneCaseDetailPage: React.FC = () => {
                         >
                           Remover
                         </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Controles de Ajuste de Imagem - só aparece se há arte selecionada */}
+              {selectedImageUrl && imageAdjustments && (
+                <div className="bg-white/50 rounded-lg p-3">
+                  <h3 className="font-semibold text-ghibli-earth mb-3 text-sm">Ajustar Posição</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-ghibli-earth/80 mb-2">
+                        Posição Horizontal: {Math.round(imageAdjustments.x * 100)}%
+                      </label>
+                      <Slider
+                        value={[imageAdjustments.x * 100]}
+                        onValueChange={(value) => 
+                          handleImageAdjustmentChange({ x: value[0] / 100 })
+                        }
+                        max={100}
+                        min={0}
+                        step={1}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-ghibli-earth/60 mt-1">
+                        <span>Esquerda</span>
+                        <span>Direita</span>
                       </div>
                     </div>
                   </div>

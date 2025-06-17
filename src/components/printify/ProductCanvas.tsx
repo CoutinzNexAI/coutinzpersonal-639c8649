@@ -58,6 +58,8 @@ export default function ProductCanvas({
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
 
   // Reset hasGenerated when variant changes (for phone cases)
   useEffect(() => {
@@ -135,6 +137,53 @@ export default function ProductCanvas({
     );
   };
 
+  // Funções de arrasto para ajuste da posição X
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (selectedProduct.supportsManualAdjustment && imageAdjustments) {
+      setIsDragging(true);
+      setDragStartX(e.clientX);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && imageAdjustments && onImageAdjust) {
+      const deltaX = e.clientX - dragStartX;
+      const containerWidth = 400; // Aproximadamente a largura do container
+      const deltaPercentage = deltaX / containerWidth;
+      
+      // Calcular nova posição X limitada entre 0 e 1
+      const newX = Math.max(0, Math.min(1, imageAdjustments.x + deltaPercentage));
+      
+      onImageAdjust({ ...imageAdjustments, x: newX });
+      setDragStartX(e.clientX);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Handlers para touch (dispositivos móveis)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (selectedProduct.supportsManualAdjustment && imageAdjustments) {
+      setIsDragging(true);
+      setDragStartX(e.touches[0].clientX);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isDragging && imageAdjustments && onImageAdjust) {
+      const deltaX = e.touches[0].clientX - dragStartX;
+      const containerWidth = 400;
+      const deltaPercentage = deltaX / containerWidth;
+      
+      const newX = Math.max(0, Math.min(1, imageAdjustments.x + deltaPercentage));
+      
+      onImageAdjust({ ...imageAdjustments, x: newX });
+      setDragStartX(e.touches[0].clientX);
+    }
+  };
+
   // Estado inicial - sem imagem selecionada
   const renderEmptyState = () => {
     // Para capas de telemóvel, mostrar o mockup inicial (capa.png)
@@ -208,7 +257,7 @@ export default function ProductCanvas({
 
   // Estado de carregamento com overlay melhorado
   const renderLoadingOverlay = () => (
-    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex flex-col items-center justify-center z-10">
+    <div className="absolute inset-0 bg-black bg-opacity-70 rounded-lg flex flex-col items-center justify-center z-20">
       <div className="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-4 text-center">
         <div className="relative mb-4 flex items-center justify-center">
           <Loader2 className="w-12 h-12 text-ghibli-moss animate-spin" />
@@ -232,7 +281,14 @@ export default function ProductCanvas({
 
   // Preview inicial com imagem do utilizador
   const renderInitialPreview = () => (
-    <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden">
+    <div 
+      className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleMouseUp}
+    >
       {/* Background mockup */}
       <img
         src={selectedProduct.mockupInitialPath}
@@ -242,13 +298,25 @@ export default function ProductCanvas({
       
       {/* User image overlay - positioned based on product type */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative w-48 h-48 rounded-lg overflow-hidden shadow-lg">
+        <div 
+          className={`relative w-48 h-48 rounded-lg overflow-hidden shadow-lg ${
+            selectedProduct.supportsManualAdjustment ? 'cursor-grab active:cursor-grabbing' : ''
+          }`}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+        >
           <img
             src={userImageUrl}
             alt="Your transformed image"
             className="w-full h-full object-cover"
+            draggable={false}
           />
           <div className="absolute inset-0 bg-black bg-opacity-10" />
+          {selectedProduct.supportsManualAdjustment && (
+            <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+              Arraste para ajustar
+            </div>
+          )}
         </div>
       </div>
 
