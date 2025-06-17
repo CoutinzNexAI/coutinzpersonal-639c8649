@@ -6,15 +6,16 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getPrintifyProductsByCategory } from '@/lib/printify/printifyProducts';
 
-const CanvasShopPage: React.FC = () => {
-  const canvasProducts = getPrintifyProductsByCategory('canvas');
-  const productIds = Object.keys(canvasProducts);
+const BagsShopPage: React.FC = () => {
+  const bagsProducts = getPrintifyProductsByCategory('bags');
+  const productIds = Object.keys(bagsProducts);
 
   return (
     <>
       <Head>
-        <title>Quadros Canvas - Loja PicTuz</title>
-        <meta name="description" content="Transforme as suas criações AI em quadros canvas de alta qualidade. Molduras elegantes e impressão profissional." />
+        <title>Sacos Personalizados - Loja PicTuz</title>
+        <meta name="description" content="Transforme as suas criações AI em sacos únicos. Tote bags de qualidade premium e impressão durável." />
+        <meta name="keywords" content="sacos personalizados, tote bag, saco algodão, impressão personalizada" />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
@@ -38,7 +39,7 @@ const CanvasShopPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              🖼️ Quadros Canvas
+              🛍️ Sacos Personalizados
             </motion.h1>
             <motion.p 
               className="text-lg text-ghibli-earth max-w-2xl mx-auto"
@@ -46,14 +47,14 @@ const CanvasShopPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Transforme as suas criações AI em obras de arte elegantes com molduras de madeira FSC
+              Leve a sua arte para todo o lado com sacos sustentáveis e únicos
             </motion.p>
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {productIds.map((productId, index) => {
-              const product = canvasProducts[productId];
+              const product = bagsProducts[productId];
               
               return (
                 <motion.div
@@ -62,15 +63,19 @@ const CanvasShopPage: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
-                  <Link href={`/shop/${productId}`}>
-                    <div className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] sm:hover:scale-105 cursor-pointer active:scale-95">
+                  <Link href={`/shop/bags/${productId}`}>
+                    <div className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
                       {/* Product Image */}
-                      <div className="aspect-square bg-gradient-to-br from-ghibli-cream to-ghibli-sand/30 p-8 flex items-center justify-center relative">
-                        <div className="w-full h-full bg-ghibli-wood/10 rounded-lg border-4 border-ghibli-wood/20 flex items-center justify-center">
-                          <div className="text-4xl text-ghibli-wood/50">🖼️</div>
+                      <div className="aspect-square bg-gradient-to-br from-emerald-50 to-emerald-100 p-8 flex items-center justify-center relative">
+                        <div className="w-32 h-40 bg-white rounded-lg border-2 border-ghibli-wood/20 flex items-center justify-center relative shadow-md">
+                          <div className="text-4xl text-ghibli-wood/50">🛍️</div>
+                          {/* Print area preview */}
+                          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-20 h-24 bg-ghibli-moss/20 rounded flex items-center justify-center">
+                            <div className="text-xs text-ghibli-wood/60">Arte</div>
+                          </div>
                         </div>
                         {/* Preview Badge */}
-                        <div className="absolute top-4 right-4 bg-ghibli-moss text-white text-xs px-2 py-1 rounded-full">
+                        <div className="absolute top-4 right-4 bg-emerald-600 text-white text-xs px-2 py-1 rounded-full">
                           Preview
                         </div>
                       </div>
@@ -83,15 +88,16 @@ const CanvasShopPage: React.FC = () => {
                         
                         {/* Specifications */}
                         <div className="text-sm text-ghibli-earth space-y-1 mb-4">
-                          <div>📏 {product.gelatoPrintDimensionsMm.width}×{product.gelatoPrintDimensionsMm.height}mm</div>
-                          <div>🌳 Moldura FSC</div>
-                          <div>✨ Impressão premium</div>
+                          <div>👜 {product.variants?.map(v => v.title).join(', ') || 'Tamanho único'}</div>
+                          <div>🌱 100% Algodão orgânico</div>
+                          <div>✨ Impressão resistente</div>
+                          <div>♻️ Reutilizável e ecológico</div>
                         </div>
                         
-                        {/* Price Placeholder */}
+                        {/* Price */}
                         <div className="flex items-center justify-between">
                           <div className="text-lg font-bold text-ghibli-wood">
-                            {product.price ? `€${product.price}` : 'A partir de €29.99'}
+                            {product.basePrice ? `€${product.basePrice}` : `€${product.price || 25.00}`}
                           </div>
                           <div className="text-xs text-ghibli-earth/70">
                             + envio
@@ -113,23 +119,23 @@ const CanvasShopPage: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.6 }}
           >
             <h2 className="text-2xl font-semibold text-ghibli-wood mb-6 text-center">
-              ✨ Porquê Escolher Canvas PicTuz?
+              ✨ Porquê Escolher Sacos PicTuz?
             </h2>
             <div className="grid md:grid-cols-3 gap-6 text-sm text-ghibli-earth">
               <div className="text-center">
-                <div className="text-3xl mb-3">🌳</div>
-                <h3 className="font-semibold mb-2">Moldura FSC</h3>
-                <p>Madeira certificada de fonte sustentável e responsável</p>
+                <div className="text-3xl mb-3">🌱</div>
+                <h3 className="font-semibold mb-2">100% Sustentável</h3>
+                <p>Algodão orgânico certificado, produção ecológica</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl mb-3">💪</div>
+                <h3 className="font-semibold mb-2">Resistente</h3>
+                <p>Material durável para uso diário, lavável em máquina</p>
               </div>
               <div className="text-center">
                 <div className="text-3xl mb-3">🎨</div>
-                <h3 className="font-semibold mb-2">Cores Vívidas</h3>
-                <p>Impressão de alta qualidade com cores duradouras</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl mb-3">📦</div>
-                <h3 className="font-semibold mb-2">Pronto a Pendurar</h3>
-                <p>Chega embalado de forma segura e pronto para decorar</p>
+                <h3 className="font-semibold mb-2">Arte Vibrante</h3>
+                <p>Impressão de alta qualidade que preserva as cores</p>
               </div>
             </div>
           </motion.div>
@@ -141,4 +147,4 @@ const CanvasShopPage: React.FC = () => {
   );
 };
 
-export default CanvasShopPage; 
+export default BagsShopPage; 

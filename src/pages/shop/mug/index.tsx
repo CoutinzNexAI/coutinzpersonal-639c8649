@@ -6,15 +6,16 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getPrintifyProductsByCategory } from '@/lib/printify/printifyProducts';
 
-const ApparelShopPage: React.FC = () => {
-  const apparelProducts = getPrintifyProductsByCategory('apparel');
-  const productIds = Object.keys(apparelProducts);
+const MugShopPage: React.FC = () => {
+  const mugProducts = getPrintifyProductsByCategory('mug');
+  const productIds = Object.keys(mugProducts);
 
   return (
     <>
       <Head>
-        <title>T-shirts Personalizadas - Loja PicTuz</title>
-        <meta name="description" content="Transforme as suas criações AI em t-shirts únicas. 100% algodão orgânico e impressão durável." />
+        <title>Canecas Personalizadas - Loja PicTuz</title>
+        <meta name="description" content="Transforme as suas criações AI em canecas únicas. Cerâmica de qualidade e impressão durável." />
+        <meta name="keywords" content="canecas personalizadas, caneca cerâmica, caneca coração, impressão personalizada" />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
@@ -38,7 +39,7 @@ const ApparelShopPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              👕 T-shirts Personalizadas
+              ☕ Canecas Personalizadas
             </motion.h1>
             <motion.p 
               className="text-lg text-ghibli-earth max-w-2xl mx-auto"
@@ -46,14 +47,14 @@ const ApparelShopPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Vista as suas criações AI com t-shirts de algodão orgânico e impressão sustentável
+              Comece o dia com uma caneca única feita com as suas criações AI
             </motion.p>
           </div>
 
           {/* Products Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {productIds.map((productId, index) => {
-              const product = apparelProducts[productId];
+              const product = mugProducts[productId];
               
               return (
                 <motion.div
@@ -62,19 +63,19 @@ const ApparelShopPage: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
-                  <Link href={`/shop/${productId}`}>
+                  <Link href={`/shop/mug/${productId}`}>
                     <div className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
                       {/* Product Image */}
-                      <div className="aspect-square bg-gradient-to-br from-ghibli-cream to-ghibli-sand/30 p-8 flex items-center justify-center relative">
+                      <div className="aspect-square bg-gradient-to-br from-green-50 to-green-100 p-8 flex items-center justify-center relative">
                         <div className="w-32 h-40 bg-white rounded-lg border-2 border-ghibli-wood/20 flex items-center justify-center relative shadow-md">
-                          <div className="text-3xl text-ghibli-wood/50">👕</div>
+                          <div className="text-4xl text-ghibli-wood/50">☕</div>
                           {/* Print area preview */}
-                          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-ghibli-moss/20 rounded flex items-center justify-center">
+                          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-16 h-20 bg-ghibli-moss/20 rounded flex items-center justify-center">
                             <div className="text-xs text-ghibli-wood/60">Arte</div>
                           </div>
                         </div>
                         {/* Preview Badge */}
-                        <div className="absolute top-4 right-4 bg-ghibli-moss text-white text-xs px-2 py-1 rounded-full">
+                        <div className="absolute top-4 right-4 bg-green-600 text-white text-xs px-2 py-1 rounded-full">
                           Preview
                         </div>
                       </div>
@@ -87,15 +88,16 @@ const ApparelShopPage: React.FC = () => {
                         
                         {/* Specifications */}
                         <div className="text-sm text-ghibli-earth space-y-1 mb-4">
-                          <div>📏 Área de impressão: {product.gelatoPrintDimensionsMm.width}×{product.gelatoPrintDimensionsMm.height}mm</div>
-                          <div>🌱 100% Algodão orgânico</div>
-                          <div>✨ Impressão durável</div>
+                          <div>🏺 Cerâmica de qualidade premium</div>
+                          <div>☕ {product.variants?.map(v => v.title).join(', ') || 'Tamanho padrão'}</div>
+                          <div>✨ Impressão resistente à lavagem</div>
+                          {product.id === 'heart_mug' && <div>💝 Formato especial de coração</div>}
                         </div>
                         
-                        {/* Price Placeholder */}
+                        {/* Price */}
                         <div className="flex items-center justify-between">
                           <div className="text-lg font-bold text-ghibli-wood">
-                            {product.price ? `€${product.price}` : 'A partir de €24.99'}
+                            {product.basePrice ? `€${product.basePrice}` : `€${product.price || 25.00}`}
                           </div>
                           <div className="text-xs text-ghibli-earth/70">
                             + envio
@@ -117,23 +119,23 @@ const ApparelShopPage: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.6 }}
           >
             <h2 className="text-2xl font-semibold text-ghibli-wood mb-6 text-center">
-              ✨ Porquê Escolher T-shirts PicTuz?
+              ✨ Porquê Escolher Canecas PicTuz?
             </h2>
             <div className="grid md:grid-cols-3 gap-6 text-sm text-ghibli-earth">
               <div className="text-center">
-                <div className="text-3xl mb-3">🌱</div>
-                <h3 className="font-semibold mb-2">Sustentável</h3>
-                <p>Algodão orgânico certificado, produção responsável</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl mb-3">💪</div>
-                <h3 className="font-semibold mb-2">Qualidade Superior</h3>
-                <p>Tecido macio, impressão resistente a lavagens</p>
+                <div className="text-3xl mb-3">🏺</div>
+                <h3 className="font-semibold mb-2">Cerâmica Premium</h3>
+                <p>Material de alta qualidade, resistente e durável</p>
               </div>
               <div className="text-center">
                 <div className="text-3xl mb-3">🎨</div>
                 <h3 className="font-semibold mb-2">Cores Vibrantes</h3>
-                <p>Tecnologia de impressão que mantém as cores vívidas</p>
+                <p>Impressão de alta definição que mantém as cores vívidas</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl mb-3">🔄</div>
+                <h3 className="font-semibold mb-2">Lavável</h3>
+                <p>Resistente à máquina de lavar loiça e micro-ondas</p>
               </div>
             </div>
           </motion.div>
@@ -145,4 +147,4 @@ const ApparelShopPage: React.FC = () => {
   );
 };
 
-export default ApparelShopPage; 
+export default MugShopPage; 

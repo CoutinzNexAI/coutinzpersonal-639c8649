@@ -14,7 +14,7 @@ const ShopPage: React.FC = () => {
       description: 'Transforme a sua arte em quadros deslumbrantes.',
       icon: '🖼️',
       color: 'from-amber-400 to-orange-500',
-      href: '/shop/quadros'
+      href: '/shop/canvas'
     },
     { 
       id: 'roupa', 
@@ -22,7 +22,7 @@ const ShopPage: React.FC = () => {
       description: 'Vista a sua arte em t-shirts, hoodies e mais.',
       icon: '👕',
       color: 'from-blue-400 to-indigo-500',
-      href: '/shop/roupa'
+      href: '/shop/apparel'
     },
     { 
       id: 'canecas', 
@@ -30,7 +30,7 @@ const ShopPage: React.FC = () => {
       description: 'Comece o dia com uma caneca personalizada.',
       icon: '☕',
       color: 'from-green-400 to-teal-500',
-      href: '/shop/mug/ceramic_mug'
+      href: '/shop/mug'
     },
     { 
       id: 'tecnologia', 
@@ -46,7 +46,7 @@ const ShopPage: React.FC = () => {
       description: 'Leve a sua arte para todo o lado.',
       icon: '🛍️',
       color: 'from-emerald-400 to-green-500',
-      href: '/shop/bags/tote_bag'
+      href: '/shop/bags'
     },
     { 
       id: 'cadernos', 
@@ -54,7 +54,7 @@ const ShopPage: React.FC = () => {
       description: 'Anote as suas ideias com estilo.',
       icon: '📓',
       color: 'from-indigo-400 to-purple-500',
-      href: '/shop/stationery/spiral_journal'
+      href: '/shop/stationery'
     },
     { 
       id: 'escritorio', 
@@ -62,7 +62,7 @@ const ShopPage: React.FC = () => {
       description: 'Personalize o seu espaço de trabalho.',
       icon: '🖱️',
       color: 'from-slate-400 to-gray-500',
-      href: '/shop/office/mouse_pad'
+      href: '/shop/office'
     },
     { 
       id: 'postcard', 
