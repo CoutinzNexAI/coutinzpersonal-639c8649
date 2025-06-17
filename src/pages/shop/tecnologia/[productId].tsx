@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { toast } from '@/components/ui/sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -67,6 +66,16 @@ const PhoneCaseDetailPage: React.FC = () => {
     }
   }, [productId, router]);
 
+  // Reset estados quando a variante muda (mesmo se já há imagem selecionada)
+  useEffect(() => {
+    if (selectedImageUrl && selectedPrintifyVariantId) {
+      // Reset mockups Printify para forçar nova geração quando variante muda
+      setPrintifyPreviewUrls([]);
+      setPrintifyImageId('');
+      setPrintifyProductId('');
+    }
+  }, [selectedPrintifyVariantId]); // Só depende da variante
+
   // Calcular defaultScale dinâmico e atualizar imageAdjustments
   useEffect(() => {
     if (selectedImageUrl && product && selectedPrintifyVariantId) {
@@ -85,17 +94,13 @@ const PhoneCaseDetailPage: React.FC = () => {
         // Calcular defaultScale para 'slice'
         const initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
 
-        // Define os ajustes iniciais para a imagem
+        // Define os ajustes iniciais para a imagem - SEMPRE CENTRADO
         setImageAdjustments({
-          x: printAreaConfig.defaultX,
-          y: printAreaConfig.defaultY,
+          x: 0.5, // SEMPRE centrado horizontalmente
+          y: 0.5, // SEMPRE centrado verticalmente
           scale: initialScale, // Use o scale calculado
-          rotation: printAreaConfig.defaultAngle // Ou 0 se não houver rotação inicial
+          rotation: 0 // Sem rotação inicial
         });
-        // Reset mockups Printify para forçar nova geração com novos ajustes
-        setPrintifyPreviewUrls([]);
-        setPrintifyImageId('');
-        setPrintifyProductId('');
       }
     }
   }, [selectedImageUrl, product, selectedPrintifyVariantId]); // Dependências para re-calcular
@@ -256,6 +261,7 @@ const PhoneCaseDetailPage: React.FC = () => {
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
+    setImageAdjustments(undefined); // Reset ajustes também
     setIsGalleryModalOpen(false);
     toast.success('Arte selecionada!', {
       description: 'A gerar mockups automaticamente...'
@@ -278,6 +284,11 @@ const PhoneCaseDetailPage: React.FC = () => {
     if (latestTransformationData) {
       setSelectedImageUrl(latestTransformationData.url);
       setSelectedImageId(latestTransformationData.id);
+      // Reset estados Printify quando nova imagem é aplicada
+      setPrintifyPreviewUrls([]);
+      setPrintifyImageId('');
+      setPrintifyProductId('');
+      setImageAdjustments(undefined); // Reset ajustes também
       toast.success('Última arte aplicada!', {
         description: 'A gerar mockups automaticamente...'
       });
@@ -287,7 +298,12 @@ const PhoneCaseDetailPage: React.FC = () => {
 
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
     if (imageAdjustments) {
-      setImageAdjustments({ ...imageAdjustments, ...adjustments });
+      // Manter X sempre centrado (0.5) - não permitir alteração
+      setImageAdjustments({ 
+        ...imageAdjustments, 
+        ...adjustments, 
+        x: 0.5 // Forçar X sempre centrado
+      });
     }
   };
 
@@ -482,33 +498,7 @@ const PhoneCaseDetailPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Controles de Ajuste de Imagem - só aparece se há arte selecionada */}
-              {selectedImageUrl && imageAdjustments && (
-                <div className="bg-white/50 rounded-lg p-3">
-                  <h3 className="font-semibold text-ghibli-earth mb-3 text-sm">Ajustar Posição</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-medium text-ghibli-earth/80 mb-2">
-                        Posição Horizontal: {Math.round(imageAdjustments.x * 100)}%
-                      </label>
-                      <Slider
-                        value={[imageAdjustments.x * 100]}
-                        onValueChange={(value) => 
-                          handleImageAdjustmentChange({ x: value[0] / 100 })
-                        }
-                        max={100}
-                        min={0}
-                        step={1}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-ghibli-earth/60 mt-1">
-                        <span>Esquerda</span>
-                        <span>Direita</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+
 
               {/* Botões de Ação */}
               <div className="space-y-4">
