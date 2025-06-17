@@ -12,6 +12,7 @@ export interface CartItem {
     size?: string;
     color?: string;
     variant?: string;
+    phoneModel?: string; // Para capas de telemóvel
   };
   imageAdjustments?: {
     x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)

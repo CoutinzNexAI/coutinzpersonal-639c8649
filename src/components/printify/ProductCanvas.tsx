@@ -30,6 +30,8 @@ interface ProductCanvasProps {
   }) => void;
   onSelectImage?: () => void;
   imageAdjustments?: ImageAdjustments;
+  onImageAdjust?: (adjustments: ImageAdjustments) => void;
+  selectedPrintifyVariantId?: number | null;
 }
 
 interface GenerateMockupResponse {
@@ -48,7 +50,9 @@ export default function ProductCanvas({
   printifyGeneratedPreviewUrls = [],
   onPreviewReady,
   onSelectImage,
-  imageAdjustments
+  imageAdjustments,
+  onImageAdjust,
+  selectedPrintifyVariantId
 }: ProductCanvasProps) {
   const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
@@ -79,6 +83,7 @@ export default function ProductCanvas({
           userImageUrl: userImageUrl,
           userId: userId,
           imageAdjustments: selectedProduct.supportsManualAdjustment ? imageAdjustments : undefined,
+          selectedPrintifyVariantId: selectedPrintifyVariantId,
         }),
       });
 

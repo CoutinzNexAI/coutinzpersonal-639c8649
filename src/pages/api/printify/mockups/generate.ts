@@ -16,6 +16,7 @@ interface CreateDraftRequest {
   productId: string; // Nossa chave interna (ex: "canvas_200x200_square_slim_unframed")
   userImageUrl: string; // URL da imagem do utilizador
   userId: string; // ID do utilizador
+  selectedPrintifyVariantId?: number; // ID da variante selecionada (para capas de telemóvel)
   imageAdjustments?: {
     x: number;
     y: number;
@@ -144,7 +145,7 @@ export default async function handler(
     //});
 
     const user = { id: 'test-user-ficticio-123' };
-    const { productId, userImageUrl, userId, imageAdjustments } = req.body;
+    const { productId, userImageUrl, userId, imageAdjustments, selectedPrintifyVariantId } = req.body;
 
     // Validações básicas
     if (!productId || !userImageUrl || !userId) {
@@ -156,6 +157,15 @@ export default async function handler(
       return res.status(400).json({
         success: false,
         error: 'Missing required fields: productId, userImageUrl, userId'
+      });
+    }
+
+    // Validação específica para capas de telemóvel
+    if (productId === 'custom_phone_case' && !selectedPrintifyVariantId) {
+      console.log("❌ ERRO: selectedPrintifyVariantId é obrigatório para capas de telemóvel");
+      return res.status(400).json({
+        success: false,
+        error: 'selectedPrintifyVariantId é obrigatório para capas de telemóvel.'
       });
     }
 
@@ -177,22 +187,27 @@ export default async function handler(
       `/catalog/blueprints/${product.printifyBlueprintId}/print_providers/${product.printifyPrintProviderId}/variants.json`
     );
 
+    // Determinar qual variante usar
+    const targetVariantId = selectedPrintifyVariantId || product.printifyVariantIds![0];
+    console.log('🎯 Target variant ID:', targetVariantId);
+
     const selectedPrintifyVariant = printifyVariantsResponse.variants.find(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (v: any) => v.id === product.printifyVariantIds![0] // Assume o primeiro variant ID mapeado
+      (v: any) => v.id === targetVariantId
     );
 
     if (!selectedPrintifyVariant || !selectedPrintifyVariant.placeholders || selectedPrintifyVariant.placeholders.length === 0) {
       throw new Error('Printify variant or placeholders not found for the selected product.');
     }
 
+    const printArea = product.printAreasConfig?.[0]?.position || product.printArea || 'front';
     const printifyPlaceholder = selectedPrintifyVariant.placeholders.find(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (p: any) => p.position === (product.printArea || 'front') // Usa o printArea da Gelato como "position"
+      (p: any) => p.position === printArea
     ) as PrintifyImagePlaceholder; // Cast para a interface
 
     if (!printifyPlaceholder) {
-      throw new Error(`Printify placeholder not found for position: ${product.printArea || 'front'}`);
+      throw new Error(`Printify placeholder not found for position: ${printArea}`);
     }
 
     console.log('✅ Printify placeholder details:', printifyPlaceholder);
@@ -251,36 +266,49 @@ export default async function handler(
     const printAreaScale = 1.0; // Placeholder temporário
     const printAreaAngle = 0; // Placeholder temporário
 
-    // Aqui é onde a tua lógica de adaptação de coordenadas da Gelato para Printify entra
-    // Exemplo BÁSICO de cálculo de escala para "fit" a uma dimensão.
-    // Precisarás de usar as dimensões da imagem original e do placeholder da Printify.
-    // Para "meet" (caber tudo), ou "slice" (preencher), é mais complexo.
-    // Pelo que vi no teu generate-print-file.ts, tu já fazes resize da imagem para a dimensão final.
-    // Então, x=0.5, y=0.5, scale=1.0 deve ser um bom ponto de partida se a imagem já tiver o tamanho certo para o placeholder.
-    // Se tiveres `imageAdjustments` no cartItem, terás de os converter para o formato x, y, scale, angle da Printify.
-    // Por agora, vamos usar valores simples.
+    // Calcular coordenadas baseadas nos imageAdjustments (se disponível)
+    let finalX = printAreaX;
+    let finalY = printAreaY;
+    let finalScale = printAreaScale;
+    let finalAngle = printAreaAngle;
+
+    if (imageAdjustments && product.supportsManualAdjustment) {
+      finalX = imageAdjustments.x;
+      finalY = imageAdjustments.y;
+      finalScale = imageAdjustments.scale;
+      finalAngle = imageAdjustments.rotation || 0;
+    } else if (product.printAreasConfig && product.printAreasConfig.length > 0) {
+      const printAreaConfig = product.printAreasConfig[0];
+      finalX = printAreaConfig.defaultX;
+      finalY = printAreaConfig.defaultY;
+      finalScale = printAreaConfig.defaultScale;
+      finalAngle = printAreaConfig.defaultAngle;
+    }
+
+    const productPrice = (product.basePrice || product.price || 25) * 100; // Preço em cêntimos
+    
     const printifyProductPayload = {
       title: printifyProductTitle,
       description: `Custom product generated for user ${user.id} via PicTuz AI.`,
       blueprint_id: product.printifyBlueprintId,
       print_provider_id: product.printifyPrintProviderId,
-      variants: product.printifyVariantIds!.map(variantId => ({
-        id: variantId,
-        price: product.price * 100, // Preço em cêntimos (temporário)
+      variants: [{
+        id: targetVariantId, // Use a variante selecionada
+        price: productPrice,
         is_enabled: true
-      })),
+      }],
       print_areas: [
         {
-          variant_ids: product.printifyVariantIds,
+          variant_ids: [targetVariantId], // Use a variante selecionada
           placeholders: [
             {
-              position: product.printArea || 'front', // Assumindo que printArea da Gelato mapeia para position da Printify
+              position: printArea,
               images: [{
                 id: printifyImageId,
-                x: printAreaX, // Calcular com base em GelatoPrintOffsetsMm e dimensoes Printify
-                y: printAreaY, // Calcular
-                scale: printAreaScale, // Calcular
-                angle: printAreaAngle // Calcular
+                x: finalX,
+                y: finalY,
+                scale: finalScale,
+                angle: finalAngle
               }]
             }
           ]

@@ -4,14 +4,25 @@ export interface PrintifyProductMapping {
   id: string; // O slug/ID interno do PicTuz (ex: 'canvas_200x200_square_slim_unframed')
   name: string; // Nome amigável do produto
   mockupInitialPath: string; // O teu mockup base para mostrar antes da Printify gerar
-  price: number; // Preço base do produto
-  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case';
+  price?: number; // Preço base do produto (opcional para produtos com variantes)
+  basePrice?: number; // Preço base em euros (para produtos com variantes)
+  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia';
 
   // PROPRIEDADES NECESSÁRIAS PARA A API PRINTIFY
   printifyBlueprintId?: number; // ID do blueprint Printify
   printifyPrintProviderId?: number; // ID do print provider Printify
   printifyVariantIds?: number[]; // IDs das variantes do produto
   printArea?: string; // Nome da área de impressão (ex: 'front', 'back')
+
+  // VARIANTES PARA PRODUTOS COM MÚLTIPLAS OPÇÕES (ex: capas de telemóvel)
+  variants?: {
+    id: number;
+    title: string;
+    placeholderWidth: number;
+    placeholderHeight: number;
+    isGiftPackaging: boolean;
+    priceAdjustment?: number;
+  }[];
 
   // Propriedades para GERAÇÃO DO FICHEIRO DE IMPRESSÃO (O Teu Backend)
   printFileBleed: number; // em mm (requisito Printify, mas não aplicamos no ficheiro)
@@ -22,6 +33,17 @@ export interface PrintifyProductMapping {
   // Propriedades para Ajuste Manual (para Canecas/Capas)
   supportsManualAdjustment: boolean; // TRUE para Canecas/Capas, FALSE para Canvas/Poster/T-shirt
   adjustmentLimits?: { minZoom: number; maxZoom: number; allowRotation?: boolean; };
+
+  // CONFIGURAÇÃO DAS ÁREAS DE IMPRESSÃO
+  printAreasConfig?: {
+    position: string; // 'front', 'back', etc.
+    allowsUserImage: boolean;
+    defaultX: number; // 0.0 a 1.0
+    defaultY: number; // 0.0 a 1.0
+    defaultScale: number; // escala inicial
+    defaultAngle: number; // ângulo inicial em graus
+    fitMethod: 'fit' | 'slice'; // método de ajuste da imagem
+  }[];
 
   // Campos opcionais da migração Gelato (mantidos para compatibilidade temporária)
   productUid?: string; // O ID do produto na Gelato (para a Order API) - OPCIONAL
@@ -129,25 +151,67 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }
   },
 
-  // CAPA IPHONE 15 (COM AJUSTE MANUAL) - SEM MOCKUP GELATO POR ENQUANTO
-  'phone_case_iphone_15_clear': {
-    id: 'phone_case_iphone_15_clear',
-    name: 'Capa iPhone 15 (Transparente)',
-    productUid: 'phone_case_iphone_15_clear_product_uid', // A confirmar UID real
-    mockupInitialPath: '/assets/mockups/phone-case/iphone_15_case_blank.png',
-    price: 22.00,
-    category: 'phone-case',
-    // SEM gelatoTemplateId/templateVariantId/printArea - usa apenas ajuste manual local
+  // CAPA DE TELEMÓVEL PERSONALIZADA (COM AJUSTE MANUAL E MÚLTIPLAS VARIANTES)
+  'custom_phone_case': {
+    id: 'custom_phone_case',
+    name: 'Capa de Telemóvel Personalizada',
+    mockupInitialPath: '/assets/mockups/phone-case/capa.png', // Imagem base no frontend
+    basePrice: 25.00, // Preço de venda em euros
+    category: 'tecnologia',
+    printifyBlueprintId: 370,
+    printifyPrintProviderId: 23,
+    variants: [
+      // iPhones (13 ao 16)
+      { id: 75178, title: 'iPhone 13', placeholderWidth: 914, placeholderHeight: 1795, isGiftPackaging: false },
+      { id: 75179, title: 'iPhone 13 Mini', placeholderWidth: 828, placeholderHeight: 1616, isGiftPackaging: false },
+      { id: 75180, title: 'iPhone 13 Pro', placeholderWidth: 915, placeholderHeight: 1795, isGiftPackaging: false },
+      { id: 75181, title: 'iPhone 13 Pro Max', placeholderWidth: 992, placeholderHeight: 1950, isGiftPackaging: false },
+      { id: 101223, title: 'iPhone 14', placeholderWidth: 869, placeholderHeight: 1749, isGiftPackaging: false },
+      { id: 101225, title: 'iPhone 14 Plus', placeholderWidth: 945, placeholderHeight: 1913, isGiftPackaging: false },
+      { id: 101224, title: 'iPhone 14 Pro', placeholderWidth: 862, placeholderHeight: 1748, isGiftPackaging: false },
+      { id: 101226, title: 'iPhone 14 Pro Max', placeholderWidth: 944, placeholderHeight: 1914, isGiftPackaging: false },
+      { id: 105310, title: 'iPhone 15', placeholderWidth: 918, placeholderHeight: 1792, isGiftPackaging: false },
+      { id: 105312, title: 'iPhone 15 Plus', placeholderWidth: 990, placeholderHeight: 1948, isGiftPackaging: false },
+      { id: 105311, title: 'iPhone 15 Pro', placeholderWidth: 906, placeholderHeight: 1780, isGiftPackaging: false },
+      { id: 105313, title: 'iPhone 15 Pro Max', placeholderWidth: 978, placeholderHeight: 1937, isGiftPackaging: false },
+      { id: 112623, title: 'iPhone 16', placeholderWidth: 918, placeholderHeight: 1790, isGiftPackaging: false },
+      { id: 112624, title: 'iPhone 16 Plus', placeholderWidth: 991, placeholderHeight: 1949, isGiftPackaging: false },
+      { id: 112621, title: 'iPhone 16 Pro', placeholderWidth: 916, placeholderHeight: 1816, isGiftPackaging: false },
+      { id: 112622, title: 'iPhone 16 Pro Max', placeholderWidth: 989, placeholderHeight: 1974, isGiftPackaging: false },
+
+      // Samsung Galaxy (S22 ao S25)
+      { id: 80936, title: 'Samsung Galaxy S22', placeholderWidth: 817, placeholderHeight: 1705, isGiftPackaging: false },
+      { id: 80937, title: 'Samsung Galaxy S22 Plus', placeholderWidth: 875, placeholderHeight: 1849, isGiftPackaging: false },
+      { id: 80938, title: 'Samsung Galaxy S22 Ultra', placeholderWidth: 914, placeholderHeight: 1913, isGiftPackaging: false },
+      { id: 101227, title: 'Samsung Galaxy S23', placeholderWidth: 809, placeholderHeight: 1701, isGiftPackaging: false },
+      { id: 101228, title: 'Samsung Galaxy S23 Plus', placeholderWidth: 872, placeholderHeight: 1836, isGiftPackaging: false },
+      { id: 101229, title: 'Samsung Galaxy S23 Ultra', placeholderWidth: 863, placeholderHeight: 1929, isGiftPackaging: false },
+      // IDs e dimensões para S24 (usando S23 como placeholder, ajustar se houver dados reais na Printify)
+      { id: 101234, title: 'Samsung Galaxy S24', placeholderWidth: 809, placeholderHeight: 1701, isGiftPackaging: false },
+      { id: 101235, title: 'Samsung Galaxy S24 Plus', placeholderWidth: 872, placeholderHeight: 1836, isGiftPackaging: false },
+      { id: 101236, title: 'Samsung Galaxy S24 Ultra', placeholderWidth: 863, placeholderHeight: 1929, isGiftPackaging: false },
+      { id: 117868, title: 'Samsung Galaxy S25', placeholderWidth: 876, placeholderHeight: 1780, isGiftPackaging: false },
+      { id: 117869, title: 'Samsung Galaxy S25 Plus', placeholderWidth: 939, placeholderHeight: 1915, isGiftPackaging: false },
+      { id: 117870, title: 'Samsung Galaxy S25 Ultra', placeholderWidth: 961, placeholderHeight: 1967, isGiftPackaging: false },
+    ],
+    // As propriedades abaixo devem estar SEMPRE presentes no custom_phone_case
     printFileBleed: 2,
     printFileResolution: 300,
-    gelatoPrintDimensionsMm: { width: 70, height: 140 }, // Área traseira iPhone 15
-    gelatoPrintOffsetsMm: { x: 5, y: 15 }, // Margem das bordas/camera
-    supportsManualAdjustment: true, // CAPA PRECISA DE AJUSTE MANUAL
-    adjustmentLimits: {
-      minZoom: 0.5,
-      maxZoom: 3.0,
-      allowRotation: true // Permitir rotação para capas
-    }
+    gelatoPrintDimensionsMm: { width: 70, height: 140 }, // Mantido como sua referência, não usado diretamente pela Printify
+    gelatoPrintOffsetsMm: { x: 5, y: 15 }, // Mantido como sua referência
+    supportsManualAdjustment: true,
+    adjustmentLimits: { minZoom: 0.5, maxZoom: 3.0, allowRotation: true },
+    printAreasConfig: [
+      {
+        position: 'front', // Posição de impressão para capas
+        allowsUserImage: true,
+        defaultX: 0.5, // Centrado horizontalmente
+        defaultY: 0.5, // Centrado verticalmente no placeholder da Printify
+        defaultScale: 1.0, // **Placeholder no código.** Será calculado dinamicamente no frontend.
+        defaultAngle: 0, // Sem rotação inicial
+        fitMethod: 'slice', // Garante que a imagem preencha a área, cortando o excedente
+      }
+    ],
   }
 };
 
