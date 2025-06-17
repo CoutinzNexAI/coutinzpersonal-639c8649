@@ -30,7 +30,7 @@ const ShopPage: React.FC = () => {
       description: 'Comece o dia com uma caneca personalizada.',
       icon: '☕',
       color: 'from-green-400 to-teal-500',
-      href: '/shop/canecas'
+      href: '/shop/mug/ceramic_mug'
     },
     { 
       id: 'tecnologia', 
@@ -39,6 +39,30 @@ const ShopPage: React.FC = () => {
       icon: '📱',
       color: 'from-purple-400 to-pink-500',
       href: '/shop/tecnologia/custom_phone_case'
+    },
+    { 
+      id: 'sacos', 
+      name: 'Sacos', 
+      description: 'Leve a sua arte para todo o lado.',
+      icon: '🛍️',
+      color: 'from-emerald-400 to-green-500',
+      href: '/shop/bags/tote_bag'
+    },
+    { 
+      id: 'cadernos', 
+      name: 'Cadernos', 
+      description: 'Anote as suas ideias com estilo.',
+      icon: '📓',
+      color: 'from-indigo-400 to-purple-500',
+      href: '/shop/stationery/spiral_journal'
+    },
+    { 
+      id: 'escritorio', 
+      name: 'Escritório', 
+      description: 'Personalize o seu espaço de trabalho.',
+      icon: '🖱️',
+      color: 'from-slate-400 to-gray-500',
+      href: '/shop/office/mouse_pad'
     },
     { 
       id: 'postcard', 
@@ -141,6 +165,9 @@ const ShopPage: React.FC = () => {
                              category.id === 'roupa' ? Object.keys(getPrintifyProductsByCategory('apparel' as PrintifyProductMapping['category'])).length :
                              category.id === 'canecas' ? Object.keys(getPrintifyProductsByCategory('mug' as PrintifyProductMapping['category'])).length :
                              category.id === 'tecnologia' ? Object.keys(getPrintifyProductsByCategory('tecnologia' as PrintifyProductMapping['category'])).length :
+                             category.id === 'sacos' ? Object.keys(getPrintifyProductsByCategory('bags' as PrintifyProductMapping['category'])).length :
+                             category.id === 'cadernos' ? Object.keys(getPrintifyProductsByCategory('stationery' as PrintifyProductMapping['category'])).length :
+                             category.id === 'escritorio' ? Object.keys(getPrintifyProductsByCategory('office' as PrintifyProductMapping['category'])).length :
                              '0'} produtos
                           </span>
                         </div>

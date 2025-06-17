@@ -6,7 +6,7 @@ export interface PrintifyProductMapping {
   mockupInitialPath: string; // O teu mockup base para mostrar antes da Printify gerar
   price?: number; // Preço base do produto (opcional para produtos com variantes)
   basePrice?: number; // Preço base em euros (para produtos com variantes)
-  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia';
+  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia' | 'bags' | 'stationery' | 'office';
 
   // PROPRIEDADES NECESSÁRIAS PARA A API PRINTIFY
   printifyBlueprintId?: number; // ID do blueprint Printify
@@ -212,7 +212,150 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
         fitMethod: 'slice', // Garante que a imagem preencha a área, cortando o excedente
       }
     ],
-  }
+  },
+
+  // 1. CANECA CERÂMICA (EU)
+  'ceramic_mug': {
+    id: 'ceramic_mug',
+    name: 'Caneca Cerâmica Personalizada',
+    mockupInitialPath: '/assets/mockups/mug/caneca.svg',
+    basePrice: 25.00, // Euros
+    category: 'mug',
+    printifyBlueprintId: 441,
+    printifyPrintProviderId: 30, // OPT OnDemand
+    variants: [
+      { id: 62327, title: '11oz', placeholderWidth: 2717, placeholderHeight: 1146, isGiftPackaging: false },
+      { id: 62328, title: '15oz', placeholderWidth: 2811, placeholderHeight: 1276, isGiftPackaging: false },
+    ],
+    printFileBleed: 2, // Ajustar conforme a Printify, 2mm é um bom default
+    printFileResolution: 300,
+    gelatoPrintDimensionsMm: { width: 80, height: 95 }, // Valores de referência (pode ser ajustado)
+    gelatoPrintOffsetsMm: { x: 0, y: 0 },
+    supportsManualAdjustment: false, // Sem ajustes manuais
+    printAreasConfig: [{
+      position: 'front', // Posição de impressão
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0, // Será dinâmico (slice)
+      defaultAngle: 0,
+      fitMethod: 'slice', // Preenchimento total
+    }],
+  },
+
+  // 2. CANECA EM FORMATO DE CORAÇÃO
+  'heart_mug': {
+    id: 'heart_mug',
+    name: 'Caneca Coração Personalizada',
+    mockupInitialPath: '/assets/mockups/mug/canecacoracao.svg',
+    basePrice: 30.00, // Euros
+    category: 'mug',
+    printifyBlueprintId: 896,
+    printifyPrintProviderId: 30, // OPT OnDemand
+    variants: [
+      { id: 77224, title: '11oz / White', placeholderWidth: 2362, placeholderHeight: 945, isGiftPackaging: false },
+    ],
+    printFileBleed: 2, // Ajustar conforme a Printify
+    printFileResolution: 300,
+    gelatoPrintDimensionsMm: { width: 80, height: 95 }, // Valores de referência
+    gelatoPrintOffsetsMm: { x: 0, y: 0 },
+    supportsManualAdjustment: false, // Sem ajustes manuais
+    printAreasConfig: [{
+      position: 'front',
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0, // Será dinâmico (slice)
+      defaultAngle: 0,
+      fitMethod: 'slice',
+    }],
+  },
+
+  // 3. SACO TOTE BAG
+  'tote_bag': {
+    id: 'tote_bag',
+    name: 'Saco Tote Bag Personalizado',
+    mockupInitialPath: '/assets/mockups/bag/saco.svg',
+    basePrice: 25.00, // Euros
+    category: 'bags', // Nova categoria
+    printifyBlueprintId: 467,
+    printifyPrintProviderId: 30, // OPT OnDemand
+    variants: [
+      { id: 64091, title: 'Natural / One size', placeholderWidth: 3000, placeholderHeight: 3600, isGiftPackaging: false },
+      { id: 64177, title: 'Snowwhite / One size', placeholderWidth: 3000, placeholderHeight: 3600, isGiftPackaging: false },
+    ],
+    printFileBleed: 2, // Ajustar conforme a Printify
+    printFileResolution: 300,
+    gelatoPrintDimensionsMm: { width: 300, height: 360 }, // Valores de referência
+    gelatoPrintOffsetsMm: { x: 0, y: 0 },
+    supportsManualAdjustment: false, // Sem ajustes manuais
+    printAreasConfig: [{
+      position: 'front', // Apenas 'front' para o utilizador
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0, // Será dinâmico (slice)
+      defaultAngle: 0,
+      fitMethod: 'slice',
+    }],
+  },
+
+  // 4. CADERNO SPIRAL JOURNAL
+  'spiral_journal': {
+    id: 'spiral_journal',
+    name: 'Caderno Personalizado',
+    mockupInitialPath: '/assets/mockups/journal/spiral_journal_blank.svg',
+    basePrice: 20.00, // Euros
+    category: 'stationery', // Nova categoria
+    printifyBlueprintId: 475,
+    printifyPrintProviderId: 30, // OPT OnDemand
+    variants: [
+      { id: 65482, title: 'Blank / One Size', placeholderWidth: 1512, placeholderHeight: 2409, isGiftPackaging: false },
+      { id: 65484, title: 'Lined / One Size', placeholderWidth: 1512, placeholderHeight: 2409, isGiftPackaging: false },
+    ], // Apenas Blank e Lined
+    printFileBleed: 2, // Ajustar conforme a Printify
+    printFileResolution: 300,
+    gelatoPrintDimensionsMm: { width: 150, height: 240 }, // Valores de referência
+    gelatoPrintOffsetsMm: { x: 0, y: 0 },
+    supportsManualAdjustment: false, // Sem ajustes manuais
+    printAreasConfig: [{
+      position: 'front',
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0, // Será dinâmico (slice)
+      defaultAngle: 0,
+      fitMethod: 'slice',
+    }],
+  },
+
+  // 5. MOUSE PAD
+  'mouse_pad': {
+    id: 'mouse_pad',
+    name: 'Mouse Pad Personalizado',
+    mockupInitialPath: '/assets/mockups/mousepad/mouse_pad_blank.svg',
+    basePrice: 30.00, // Euros
+    category: 'office', // Nova categoria
+    printifyBlueprintId: 442,
+    printifyPrintProviderId: 30, // OPT OnDemand
+    variants: [
+      { id: 62329, title: '9" × 7.5"', placeholderWidth: 2894, placeholderHeight: 2421, isGiftPackaging: false },
+    ],
+    printFileBleed: 2, // Ajustar conforme a Printify
+    printFileResolution: 300,
+    gelatoPrintDimensionsMm: { width: 228, height: 190 }, // Valores de referência (9"x7.5" aprox)
+    gelatoPrintOffsetsMm: { x: 0, y: 0 },
+    supportsManualAdjustment: false, // Sem ajustes manuais
+    printAreasConfig: [{
+      position: 'front',
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0, // Será dinâmico (slice)
+      defaultAngle: 0,
+      fitMethod: 'slice',
+    }],
+  },
 };
 
 // Função utilitária para obter produto por ID
