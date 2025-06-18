@@ -32,12 +32,16 @@ interface ImageAdjustments {
   };
 }
 
-const PhoneCaseDetailPage: React.FC = () => {
+interface PhoneCaseDetailPageProps {
+  product: PrintifyProductMapping;
+}
+
+const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: initialProduct }) => {
   const router = useRouter();
   const { productId } = router.query;
   const { userInfo, session } = useAuth();
   
-  const [product, setProduct] = useState<PrintifyProductMapping | null>(null);
+  const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
@@ -55,21 +59,26 @@ const PhoneCaseDetailPage: React.FC = () => {
   // Estado para armazenar dados da última transformação (sem aplicar automaticamente)
   const [latestTransformationData, setLatestTransformationData] = useState<{ url: string; id: string } | null>(null);
 
-  // Carregar produto baseado no ID
+  // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
-    if (typeof productId === 'string') {
+    if (!initialProduct && typeof productId === 'string') {
       const foundProduct = getPrintifyProduct(productId);
-      setProduct(foundProduct);
-      
-      if (!foundProduct) {
+      if (foundProduct && foundProduct.category === 'tecnologia') {
+        setProduct(foundProduct);
+        if (foundProduct.id === 'custom_phone_case' && foundProduct.variants && foundProduct.variants.length > 0) {
+          setSelectedPrintifyVariantId(foundProduct.variants[0].id);
+        }
+      } else {
         router.push('/shop');
         toast.error('Produto não encontrado');
-      } else if (foundProduct.id === 'custom_phone_case' && foundProduct.variants && foundProduct.variants.length > 0) {
-        // Define a primeira variante como selecionada por padrão para capas
-        setSelectedPrintifyVariantId(foundProduct.variants[0].id);
+      }
+    } else if (initialProduct) {
+      // Set default variant for initial product
+      if (initialProduct.id === 'custom_phone_case' && initialProduct.variants && initialProduct.variants.length > 0) {
+        setSelectedPrintifyVariantId(initialProduct.variants[0].id);
       }
     }
-  }, [productId, router]);
+  }, [productId, initialProduct, router]);
 
   // Reset estados quando a variante muda (mesmo se já há imagem selecionada)
   useEffect(() => {
@@ -638,7 +647,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }
 
   return {
-    props: {}
+    props: { product }
   };
 };
 

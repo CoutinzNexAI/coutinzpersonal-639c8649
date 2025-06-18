@@ -28,12 +28,16 @@ interface ImageAdjustments {
   };
 }
 
-const BagDetailPage: React.FC = () => {
+interface BagDetailPageProps {
+  product: PrintifyProductMapping;
+}
+
+const BagDetailPage: React.FC<BagDetailPageProps> = ({ product: initialProduct }) => {
   const router = useRouter();
   const { productId } = router.query;
   const { userInfo, session } = useAuth();
   
-  const [product, setProduct] = useState<PrintifyProductMapping | null>(null);
+  const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
@@ -53,19 +57,16 @@ const BagDetailPage: React.FC = () => {
 
   // Carregar produto baseado no ID
   useEffect(() => {
-    if (typeof productId === 'string') {
+    if (!initialProduct && typeof productId === 'string') {
       const foundProduct = getPrintifyProduct(productId);
-      setProduct(foundProduct);
-      
-      if (!foundProduct) {
+      if (foundProduct && foundProduct.category === 'bags') {
+        setProduct(foundProduct);
+      } else {
         router.push('/shop');
         toast.error('Produto não encontrado');
-      } else if (foundProduct.variants && foundProduct.variants.length > 0) {
-        // Define a primeira variante como selecionada por padrão
-        setSelectedPrintifyVariantId(foundProduct.variants[0].id);
       }
     }
-  }, [productId, router]);
+  }, [productId, initialProduct, router]);
 
   // Reset estados quando a variante muda (mesmo se já há imagem selecionada)
   useEffect(() => {
@@ -608,7 +609,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }
 
   return {
-    props: {}
+    props: { product }
   };
 };
 

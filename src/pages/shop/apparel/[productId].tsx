@@ -28,12 +28,16 @@ interface ImageAdjustments {
   };
 }
 
-const ApparelDetailPage: React.FC = () => {
+interface ApparelDetailPageProps {
+  product: PrintifyProductMapping;
+}
+
+const ApparelDetailPage: React.FC<ApparelDetailPageProps> = ({ product: initialProduct }) => {
   const router = useRouter();
   const { productId } = router.query;
   const { userInfo, session } = useAuth();
   
-  const [product, setProduct] = useState<PrintifyProductMapping | null>(null);
+  const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
@@ -48,18 +52,18 @@ const ApparelDetailPage: React.FC = () => {
   // Estado para armazenar dados da última transformação
   const [latestTransformationData, setLatestTransformationData] = useState<{ url: string; id: string } | null>(null);
 
-  // Carregar produto baseado no ID
+  // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
-    if (typeof productId === 'string') {
+    if (!initialProduct && typeof productId === 'string') {
       const foundProduct = getPrintifyProduct(productId);
-      setProduct(foundProduct);
-      
-      if (!foundProduct) {
+      if (foundProduct && foundProduct.category === 'apparel') {
+        setProduct(foundProduct);
+      } else {
         router.push('/shop');
         toast.error('Produto não encontrado');
       }
     }
-  }, [productId, router]);
+  }, [productId, initialProduct, router]);
 
   // Fetch da última transformação do utilizador
   const fetchUserLatestTransformation = useCallback(async () => {
@@ -472,7 +476,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }
 
   return {
-    props: {}
+    props: { product }
   };
 };
 

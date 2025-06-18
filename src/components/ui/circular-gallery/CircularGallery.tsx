@@ -561,6 +561,7 @@ class App {
     this.scroll.position = this.scroll.current;
     this.start = e.touches ? e.touches[0].clientX : e.clientX;
     this.startTime = Date.now();
+    this.hasMoved = false; // Reset hasMoved for each new touch/click
   }
 
   onTouchMove(e: any) {
@@ -596,18 +597,6 @@ class App {
   onWheel() {
     this.scroll.target += 0.2;
     this.onCheckDebounce();
-  }
-
-  onClick(e: MouseEvent) {
-    // Simple click detection - check if any media is roughly centered
-    if (!this.medias || !this.medias[0]) return
-    
-    const centerIndex = Math.round(Math.abs(this.scroll.current) / this.medias[0].width) % (this.mediasImages.length / 2)
-    const item = this.mediasImages[centerIndex]
-    
-    if (this.onItemClick && item) {
-      this.onItemClick(item, centerIndex)
-    }
   }
 
   onCheck() {
@@ -660,30 +649,34 @@ class App {
     this.boundOnTouchMove = this.onTouchMove.bind(this);
     this.boundOnTouchUp = this.onTouchUp.bind(this);
     
+    // Only resize needs to be on window
     window.addEventListener('resize', this.boundOnResize);
-    window.addEventListener('mousewheel', this.boundOnWheel);
-    window.addEventListener('wheel', this.boundOnWheel);
-    window.addEventListener('mousedown', this.boundOnTouchDown);
-    window.addEventListener('mousemove', this.boundOnTouchMove);
-    window.addEventListener('mouseup', this.boundOnTouchUp);
-    window.addEventListener('touchstart', this.boundOnTouchDown);
-    window.addEventListener('touchmove', this.boundOnTouchMove);
-    window.addEventListener('touchend', this.boundOnTouchUp);
-    window.addEventListener('click', this.onClick.bind(this));
+    
+    // All interactive events should be on canvas only to prevent global interference
+    this.gl.canvas.addEventListener('wheel', this.boundOnWheel);
+    this.gl.canvas.addEventListener('mousedown', this.boundOnTouchDown);
+    this.gl.canvas.addEventListener('mousemove', this.boundOnTouchMove);
+    this.gl.canvas.addEventListener('mouseup', this.boundOnTouchUp);
+    this.gl.canvas.addEventListener('touchstart', this.boundOnTouchDown);
+    this.gl.canvas.addEventListener('touchmove', this.boundOnTouchMove);
+    this.gl.canvas.addEventListener('touchend', this.boundOnTouchUp);
   }
 
   destroy() {
     window.cancelAnimationFrame(this.raf);
+    
+    // Remove window listeners
     window.removeEventListener('resize', this.boundOnResize);
-    window.removeEventListener('mousewheel', this.boundOnWheel);
-    window.removeEventListener('wheel', this.boundOnWheel);
-    window.removeEventListener('mousedown', this.boundOnTouchDown);
-    window.removeEventListener('mousemove', this.boundOnTouchMove);
-    window.removeEventListener('mouseup', this.boundOnTouchUp);
-    window.removeEventListener('touchstart', this.boundOnTouchDown);
-    window.removeEventListener('touchmove', this.boundOnTouchMove);
-    window.removeEventListener('touchend', this.boundOnTouchUp);
-    window.removeEventListener('click', this.onClick.bind(this));
+    
+    // Remove canvas listeners
+    this.gl.canvas.removeEventListener('wheel', this.boundOnWheel);
+    this.gl.canvas.removeEventListener('mousedown', this.boundOnTouchDown);
+    this.gl.canvas.removeEventListener('mousemove', this.boundOnTouchMove);
+    this.gl.canvas.removeEventListener('mouseup', this.boundOnTouchUp);
+    this.gl.canvas.removeEventListener('touchstart', this.boundOnTouchDown);
+    this.gl.canvas.removeEventListener('touchmove', this.boundOnTouchMove);
+    this.gl.canvas.removeEventListener('touchend', this.boundOnTouchUp);
+    
     if (this.renderer && this.renderer.gl && this.renderer.gl.canvas.parentNode) {
       this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas);
     }

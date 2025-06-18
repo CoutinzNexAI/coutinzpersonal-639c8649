@@ -28,12 +28,16 @@ interface ImageAdjustments {
   };
 }
 
-const StationeryDetailPage: React.FC = () => {
+interface StationeryDetailPageProps {
+  product: PrintifyProductMapping;
+}
+
+const StationeryDetailPage: React.FC<StationeryDetailPageProps> = ({ product: initialProduct }) => {
   const router = useRouter();
   const { productId } = router.query;
   const { userInfo, session } = useAuth();
   
-  const [product, setProduct] = useState<PrintifyProductMapping | null>(null);
+  const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
@@ -51,21 +55,26 @@ const StationeryDetailPage: React.FC = () => {
   // Estado para armazenar dados da última transformação (sem aplicar automaticamente)
   const [latestTransformationData, setLatestTransformationData] = useState<{ url: string; id: string } | null>(null);
 
-  // Carregar produto baseado no ID
+  // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
-    if (typeof productId === 'string') {
+    if (!initialProduct && typeof productId === 'string') {
       const foundProduct = getPrintifyProduct(productId);
-      setProduct(foundProduct);
-      
-      if (!foundProduct) {
+      if (foundProduct && foundProduct.category === 'stationery') {
+        setProduct(foundProduct);
+        if (foundProduct.variants && foundProduct.variants.length > 0) {
+          setSelectedPrintifyVariantId(foundProduct.variants[0].id);
+        }
+      } else {
         router.push('/shop');
         toast.error('Produto não encontrado');
-      } else if (foundProduct.variants && foundProduct.variants.length > 0) {
-        // Define a primeira variante como selecionada por padrão
-        setSelectedPrintifyVariantId(foundProduct.variants[0].id);
+      }
+    } else if (initialProduct) {
+      // Set default variant for initial product
+      if (initialProduct.variants && initialProduct.variants.length > 0) {
+        setSelectedPrintifyVariantId(initialProduct.variants[0].id);
       }
     }
-  }, [productId, router]);
+  }, [productId, initialProduct, router]);
 
   // Reset estados quando a variante muda (mesmo se já há imagem selecionada)
   useEffect(() => {
@@ -608,7 +617,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }
 
   return {
-    props: {}
+    props: { product }
   };
 };
 

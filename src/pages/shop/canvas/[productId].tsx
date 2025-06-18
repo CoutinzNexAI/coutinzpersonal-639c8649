@@ -29,12 +29,16 @@ interface ImageAdjustments {
   };
 }
 
-const CanvasDetailPage: React.FC = () => {
+interface CanvasDetailPageProps {
+  product: PrintifyProductMapping;
+}
+
+const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialProduct }) => {
   const router = useRouter();
   const { productId } = router.query;
   const { userInfo, session } = useAuth();
   
-  const [product, setProduct] = useState<PrintifyProductMapping | null>(null);
+  const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
@@ -53,23 +57,27 @@ const CanvasDetailPage: React.FC = () => {
   // Estado para armazenar dados da última transformação
   const [latestTransformationData, setLatestTransformationData] = useState<{ url: string; id: string } | null>(null);
 
-  // Carregar produto baseado no ID
+  // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
-    if (typeof productId === 'string') {
+    if (!initialProduct && typeof productId === 'string') {
       const foundProduct = getPrintifyProduct(productId);
-      setProduct(foundProduct);
-      
-      if (!foundProduct) {
-        router.push('/shop');
-        toast.error('Produto não encontrado');
-      } else {
+      if (foundProduct && foundProduct.category === 'canvas') {
+        setProduct(foundProduct);
         // Set default variant
         if (foundProduct.printifyVariantIds && foundProduct.printifyVariantIds.length > 0) {
           setSelectedPrintifyVariantId(foundProduct.printifyVariantIds[0]);
         }
+      } else {
+        router.push('/shop');
+        toast.error('Produto não encontrado');
+      }
+    } else if (initialProduct) {
+      // Set default variant for initial product
+      if (initialProduct.printifyVariantIds && initialProduct.printifyVariantIds.length > 0) {
+        setSelectedPrintifyVariantId(initialProduct.printifyVariantIds[0]);
       }
     }
-  }, [productId, router]);
+  }, [productId, initialProduct, router]);
 
   // Load all canvas products for size selection
   useEffect(() => {
@@ -533,7 +541,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }
 
   return {
-    props: {}
+    props: { product }
   };
 };
 
