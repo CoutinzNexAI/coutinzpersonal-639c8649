@@ -56,9 +56,6 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   // Estado específico para seleção de variante da capa
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
 
-  // Estado para armazenar dados da última transformação (sem aplicar automaticamente)
-  const [latestTransformationData, setLatestTransformationData] = useState<{ url: string; id: string } | null>(null);
-
   // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
     if (!initialProduct && typeof productId === 'string') {
@@ -119,37 +116,6 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     }
   }, [selectedImageUrl, product, selectedPrintifyVariantId]); // Dependências para re-calcular
 
-  const fetchUserLatestTransformation = useCallback(async () => {
-    if (!userInfo?.id || !session?.access_token) return;
-
-    try {
-      // Buscar a última transformação do utilizador
-      const response = await fetch('/api/transformations/latest', {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.outputUrl && data.id) {
-          // Armazenar os dados sem aplicar automaticamente
-          setLatestTransformationData({ url: data.outputUrl, id: data.id });
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao buscar última transformação:', error);
-      // Não definir imagem padrão - deixar o utilizador escolher
-    }
-  }, [userInfo?.id, session?.access_token]);
-
-  // Obter imagem transformada do utilizador (se estiver autenticado)
-  useEffect(() => {
-    if (userInfo && product && session?.access_token) {
-      fetchUserLatestTransformation();
-    }
-  }, [userInfo, product, session?.access_token, fetchUserLatestTransformation]);
-
   // Função para lidar com os mockups gerados pelo ProductCanvas
   const handlePreviewReady = useCallback((data: {
     previewUrls: string[];
@@ -163,12 +129,13 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   }, []);
 
   const handleAddToCart = async () => {
-    if (!product || !selectedImageUrl) {
-      toast.error('Selecione uma imagem para personalizar o produto');
+    // Mostrar toast se não há arte selecionada
+    if (!selectedImageUrl) {
+      toast.error('Escolha uma arte primeiro para personalizar a sua capa!');
       return;
     }
 
-    if (!selectedImageId) {
+    if (!product || !selectedImageId) {
       toast.error('ID da transformação não encontrado. Selecione a imagem novamente.');
       return;
     }
@@ -268,23 +235,6 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setPrintifyImageId('');
     setPrintifyProductId('');
     setImageAdjustments(undefined);
-  };
-
-  const handleUseLatestArt = () => {
-    if (latestTransformationData) {
-      setSelectedImageUrl(latestTransformationData.url);
-      setSelectedImageId(latestTransformationData.id);
-      
-      // Reset mockups para gerar novos
-      setPrintifyPreviewUrls([]);
-      setPrintifyImageId('');
-      setPrintifyProductId('');
-      
-      // Limpar dados da última transformação para não mostrar novamente
-      setLatestTransformationData(null);
-      
-      toast.success('Última arte aplicada com sucesso!');
-    }
   };
 
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
@@ -403,204 +353,163 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
               )}
             </motion.div>
 
-            {/* Coluna da Direita - Informações em Cartões (1 coluna) */}
+            {/* PAINEL DE CONTROLO UNIFICADO - Coluna da Direita */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="lg:col-span-1 space-y-6"
+              className="lg:col-span-1"
             >
-              {/* Cartão: Título e Preço DESTACADO */}
-              <Card className="bg-gradient-to-br from-white to-ghibli-cream/30 backdrop-blur-sm border-ghibli-sand/30 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <CardContent className="p-6">
-                  <h1 className="text-2xl font-bold text-ghibli-earth mb-4">
-                    {product.name}
-                  </h1>
+              {/* CARTÃO PRINCIPAL - Painel de Controlo Único */}
+              <Card className="bg-gradient-to-br from-white to-ghibli-cream/30 backdrop-blur-sm border-ghibli-sand/30 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                <CardContent className="p-8 space-y-6">
+                  {/* 1. TÍTULO */}
+                  <div>
+                    <h1 className="text-3xl font-bold text-ghibli-earth mb-2">
+                      Capa de Telemóvel Personalizada
+                    </h1>
+                  </div>
+
+                  {/* 2. PREÇO */}
                   <div className="bg-gradient-to-r from-ghibli-moss/10 to-ghibli-moss/5 rounded-xl p-4 border-l-4 border-ghibli-moss">
                     <div className="flex items-baseline gap-2">
                       <span className="text-4xl font-black text-ghibli-moss drop-shadow-sm">
-                        €{(product.basePrice || product.price || 0).toFixed(2)}
+                        €25.00
                       </span>
                       <span className="text-sm text-ghibli-earth/70 font-medium">
                         IVA incluído
                       </span>
                     </div>
                   </div>
-                  <p className="text-sm text-ghibli-earth/70 mt-4 leading-relaxed">
-                    Proteja o seu telemóvel com estilo único! Materiais premium com as suas criações AI.
-                  </p>
-                </CardContent>
-              </Card>
 
-              {/* Cartão: Seleção de Modelo DESTACADO */}
-              <Card className="bg-gradient-to-br from-white to-ghibli-sand/20 backdrop-blur-sm border-ghibli-sand/40 shadow-md hover:shadow-lg transition-shadow duration-300">
-                <CardContent className="p-6">
-                  <label className="block text-sm font-bold text-ghibli-earth mb-4 flex items-center gap-2">
-                    <ChevronDown className="w-4 h-4 text-ghibli-moss" />
-                    Modelo do Telemóvel
-                  </label>
-                  <Select
-                    onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
-                    value={selectedPrintifyVariantId?.toString() || ''}
-                  >
-                    <SelectTrigger className="w-full bg-white border-2 border-ghibli-sand/60 text-ghibli-earth h-14 shadow-sm hover:border-ghibli-moss/50 focus:border-ghibli-moss transition-colors duration-200 font-medium">
-                      <SelectValue placeholder="Selecione um modelo">
-                        {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Selecione um modelo'}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
-                      {product.variants?.map((variant) => (
-                        <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
-                          {variant.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </CardContent>
-              </Card>
-
-              {/* Cartão: Características em Grid de Chips MELHORADO */}
-              <Card className="bg-gradient-to-br from-white to-ghibli-moss/5 backdrop-blur-sm border-ghibli-sand/30 shadow-md">
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
-                      <Shield className="w-7 h-7 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
-                      <span className="text-xs font-bold text-ghibli-earth">Proteção</span>
-                    </div>
-                    <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
-                      <Sparkles className="w-7 h-7 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
-                      <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
-                    </div>
-                    <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
-                      <Truck className="w-7 h-7 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
-                      <span className="text-xs font-bold text-ghibli-earth">Entrega Rápida</span>
-                    </div>
-                    <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
-                      <Award className="w-7 h-7 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
-                      <span className="text-xs font-bold text-ghibli-earth">30d Garantia</span>
+                  {/* 3. INCENTIVO DE VENDA - NOVO */}
+                  <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                    <div className="flex items-center gap-2 text-green-700">
+                      <Truck className="w-4 h-4" />
+                      <span className="text-sm font-semibold">
+                        🚚 Entrega gratuita em encomendas &gt; €50
+                      </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Cartão: Arte Sugerida - só aparece se não há arte selecionada */}
-              {!selectedImageUrl && latestTransformationData && userInfo && (
-                <Card className="bg-gradient-to-br from-blue-50/80 to-indigo-50/80 backdrop-blur-sm border-blue-200/50 shadow-md">
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold text-ghibli-earth mb-3 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-blue-600" />
-                      Arte Sugerida
-                    </h3>
-                    <div className="flex items-center space-x-4">
-                      <img
-                        src={latestTransformationData.url}
-                        alt="Última arte criada"
-                        className="w-16 h-16 rounded-xl object-cover border-2 border-blue-300 shadow-sm"
-                      />
-                      <div className="flex-1">
-                        <p className="text-xs text-ghibli-earth/80 mb-3">
-                          Última transformação criada
-                        </p>
-                        <Button
-                          onClick={handleUseLatestArt}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                        >
-                          Usar Esta Arte
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                  {/* 4. DESCRIÇÃO */}
+                  <div>
+                    <p className="text-sm text-ghibli-earth/80 leading-relaxed">
+                      Proteja o seu telemóvel com estilo único! Esta capa personalizada oferece proteção premium enquanto exibe as suas criações AI com impressão de alta qualidade e cores vibrantes.
+                    </p>
+                  </div>
 
-              {/* Cartão: Arte Selecionada */}
-              {selectedImageUrl && (
-                <Card className="bg-gradient-to-br from-ghibli-moss/10 to-ghibli-earth/5 backdrop-blur-sm border-ghibli-moss/20 shadow-md">
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold text-ghibli-earth mb-3 flex items-center gap-2">
-                      <Check className="w-4 h-4 text-ghibli-moss" />
-                      Arte Selecionada
-                    </h3>
-                    <div className="flex items-center space-x-4">
-                      <img
-                        src={selectedImageUrl}
-                        alt="Arte selecionada"
-                        className="w-16 h-16 rounded-xl object-cover border-2 border-ghibli-moss shadow-sm"
-                      />
-                      <div className="flex-1">
-                        <p className="text-xs text-ghibli-earth/80 mb-3">
-                          Transformação AI aplicada
-                        </p>
-                        <div className="flex gap-2">
+                  {/* 5. SELETOR DE VARIANTE */}
+                  <div>
+                    <label className="block text-sm font-bold text-ghibli-earth mb-3 flex items-center gap-2">
+                      <ChevronDown className="w-4 h-4 text-ghibli-moss" />
+                      Modelo do Telemóvel
+                    </label>
+                    <Select
+                      onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
+                      value={selectedPrintifyVariantId?.toString() || ''}
+                    >
+                      <SelectTrigger className="w-full bg-white border-2 border-ghibli-sand/60 text-ghibli-earth h-14 shadow-sm hover:border-ghibli-moss/50 focus:border-ghibli-moss transition-colors duration-200 font-medium">
+                        <SelectValue placeholder="Selecione um modelo">
+                          {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Selecione um modelo'}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
+                        {product.variants?.map((variant) => (
+                          <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
+                            {variant.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* 6. BLOCO DE AÇÕES - LÓGICA CONDICIONAL */}
+                  <div className="pt-4">
+                    {/* BOTÃO PRINCIPAL - Estado Condicional */}
+                    <Button
+                      onClick={handleAddToCart}
+                      disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId || !userInfo}
+                      className={`w-full py-5 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform ${
+                        selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo
+                          ? 'hover:scale-[1.02] bg-gradient-to-r from-ghibli-moss via-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:via-ghibli-moss hover:to-ghibli-moss text-white border-0' 
+                          : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                      }`}
+                      size="lg"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
+                          A adicionar...
+                        </>
+                      ) : !userInfo ? (
+                        'Faça Login para Continuar'
+                      ) : !selectedImageUrl ? (
+                        'Escolha uma Arte Primeiro'
+                      ) : !selectedPrintifyVariantId ? (
+                        'Selecione o Modelo'
+                      ) : (!printifyProductId || !printifyImageId) ? (
+                        <>
+                          <RotateCw className="w-5 h-5 mr-3 animate-spin" />
+                          A gerar preview...
+                        </>
+                      ) : (
+                        <>
+                          <span className="mr-2">🛒</span>
+                          Adicionar ao Carrinho
+                        </>
+                      )}
+                    </Button>
+
+                    {/* Informação Extra sobre Arte Selecionada */}
+                    {selectedImageUrl && (
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={selectedImageUrl}
+                            alt="Arte selecionada"
+                            className="w-12 h-12 rounded-lg object-cover border border-green-300"
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-green-800">
+                              ✅ Arte selecionada
+                            </p>
+                            <p className="text-xs text-green-600">
+                              Transformação AI aplicada
+                            </p>
+                          </div>
                           <Button
                             size="sm"
                             onClick={handleResetSelection}
-                            variant="destructive"
-                            className="text-xs"
+                            variant="outline"
+                            className="text-xs border-green-300 text-green-700 hover:bg-green-100"
                           >
-                            Remover
+                            Trocar
                           </Button>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Cartão: Botão Adicionar ao Carrinho SUPER DESTACADO */}
-              <Card className="bg-gradient-to-br from-white to-ghibli-moss/5 backdrop-blur-sm border-ghibli-sand/30 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <CardContent className="p-6">
-                  <Button
-                    onClick={handleAddToCart}
-                    disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId}
-                    className="w-full py-5 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-gradient-to-r from-ghibli-moss via-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:via-ghibli-moss hover:to-ghibli-moss text-white border-0 disabled:opacity-50 disabled:transform-none disabled:bg-gray-400"
-                    size="lg"
-                  >
-                    {loading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
-                        A adicionar...
-                      </>
-                    ) : !selectedImageUrl ? (
-                      'Escolha uma Arte Primeiro'
-                    ) : !selectedPrintifyVariantId ? (
-                      'Selecione o Modelo'
-                    ) : (!printifyProductId || !printifyImageId) ? (
-                      <>
-                        <RotateCw className="w-5 h-5 mr-3 animate-spin" />
-                        A gerar mockups...
-                      </>
-                    ) : (
-                      <>
-                        <span className="mr-2">🛒</span>
-                        Adicionar ao Carrinho
-                      </>
                     )}
-                  </Button>
-                </CardContent>
-              </Card>
+                  </div>
 
-              {/* Cartão: Garantias */}
-              <Card className="bg-gradient-to-br from-ghibli-moss/5 to-ghibli-earth/5 backdrop-blur-sm border-ghibli-moss/20 shadow-md">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-ghibli-earth mb-4">Garantias</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Check className="w-4 h-4 text-ghibli-moss flex-shrink-0" />
-                      <span className="text-sm text-ghibli-earth">Entrega gratuita &gt; €50</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-4 h-4 text-ghibli-moss flex-shrink-0" />
-                      <span className="text-sm text-ghibli-earth">Envio em 3-5 dias</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-4 h-4 text-ghibli-moss flex-shrink-0" />
-                      <span className="text-sm text-ghibli-earth">Garantia 30 dias</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-4 h-4 text-ghibli-moss flex-shrink-0" />
-                      <span className="text-sm text-ghibli-earth">Proteção premium</span>
+                  {/* 7. BLOCO DE CONFIANÇA (Garantias) - MOVIDO PARA O FINAL */}
+                  <div className="pt-6 border-t border-ghibli-sand/30">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                        <Shield className="w-6 h-6 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
+                        <span className="text-xs font-bold text-ghibli-earth">Proteção Premium</span>
+                      </div>
+                      <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                        <Sparkles className="w-6 h-6 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
+                        <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
+                      </div>
+                      <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                        <Truck className="w-6 h-6 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
+                        <span className="text-xs font-bold text-ghibli-earth">Entrega 3-5d</span>
+                      </div>
+                      <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                        <Award className="w-6 h-6 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
+                        <span className="text-xs font-bold text-ghibli-earth">30d Garantia</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
