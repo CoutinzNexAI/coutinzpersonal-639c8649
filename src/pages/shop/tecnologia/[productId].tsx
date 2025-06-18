@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -11,11 +12,12 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getPrintifyProduct, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
+import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
+import ProductCanvas from '@/components/printify/ProductCanvas';
+import { ChevronLeft } from 'lucide-react';
+import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
-import ProductCanvas from '@/components/printify/ProductCanvas';
-import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 
 interface ImageAdjustments {
   x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
@@ -609,6 +611,35 @@ const PhoneCaseDetailPage: React.FC = () => {
       />
     </>
   );
+};
+
+// Geração estática dos paths para produtos de tecnologia
+export const getStaticPaths: GetStaticPaths = async () => {
+  const tecnologiaProducts = getPrintifyProductsByCategory('tecnologia');
+  const paths = Object.keys(tecnologiaProducts).map((productId) => ({
+    params: { productId }
+  }));
+
+  return {
+    paths,
+    fallback: false
+  };
+};
+
+// Geração estática das props
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const productId = params?.productId as string;
+  const product = getPrintifyProduct(productId);
+
+  if (!product || product.category !== 'tecnologia') {
+    return {
+      notFound: true
+    };
+  }
+
+  return {
+    props: {}
+  };
 };
 
 export default PhoneCaseDetailPage; 

@@ -147,6 +147,12 @@ class Title {
     this.mesh.position.y = -this.plane.scale.y * 0.5 - textHeight * 0.5 - 0.05;
     this.mesh.setParent(this.plane);
   }
+
+  setVisibility(visible: boolean) {
+    if (this.mesh) {
+      this.mesh.visible = visible;
+    }
+  }
 }
 
 class Media {
@@ -334,7 +340,14 @@ class Media {
       geometry: this.geometry,
       program: this.program
     });
-    this.plane.setParent(this.scene);
+    this.plane.scale.set(this.scale, this.scale, 1);
+    this.scene.addChild(this.plane);
+    
+    // Add hover event listeners for category text display
+    if (this.gl.canvas) {
+      this.gl.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+      this.gl.canvas.addEventListener('mouseout', this.onMouseOut.bind(this));
+    }
 
     // Add click detection
     if (this.onItemClick) {
@@ -344,6 +357,30 @@ class Media {
         onClick: this.onItemClick
       };
     }
+  }
+
+  onMouseMove(e: MouseEvent) {
+    // Simple hover detection - show text when hovering over the item
+    const rect = this.gl.canvas.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    // Check if mouse is over this media item (simplified hit detection)
+    const itemX = this.x / this.screen.width * 2;
+    const itemWidth = this.width / this.screen.width * 2;
+    
+    if (Math.abs(x - itemX) < itemWidth / 2) {
+      // Mouse is over this item - show text
+      this.title.setVisibility(true);
+    } else {
+      // Mouse is not over this item - hide text
+      this.title.setVisibility(false);
+    }
+  }
+
+  onMouseOut() {
+    // Hide text when mouse leaves canvas
+    this.title.setVisibility(false);
   }
 
   createTitle() {
@@ -527,20 +564,20 @@ class App {
   }
 
   onTouchMove(e: any) {
-    if (!this.isDown) return;
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    const distance = (this.start - x) * 0.03;
-    this.scroll.target = this.scroll.position + distance;
-    this.hasMoved = Math.abs(this.start - x) > 5;
+    if (!this.isDown) return
+    const x = e.touches ? e.touches[0].clientX : e.clientX
+    const distance = (this.start - x) * 0.03 // Reduced sensitivity for smoother movement
+    this.scroll.target = this.scroll.position + distance
+    this.hasMoved = Math.abs(this.start - x) > 3 // Reduced threshold from 5 to 3 pixels for more precise click detection
   }
 
   onTouchUp() {
-    this.isDown = false;
-    const endTime = Date.now();
-    const clickDuration = endTime - (this.startTime || 0);
+    this.isDown = false
+    const endTime = Date.now()
+    const clickDuration = endTime - (this.startTime || 0)
     
     // Only trigger click if it was quick and minimal movement
-    if (!this.hasMoved && clickDuration < 300) {
+    if (!this.hasMoved && clickDuration < 250) { // Reduced from 300ms to 250ms
       // Simple click detection - check if any media is roughly centered
       if (this.medias && this.medias[0]) {
         const centerIndex = Math.round(Math.abs(this.scroll.current) / this.medias[0].width) % (this.mediasImages.length / 2)
@@ -552,12 +589,12 @@ class App {
       }
     }
     
-    this.onCheck();
-    this.hasMoved = false;
+    this.onCheck()
+    this.hasMoved = false
   }
 
   onWheel() {
-    this.scroll.target += 0.5;
+    this.scroll.target += 0.2;
     this.onCheckDebounce();
   }
 

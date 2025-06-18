@@ -104,7 +104,7 @@ const ShopPage: React.FC = () => {
         <meta name="description" content="Descobre a nossa coleção completa de produtos personalizados. Desde quadros a roupa, transforma as tuas fotos em arte única." />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-[#2D5A27] via-[#4A6B5B] to-[#6B8E5A] relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-[#FAF8F0] via-[#F5F1E8] to-[#E8E0D0] relative overflow-hidden">
         {/* Elementos decorativos de fundo */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
@@ -114,15 +114,25 @@ const ShopPage: React.FC = () => {
 
         <Header />
         
-        <main className="container mx-auto px-4 py-8 relative z-10">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
-              Produtos <span className="text-[#B8E6B8]">Personalizados</span>
-            </h1>
-            <p className="text-xl text-[#E8F5E8] max-w-2xl mx-auto leading-relaxed">
-              Transforma as tuas memórias em produtos únicos com a nossa tecnologia de arte AI
-            </p>
+        <main className="container mx-auto px-4 py-12 md:py-16 relative z-10">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <motion.h1 
+              className="text-4xl md:text-6xl font-bold text-[#2D5A27] mb-6"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              🎨 Loja PicTuz
+            </motion.h1>
+            <motion.p 
+              className="text-xl text-[#4A6B5B] max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              Transforme as suas criações AI em produtos físicos únicos
+            </motion.p>
           </div>
 
           {/* Search Bar */}
