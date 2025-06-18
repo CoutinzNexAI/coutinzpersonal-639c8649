@@ -139,39 +139,25 @@ export default function ProductCanvas({
     );
   };
 
-
-
-  // Estado inicial - sem imagem selecionada
+  // Estado inicial - sem imagem selecionada - MAXIMIZADO SEM MODAL
   const renderEmptyState = () => {
-    // Para capas de telemóvel, mostrar o mockup inicial (capa.png)
+    // Para capas de telemóvel, mostrar o mockup inicial maximizado
     if (selectedProduct.id === 'custom_phone_case') {
       return (
-        <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden">
-          {/* Mockup inicial da capa */}
-          <img
-            src={selectedProduct.mockupInitialPath}
-            alt={`${selectedProduct.name} mockup inicial`}
-            className="absolute inset-0 w-full h-full object-contain"
-          />
-          
-          {/* Overlay com call to action */}
-          <div className="absolute inset-0 bg-black bg-opacity-20 flex flex-col items-center justify-center">
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 text-center max-w-sm mx-4">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                Personalize a sua {selectedProduct.name}
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Escolha uma arte AI e um modelo de telemóvel para começar
+        <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+          {/* Mockup inicial da capa - MAXIMIZADO */}
+          <div className="relative w-full h-full flex items-center justify-center p-8">
+            <img
+              src={selectedProduct.mockupInitialPath}
+              alt={`${selectedProduct.name} mockup inicial`}
+              className="max-w-full max-h-full object-contain drop-shadow-lg"
+            />
+            
+            {/* Texto sutil no canto */}
+            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm">
+              <p className="text-sm text-ghibli-earth/80">
+                {selectedProduct.name}
               </p>
-              
-              <Button
-                onClick={onSelectImage}
-                className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white shadow-lg"
-                size="lg"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Escolher Arte
-              </Button>
             </div>
           </div>
         </div>
@@ -180,7 +166,7 @@ export default function ProductCanvas({
 
     // Para outros produtos, mostrar estado vazio tradicional
     return (
-      <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+      <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
         {/* Placeholder image */}
         <div className="mb-6">
           <img
@@ -198,222 +184,147 @@ export default function ProductCanvas({
           <p className="text-sm text-gray-500 mb-6 max-w-md">
             Escolha uma das suas transformações AI para ver como ficará no produto
           </p>
-          
-          <Button
-            onClick={onSelectImage}
-            className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white shadow-lg px-8 py-3"
-            size="lg"
-          >
-            <Upload className="w-5 h-5 mr-2" />
-            Escolher Foto
-          </Button>
         </div>
       </div>
     );
   };
 
-  // Estado de carregamento com overlay melhorado
+  // Overlay de carregamento COMPLETAMENTE OPACO
   const renderLoadingOverlay = () => (
-    <div className="absolute inset-0 bg-black bg-opacity-70 rounded-lg flex flex-col items-center justify-center z-20">
-      <div className="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-4 text-center">
-        <div className="relative mb-4 flex items-center justify-center">
+    <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center max-w-sm mx-4">
+        <div className="relative mb-6">
           <Loader2 className="w-12 h-12 text-ghibli-moss animate-spin" />
-          <Sparkles className="absolute w-6 h-6 text-ghibli-moss animate-pulse" />
+          <Sparkles className="w-6 h-6 text-ghibli-moss absolute -top-1 -right-1 animate-pulse" />
         </div>
-        <h3 className="text-lg font-semibold text-ghibli-earth mb-2">
-          A gerar pré-visualização 3D...
-        </h3>
-        <p className="text-sm text-ghibli-earth/70">
-          Estamos a criar mockups profissionais do seu produto. 
-          Isto pode demorar até 30 segundos.
+        <h3 className="text-lg font-semibold text-ghibli-earth mb-2">A gerar mockups...</h3>
+        <p className="text-sm text-ghibli-earth/70 text-center">
+          Estamos a criar uma pré-visualização personalizada do seu produto. 
+          Isto pode demorar alguns segundos.
         </p>
-        <div className="mt-4 flex items-center justify-center space-x-1">
-          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" />
-          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-        </div>
       </div>
     </div>
   );
 
-  // Preview inicial com imagem do utilizador
   const renderInitialPreview = () => (
-    <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden">
-      {/* Background mockup */}
-      <img
-        src={selectedProduct.mockupInitialPath}
-        alt={`${selectedProduct.name} mockup`}
-        className="absolute inset-0 w-full h-full object-contain"
-      />
-      
-      {/* User image overlay - positioned based on product type - SEMPRE CENTRADO */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative w-48 h-48 rounded-lg overflow-hidden shadow-lg">
+    <div className="relative w-full h-full">
+      {userImageUrl ? (
+        // Mostrar a arte do utilizador na área de preview enquanto gera
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-8">
           <img
             src={userImageUrl}
-            alt="Your transformed image"
-            className="w-full h-full object-cover"
-            draggable={false}
+            alt="Arte selecionada"
+            className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
           />
-          <div className="absolute inset-0 bg-black bg-opacity-10" />
+          
+          {/* Badge informativo */}
+          <div className="absolute top-4 right-4">
+            <Badge className="bg-ghibli-moss text-white">
+              Arte Selecionada
+            </Badge>
+          </div>
         </div>
-      </div>
-
-      {/* Generate button overlay */}
-      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
-        <Button
-          onClick={handleGenerateMockup}
-          disabled={isLoadingMockups}
-          className="bg-white text-gray-900 hover:bg-gray-100 shadow-lg"
-          size="lg"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          Gerar Pré-visualização 3D
-        </Button>
-      </div>
+      ) : (
+        renderEmptyState()
+      )}
+      
+      {/* Overlay de loading se estiver a gerar */}
+      {isLoadingMockups && renderLoadingOverlay()}
     </div>
   );
 
   const renderGeneratedPreviews = () => (
-    <div className="w-full">
-      {/* Main preview image */}
-      <div className="relative w-full h-96 bg-gray-100 rounded-lg overflow-hidden mb-4">
+    <div className="relative w-full h-full">
+      {/* Imagem principal do mockup */}
+      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
         <img
           src={printifyGeneratedPreviewUrls[currentPreviewIndex]}
-          alt={`${selectedProduct.name} preview ${currentPreviewIndex + 1}`}
-          className="w-full h-full object-contain"
+          alt={`${selectedProduct.name} personalizada`}
+          className="max-w-full max-h-full object-contain drop-shadow-xl"
         />
-        
-        {/* Navigation arrows */}
-        {printifyGeneratedPreviewUrls.length > 1 && (
-          <>
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg"
-              onClick={handlePreviousPreview}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg"
-              onClick={handleNextPreview}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </>
-        )}
-
-        {/* Preview counter */}
-        {printifyGeneratedPreviewUrls.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-            <Badge variant="secondary" className="bg-white/90">
-              {currentPreviewIndex + 1} de {printifyGeneratedPreviewUrls.length}
-            </Badge>
-          </div>
-        )}
-
-
       </div>
 
-      {/* Thumbnail navigation */}
+      {/* Navegação entre previews (se houver múltiplas) */}
       {printifyGeneratedPreviewUrls.length > 1 && (
-        <div className="flex space-x-2 justify-center mb-4">
-          {printifyGeneratedPreviewUrls.map((url, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentPreviewIndex(index)}
-              className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                index === currentPreviewIndex
-                  ? 'border-blue-500 ring-2 ring-blue-200'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <img
-                src={url}
-                alt={`Preview ${index + 1}`}
-                className="w-full h-full object-cover"
+        <>
+          {/* Botão Previous */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handlePreviousPreview}
+            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+
+          {/* Botão Next */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleNextPreview}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+
+          {/* Indicadores de página */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {printifyGeneratedPreviewUrls.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentPreviewIndex(index)}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  currentPreviewIndex === index ? 'bg-ghibli-moss' : 'bg-gray-300'
+                }`}
               />
-            </button>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
 
-
+      {/* Badge com número de views */}
+      {printifyGeneratedPreviewUrls.length > 1 && (
+        <div className="absolute top-4 right-4">
+          <Badge className="bg-ghibli-moss text-white">
+            {currentPreviewIndex + 1} de {printifyGeneratedPreviewUrls.length}
+          </Badge>
+        </div>
+      )}
     </div>
   );
 
   const renderErrorState = () => (
-    <div className="w-full h-96 bg-red-50 rounded-lg flex flex-col items-center justify-center p-6">
-      <div className="text-red-600 mb-4">
-        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-        </svg>
-      </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-        Erro ao gerar pré-visualização
-      </h3>
-      <p className="text-sm text-gray-600 text-center mb-4 max-w-md">
-        {error || 'Ocorreu um erro inesperado. Tente novamente.'}
-      </p>
-      <div className="flex gap-3">
+    <div className="relative w-full h-full bg-gradient-to-br from-red-50 to-red-100 flex flex-col items-center justify-center p-8">
+      <div className="text-center">
+        <div className="w-16 h-16 bg-red-200 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-2xl">⚠️</span>
+        </div>
+        <h3 className="text-lg font-semibold text-red-700 mb-2">
+          Erro ao Gerar Mockup
+        </h3>
+        <p className="text-sm text-red-600 mb-4 max-w-md">
+          {error || 'Ocorreu um erro inesperado. Tente novamente.'}
+        </p>
         <Button
-          onClick={() => {
-            setError(null);
-            setHasGenerated(false);
-            handleGenerateMockup();
-          }}
-          disabled={isLoadingMockups}
+          onClick={handleGenerateMockup}
+          variant="outline"
+          className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
         >
           <RotateCw className="w-4 h-4 mr-2" />
           Tentar Novamente
         </Button>
-        
-
       </div>
     </div>
   );
 
-  return (
-    <Card className="w-full">
-      <CardContent className="p-6">
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-            {selectedProduct.name}
-          </h3>
-          <p className="text-sm text-gray-600">
-            Pré-visualização do seu produto personalizado
-          </p>
-        </div>
+  // Renderização principal
+  if (error) {
+    return renderErrorState();
+  }
 
-        {/* Renderização condicional baseada no estado */}
-        {isLoadingMockups ? (
-          // Quando está a carregar, mostrar apenas o overlay sem nada por baixo
-          <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden">
-            {renderLoadingOverlay()}
-          </div>
-        ) : !userImageUrl ? (
-          renderEmptyState()
-        ) : error ? (
-          renderErrorState()
-        ) : printifyGeneratedPreviewUrls.length > 0 ? (
-          renderGeneratedPreviews()
-        ) : (
-          renderInitialPreview()
-        )}
+  if (printifyGeneratedPreviewUrls.length > 0) {
+    return renderGeneratedPreviews();
+  }
 
-        {/* Manual adjustment notice */}
-        {selectedProduct.supportsManualAdjustment && userImageUrl && (
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
-              💡 Este produto suporta ajustes manuais. Pode ajustar a posição, 
-              zoom e rotação da sua imagem antes de finalizar.
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+  return renderInitialPreview();
 } 
