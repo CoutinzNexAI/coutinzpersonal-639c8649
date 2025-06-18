@@ -440,6 +440,8 @@ class App {
   private boundOnTouchMove: (e: any) => void;
   private boundOnTouchUp: () => void;
   private onItemClick?: (item: GalleryItem, index: number) => void;
+  private startTime: number | null = null;
+  private hasMoved = false;
 
   constructor(container: HTMLElement, { items, bend, textColor = "#ffffff", borderRadius = 0, font = "bold 30px Figtree", onItemClick }: {
     items?: GalleryItem[];
@@ -488,18 +490,13 @@ class App {
   }
 
   createMedias(items?: GalleryItem[], bend = 1, textColor?: string, borderRadius?: number, font?: string) {
-    const defaultItems: GalleryItem[] = [
-      { image: `/fotousar/almoco.png`, text: 'Almoço' },
-      { image: `/fotousar/homempraia.png`, text: 'Praia' },
-      { image: `/fotousar/mae2filhos.png`, text: 'Família' },
-      { image: `/fotousar/passeioporto.png`, text: 'Porto' },
-      { image: `/fotousar/raparigaalgarve.png`, text: 'Algarve' },
-      { image: `/fotousar/raparigasala.png`, text: 'Casa' },
-      { image: `/fotousar/raparigascafe.png`, text: 'Café' },
-      { image: `/fotousar/rapazcao.png`, text: 'Animais' }
-    ];
+    // Only use items passed via props - no fallback to default placeholder images
+    if (!items || items.length === 0) {
+      console.warn('No gallery items provided to CircularGallery');
+      return;
+    }
     
-    const galleryItems = items && items.length ? items : defaultItems;
+    const galleryItems = items;
     this.mediasImages = galleryItems.concat(galleryItems); // Duplicate for seamless loop
     this.medias = this.mediasImages.map((data, index) => {
       return new Media({
@@ -518,42 +515,61 @@ class App {
         borderRadius: borderRadius || 0,
         font: font || "bold 30px Figtree",
         onItemClick: this.onItemClick
-      });
-    });
+      })
+    })
   }
 
   onTouchDown(e: any) {
     this.isDown = true;
     this.scroll.position = this.scroll.current;
     this.start = e.touches ? e.touches[0].clientX : e.clientX;
+    this.startTime = Date.now();
   }
 
   onTouchMove(e: any) {
     if (!this.isDown) return;
     const x = e.touches ? e.touches[0].clientX : e.clientX;
-    const distance = (this.start - x) * 0.05;
+    const distance = (this.start - x) * 0.03;
     this.scroll.target = this.scroll.position + distance;
+    this.hasMoved = Math.abs(this.start - x) > 5;
   }
 
   onTouchUp() {
     this.isDown = false;
+    const endTime = Date.now();
+    const clickDuration = endTime - (this.startTime || 0);
+    
+    // Only trigger click if it was quick and minimal movement
+    if (!this.hasMoved && clickDuration < 300) {
+      // Simple click detection - check if any media is roughly centered
+      if (this.medias && this.medias[0]) {
+        const centerIndex = Math.round(Math.abs(this.scroll.current) / this.medias[0].width) % (this.mediasImages.length / 2)
+        const item = this.mediasImages[centerIndex]
+        
+        if (this.onItemClick && item) {
+          this.onItemClick(item, centerIndex)
+        }
+      }
+    }
+    
     this.onCheck();
+    this.hasMoved = false;
   }
 
   onWheel() {
-    this.scroll.target += 2;
+    this.scroll.target += 0.5;
     this.onCheckDebounce();
   }
 
   onClick(e: MouseEvent) {
     // Simple click detection - check if any media is roughly centered
-    if (!this.medias || !this.medias[0]) return;
+    if (!this.medias || !this.medias[0]) return
     
-    const centerIndex = Math.round(Math.abs(this.scroll.current) / this.medias[0].width) % (this.mediasImages.length / 2);
-    const item = this.mediasImages[centerIndex];
+    const centerIndex = Math.round(Math.abs(this.scroll.current) / this.medias[0].width) % (this.mediasImages.length / 2)
+    const item = this.mediasImages[centerIndex]
     
     if (this.onItemClick && item) {
-      this.onItemClick(item, centerIndex);
+      this.onItemClick(item, centerIndex)
     }
   }
 

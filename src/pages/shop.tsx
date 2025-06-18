@@ -21,7 +21,7 @@ const categories: Category[] = [
   {
     name: 'Quadros',
     href: '/shop/canvas',
-    galleryImage: '/fotousar/raparigaalgarve.png',
+    galleryImage: '/assets/gallery-images/person_with_canvas.png',
     gradient: 'from-emerald-400 to-teal-500',
     icon: '🖼️',
     items: ['Canvas Premium', 'Molduras Elegantes', 'Impressão HD']
@@ -29,7 +29,7 @@ const categories: Category[] = [
   {
     name: 'Roupa',
     href: '/shop/apparel',
-    galleryImage: '/fotousar/homempraia.png',
+    galleryImage: '/assets/gallery-images/person_wearing_tshirt.png',
     gradient: 'from-blue-400 to-indigo-500',
     icon: '👕',
     items: ['T-shirts', 'Hoodies', 'Tank Tops']
@@ -45,7 +45,7 @@ const categories: Category[] = [
   {
     name: 'Tecnologia',
     href: '/shop/tecnologia',
-    galleryImage: '/fotousar/rapazcao.png',
+    galleryImage: '/assets/gallery-images/person_with_phone_case.png',
     gradient: 'from-purple-400 to-pink-500',
     icon: '📱',
     items: ['Capas Telemóvel', 'Mousepads', 'Acessórios']
@@ -150,13 +150,13 @@ const ShopPage: React.FC = () => {
               <p className="text-[#E8F5E8]">Arrastar para navegar • Clicar para explorar</p>
             </div>
             
-            <div className="h-[600px] rounded-3xl overflow-hidden bg-gradient-to-r from-[#4A6B5B]/20 to-[#6B8E5A]/20 backdrop-blur-sm border border-white/10">
+            <div className="h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-[#F5F1E8] via-[#E8E0D0] to-[#D4C4A8] backdrop-blur-sm border border-white/20 shadow-2xl">
               <CircularGallery
                 items={galleryItems}
                 bend={3}
-                textColor="#4A6B5B"
-                borderRadius={0.05}
-                font="bold 32px Inter"
+                textColor="#2D5A27"
+                borderRadius={0.1}
+                font="bold 28px Inter"
                 onItemClick={handleGalleryItemClick}
               />
             </div>
@@ -170,36 +170,44 @@ const ShopPage: React.FC = () => {
                 <div
                   key={category.name}
                   onClick={() => router.push(category.href)}
-                  className="group relative bg-white/10 backdrop-blur-md rounded-3xl p-6 
-                            border border-white/20 hover:border-white/40 cursor-pointer 
-                            transition-all duration-500 hover:scale-105 hover:bg-white/15"
+                  className="group relative bg-gradient-to-br from-[#F5F1E8]/90 via-[#E8E0D0]/80 to-[#D4C4A8]/70 
+                            backdrop-blur-md rounded-3xl p-6 border-2 border-[#B8A082]/30 
+                            hover:border-[#8B7355]/50 cursor-pointer transition-all duration-500 
+                            hover:scale-105 hover:bg-gradient-to-br hover:from-[#F5F1E8] 
+                            hover:via-[#E8E0D0] hover:to-[#D4C4A8] shadow-lg hover:shadow-2xl"
                 >
                   {/* Icon and Title */}
                   <div className="text-center mb-4">
-                    <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
+                    <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300 
+                                    filter drop-shadow-lg">
                       {category.icon}
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2">{category.name}</h3>
+                    <h3 className="text-xl font-bold text-[#2D5A27] mb-2 drop-shadow-sm">
+                      {category.name}
+                    </h3>
                   </div>
 
                   {/* Items List */}
                   <div className="space-y-2">
                     {category.items.map((item, index) => (
-                      <div key={index} className="flex items-center text-[#E8F5E8] text-sm">
-                        <div className="w-1.5 h-1.5 bg-[#B8E6B8] rounded-full mr-2"></div>
+                      <div key={index} className="flex items-center text-[#4A6B5B] text-sm font-medium">
+                        <div className="w-2 h-2 bg-gradient-to-r from-[#6B8E5A] to-[#8B7355] 
+                                        rounded-full mr-3 group-hover:scale-125 transition-transform duration-300">
+                        </div>
                         {item}
                       </div>
                     ))}
                   </div>
 
-                  {/* Hover Gradient Overlay */}
-                  <div className={`absolute inset-0 bg-gradient-to-r ${category.gradient} opacity-0 
-                                  group-hover:opacity-10 rounded-3xl transition-opacity duration-500`}>
+                  {/* Ghibli-style decorative border */}
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#6B8E5A]/10 
+                                  via-transparent to-[#8B7355]/10 opacity-0 group-hover:opacity-100 
+                                  transition-opacity duration-500 pointer-events-none">
                   </div>
 
                   {/* Arrow */}
-                  <div className="absolute top-4 right-4 text-white/60 group-hover:text-white 
-                                  group-hover:translate-x-1 transition-all duration-300">
+                  <div className="absolute top-4 right-4 text-[#4A6B5B]/60 group-hover:text-[#2D5A27] 
+                                  group-hover:translate-x-1 transition-all duration-300 text-lg font-bold">
                     →
                   </div>
                 </div>
