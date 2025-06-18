@@ -217,26 +217,32 @@ class Media {
     font: string;
     onItemClick?: (item: GalleryItem, index: number) => void;
   }) {
+    // Defensive initialization with fallbacks
     this.extra = 0;
     this.geometry = geometry;
     this.gl = gl;
-    this.image = image;
-    this.index = index;
-    this.length = length;
+    this.image = image || '/placeholder.svg';
+    this.index = index || 0;
+    this.length = length || 1;
     this.renderer = renderer;
     this.scene = scene;
-    this.screen = screen;
-    this.text = text;
-    this.viewport = viewport;
-    this.bend = bend;
-    this.textColor = textColor;
-    this.borderRadius = borderRadius;
-    this.font = font;
+    this.screen = screen || { width: 800, height: 600 };
+    this.text = text || 'Item';
+    this.viewport = viewport || { width: 800, height: 600 };
+    this.bend = bend || 1;
+    this.textColor = textColor || '#ffffff';
+    this.borderRadius = borderRadius || 0;
+    this.font = font || 'bold 30px Figtree';
     this.onItemClick = onItemClick;
-    this.createShader();
-    this.createMesh();
-    this.createTitle();
-    this.onResize();
+    
+    try {
+      this.createShader();
+      this.createMesh();
+      this.createTitle();
+      this.onResize();
+    } catch (error) {
+      console.error('Error initializing Media:', error);
+    }
   }
 
   createShader() {
@@ -440,14 +446,25 @@ class Media {
     if (screen) this.screen = screen;
     if (viewport) {
       this.viewport = viewport;
-      if (this.plane.program.uniforms.uViewportSizes) {
+      if (this.plane?.program?.uniforms?.uViewportSizes) {
         this.plane.program.uniforms.uViewportSizes.value = [this.viewport.width, this.viewport.height];
       }
     }
+    
+    // Defensive checks to prevent TypeError
+    if (!this.screen?.height || !this.viewport?.height || !this.viewport?.width) {
+      console.warn('CircularGallery: Missing screen or viewport dimensions');
+      return;
+    }
+    
     this.scale = this.screen.height / 1500;
     this.plane.scale.y = (this.viewport.height * (900 * this.scale)) / this.screen.height;
     this.plane.scale.x = (this.viewport.width * (700 * this.scale)) / this.screen.width;
-    this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
+    
+    if (this.plane?.program?.uniforms?.uPlaneSizes) {
+      this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
+    }
+    
     this.padding = 2;
     this.width = this.plane.scale.x + this.padding;
     this.widthTotal = this.width * this.length;
@@ -643,22 +660,45 @@ class App {
   }
 
   onResize() {
+    // Defensive checks to prevent errors
+    if (!this.container) {
+      console.warn('CircularGallery: Container not available for resize');
+      return;
+    }
+    
     this.screen = {
-      width: this.container.clientWidth,
-      height: this.container.clientHeight
+      width: this.container.clientWidth || 800,
+      height: this.container.clientHeight || 600
     };
+    
+    if (!this.renderer) {
+      console.warn('CircularGallery: Renderer not available for resize');
+      return;
+    }
+    
     this.renderer.setSize(this.screen.width, this.screen.height);
+    
+    if (!this.camera) {
+      console.warn('CircularGallery: Camera not available for resize');
+      return;
+    }
+    
     this.camera.perspective({
       aspect: this.screen.width / this.screen.height
     });
+    
     const fov = (this.camera.fov * Math.PI) / 180;
     const height = 2 * Math.tan(fov / 2) * this.camera.position.z;
     const width = height * this.camera.aspect;
     this.viewport = { width, height };
-    if (this.medias) {
-      this.medias.forEach((media) =>
-        media.onResize({ screen: this.screen, viewport: this.viewport })
-      );
+    
+    // Only call media resize if medias exist and are properly initialized
+    if (this.medias && Array.isArray(this.medias) && this.medias.length > 0) {
+      this.medias.forEach((media) => {
+        if (media && typeof media.onResize === 'function') {
+          media.onResize({ screen: this.screen, viewport: this.viewport });
+        }
+      });
     }
   }
 

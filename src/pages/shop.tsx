@@ -84,16 +84,52 @@ const ShopPage: React.FC = () => {
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Prepare gallery items from categories
+  // Prepare gallery items from categories with validation
   const galleryItems = categories.map(category => ({
     image: category.galleryImage,
     text: category.name
   }));
 
+  // Debug log for gallery items - CRITICAL FOR DEBUGGING
+  console.log('DADOS PARA A GALERIA:', galleryItems);
+  console.log('Validação:', {
+    hasItems: galleryItems.length > 0,
+    allHaveImages: galleryItems.every(item => item.image),
+    allHaveText: galleryItems.every(item => item.text),
+    firstItem: galleryItems[0]
+  });
+
   const handleGalleryItemClick = (item: GalleryItem, index: number) => {
     const category = categories[index];
     if (category) {
       router.push(category.href);
+    }
+  };
+
+  // Safe gallery component with error boundary
+  const SafeGallery = () => {
+    try {
+      return (
+        <CircularGallery
+          items={galleryItems}
+          bend={3}
+          textColor="#2D5A27"
+          borderRadius={0.1}
+          font="bold 28px Inter"
+          onItemClick={handleGalleryItemClick}
+        />
+      );
+    } catch (error) {
+      console.error('Gallery Error:', error);
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h3 className="text-2xl font-bold text-[#2D5A27] mb-2">Galeria Indisponível</h3>
+            <p className="text-[#4A6B5B]">Use as categorias abaixo para navegar.</p>
+          </div>
+        </div>
+      );
     }
   };
 
@@ -161,14 +197,7 @@ const ShopPage: React.FC = () => {
             </div>
             
             <div className="h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-[#F5F1E8] via-[#E8E0D0] to-[#D4C4A8] backdrop-blur-sm border border-white/20 shadow-2xl">
-              <CircularGallery
-                items={galleryItems}
-                bend={3}
-                textColor="#2D5A27"
-                borderRadius={0.1}
-                font="bold 28px Inter"
-                onItemClick={handleGalleryItemClick}
-              />
+              <SafeGallery />
             </div>
           </div>
 
