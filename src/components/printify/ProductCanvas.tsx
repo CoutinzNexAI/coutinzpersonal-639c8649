@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw, Upload } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 
@@ -58,15 +57,32 @@ export default function ProductCanvas({
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
 
   // Reset hasGenerated when userImageUrl OR selectedPrintifyVariantId changes
   useEffect(() => {
     setHasGenerated(false);
+    setCurrentPreviewIndex(0); // Reset index quando mudamos
     // Clear existing preview URLs when image/variant changes
     if (onPreviewReady) {
       onPreviewReady({ previewUrls: [], printifyImageId: '', printifyProductId: '' });
     }
   }, [userImageUrl, selectedPrintifyVariantId, onPreviewReady]);
+
+  // Preload images for instant navigation
+  useEffect(() => {
+    if (printifyGeneratedPreviewUrls.length > 0) {
+      printifyGeneratedPreviewUrls.forEach(url => {
+        if (!preloadedImages.has(url)) {
+          const img = new Image();
+          img.onload = () => {
+            setPreloadedImages(prev => new Set([...prev, url]));
+          };
+          img.src = url;
+        }
+      });
+    }
+  }, [printifyGeneratedPreviewUrls, preloadedImages]);
 
   const handleGenerateMockup = useCallback(async () => {
     if (!userImageUrl || !userId || isLoadingMockups) return;
@@ -127,17 +143,22 @@ export default function ProductCanvas({
     }
   }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, hasGenerated, handleGenerateMockup]);
 
-  const handlePreviousPreview = () => {
+  // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
+  const handlePreviousPreview = useCallback(() => {
     setCurrentPreviewIndex((prev) => 
       prev === 0 ? printifyGeneratedPreviewUrls.length - 1 : prev - 1
     );
-  };
+  }, [printifyGeneratedPreviewUrls.length]);
 
-  const handleNextPreview = () => {
+  const handleNextPreview = useCallback(() => {
     setCurrentPreviewIndex((prev) => 
       prev === printifyGeneratedPreviewUrls.length - 1 ? 0 : prev + 1
     );
-  };
+  }, [printifyGeneratedPreviewUrls.length]);
+
+  const handleDirectNavigation = useCallback((index: number) => {
+    setCurrentPreviewIndex(index);
+  }, []);
 
   // Estado inicial - sem imagem selecionada - MAXIMIZADO SEM MODAL
   const renderEmptyState = () => {
@@ -146,16 +167,17 @@ export default function ProductCanvas({
       return (
         <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
           {/* Mockup inicial da capa - MAXIMIZADO */}
-          <div className="relative w-full h-full flex items-center justify-center p-8">
+          <div className="relative w-full h-full flex items-center justify-center p-12">
             <img
               src={selectedProduct.mockupInitialPath}
               alt={`${selectedProduct.name} mockup inicial`}
-              className="max-w-full max-h-full object-contain drop-shadow-lg"
+              className="max-w-full max-h-full object-contain drop-shadow-2xl"
+              style={{ maxHeight: '85%' }} // Otimização visual
             />
             
             {/* Texto sutil no canto */}
-            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm">
-              <p className="text-sm text-ghibli-earth/80">
+            <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm">
+              <p className="text-sm text-ghibli-earth/80 font-medium">
                 {selectedProduct.name}
               </p>
             </div>
@@ -191,14 +213,14 @@ export default function ProductCanvas({
 
   // Overlay de carregamento COMPLETAMENTE OPACO
   const renderLoadingOverlay = () => (
-    <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-xl p-8 flex flex-col items-center max-w-sm mx-4">
+    <div className="absolute inset-0 bg-white/98 backdrop-blur-md flex flex-col items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center max-w-sm mx-4 border border-ghibli-sand/20">
         <div className="relative mb-6">
-          <Loader2 className="w-12 h-12 text-ghibli-moss animate-spin" />
+          <Loader2 className="w-14 h-14 text-ghibli-moss animate-spin" />
           <Sparkles className="w-6 h-6 text-ghibli-moss absolute -top-1 -right-1 animate-pulse" />
         </div>
-        <h3 className="text-lg font-semibold text-ghibli-earth mb-2">A gerar mockups...</h3>
-        <p className="text-sm text-ghibli-earth/70 text-center">
+        <h3 className="text-lg font-bold text-ghibli-earth mb-3">A gerar mockups...</h3>
+        <p className="text-sm text-ghibli-earth/70 text-center leading-relaxed">
           Estamos a criar uma pré-visualização personalizada do seu produto. 
           Isto pode demorar alguns segundos.
         </p>
@@ -214,12 +236,13 @@ export default function ProductCanvas({
           <img
             src={userImageUrl}
             alt="Arte selecionada"
-            className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+            className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+            style={{ maxHeight: '85%' }}
           />
           
           {/* Badge informativo */}
-          <div className="absolute top-4 right-4">
-            <Badge className="bg-ghibli-moss text-white">
+          <div className="absolute top-6 right-6">
+            <Badge className="bg-ghibli-moss text-white shadow-lg">
               Arte Selecionada
             </Badge>
           </div>
@@ -234,62 +257,74 @@ export default function ProductCanvas({
   );
 
   const renderGeneratedPreviews = () => (
-    <div className="relative w-full h-full">
-      {/* Imagem principal do mockup */}
-      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+    <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Imagem principal do mockup - OTIMIZADA */}
+      <div className="w-full h-full flex items-center justify-center p-6">
         <img
           src={printifyGeneratedPreviewUrls[currentPreviewIndex]}
-          alt={`${selectedProduct.name} personalizada`}
-          className="max-w-full max-h-full object-contain drop-shadow-xl"
+          alt={`${selectedProduct.name} personalizada - Vista ${currentPreviewIndex + 1}`}
+          className="max-w-full max-h-full object-contain drop-shadow-2xl transition-opacity duration-200"
+          style={{ maxHeight: '90%' }}
+          loading="eager" // Carregamento prioritário
         />
       </div>
 
-      {/* Navegação entre previews (se houver múltiplas) */}
+      {/* Navegação entre previews - OTIMIZADA */}
       {printifyGeneratedPreviewUrls.length > 1 && (
         <>
-          {/* Botão Previous */}
+          {/* Botão Previous - RESPONSIVO */}
           <Button
             variant="ghost"
             size="sm"
             onClick={handlePreviousPreview}
-            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg hover:shadow-xl transition-all duration-200 w-10 h-10"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </Button>
 
-          {/* Botão Next */}
+          {/* Botão Next - RESPONSIVO */}
           <Button
             variant="ghost"
             size="sm"
             onClick={handleNextPreview}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg hover:shadow-xl transition-all duration-200 w-10 h-10"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5" />
           </Button>
 
-          {/* Indicadores de página */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {/* Indicadores de página - INTERATIVOS */}
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
             {printifyGeneratedPreviewUrls.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentPreviewIndex(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  currentPreviewIndex === index ? 'bg-ghibli-moss' : 'bg-gray-300'
+                onClick={() => handleDirectNavigation(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-200 hover:scale-110 ${
+                  currentPreviewIndex === index 
+                    ? 'bg-ghibli-moss shadow-lg' 
+                    : 'bg-white/70 hover:bg-white/90 shadow-sm'
                 }`}
+                aria-label={`Ver mockup ${index + 1}`}
               />
             ))}
           </div>
         </>
       )}
 
-      {/* Badge com número de views */}
+      {/* Badge com contador - MELHORADO */}
       {printifyGeneratedPreviewUrls.length > 1 && (
-        <div className="absolute top-4 right-4">
-          <Badge className="bg-ghibli-moss text-white">
+        <div className="absolute top-6 right-6">
+          <Badge className="bg-ghibli-moss text-white shadow-lg px-3 py-1">
             {currentPreviewIndex + 1} de {printifyGeneratedPreviewUrls.length}
           </Badge>
         </div>
       )}
+
+      {/* Badge de qualidade */}
+      <div className="absolute top-6 left-6">
+        <Badge className="bg-white/90 text-ghibli-earth shadow-lg">
+          Pré-visualização HD
+        </Badge>
+      </div>
     </div>
   );
 

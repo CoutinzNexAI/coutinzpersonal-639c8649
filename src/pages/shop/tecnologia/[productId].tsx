@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, Check, Upload, RotateCw } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, Check, Upload, RotateCw, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -328,8 +328,8 @@ const PhoneCaseDetailPage: React.FC = () => {
               transition={{ duration: 0.6 }}
               className="lg:col-span-2"
             >
-              {/* Área Principal de Visualização Maximizada */}
-              <div className="relative w-full h-[600px] bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+              {/* Área Principal de Visualização OTIMIZADA - Mais Alta */}
+              <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-ghibli-sand/20">
                 <ProductCanvas
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
@@ -343,40 +343,45 @@ const PhoneCaseDetailPage: React.FC = () => {
                 />
               </div>
 
-              {/* Botão "Escolher Arte" abaixo da visualização */}
-              {!selectedImageUrl && userInfo && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                  className="flex justify-center"
+              {/* Botão "Escolher Arte" SEMPRE VISÍVEL - CTA Principal */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="flex justify-center"
+              >
+                <Button
+                  onClick={handleOpenGallery}
+                  size="lg"
+                  disabled={!userInfo}
+                  className={`px-12 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                    userInfo 
+                      ? 'bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white' 
+                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  }`}
                 >
-                  <Button
-                    onClick={handleOpenGallery}
-                    size="lg"
-                    className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-4 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    <Upload className="w-5 h-5 mr-2" />
-                    Escolher Arte
-                  </Button>
-                </motion.div>
-              )}
+                  <Upload className="w-5 h-5 mr-3" />
+                  {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
+                </Button>
+              </motion.div>
 
+              {/* Prompt de Login (apenas se não autenticado) */}
               {!userInfo && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                  className="flex justify-center"
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                  className="mt-4 flex justify-center"
                 >
-                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm">
-                    <CardContent className="p-6 text-center">
-                      <p className="text-blue-800 mb-4">
+                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm max-w-md">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-blue-800 text-sm mb-3">
                         Faça login para personalizar esta capa com as suas criações AI
                       </p>
                       <Button
                         onClick={() => router.push('/')}
                         variant="outline"
+                        size="sm"
                         className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
                       >
                         Fazer Login
@@ -394,41 +399,47 @@ const PhoneCaseDetailPage: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="lg:col-span-1 space-y-6"
             >
-              {/* Cartão: Título e Preço */}
-              <Card className="bg-white/70 backdrop-blur-sm border-ghibli-sand/30 shadow-md">
+              {/* Cartão: Título e Preço DESTACADO */}
+              <Card className="bg-gradient-to-br from-white to-ghibli-cream/30 backdrop-blur-sm border-ghibli-sand/30 shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardContent className="p-6">
-                  <h1 className="text-2xl font-bold text-ghibli-earth mb-3">
+                  <h1 className="text-2xl font-bold text-ghibli-earth mb-4">
                     {product.name}
                   </h1>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-ghibli-moss">
-                      €{(product.basePrice || product.price || 0).toFixed(2)}
-                    </span>
+                  <div className="bg-gradient-to-r from-ghibli-moss/10 to-ghibli-moss/5 rounded-xl p-4 border-l-4 border-ghibli-moss">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-black text-ghibli-moss drop-shadow-sm">
+                        €{(product.basePrice || product.price || 0).toFixed(2)}
+                      </span>
+                      <span className="text-sm text-ghibli-earth/70 font-medium">
+                        IVA incluído
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-sm text-ghibli-earth/70 mt-3">
+                  <p className="text-sm text-ghibli-earth/70 mt-4 leading-relaxed">
                     Proteja o seu telemóvel com estilo único! Materiais premium com as suas criações AI.
                   </p>
                 </CardContent>
               </Card>
 
-              {/* Cartão: Seleção de Modelo */}
-              <Card className="bg-white/70 backdrop-blur-sm border-ghibli-sand/30 shadow-md">
+              {/* Cartão: Seleção de Modelo DESTACADO */}
+              <Card className="bg-gradient-to-br from-white to-ghibli-sand/20 backdrop-blur-sm border-ghibli-sand/40 shadow-md hover:shadow-lg transition-shadow duration-300">
                 <CardContent className="p-6">
-                  <label className="block text-sm font-semibold text-ghibli-earth mb-3">
+                  <label className="block text-sm font-bold text-ghibli-earth mb-4 flex items-center gap-2">
+                    <ChevronDown className="w-4 h-4 text-ghibli-moss" />
                     Modelo do Telemóvel
                   </label>
                   <Select
                     onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
                     value={selectedPrintifyVariantId?.toString() || ''}
                   >
-                    <SelectTrigger className="w-full bg-white/90 text-ghibli-earth border-ghibli-sand/50 h-12 shadow-sm">
+                    <SelectTrigger className="w-full bg-white border-2 border-ghibli-sand/60 text-ghibli-earth h-14 shadow-sm hover:border-ghibli-moss/50 focus:border-ghibli-moss transition-colors duration-200 font-medium">
                       <SelectValue placeholder="Selecione um modelo">
                         {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Selecione um modelo'}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60">
+                    <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
                       {product.variants?.map((variant) => (
-                        <SelectItem key={variant.id} value={variant.id.toString()}>
+                        <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
                           {variant.title}
                         </SelectItem>
                       ))}
@@ -437,25 +448,25 @@ const PhoneCaseDetailPage: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Cartão: Características em Grid de Chips */}
-              <Card className="bg-white/70 backdrop-blur-sm border-ghibli-sand/30 shadow-md">
+              {/* Cartão: Características em Grid de Chips MELHORADO */}
+              <Card className="bg-gradient-to-br from-white to-ghibli-moss/5 backdrop-blur-sm border-ghibli-sand/30 shadow-md">
                 <CardContent className="p-6">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-ghibli-cream/50 rounded-xl p-4 text-center">
-                      <Shield className="w-6 h-6 text-ghibli-moss mx-auto mb-2" />
-                      <span className="text-xs font-medium text-ghibli-earth">Proteção</span>
+                    <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                      <Shield className="w-7 h-7 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
+                      <span className="text-xs font-bold text-ghibli-earth">Proteção</span>
                     </div>
-                    <div className="bg-ghibli-cream/50 rounded-xl p-4 text-center">
-                      <Sparkles className="w-6 h-6 text-ghibli-moss mx-auto mb-2" />
-                      <span className="text-xs font-medium text-ghibli-earth">Impressão HD</span>
+                    <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                      <Sparkles className="w-7 h-7 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
+                      <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
                     </div>
-                    <div className="bg-ghibli-cream/50 rounded-xl p-4 text-center">
-                      <Truck className="w-6 h-6 text-ghibli-moss mx-auto mb-2" />
-                      <span className="text-xs font-medium text-ghibli-earth">Entrega Rápida</span>
+                    <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                      <Truck className="w-7 h-7 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
+                      <span className="text-xs font-bold text-ghibli-earth">Entrega Rápida</span>
                     </div>
-                    <div className="bg-ghibli-cream/50 rounded-xl p-4 text-center">
-                      <Award className="w-6 h-6 text-ghibli-moss mx-auto mb-2" />
-                      <span className="text-xs font-medium text-ghibli-earth">30d Garantia</span>
+                    <div className="bg-gradient-to-br from-ghibli-cream/60 to-ghibli-cream/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                      <Award className="w-7 h-7 text-ghibli-moss mx-auto mb-2 drop-shadow-sm" />
+                      <span className="text-xs font-bold text-ghibli-earth">30d Garantia</span>
                     </div>
                   </div>
                 </CardContent>
@@ -513,15 +524,8 @@ const PhoneCaseDetailPage: React.FC = () => {
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            onClick={handleOpenGallery}
-                            className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white text-xs"
-                          >
-                            Trocar Arte
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
                             onClick={handleResetSelection}
+                            variant="destructive"
                             className="text-xs"
                           >
                             Remover
@@ -533,31 +537,34 @@ const PhoneCaseDetailPage: React.FC = () => {
                 </Card>
               )}
 
-              {/* Cartão: Botão Adicionar ao Carrinho */}
-              <Card className="bg-white/70 backdrop-blur-sm border-ghibli-sand/30 shadow-md">
+              {/* Cartão: Botão Adicionar ao Carrinho SUPER DESTACADO */}
+              <Card className="bg-gradient-to-br from-white to-ghibli-moss/5 backdrop-blur-sm border-ghibli-sand/30 shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardContent className="p-6">
                   <Button
                     onClick={handleAddToCart}
                     disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId}
-                    className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="w-full py-5 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-gradient-to-r from-ghibli-moss via-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:via-ghibli-moss hover:to-ghibli-moss text-white border-0 disabled:opacity-50 disabled:transform-none disabled:bg-gray-400"
                     size="lg"
                   >
                     {loading ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
                         A adicionar...
                       </>
                     ) : !selectedImageUrl ? (
-                      'Escolha uma Arte'
+                      'Escolha uma Arte Primeiro'
                     ) : !selectedPrintifyVariantId ? (
                       'Selecione o Modelo'
                     ) : (!printifyProductId || !printifyImageId) ? (
                       <>
-                        <RotateCw className="w-5 h-5 mr-2 animate-spin" />
+                        <RotateCw className="w-5 h-5 mr-3 animate-spin" />
                         A gerar mockups...
                       </>
                     ) : (
-                      'Adicionar ao Carrinho'
+                      <>
+                        <span className="mr-2">🛒</span>
+                        Adicionar ao Carrinho
+                      </>
                     )}
                   </Button>
                 </CardContent>
@@ -567,7 +574,7 @@ const PhoneCaseDetailPage: React.FC = () => {
               <Card className="bg-gradient-to-br from-ghibli-moss/5 to-ghibli-earth/5 backdrop-blur-sm border-ghibli-moss/20 shadow-md">
                 <CardContent className="p-6">
                   <h3 className="font-semibold text-ghibli-earth mb-4">Garantias</h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Check className="w-4 h-4 text-ghibli-moss flex-shrink-0" />
                       <span className="text-sm text-ghibli-earth">Entrega gratuita &gt; €50</span>
