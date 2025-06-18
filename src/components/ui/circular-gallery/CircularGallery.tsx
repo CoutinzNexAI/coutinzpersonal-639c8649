@@ -476,9 +476,16 @@ class App {
   private boundOnTouchDown: (e: any) => void;
   private boundOnTouchMove: (e: any) => void;
   private boundOnTouchUp: () => void;
+  private boundOnMouseEnter: () => void;
+  private boundOnMouseLeave: () => void;
   private onItemClick?: (item: GalleryItem, index: number) => void;
   private startTime: number | null = null;
   private hasMoved = false;
+  
+  // Auto-rotation properties
+  private autoRotationSpeed = 0.003; // Very slow continuous rotation
+  private isHovered = false; // Track if mouse is over gallery
+  private autoRotationEnabled = true; // Can be disabled during interactions
 
   constructor(container: HTMLElement, { items, bend, textColor = "#ffffff", borderRadius = 0, font = "bold 30px Figtree", onItemClick }: {
     items?: GalleryItem[];
@@ -488,18 +495,19 @@ class App {
     font?: string;
     onItemClick?: (item: GalleryItem, index: number) => void;
   } = {}) {
-    document.documentElement.classList.remove('no-js');
+    autoBind(this);
     this.container = container;
     this.onItemClick = onItemClick;
-    this.onCheckDebounce = debounce(this.onCheck, 200);
+    this.onCheckDebounce = debounce(this.onCheck, 300);
+    
     this.createRenderer();
     this.createCamera();
     this.createScene();
-    this.onResize();
     this.createGeometry();
     this.createMedias(items, bend, textColor, borderRadius, font);
-    this.update();
+    this.onResize();
     this.addEventListeners();
+    this.update();
   }
 
   createRenderer() {
@@ -562,6 +570,7 @@ class App {
     this.start = e.touches ? e.touches[0].clientX : e.clientX;
     this.startTime = Date.now();
     this.hasMoved = false; // Reset hasMoved for each new touch/click
+    this.autoRotationEnabled = false; // Disable auto-rotation during interaction
   }
 
   onTouchMove(e: any) {
@@ -574,24 +583,50 @@ class App {
 
   onTouchUp() {
     this.isDown = false
+    this.autoRotationEnabled = true; // Re-enable auto-rotation after interaction
     const endTime = Date.now()
     const clickDuration = endTime - (this.startTime || 0)
     
     // Only trigger click if it was quick and minimal movement
-    if (!this.hasMoved && clickDuration < 250) { // Reduced from 300ms to 250ms
-      // Simple click detection - check if any media is roughly centered
+    if (!this.hasMoved && clickDuration < 250) {
+      // Improved click detection - find the closest item to center
       if (this.medias && this.medias[0]) {
-        const centerIndex = Math.round(Math.abs(this.scroll.current) / this.medias[0].width) % (this.mediasImages.length / 2)
-        const item = this.mediasImages[centerIndex]
+        const containerCenter = this.container.clientWidth / 2;
+        let closestIndex = 0;
+        let closestDistance = Infinity;
         
+        // Find the media closest to the center of the screen
+        this.medias.forEach((media, index) => {
+          if (index < this.mediasImages.length / 2) { // Only check original items, not duplicates
+            // Calculate the distance from media center to screen center
+            const mediaScreenPosition = (media.plane.position.x / this.viewport.width) * this.screen.width + this.screen.width / 2;
+            const distance = Math.abs(mediaScreenPosition - containerCenter);
+            
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestIndex = index;
+            }
+          }
+        });
+        
+        const item = this.mediasImages[closestIndex];
         if (this.onItemClick && item) {
-          this.onItemClick(item, centerIndex)
+          console.log('🎯 Gallery click detected:', { item, index: closestIndex });
+          this.onItemClick(item, closestIndex);
         }
       }
     }
     
     this.onCheck()
     this.hasMoved = false
+  }
+
+  onMouseEnter() {
+    this.isHovered = true;
+  }
+
+  onMouseLeave() {
+    this.isHovered = false;
   }
 
   onWheel() {
@@ -628,6 +663,11 @@ class App {
   }
 
   update() {
+    // Auto-rotation: only when not hovered, not interacting, and enabled
+    if (this.autoRotationEnabled && !this.isHovered && !this.isDown) {
+      this.scroll.target += this.autoRotationSpeed;
+    }
+
     this.scroll.current = lerp(
       this.scroll.current,
       this.scroll.target,
@@ -648,6 +688,8 @@ class App {
     this.boundOnTouchDown = this.onTouchDown.bind(this);
     this.boundOnTouchMove = this.onTouchMove.bind(this);
     this.boundOnTouchUp = this.onTouchUp.bind(this);
+    this.boundOnMouseEnter = this.onMouseEnter.bind(this);
+    this.boundOnMouseLeave = this.onMouseLeave.bind(this);
     
     // Only resize needs to be on window
     window.addEventListener('resize', this.boundOnResize);
@@ -657,6 +699,8 @@ class App {
     this.gl.canvas.addEventListener('mousedown', this.boundOnTouchDown);
     this.gl.canvas.addEventListener('mousemove', this.boundOnTouchMove);
     this.gl.canvas.addEventListener('mouseup', this.boundOnTouchUp);
+    this.gl.canvas.addEventListener('mouseenter', this.boundOnMouseEnter);
+    this.gl.canvas.addEventListener('mouseleave', this.boundOnMouseLeave);
     this.gl.canvas.addEventListener('touchstart', this.boundOnTouchDown);
     this.gl.canvas.addEventListener('touchmove', this.boundOnTouchMove);
     this.gl.canvas.addEventListener('touchend', this.boundOnTouchUp);
@@ -673,6 +717,8 @@ class App {
     this.gl.canvas.removeEventListener('mousedown', this.boundOnTouchDown);
     this.gl.canvas.removeEventListener('mousemove', this.boundOnTouchMove);
     this.gl.canvas.removeEventListener('mouseup', this.boundOnTouchUp);
+    this.gl.canvas.removeEventListener('mouseenter', this.boundOnMouseEnter);
+    this.gl.canvas.removeEventListener('mouseleave', this.boundOnMouseLeave);
     this.gl.canvas.removeEventListener('touchstart', this.boundOnTouchDown);
     this.gl.canvas.removeEventListener('touchmove', this.boundOnTouchMove);
     this.gl.canvas.removeEventListener('touchend', this.boundOnTouchUp);

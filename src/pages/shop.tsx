@@ -156,8 +156,8 @@ const ShopPage: React.FC = () => {
           {/* Interactive 3D Gallery */}
           <div className="mb-16">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">Galeria Interativa</h2>
-              <p className="text-[#E8F5E8]">Arrastar para navegar • Clicar para explorar</p>
+              <h2 className="text-3xl font-bold text-[#2D5A27] mb-2">Galeria Interativa</h2>
+              <p className="text-[#4A6B5B]">Arrastar para navegar • Clicar para explorar</p>
             </div>
             
             <div className="h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-[#F5F1E8] via-[#E8E0D0] to-[#D4C4A8] backdrop-blur-sm border border-white/20 shadow-2xl">
