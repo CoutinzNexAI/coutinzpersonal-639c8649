@@ -68,6 +68,23 @@ interface GeneratePrintFileResponseInternal {
   error?: string;
 }
 
+// Interfaces para a API Printify
+interface PrintifyVariant {
+  id: number;
+  title: string;
+  placeholders: PrintifyPlaceholder[];
+}
+
+interface PrintifyPlaceholder {
+  position: string;
+  width: number;
+  height: number;
+}
+
+interface PrintifyVariantsResponse {
+  variants: PrintifyVariant[];
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<CreateDraftResponse>
@@ -232,8 +249,11 @@ export default async function handler(
     // PASSO 1.5: Obter Detalhes do Placeholder da Printify
     console.log('🔄 STEP 1.5: Fetching Printify blueprint variant details...');
     const printifyVariantsResponse = await printifyFetch(
-      `/catalog/blueprints/${product.printifyBlueprintId}/print_providers/${product.printifyPrintProviderId}/variants.json`
+      `/catalog/blueprints/${product.printifyBlueprintId}/print_providers/${product.printifyPrintProviderId}/variants.json?show-out-of-stock=1`
     );
+
+    // Debug: Log all available variants
+    console.log('🔍 DEBUG: Available variants from Printify API:', printifyVariantsResponse.variants);
 
     // Determinar qual variante usar
     let targetVariantId: number;
@@ -246,15 +266,19 @@ export default async function handler(
     } else {
       throw new Error('No variant ID available for the product');
     }
-    console.log('🎯 Target variant ID:', targetVariantId);
+    console.log('🎯 Selected variant ID:', targetVariantId);
 
     const selectedPrintifyVariant = printifyVariantsResponse.variants.find(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (v: any) => v.id === targetVariantId
+      (v: PrintifyVariant) => v.id === targetVariantId
     );
 
-    if (!selectedPrintifyVariant || !selectedPrintifyVariant.placeholders || selectedPrintifyVariant.placeholders.length === 0) {
-      throw new Error('Printify variant or placeholders not found for the selected product.');
+    if (!selectedPrintifyVariant) {
+      console.error('❌ Variant not found! Available variant IDs:', printifyVariantsResponse.variants.map((v: PrintifyVariant) => v.id));
+      throw new Error(`Printify variant with ID ${targetVariantId} not found. Available IDs: ${printifyVariantsResponse.variants.map((v: PrintifyVariant) => v.id).join(', ')}`);
+    }
+
+    if (!selectedPrintifyVariant.placeholders || selectedPrintifyVariant.placeholders.length === 0) {
+      throw new Error('Printify variant placeholders not found for the selected product.');
     }
 
     console.log('✅ Printify variant details:', selectedPrintifyVariant);
@@ -304,12 +328,10 @@ export default async function handler(
 
       // PASSO 3: Obter placeholders para front e back
       const frontPlaceholder = selectedPrintifyVariant.placeholders.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (p: any) => p.position === 'front'
+        (p: PrintifyPlaceholder) => p.position === 'front'
       );
       const backPlaceholder = selectedPrintifyVariant.placeholders.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (p: any) => p.position === 'back'
+        (p: PrintifyPlaceholder) => p.position === 'back'
       );
 
       if (!frontPlaceholder || !backPlaceholder) {
@@ -433,8 +455,7 @@ export default async function handler(
     // LÓGICA PARA OUTROS PRODUTOS (código existente)
     const printArea = product.printAreasConfig?.[0]?.position || product.printArea || 'front';
     const printifyPlaceholder = selectedPrintifyVariant.placeholders.find(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (p: any) => p.position === printArea
+      (p: PrintifyPlaceholder) => p.position === printArea
     ) as PrintifyImagePlaceholder;
 
     if (!printifyPlaceholder) {
@@ -464,7 +485,7 @@ export default async function handler(
     // Criar um objeto res simulado para capturar a resposta
     let generateFileData: GeneratePrintFileResponseInternal | undefined;
     const mockGeneratePrintFileRes = {
-      status: (statusCode: number) => {
+      status: (_statusCode: number) => {
         return mockGeneratePrintFileRes; // Permite chain .status().json()
       },
       json: (data: GeneratePrintFileResponseInternal) => {
