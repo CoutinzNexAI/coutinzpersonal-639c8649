@@ -61,6 +61,9 @@ interface CartItem {
     size?: string;
     color?: string;
     variant?: string;
+    phoneModel?: string; // Para capas de telemóvel
+    paperType?: string; // Para cadernos
+    selectedPhraseText?: string; // Para sweat de criança
   };
   imageAdjustments?: {
     x: number;
@@ -74,6 +77,10 @@ interface CartItem {
       height: number;
     };
   };
+  // Campos específicos para sweat de criança
+  selectedPhraseText?: string; // Texto da frase selecionada
+  customerPrintifyImageId?: string; // ID da imagem do cliente na Printify (para sweat de criança)
+  dynamicPhrasePrintifyImageId?: string; // ID da imagem da frase gerada dinamicamente na Printify
   addedAt: Date;
 }
 
