@@ -165,16 +165,21 @@ export default async function handler(
     const user = { id: 'test-user-ficticio-123' };
     const { productId, userImageUrl, userId, imageAdjustments, selectedPrintifyVariantId, logoImageId, customerImageUrl, customerImageAdjustments, selectedPhraseText, phraseImageAdjustments } = req.body;
 
+    // Para sweat de criança, usar customerImageUrl; para outros produtos, usar userImageUrl
+    const imageUrl = productId === 'custom_youth_hoodie' ? customerImageUrl : userImageUrl;
+
     // Validações básicas
-    if (!productId || !userImageUrl || !userId) {
+    if (!productId || !imageUrl || !userId) {
       console.log("❌ ERRO: Campos obrigatórios em falta:", { 
         productId: !!productId, 
-        userImageUrl: !!userImageUrl, 
+        userImageUrl: !!userImageUrl,
+        customerImageUrl: !!customerImageUrl,
+        imageUrl: !!imageUrl,
         userId: !!userId 
       });
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: productId, userImageUrl, userId'
+        error: 'Missing required fields: productId, imageUrl (userImageUrl or customerImageUrl), userId'
       });
     }
 
@@ -448,7 +453,7 @@ export default async function handler(
         'content-type': 'application/json',
       },
       body: {
-        imageUrl: userImageUrl,
+        imageUrl: imageUrl,
         productId: productId,
         userId: userId,
         imageAdjustments: product.supportsManualAdjustment ? imageAdjustments : undefined,
