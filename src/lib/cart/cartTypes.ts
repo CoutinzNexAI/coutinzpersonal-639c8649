@@ -14,6 +14,7 @@ export interface CartItem {
     variant?: string;
     phoneModel?: string; // Para capas de telemóvel
     paperType?: string; // Para cadernos
+    selectedPhraseText?: string; // Para sweat de criança
   };
   imageAdjustments?: {
     x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
@@ -33,6 +34,10 @@ export interface CartItem {
   printifyImageId?: string; // ID da imagem na Printify Media Library
   printifyProductId?: string; // ID do produto temporário criado na Printify
   printifyVariantId?: number; // ID da variante do produto na Printify (number conforme API)
+  // Campos específicos para sweat de criança
+  selectedPhraseText?: string; // Texto da frase selecionada
+  customerPrintifyImageId?: string; // ID da imagem do cliente na Printify (para sweat de criança)
+  dynamicPhrasePrintifyImageId?: string; // ID da imagem da frase gerada dinamicamente na Printify
   addedAt: Date;
 }
 

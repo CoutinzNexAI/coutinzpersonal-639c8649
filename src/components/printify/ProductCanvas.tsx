@@ -17,6 +17,12 @@ interface ImageAdjustments {
   };
 }
 
+interface AllImageAdjustments {
+  logo: ImageAdjustments;
+  customer: ImageAdjustments;
+  phrase: ImageAdjustments;
+}
+
 interface ProductCanvasProps {
   selectedProduct: PrintifyProductMapping;
   userImageUrl?: string;
@@ -24,13 +30,17 @@ interface ProductCanvasProps {
   printifyGeneratedPreviewUrls?: string[];
   onPreviewReady: (data: {
     previewUrls: string[];
-    printifyImageId: string;
+    printifyImageId?: string;
     printifyProductId: string;
+    customerPrintifyImageId?: string;
+    dynamicPhrasePrintifyImageId?: string;
   }) => void;
   onSelectImage?: () => void;
   imageAdjustments?: ImageAdjustments;
   onImageAdjust?: (adjustments: ImageAdjustments) => void;
   selectedPrintifyVariantId?: number | null;
+  allImageAdjustments?: AllImageAdjustments;
+  selectedPhraseText?: string;
 }
 
 interface GenerateMockupResponse {
@@ -38,6 +48,8 @@ interface GenerateMockupResponse {
   previewUrls?: string[];
   printifyImageId?: string;
   printifyProductId?: string;
+  customerPrintifyImageId?: string;
+  dynamicPhrasePrintifyImageId?: string;
   error?: string;
   details?: string;
 }
@@ -51,7 +63,9 @@ export default function ProductCanvas({
   onSelectImage,
   imageAdjustments,
   onImageAdjust,
-  selectedPrintifyVariantId
+  selectedPrintifyVariantId,
+  allImageAdjustments,
+  selectedPhraseText
 }: ProductCanvasProps) {
   const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
@@ -59,15 +73,28 @@ export default function ProductCanvas({
   const [hasGenerated, setHasGenerated] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
 
-  // Reset hasGenerated when userImageUrl OR selectedPrintifyVariantId changes
+  // Reset hasGenerated when userImageUrl OR selectedPrintifyVariantId OR selectedPhraseText changes
   useEffect(() => {
     setHasGenerated(false);
-    setCurrentPreviewIndex(0); // Reset index quando mudamos
-    // Clear existing preview URLs when image/variant changes
+    setCurrentPreviewIndex(0);
+    // Clear existing preview URLs when image/variant/phrase changes
     if (onPreviewReady) {
-      onPreviewReady({ previewUrls: [], printifyImageId: '', printifyProductId: '' });
+      if (selectedProduct.id === 'custom_youth_hoodie') {
+        onPreviewReady({ 
+          previewUrls: [], 
+          customerPrintifyImageId: '', 
+          dynamicPhrasePrintifyImageId: '', 
+          printifyProductId: '' 
+        });
+      } else {
+        onPreviewReady({ 
+          previewUrls: [], 
+          printifyImageId: '', 
+          printifyProductId: '' 
+        });
+      }
     }
-  }, [userImageUrl, selectedPrintifyVariantId, onPreviewReady]);
+  }, [userImageUrl, selectedPrintifyVariantId, selectedPhraseText, onPreviewReady, selectedProduct.id]);
 
   // Preload images for instant navigation
   useEffect(() => {
@@ -91,18 +118,40 @@ export default function ProductCanvas({
     setError(null);
 
     try {
-      const response = await fetch('/api/printify/mockups/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Construir payload baseado no tipo de produto
+      let requestBody: Record<string, unknown>;
+
+      if (selectedProduct.id === 'custom_youth_hoodie') {
+        // Para sweat de criança - múltiplas imagens
+        const logoConfig = selectedProduct.printAreasConfig?.find(area => area.position === 'front');
+        
+        requestBody = {
+          productId: selectedProduct.id,
+          selectedPrintifyVariantId: selectedPrintifyVariantId,
+          logoImageId: logoConfig?.staticImageId || '684d920a45ec86ab347594c5', // ID fixo do logo
+          customerImageUrl: userImageUrl,
+          customerImageAdjustments: allImageAdjustments?.customer,
+          selectedPhraseText: selectedPhraseText || 'Sem frase',
+          phraseImageAdjustments: allImageAdjustments?.phrase,
+          userId: userId,
+        };
+      } else {
+        // Para outros produtos (capa, caneca, etc.) - imagem única
+        requestBody = {
           productId: selectedProduct.id,
           userImageUrl: userImageUrl,
           userId: userId,
           imageAdjustments: selectedProduct.supportsManualAdjustment ? imageAdjustments : undefined,
           selectedPrintifyVariantId: selectedPrintifyVariantId,
-        }),
+        };
+      }
+
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -115,12 +164,27 @@ export default function ProductCanvas({
         throw new Error(data.error || 'Failed to generate mockup');
       }
 
-      if (data.previewUrls && data.printifyImageId && data.printifyProductId) {
-        onPreviewReady({
-          previewUrls: data.previewUrls,
-          printifyImageId: data.printifyImageId,
-          printifyProductId: data.printifyProductId,
-        });
+      if (data.previewUrls && data.printifyProductId) {
+        if (selectedProduct.id === 'custom_youth_hoodie') {
+          // Para sweat de criança
+          if (data.customerPrintifyImageId && data.dynamicPhrasePrintifyImageId) {
+            onPreviewReady({
+              previewUrls: data.previewUrls,
+              customerPrintifyImageId: data.customerPrintifyImageId,
+              dynamicPhrasePrintifyImageId: data.dynamicPhrasePrintifyImageId,
+              printifyProductId: data.printifyProductId,
+            });
+          }
+        } else {
+          // Para outros produtos
+          if (data.printifyImageId) {
+            onPreviewReady({
+              previewUrls: data.previewUrls,
+              printifyImageId: data.printifyImageId,
+              printifyProductId: data.printifyProductId,
+            });
+          }
+        }
         setHasGenerated(true);
       }
     } catch (err) {
@@ -129,19 +193,37 @@ export default function ProductCanvas({
     } finally {
       setIsLoadingMockups(false);
     }
-  }, [userImageUrl, userId, isLoadingMockups, selectedProduct, imageAdjustments, selectedPrintifyVariantId, onPreviewReady]);
+  }, [
+    userImageUrl, 
+    userId, 
+    isLoadingMockups, 
+    selectedProduct, 
+    imageAdjustments, 
+    selectedPrintifyVariantId, 
+    onPreviewReady,
+    allImageAdjustments,
+    selectedPhraseText
+  ]);
 
   // Auto-generate mockup when component mounts (if not already generated)
   useEffect(() => {
-    // Para capas de telemóvel, só gera se uma variante foi selecionada
-    const shouldGenerate = selectedProduct.id === 'custom_phone_case' 
-      ? (userImageUrl && userId && selectedProduct && selectedPrintifyVariantId)
-      : (userImageUrl && userId && selectedProduct);
+    let shouldGenerate = false;
+
+    if (selectedProduct.id === 'custom_youth_hoodie') {
+      // Para sweat de criança, precisamos de imagem, variante e frase
+      shouldGenerate = !!(userImageUrl && userId && selectedProduct && selectedPrintifyVariantId && selectedPhraseText);
+    } else if (selectedProduct.id === 'custom_phone_case') {
+      // Para capas de telemóvel, só gera se uma variante foi selecionada
+      shouldGenerate = !!(userImageUrl && userId && selectedProduct && selectedPrintifyVariantId);
+    } else {
+      // Para outros produtos
+      shouldGenerate = !!(userImageUrl && userId && selectedProduct);
+    }
 
     if (!hasGenerated && shouldGenerate) {
       handleGenerateMockup();
     }
-  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, hasGenerated, handleGenerateMockup]);
+  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup]);
 
   // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
   const handlePreviousPreview = useCallback(() => {
@@ -162,17 +244,17 @@ export default function ProductCanvas({
 
   // Estado inicial - sem imagem selecionada - MAXIMIZADO SEM MODAL
   const renderEmptyState = () => {
-    // Para capas de telemóvel, mostrar o mockup inicial maximizado
-    if (selectedProduct.id === 'custom_phone_case') {
+    // Para capas de telemóvel ou sweat, mostrar o mockup inicial maximizado
+    if (selectedProduct.id === 'custom_phone_case' || selectedProduct.id === 'custom_youth_hoodie') {
       return (
         <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-          {/* Mockup inicial da capa - MAXIMIZADO */}
+          {/* Mockup inicial maximizado */}
           <div className="relative w-full h-full flex items-center justify-center p-12">
             <img
               src={selectedProduct.mockupInitialPath}
               alt={`${selectedProduct.name} mockup inicial`}
               className="max-w-full max-h-full object-contain drop-shadow-2xl"
-              style={{ maxHeight: '85%' }} // Otimização visual
+              style={{ maxHeight: '85%' }}
             />
             
             {/* Texto sutil no canto */}
@@ -180,6 +262,11 @@ export default function ProductCanvas({
               <p className="text-sm text-ghibli-earth/80 font-medium">
                 {selectedProduct.name}
               </p>
+              {selectedProduct.id === 'custom_youth_hoodie' && selectedPhraseText && (
+                <p className="text-xs text-ghibli-earth/60">
+                  Frase: {selectedPhraseText}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -199,154 +286,152 @@ export default function ProductCanvas({
         </div>
         
         {/* Call to action */}
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+        <div className="text-center max-w-md">
+          <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
             Personalize o seu {selectedProduct.name}
           </h3>
-          <p className="text-sm text-gray-500 mb-6 max-w-md">
-            Escolha uma das suas transformações AI para ver como ficará no produto
+          <p className="text-ghibli-earth/70 mb-6 leading-relaxed">
+            Escolha uma das suas transformações AI para criar um produto único e personalizado.
           </p>
+          
+          {onSelectImage && (
+            <Button
+              onClick={onSelectImage}
+              className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Escolher Arte
+            </Button>
+          )}
         </div>
       </div>
     );
   };
 
-  // Overlay de carregamento COMPLETAMENTE OPACO
+  // Loading overlay
   const renderLoadingOverlay = () => (
-    <div className="absolute inset-0 bg-white/98 backdrop-blur-md flex flex-col items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center max-w-sm mx-4 border border-ghibli-sand/20">
-        <div className="relative mb-6">
-          <Loader2 className="w-14 h-14 text-ghibli-moss animate-spin" />
-          <Sparkles className="w-6 h-6 text-ghibli-moss absolute -top-1 -right-1 animate-pulse" />
-        </div>
-        <h3 className="text-lg font-bold text-ghibli-earth mb-3">A gerar mockups...</h3>
-        <p className="text-sm text-ghibli-earth/70 text-center leading-relaxed">
-          Estamos a criar uma pré-visualização personalizada do seu produto. 
-          Isto pode demorar alguns segundos.
+    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
+      <div className="bg-white rounded-xl p-6 text-center max-w-sm mx-4 shadow-2xl">
+        <Loader2 className="w-8 h-8 animate-spin text-ghibli-moss mx-auto mb-4" />
+        <h3 className="font-semibold text-ghibli-earth mb-2">A gerar mockups...</h3>
+        <p className="text-sm text-ghibli-earth/70">
+          {selectedProduct.id === 'custom_youth_hoodie' 
+            ? 'A processar logo, arte e frase...' 
+            : 'A processar a sua arte personalizada...'
+          }
         </p>
       </div>
     </div>
   );
 
+  // Preview inicial simples
   const renderInitialPreview = () => (
-    <div className="relative w-full h-full">
-      {userImageUrl ? (
-        // Mostrar a arte do utilizador na área de preview enquanto gera
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-8">
-          <img
-            src={userImageUrl}
-            alt="Arte selecionada"
-            className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
-            style={{ maxHeight: '85%' }}
-          />
-          
-          {/* Badge informativo */}
-          <div className="absolute top-6 right-6">
-            <Badge className="bg-ghibli-moss text-white shadow-lg">
-              Arte Selecionada
-            </Badge>
+    <div className="relative w-full h-full flex items-center justify-center">
+      <div className="relative">
+        <img
+          src={selectedProduct.mockupInitialPath}
+          alt="Preview inicial"
+          className="max-w-full max-h-full object-contain drop-shadow-xl"
+          style={{ maxHeight: '80%' }}
+        />
+        
+        {/* Overlay com imagem do utilizador (preview temporário) */}
+        {userImageUrl && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <img
+              src={userImageUrl}
+              alt="Sua arte"
+              className="w-32 h-32 object-cover rounded-lg border-2 border-white shadow-lg opacity-80"
+            />
           </div>
-        </div>
-      ) : (
-        renderEmptyState()
-      )}
+        )}
+      </div>
       
-      {/* Overlay de loading se estiver a gerar */}
-      {isLoadingMockups && renderLoadingOverlay()}
+      {/* Loading indicator no canto */}
+      <div className="absolute top-4 right-4 bg-ghibli-moss text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+        <RotateCw className="w-4 h-4 animate-spin" />
+        A gerar...
+      </div>
     </div>
   );
 
+  // Previews gerados pela Printify
   const renderGeneratedPreviews = () => (
-    <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Imagem principal do mockup - OTIMIZADA */}
-      <div className="w-full h-full flex items-center justify-center p-6">
+    <div className="relative w-full h-full">
+      {/* Imagem principal */}
+      <div className="relative w-full h-full flex items-center justify-center">
         <img
           src={printifyGeneratedPreviewUrls[currentPreviewIndex]}
-          alt={`${selectedProduct.name} personalizada - Vista ${currentPreviewIndex + 1}`}
-          className="max-w-full max-h-full object-contain drop-shadow-2xl transition-opacity duration-200"
+          alt={`Preview ${currentPreviewIndex + 1}`}
+          className="max-w-full max-h-full object-contain drop-shadow-2xl"
           style={{ maxHeight: '90%' }}
-          loading="eager" // Carregamento prioritário
         />
       </div>
 
-      {/* Navegação entre previews - OTIMIZADA */}
+      {/* Controlos de navegação (se múltiplas previews) */}
       {printifyGeneratedPreviewUrls.length > 1 && (
         <>
-          {/* Botão Previous - RESPONSIVO */}
+          {/* Setas de navegação */}
           <Button
-            variant="ghost"
-            size="sm"
             onClick={handlePreviousPreview}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg hover:shadow-xl transition-all duration-200 w-10 h-10"
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-ghibli-earth shadow-lg border border-ghibli-sand/30"
+            size="sm"
           >
             <ChevronLeft className="w-5 h-5" />
           </Button>
-
-          {/* Botão Next - RESPONSIVO */}
+          
           <Button
-            variant="ghost"
-            size="sm"
             onClick={handleNextPreview}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg hover:shadow-xl transition-all duration-200 w-10 h-10"
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-ghibli-earth shadow-lg border border-ghibli-sand/30"
+            size="sm"
           >
             <ChevronRight className="w-5 h-5" />
           </Button>
 
-          {/* Indicadores de página - INTERATIVOS */}
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {/* Indicadores de página */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
             {printifyGeneratedPreviewUrls.map((_, index) => (
               <button
                 key={index}
                 onClick={() => handleDirectNavigation(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-200 hover:scale-110 ${
-                  currentPreviewIndex === index 
-                    ? 'bg-ghibli-moss shadow-lg' 
-                    : 'bg-white/70 hover:bg-white/90 shadow-sm'
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                  index === currentPreviewIndex 
+                    ? 'bg-ghibli-moss scale-125' 
+                    : 'bg-white/60 hover:bg-white/80'
                 }`}
-                aria-label={`Ver mockup ${index + 1}`}
               />
             ))}
           </div>
+
+          {/* Badge de contagem */}
+          <Badge className="absolute top-4 right-4 bg-ghibli-moss text-white">
+            {currentPreviewIndex + 1} / {printifyGeneratedPreviewUrls.length}
+          </Badge>
         </>
       )}
-
-      {/* Badge com contador - MELHORADO */}
-      {printifyGeneratedPreviewUrls.length > 1 && (
-        <div className="absolute top-6 right-6">
-          <Badge className="bg-ghibli-moss text-white shadow-lg px-3 py-1">
-            {currentPreviewIndex + 1} de {printifyGeneratedPreviewUrls.length}
-          </Badge>
-        </div>
-      )}
-
-      {/* Badge de qualidade */}
-      <div className="absolute top-6 left-6">
-        <Badge className="bg-white/90 text-ghibli-earth shadow-lg">
-          Pré-visualização HD
-        </Badge>
-      </div>
     </div>
   );
 
+  // Estado de erro
   const renderErrorState = () => (
-    <div className="relative w-full h-full bg-gradient-to-br from-red-50 to-red-100 flex flex-col items-center justify-center p-8">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-red-200 rounded-full flex items-center justify-center mx-auto mb-4">
+    <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
+      <div className="text-center p-8 max-w-md">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-2xl">⚠️</span>
         </div>
-        <h3 className="text-lg font-semibold text-red-700 mb-2">
-          Erro ao Gerar Mockup
+        <h3 className="text-lg font-semibold text-red-800 mb-2">
+          Erro ao gerar mockup
         </h3>
-        <p className="text-sm text-red-600 mb-4 max-w-md">
-          {error || 'Ocorreu um erro inesperado. Tente novamente.'}
+        <p className="text-red-600 text-sm mb-4 leading-relaxed">
+          {error}
         </p>
         <Button
           onClick={handleGenerateMockup}
-          variant="outline"
-          className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+          disabled={isLoadingMockups}
+          className="bg-red-600 hover:bg-red-700 text-white"
         >
           <RotateCw className="w-4 h-4 mr-2" />
-          Tentar Novamente
+          Tentar novamente
         </Button>
       </div>
     </div>
@@ -355,6 +440,19 @@ export default function ProductCanvas({
   // Renderização principal
   if (error) {
     return renderErrorState();
+  }
+
+  if (!userImageUrl) {
+    return renderEmptyState();
+  }
+
+  if (isLoadingMockups) {
+    return (
+      <div className="relative w-full h-full">
+        {renderInitialPreview()}
+        {renderLoadingOverlay()}
+      </div>
+    );
   }
 
   if (printifyGeneratedPreviewUrls.length > 0) {

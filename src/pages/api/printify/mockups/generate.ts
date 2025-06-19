@@ -29,13 +29,31 @@ interface CreateDraftRequest {
       height: number;
     };
   };
+  // Novos campos para sweat de criança
+  logoImageId?: string; // ID fixo do logo na Printify
+  customerImageUrl?: string; // URL da imagem do cliente (pode ser diferente do userImageUrl)
+  customerImageAdjustments?: {
+    x: number;
+    y: number;
+    scale: number;
+    rotation?: number;
+  };
+  selectedPhraseText?: string; // Texto da frase selecionada
+  phraseImageAdjustments?: {
+    x: number;
+    y: number;
+    scale: number;
+    rotation?: number;
+  };
 }
 
 interface CreateDraftResponse {
   success: boolean;
   previewUrls?: string[];
-  printifyImageId?: string;
+  printifyImageId?: string; // Para produtos simples
   printifyProductId?: string;
+  customerPrintifyImageId?: string; // Para sweat de criança
+  dynamicPhrasePrintifyImageId?: string; // Para sweat de criança
   error?: string;
   details?: string;
   debug?: Record<string, unknown>; // Para depuração temporária
@@ -145,7 +163,7 @@ export default async function handler(
     //});
 
     const user = { id: 'test-user-ficticio-123' };
-    const { productId, userImageUrl, userId, imageAdjustments, selectedPrintifyVariantId } = req.body;
+    const { productId, userImageUrl, userId, imageAdjustments, selectedPrintifyVariantId, logoImageId, customerImageUrl, customerImageAdjustments, selectedPhraseText, phraseImageAdjustments } = req.body;
 
     // Validações básicas
     if (!productId || !userImageUrl || !userId) {
@@ -167,6 +185,21 @@ export default async function handler(
         success: false,
         error: 'selectedPrintifyVariantId é obrigatório para capas de telemóvel.'
       });
+    }
+
+    // Validação específica para sweat de criança
+    if (productId === 'custom_youth_hoodie') {
+      if (!selectedPrintifyVariantId || !logoImageId || !selectedPhraseText) {
+        console.log("❌ ERRO: Campos obrigatórios para sweat de criança em falta:", { 
+          selectedPrintifyVariantId: !!selectedPrintifyVariantId,
+          logoImageId: !!logoImageId,
+          selectedPhraseText: !!selectedPhraseText
+        });
+        return res.status(400).json({
+          success: false,
+          error: 'Para sweat de criança são obrigatórios: selectedPrintifyVariantId, logoImageId, selectedPhraseText'
+        });
+      }
     }
 
     // Buscar produto no nosso mapeamento
@@ -219,11 +252,185 @@ export default async function handler(
       throw new Error('Printify variant or placeholders not found for the selected product.');
     }
 
+    console.log('✅ Printify variant details:', selectedPrintifyVariant);
+
+    // LÓGICA ESPECÍFICA PARA SWEAT DE CRIANÇA
+    if (productId === 'custom_youth_hoodie') {
+      console.log('🔄 Processing youth hoodie with multiple print areas...');
+
+      // PASSO 1: Upload da imagem do cliente para Printify
+      console.log('🔄 Uploading customer image to Printify...');
+      const customerUploadResponse = await printifyFetch('/uploads/images.json', {
+        method: 'POST',
+        body: JSON.stringify({
+          file_name: `customer-art-${Date.now()}.png`,
+          url: customerImageUrl || userImageUrl
+        })
+      });
+
+      if (!customerUploadResponse?.id) {
+        throw new Error('Failed to upload customer image to Printify');
+      }
+      const customerPrintifyImageId = customerUploadResponse.id;
+      console.log('✅ Customer image uploaded:', customerPrintifyImageId);
+
+      // PASSO 2: Gerar e fazer upload da imagem da frase (se não for "Sem frase")
+      let dynamicPhrasePrintifyImageId = '';
+      
+      if (selectedPhraseText && selectedPhraseText !== 'Sem frase') {
+        console.log('🔄 Generating phrase image for:', selectedPhraseText);
+        
+        // Aqui implementarias a geração da imagem da frase
+        // Por enquanto, usar um ID estático baseado na frase
+        const phraseImageMapping: Record<string, string> = {
+          'PicTuz - since 2025': '68548af2cc947707f0ee650f',
+          'Criado com IA': '68548af3cc947707f0ee651a',
+          'Arte Personalizada': '68548af4cc947707f0ee652b',
+          'Feito em Portugal': '68548af5cc947707f0ee653c',
+        };
+        
+        dynamicPhrasePrintifyImageId = phraseImageMapping[selectedPhraseText] || '68548b05a7a3520a5d3534c0';
+        console.log('✅ Phrase image ID:', dynamicPhrasePrintifyImageId);
+      } else {
+        // "Sem frase" - usar imagem transparente
+        dynamicPhrasePrintifyImageId = '68548b05a7a3520a5d3534c0';
+        console.log('✅ Using transparent image for "no phrase"');
+      }
+
+      // PASSO 3: Obter placeholders para front e back
+      const frontPlaceholder = selectedPrintifyVariant.placeholders.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (p: any) => p.position === 'front'
+      );
+      const backPlaceholder = selectedPrintifyVariant.placeholders.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (p: any) => p.position === 'back'
+      );
+
+      if (!frontPlaceholder || !backPlaceholder) {
+        throw new Error('Front or back placeholder not found for youth hoodie');
+      }
+
+      // PASSO 4: Criar produto com múltiplas áreas de impressão
+      console.log('🔄 Creating youth hoodie product with multiple print areas...');
+      const printifyProductTitle = `PicTuz Youth Hoodie (${user.id}-${Date.now()})`;
+      const productPrice = (product.basePrice || 40) * 100; // 40€ em cêntimos
+
+      const printifyProductPayload = {
+        title: printifyProductTitle,
+        description: `Custom youth hoodie for user ${user.id} with logo, custom art, and phrase.`,
+        blueprint_id: product.printifyBlueprintId,
+        print_provider_id: product.printifyPrintProviderId,
+        variants: [{
+          id: targetVariantId,
+          price: productPrice,
+          is_enabled: true
+        }],
+        print_areas: [
+          // Área 1: Logo na frente
+          {
+            variant_ids: [targetVariantId],
+            placeholders: [{
+              position: 'front',
+              images: [{
+                id: logoImageId, // ID fixo do logo
+                x: 0.5,
+                y: 0.5,
+                scale: 0.85,
+                angle: 0
+              }]
+            }]
+          },
+          // Área 2: Arte do cliente e frase nas costas
+          {
+            variant_ids: [targetVariantId],
+            placeholders: [{
+              position: 'back',
+              images: [
+                {
+                  id: customerPrintifyImageId, // Imagem do cliente
+                  x: customerImageAdjustments?.x || 0.5,
+                  y: customerImageAdjustments?.y || 0.5,
+                  scale: customerImageAdjustments?.scale || 1.0,
+                  angle: customerImageAdjustments?.rotation || 0
+                },
+                {
+                  id: dynamicPhrasePrintifyImageId, // Frase
+                  x: phraseImageAdjustments?.x || 0.5,
+                  y: phraseImageAdjustments?.y || 0.85, // Mais em baixo
+                  scale: phraseImageAdjustments?.scale || 1.0,
+                  angle: phraseImageAdjustments?.rotation || 0
+                }
+              ]
+            }]
+          }
+        ]
+      };
+
+      console.log('📤 Creating youth hoodie product:', JSON.stringify(printifyProductPayload, null, 2));
+
+      const printifyProductResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
+        method: 'POST',
+        body: JSON.stringify(printifyProductPayload)
+      });
+
+      if (!printifyProductResponse || !printifyProductResponse.id) {
+        console.error('Printify product creation response error:', printifyProductResponse);
+        throw new Error('Failed to create youth hoodie product for mockup generation.');
+      }
+
+      const createdPrintifyProductId = printifyProductResponse.id;
+      console.log(`✅ Youth hoodie product created. ID: ${createdPrintifyProductId}`);
+
+      // PASSO 5: Polling dos mockups
+      console.log('🔄 Polling for youth hoodie mockups...');
+      let finalPreviewUrls: string[] = [];
+      const maxAttempts = 15;
+      const delayMs = 2000;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        console.log(`🔄 Attempt ${attempt}/${maxAttempts}: Checking mockup status...`);
+        
+        const productResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
+        
+        if (productResponse && productResponse.images && productResponse.images.length > 0) {
+          finalPreviewUrls = productResponse.images
+            .filter((img: { is_default: boolean }) => img.is_default)
+            .map((img: { src: string }) => img.src);
+          
+          if (finalPreviewUrls.length > 0) {
+            console.log(`✅ Mockups ready! Found ${finalPreviewUrls.length} preview(s)`);
+            break;
+          }
+        }
+        
+        if (attempt < maxAttempts) {
+          console.log(`⏳ Mockups not ready yet, waiting ${delayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+
+      if (finalPreviewUrls.length === 0) {
+        console.log('⚠️ No mockups generated within timeout, but product was created successfully');
+        finalPreviewUrls = [product.mockupInitialPath]; // Fallback para mockup inicial
+      }
+
+      // Retorna resposta específica para sweat de criança
+      return res.status(200).json({
+        success: true,
+        previewUrls: finalPreviewUrls,
+        printifyProductId: createdPrintifyProductId,
+        customerPrintifyImageId: customerPrintifyImageId,
+        dynamicPhrasePrintifyImageId: dynamicPhrasePrintifyImageId
+      });
+    }
+
+    // LÓGICA PARA OUTROS PRODUTOS (código existente)
     const printArea = product.printAreasConfig?.[0]?.position || product.printArea || 'front';
     const printifyPlaceholder = selectedPrintifyVariant.placeholders.find(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (p: any) => p.position === printArea
-    ) as PrintifyImagePlaceholder; // Cast para a interface
+    ) as PrintifyImagePlaceholder;
 
     if (!printifyPlaceholder) {
       throw new Error(`Printify placeholder not found for position: ${printArea}`);
@@ -391,7 +598,9 @@ export default async function handler(
       success: true,
       previewUrls: finalPreviewUrls,
       printifyImageId: printifyImageId, // Retornar o ID da imagem na Printify Media Library
-      printifyProductId: createdPrintifyProductId // Retornar o ID do produto Printify criado
+      printifyProductId: createdPrintifyProductId, // Retornar o ID do produto Printify criado
+      customerPrintifyImageId: logoImageId, // Retornar o ID da imagem do logo
+      dynamicPhrasePrintifyImageId: selectedPhraseText, // Retornar o texto da frase
     });
 
   } catch (error) {

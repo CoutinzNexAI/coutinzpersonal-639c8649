@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { supabaseAdmin } from '../../../lib/supabase/admin';
 import { printifyFetch } from '../../../lib/printify/printifyApi';
 import { PrintifyShippingAddress, PrintifyOrderCreationPayload } from '../../../lib/printify/printifyTypes';
-// import { getPrintifyProduct, PrintifyProductMapping } from '../../../lib/printify/printifyProducts'; // Não necessário para produtos já criados
+import { getPrintifyProduct } from '../../../lib/printify/printifyProducts';
 
 // ✅ Mapeamento para normalizar nomes de distritos de valores alfanuméricos para nomes completos
 const REGION_MAP: Record<string, string> = {
@@ -483,28 +483,103 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // faz a API pensar que queremos criar um produto "on-the-fly"
       const printifyLineItems = [];
 
-      for (const item of cartItems) {
-        // Verificar se o item tem os IDs do produto criado na Printify (Fase 3)
-        if (!item.printifyProductId || !item.printifyVariantId) {
-          console.error('❌ ERRO: Missing Printify Product ID or Variant ID in cart item:', {
-            itemId: item.id,
-            printifyProductId: item.printifyProductId,
-            printifyVariantId: item.printifyVariantId
-          });
-          throw new Error(`Missing Printify Product ID or Variant ID in cart item: ${item.id}`);
+      for (const cartItem of cartItems) {
+        // CONSTRUIR PAYLOAD PARA CADA ITEM DO CARRINHO
+        console.log(`📦 Building line item for product: ${cartItem.productId}`);
+        
+        // Mapear ProductId para configuração Printify
+        const productMapping = getPrintifyProduct(cartItem.productId);
+        if (!productMapping) {
+          throw new Error(`Product mapping not found for: ${cartItem.productId}`);
         }
 
-        // --- CONSTRÓI O line_item APENAS PARA UM PRODUTO EXISTENTE NA LOJA PRINTIFY ---
-        const lineItem = {
-          product_id: item.printifyProductId, // O ID de STRING do produto JÁ criado na Printify (ex: "684edb998a7f6f02b7057248")
-          variant_id: item.printifyVariantId, // O ID numérico da variante desse produto (ex: 82238)
-          quantity: item.quantity || 1,
-          // NÃO INCLUIR print_provider_id, blueprint_id, nem print_areas AQUI
-          // Estes campos são apenas para criação "on-the-fly" de produtos
-        };
-        
-        console.log('✅ Line item criado:', lineItem);
-        printifyLineItems.push(lineItem);
+        console.log(`✅ Product mapping found: ${productMapping.name}`);
+
+        // LÓGICA ESPECÍFICA PARA SWEAT DE CRIANÇA
+        if (cartItem.productId === 'custom_youth_hoodie') {
+          console.log('🔄 Processing youth hoodie order...');
+
+          // Validar campos obrigatórios para sweat
+          if (!cartItem.printifyProductId || !cartItem.customerPrintifyImageId || !cartItem.dynamicPhrasePrintifyImageId || !cartItem.printifyVariantId) {
+            throw new Error('Youth hoodie missing required Printify IDs');
+          }
+
+          // Para sweat de criança, usar produto temporário criado no mockup
+          const lineItem = {
+            product_id: cartItem.printifyProductId, // Produto temporário já criado
+            variant_id: cartItem.printifyVariantId,
+            quantity: cartItem.quantity,
+            // Não precisamos definir print_areas aqui porque o produto já foi criado com as áreas corretas
+          };
+
+          printifyLineItems.push(lineItem);
+          console.log('✅ Youth hoodie line item added:', lineItem);
+
+        } else {
+          // LÓGICA PARA OUTROS PRODUTOS (código existente)
+          if (!productMapping.printifyBlueprintId || !productMapping.printifyPrintProviderId) {
+            throw new Error(`Product ${cartItem.productId} missing Printify blueprint/provider configuration`);
+          }
+
+          // Determinar variant ID
+          let variantId: number;
+          if (cartItem.printifyVariantId) {
+            variantId = cartItem.printifyVariantId;
+          } else if (productMapping.printifyVariantIds && productMapping.printifyVariantIds.length > 0) {
+            variantId = productMapping.printifyVariantIds[0];
+          } else {
+            throw new Error(`No variant ID available for product: ${cartItem.productId}`);
+          }
+
+          // Para produtos que usam images pré-criadas (como capas)
+          if (cartItem.printifyProductId && cartItem.printifyImageId) {
+            console.log('📱 Using pre-created product method for:', cartItem.productId);
+            
+            const lineItem = {
+              product_id: cartItem.printifyProductId, // Produto pré-criado no mockup
+              variant_id: variantId,
+              quantity: cartItem.quantity,
+            };
+            printifyLineItems.push(lineItem);
+
+          } else {
+            // Para produtos "on-the-fly" (método antigo)
+            console.log('🔄 Using on-the-fly creation method for:', cartItem.productId);
+            
+            if (!cartItem.printifyImageId) {
+              throw new Error(`Missing printifyImageId for product: ${cartItem.productId}`);
+            }
+
+            const printArea = productMapping.printAreasConfig?.[0]?.position || productMapping.printArea || 'front';
+            
+            const lineItem = {
+              blueprint_id: productMapping.printifyBlueprintId,
+              print_provider_id: productMapping.printifyPrintProviderId,
+              variant_id: variantId,
+              quantity: cartItem.quantity,
+              print_areas: [
+                {
+                  variant_ids: [variantId],
+                  placeholders: [
+                    {
+                      position: printArea,
+                      images: [
+                        {
+                          id: cartItem.printifyImageId,
+                          x: cartItem.imageAdjustments?.x || 0.5,
+                          y: cartItem.imageAdjustments?.y || 0.5,
+                          scale: cartItem.imageAdjustments?.scale || 1,
+                          angle: cartItem.imageAdjustments?.rotation || 0
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            };
+            printifyLineItems.push(lineItem);
+          }
+        }
       }
 
       // Construir payload para Printify

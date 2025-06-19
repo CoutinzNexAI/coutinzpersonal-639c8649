@@ -6,7 +6,7 @@ export interface PrintifyProductMapping {
   mockupInitialPath: string; // O teu mockup base para mostrar antes da Printify gerar
   price?: number; // Preço base do produto (opcional para produtos com variantes)
   basePrice?: number; // Preço base em euros (para produtos com variantes)
-  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia' | 'bags' | 'stationery' | 'office';
+  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia' | 'bags' | 'stationery' | 'office' | 'roupa';
 
   // PROPRIEDADES NECESSÁRIAS PARA A API PRINTIFY
   printifyBlueprintId?: number; // ID do blueprint Printify
@@ -34,21 +34,29 @@ export interface PrintifyProductMapping {
   supportsManualAdjustment: boolean; // TRUE para Canecas/Capas, FALSE para Canvas/Poster/T-shirt
   adjustmentLimits?: { minZoom: number; maxZoom: number; allowRotation?: boolean; };
 
-  // CONFIGURAÇÃO DAS ÁREAS DE IMPRESSÃO
-  printAreasConfig?: {
+  // Áreas de Impressão (Para produtos complexos como sweats)
+  printAreasConfig?: Array<{
     position: string; // 'front', 'back', etc.
     allowsUserImage: boolean;
-    defaultX: number; // 0.0 a 1.0
-    defaultY: number; // 0.0 a 1.0
-    defaultScale: number; // escala inicial
-    defaultAngle: number; // ângulo inicial em graus
-    fitMethod: 'fit' | 'slice'; // método de ajuste da imagem
-  }[];
+    staticImageId?: string; // ID Printify para imagens estáticas (logos)
+    defaultX: number;
+    defaultY: number;
+    defaultScale: number;
+    defaultAngle: number;
+    fitMethod: 'fit' | 'slice' | 'contain';
+    allowsDynamicText?: boolean; // Para texto dinâmico
+    dynamicTextOptions?: Array<{
+      text: string;
+      id: string;
+      positionX: number;
+      positionY: number;
+    }>;
+  }>;
 
-  // Campos opcionais da migração Gelato (mantidos para compatibilidade temporária)
-  productUid?: string; // O ID do produto na Gelato (para a Order API) - OPCIONAL
-  gelatoTemplateId?: string; // ID do template Gelato - OPCIONAL
-  templateVariantId?: string; // ID da variante do template - OPCIONAL
+  // Campos legados do Gelato (mantidos para compatibilidade)
+  productUid?: string;
+  gelatoTemplateId?: string;
+  templateVariantId?: string;
 }
 
 export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping> = {
@@ -355,6 +363,136 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       defaultAngle: 0,
       fitMethod: 'slice',
     }],
+  },
+
+  // 6. SWEAT DE CRIANÇA PERSONALIZADA (COM LOGO NA FRENTE E ARTE+FRASE NAS COSTAS)
+  'custom_youth_hoodie': {
+    id: 'custom_youth_hoodie',
+    name: 'Sweat de Criança Personalizada',
+    mockupInitialPath: '/assets/mockups/hoodie/youth_hoodie_blank.svg', // Mockup base
+    basePrice: 40.00, // Euros
+    category: 'roupa',
+    printifyBlueprintId: 314, // Youth Heavy Blend Hooded Sweatshirt
+    printifyPrintProviderId: 87, // Print provider específico
+    variants: [
+      // Navy - Todos os tamanhos
+      { id: 45001, title: 'Navy / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45002, title: 'Navy / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45003, title: 'Navy / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45004, title: 'Navy / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45005, title: 'Navy / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      
+      // Red - Todos os tamanhos
+      { id: 45006, title: 'Red / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45007, title: 'Red / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45008, title: 'Red / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45009, title: 'Red / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45010, title: 'Red / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      
+      // Royal - Todos os tamanhos
+      { id: 45011, title: 'Royal / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45012, title: 'Royal / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45013, title: 'Royal / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45014, title: 'Royal / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45015, title: 'Royal / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      
+      // Sport Grey - Todos os tamanhos
+      { id: 45016, title: 'Sport Grey / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45017, title: 'Sport Grey / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45018, title: 'Sport Grey / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45019, title: 'Sport Grey / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45020, title: 'Sport Grey / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      
+      // White - Todos os tamanhos
+      { id: 45021, title: 'White / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45022, title: 'White / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45023, title: 'White / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45024, title: 'White / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45025, title: 'White / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      
+      // Black - Todos os tamanhos
+      { id: 45026, title: 'Black / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45027, title: 'Black / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45028, title: 'Black / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45029, title: 'Black / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45030, title: 'Black / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      
+      // Forest Green - Todos os tamanhos
+      { id: 45031, title: 'Forest Green / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45032, title: 'Forest Green / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45033, title: 'Forest Green / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45034, title: 'Forest Green / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45035, title: 'Forest Green / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      
+      // Kelly Green - Todos os tamanhos
+      { id: 45036, title: 'Kelly Green / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45037, title: 'Kelly Green / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45038, title: 'Kelly Green / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45039, title: 'Kelly Green / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 45040, title: 'Kelly Green / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+    ],
+    printFileBleed: 2,
+    printFileResolution: 300,
+    gelatoPrintDimensionsMm: { width: 250, height: 300 }, // Valores de referência
+    gelatoPrintOffsetsMm: { x: 0, y: 0 },
+    supportsManualAdjustment: false, // Posicionamento fixo
+    adjustmentLimits: { minZoom: 1.0, maxZoom: 1.0, allowRotation: false },
+    printAreasConfig: [
+      // Área 1: LOGO (Frente)
+      {
+        position: 'front',
+        allowsUserImage: false,
+        staticImageId: '684d920a45ec86ab347594c5', // ID Printify do logo
+        defaultX: 0.5,
+        defaultY: 0.5,
+        defaultScale: 0.85,
+        defaultAngle: 0,
+        fitMethod: 'contain', // Logo não deve ser cortado
+      },
+      // Área 2: IMAGEM DO CLIENTE E FRASE (Costas)
+      {
+        position: 'back',
+        allowsUserImage: true,
+        defaultX: 0.5, // Para imagem do cliente
+        defaultY: 0.5, // Para imagem do cliente
+        defaultScale: 1.0, // Para imagem do cliente
+        defaultAngle: 0,
+        fitMethod: 'slice', // Preenchimento total
+        allowsDynamicText: true, // Suporte para texto dinâmico
+        dynamicTextOptions: [
+          {
+            text: 'Sem frase',
+            id: '68548b05a7a3520a5d3534c0', // ID da imagem transparente
+            positionX: 0.5,
+            positionY: 0.85,
+          },
+          {
+            text: 'PicTuz - since 2025',
+            id: '68548af2cc947707f0ee650f', // ID da imagem desta frase
+            positionX: 0.5,
+            positionY: 0.85,
+          },
+          {
+            text: 'Criado com IA',
+            id: '68548af3cc947707f0ee651a', // ID da imagem desta frase
+            positionX: 0.5,
+            positionY: 0.85,
+          },
+          {
+            text: 'Arte Personalizada',
+            id: '68548af4cc947707f0ee652b', // ID da imagem desta frase
+            positionX: 0.5,
+            positionY: 0.85,
+          },
+          {
+            text: 'Feito em Portugal',
+            id: '68548af5cc947707f0ee653c', // ID da imagem desta frase
+            positionX: 0.5,
+            positionY: 0.85,
+          },
+        ],
+      },
+    ],
   },
 };
 
