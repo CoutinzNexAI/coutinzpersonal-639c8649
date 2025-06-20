@@ -263,7 +263,7 @@ export default async function handler(
       targetVariantId = product.variants[0].id;
     } else if (product.printifyVariantIds && product.printifyVariantIds.length > 0) {
       targetVariantId = product.printifyVariantIds[0];
-    } else {
+      } else {
       throw new Error('No variant ID available for the product');
     }
     console.log('🎯 Selected variant ID:', targetVariantId);
@@ -290,12 +290,12 @@ export default async function handler(
       // PASSO 1: Upload da imagem do cliente para Printify
       console.log('🔄 Uploading customer image to Printify...');
       const customerUploadResponse = await printifyFetch('/uploads/images.json', {
-        method: 'POST',
-        body: JSON.stringify({
+      method: 'POST',
+      body: JSON.stringify({
           file_name: `customer-art-${Date.now()}.png`,
           url: customerImageUrl || userImageUrl
-        })
-      });
+      })
+    });
 
       if (!customerUploadResponse?.id) {
         throw new Error('Failed to upload customer image to Printify');
@@ -602,9 +602,9 @@ export default async function handler(
         }
       } catch (pollError) {
         console.warn(`⚠️ WARNING: Error on Printify product polling attempt ${attempt}:`, pollError instanceof Error ? pollError.message : String(pollError));
-      }
+        }
 
-      if (attempt < maxAttempts) {
+        if (attempt < maxAttempts) {
         console.log(`⏳ Printify product mockups not ready yet. Waiting ${delay}ms before next attempt...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -620,9 +620,9 @@ export default async function handler(
     //     console.warn('⚠️ WARNING: Failed to delete temporary Printify product:', deleteError);
     // }
 
-    return res.status(200).json({
-      success: true,
-      previewUrls: finalPreviewUrls,
+      return res.status(200).json({
+        success: true,
+        previewUrls: finalPreviewUrls,
       printifyImageId: printifyImageId, // Retornar o ID da imagem na Printify Media Library
       printifyProductId: createdPrintifyProductId, // Retornar o ID do produto Printify criado
       customerPrintifyImageId: logoImageId, // Retornar o ID da imagem do logo

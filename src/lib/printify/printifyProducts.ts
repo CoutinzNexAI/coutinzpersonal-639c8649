@@ -375,61 +375,50 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 314, // Youth Heavy Blend Hooded Sweatshirt
     printifyPrintProviderId: 87, // Print provider específico
     variants: [
-      // Navy - Todos os tamanhos
-      { id: 45001, title: 'Navy / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45002, title: 'Navy / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45003, title: 'Navy / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45004, title: 'Navy / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45005, title: 'Navy / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      // White - Todos os tamanhos (IDs corrigidos baseados no log da Printify)
+      { id: 43879, title: 'White / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43880, title: 'White / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43881, title: 'White / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43882, title: 'White / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
       
       // Red - Todos os tamanhos
-      { id: 45006, title: 'Red / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45007, title: 'Red / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45008, title: 'Red / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45009, title: 'Red / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45010, title: 'Red / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43930, title: 'Red / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43933, title: 'Red / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43934, title: 'Red / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43935, title: 'Red / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
       
       // Royal - Todos os tamanhos
-      { id: 45011, title: 'Royal / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45012, title: 'Royal / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45013, title: 'Royal / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45014, title: 'Royal / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45015, title: 'Royal / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 94233, title: 'Royal / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 94234, title: 'Royal / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 94235, title: 'Royal / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 94236, title: 'Royal / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 94237, title: 'Royal / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
       
       // Sport Grey - Todos os tamanhos
-      { id: 45016, title: 'Sport Grey / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45017, title: 'Sport Grey / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45018, title: 'Sport Grey / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45019, title: 'Sport Grey / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45020, title: 'Sport Grey / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43895, title: 'Sport Grey / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43896, title: 'Sport Grey / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43897, title: 'Sport Grey / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43898, title: 'Sport Grey / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
       
-      // White - Todos os tamanhos
-      { id: 45021, title: 'White / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45022, title: 'White / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45023, title: 'White / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45024, title: 'White / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45025, title: 'White / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      // White - Todos os tamanhos (removido duplicação)
       
       // Black - Todos os tamanhos
-      { id: 45026, title: 'Black / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45027, title: 'Black / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45028, title: 'Black / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45029, title: 'Black / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45030, title: 'Black / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43911, title: 'Black / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43914, title: 'Black / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43915, title: 'Black / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 43916, title: 'Black / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
       
       // Forest Green - Todos os tamanhos
-      { id: 45031, title: 'Forest Green / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45032, title: 'Forest Green / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45033, title: 'Forest Green / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45034, title: 'Forest Green / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45035, title: 'Forest Green / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 64296, title: 'Forest Green / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 64299, title: 'Forest Green / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 64300, title: 'Forest Green / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 64301, title: 'Forest Green / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 64302, title: 'Forest Green / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
       
       // Kelly Green - Todos os tamanhos
-      { id: 45036, title: 'Kelly Green / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45037, title: 'Kelly Green / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45038, title: 'Kelly Green / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45039, title: 'Kelly Green / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 45040, title: 'Kelly Green / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 64304, title: 'Kelly Green / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 64305, title: 'Kelly Green / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
+      { id: 64306, title: 'Kelly Green / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
     ],
     printFileBleed: 2,
     printFileResolution: 300,

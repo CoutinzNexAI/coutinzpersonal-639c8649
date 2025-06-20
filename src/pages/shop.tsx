@@ -23,7 +23,7 @@ const categories: Category[] = [
     href: '/shop/canvas',
     galleryImage: '/assets/gallery-images/person_with_canvas.png',
     gradient: 'from-emerald-400 to-teal-500',
-    icon: '🖼️',
+      icon: '🖼️',
     items: ['Canvas Premium', 'Molduras Elegantes', 'Impressão HD']
   },
   {
@@ -31,7 +31,7 @@ const categories: Category[] = [
     href: '/shop/apparel',
     galleryImage: '/assets/gallery-images/person_wearing_tshirt.png',
     gradient: 'from-blue-400 to-indigo-500',
-    icon: '👕',
+      icon: '👕',
     items: ['T-shirts', 'Hoodies', 'Tank Tops']
   },
   {
@@ -187,20 +187,20 @@ const ShopPage: React.FC = () => {
                 <span className="text-white/70 text-xl">🔍</span>
               </div>
             </div>
-          </div>
-
+                      </div>
+                      
           {/* Interactive 3D Gallery */}
           <div className="mb-16">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-[#2D5A27] mb-2">Galeria Interativa</h2>
               <p className="text-[#4A6B5B]">Arrastar para navegar • Clicar para explorar</p>
-            </div>
-            
+                      </div>
+                      
             <div className="h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-[#F5F1E8] via-[#E8E0D0] to-[#D4C4A8] backdrop-blur-sm border border-white/20 shadow-2xl">
               <SafeGallery />
             </div>
-          </div>
-
+                      </div>
+                      
           {/* Traditional Category Grid */}
           <div className="mb-12">
             <h2 className="text-3xl font-bold text-white text-center mb-8">Todas as Categorias</h2>
@@ -222,8 +222,8 @@ const ShopPage: React.FC = () => {
                       {category.icon}
                     </div>
                     <h3 className="text-xl font-bold text-[#2D5A27] mb-2 drop-shadow-sm">
-                      {category.name}
-                    </h3>
+                        {category.name}
+                      </h3>
                   </div>
 
                   {/* Items List */}
@@ -242,13 +242,13 @@ const ShopPage: React.FC = () => {
                   <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#6B8E5A]/10 
                                   via-transparent to-[#8B7355]/10 opacity-0 group-hover:opacity-100 
                                   transition-opacity duration-500 pointer-events-none">
-                  </div>
+          </div>
 
                   {/* Arrow */}
                   <div className="absolute top-4 right-4 text-[#4A6B5B]/60 group-hover:text-[#2D5A27] 
                                   group-hover:translate-x-1 transition-all duration-300 text-lg font-bold">
                     →
-                  </div>
+            </div>
                 </div>
               ))}
             </div>
@@ -272,7 +272,7 @@ const ShopPage: React.FC = () => {
             </button>
           </div>
         </main>
-
+        
         <Footer />
       </div>
     </>

@@ -805,3 +805,4 @@ export default function CircularGallery({
 }
 
 export type { GalleryItem, CircularGalleryProps };
+ 
