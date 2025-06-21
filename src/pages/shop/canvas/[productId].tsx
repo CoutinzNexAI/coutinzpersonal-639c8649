@@ -42,8 +42,9 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   const { userInfo, session } = useAuth();
   
   const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  // TEMPORÁRIO: Valores de teste para Canvas
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('https://images.printify.com/675e16d66791287a0006e522b2');
+  const [selectedImageId, setSelectedImageId] = useState<string | null>('675e16d66791287a0006e522b2');
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
