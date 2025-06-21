@@ -340,6 +340,11 @@ export default async function handler(
 
       // PASSO 4: Criar produto com múltiplas áreas de impressão
       console.log('🔄 Creating youth hoodie product with multiple print areas...');
+      console.log('🔍 DEBUG: Logo ID being used:', logoImageId);
+      console.log('🔍 DEBUG: Customer Image ID:', customerPrintifyImageId);
+      console.log('🔍 DEBUG: Phrase Image ID:', dynamicPhrasePrintifyImageId);
+      console.log('🔍 DEBUG: Selected variant ID:', targetVariantId);
+      
       const printifyProductTitle = `PicTuz Youth Hoodie (${user.id}-${Date.now()})`;
       const productPrice = (product.basePrice || 40) * 100; // 40€ em cêntimos
 
@@ -362,8 +367,8 @@ export default async function handler(
               images: [{
                 id: logoImageId, // ID fixo do logo
                 x: 0.5,
-                y: 0.5,
-                scale: 0.85,
+                y: 0.4, // Mover logo um pouco para cima
+                scale: 1.2, // Aumentar o logo para ser mais visível
                 angle: 0
               }]
             }]
