@@ -499,12 +499,10 @@ export default async function handler(
           console.log(JSON.stringify(productDetails.images, null, 2));
           console.log('--- FIM DEBUG ---');
           
-          const previewUrls = productDetails.images
-            .filter((img: { is_default: boolean }) => img.is_default)
-            .map((img: { src: string }) => img.src);
+          const previewUrls = productDetails.images.map((img: { src: string }) => img.src);
           
           if (previewUrls.length > 0) {
-            console.log(`✅ Mockups ready! Found ${previewUrls.length} preview(s)`);
+            console.log(`✅ Mockups ready! Found ${previewUrls.length} preview(s) - ALL mockup views included`);
             // RETORNA IMEDIATAMENTE quando mockups estão prontos
             return res.status(200).json({
               success: true,
@@ -679,7 +677,7 @@ export default async function handler(
 
         if (getProductResponse.images && getProductResponse.images.length > 0) {
           console.log(`✅ SUCCESS in Printify product polling! Mockups found on attempt ${attempt}!`);
-          finalPreviewUrls = getProductResponse.images.map(img => img.src).filter(Boolean) as string[];
+          finalPreviewUrls = getProductResponse.images.map(img => img.src) as string[];
           break;
         }
       } catch (pollError) {
