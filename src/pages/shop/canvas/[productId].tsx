@@ -61,6 +61,10 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   // Estado específico para Canvas - FIXO em "mirror"
   const [selectedEdgeType] = useState<string>('mirror');
 
+  // Novos estados para seleções separadas (Canvas com Moldura)
+  const [selectedFrameColor, setSelectedFrameColor] = useState<string | null>(null); // "Black", "Espresso", "White"
+  const [selectedSizeLabel, setSelectedSizeLabel] = useState<string | null>(null); // "6" x 6"", "10" x 10"", etc.
+
   // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
     if (!initialProduct && typeof productId === 'string') {
@@ -91,6 +95,68 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
       setPrintifyProductId('');
     }
   }, [selectedPrintifyVariantId]); // Só depende da variante
+
+  // useEffect para popular opções e selecionar padrões (Canvas com Moldura)
+  useEffect(() => {
+    if (product && product.id === 'framed_canvas' && product.variants && product.variants.length > 0) {
+      const uniqueColors = new Set<string>();
+      const uniqueSizes = new Set<string>();
+
+      product.variants.forEach(variant => {
+        // Extrair cor e tamanho do título da variante
+        // Exemplo de título: "14" x 14" / Black / 1.25""
+        const sizeMatch = variant.title.match(/(\d+" x \d+")/); // Pega "xx" x xx""
+        const colorMatch = variant.title.match(/(Black|Espresso|White)/); // Pega a cor
+
+        if (sizeMatch && sizeMatch[1]) {
+          uniqueSizes.add(sizeMatch[1]);
+        }
+        if (colorMatch && colorMatch[1]) {
+          uniqueColors.add(colorMatch[1]);
+        }
+      });
+
+      // Converte Sets para arrays ordenados
+      const sortedUniqueColors = Array.from(uniqueColors).sort();
+      const sortedUniqueSizes = Array.from(uniqueSizes).sort((a, b) => {
+        // Lógica de ordenação para tamanhos (ex: "6"x6"", "10"x10")
+        const extractNum = (s: string) => parseInt(s.split('"')[0]);
+        return extractNum(a) - extractNum(b);
+      });
+
+      // Seleciona a primeira cor e o primeiro tamanho por padrão
+      if (sortedUniqueColors.length > 0 && !selectedFrameColor) {
+        setSelectedFrameColor(sortedUniqueColors[0]);
+      }
+      if (sortedUniqueSizes.length > 0 && !selectedSizeLabel) {
+        setSelectedSizeLabel(sortedUniqueSizes[0]);
+      }
+    }
+     }, [product, selectedFrameColor, selectedSizeLabel]); // Dependências
+
+  // useEffect para encontrar selectedPrintifyVariantId com base na cor e tamanho
+  useEffect(() => {
+    if (product && product.id === 'framed_canvas' && selectedFrameColor && selectedSizeLabel) {
+      const foundVariant = product.variants?.find(variant => {
+        // Verifica se o título da variante contém a cor e o tamanho selecionados
+        const matchesColor = variant.title.includes(selectedFrameColor);
+        const matchesSize = variant.title.includes(selectedSizeLabel); // Ex: "10" x 10""
+
+        return matchesColor && matchesSize;
+      });
+
+      if (foundVariant && foundVariant.id !== selectedPrintifyVariantId) {
+        setSelectedPrintifyVariantId(foundVariant.id);
+      } else if (!foundVariant && selectedPrintifyVariantId !== null) {
+        // Caso a combinação não exista (deve ser rara se os dados estiverem certos)
+        setSelectedPrintifyVariantId(null);
+        toast.error('Combinação de tamanho e cor não encontrada para o Canvas com Moldura.');
+      }
+    } else if (product?.id === 'custom_canvas' && !selectedPrintifyVariantId && product.variants && product.variants.length > 0) {
+      // Lógica existente para custom_canvas para selecionar a primeira variante
+      setSelectedPrintifyVariantId(product.variants[0].id);
+    }
+  }, [product, selectedFrameColor, selectedSizeLabel, selectedPrintifyVariantId]); // Dependências
 
   // Calcular defaultScale dinâmico e atualizar imageAdjustments
   useEffect(() => {
@@ -182,11 +248,8 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         selectedImageId
       });
 
-      // Extrair cor da moldura se for framed_canvas
+      // Obter variante selecionada
       const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-      const frameColor = product.id === 'framed_canvas' && selectedVariant 
-        ? selectedVariant.title.split(' / ')[1] // Ex: "6″ x 6″ / Black" -> "Black"
-        : undefined;
 
       // Adicionar item ao carrinho usando o CartService - COM PRINTIFY IDs
       const cartItem = CartService.addToCart({
@@ -198,9 +261,11 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         price: product.basePrice || product.price || 0,
         quantity: 1,
         customizations: {
-          variant: selectedVariant?.title || 'Tamanho não encontrado',
-          ...(product.id === 'custom_canvas' && { canvasEdgeType: selectedEdgeType as 'regular' | 'mirror' | 'off' }),
-          ...(product.id === 'framed_canvas' && frameColor && { frameColor }),
+          variant: selectedVariant?.title || 'Opção não encontrada',
+          ...(product.id === 'custom_canvas' && { canvasEdgeType: 'mirror' }), // FIXO
+          ...(product.id === 'framed_canvas' && selectedFrameColor && { 
+            frameColor: selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor 
+          }), // Passa a cor selecionada
         },
         imageAdjustments: imageAdjustments,
         printifyProductId: printifyProductId,
@@ -455,29 +520,83 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                   </div>
 
                   {/* 5. SELETOR DE VARIANTE */}
-                  <div>
-                    <label className="block text-sm font-bold text-[#2D5A27] mb-3 flex items-center gap-2">
-                      <ChevronDown className="w-4 h-4 text-[#2D5A27]" />
-                      {product.id === 'custom_canvas' ? 'Tamanho do Canvas' : 'Tamanho e Cor da Moldura'}
-                    </label>
-                    <Select
-                      onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
-                      value={selectedPrintifyVariantId?.toString() || ''}
-                    >
-                      <SelectTrigger className="w-full bg-white border-2 border-[#E8E0D0]/60 text-[#2D5A27] h-14 shadow-sm hover:border-[#2D5A27]/50 focus:border-[#2D5A27] transition-colors duration-200 font-medium">
-                        <SelectValue placeholder={product.id === 'custom_canvas' ? 'Selecione um tamanho' : 'Selecione tamanho e cor'}>
-                          {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Selecione uma opção'}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="bg-white text-[#2D5A27] border-[#E8E0D0] max-h-60 shadow-xl">
-                        {product.variants?.map((variant) => (
-                          <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-[#F5F1E8]/50">
-                            {variant.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {product.id === 'custom_canvas' && (
+                    <div>
+                      <label className="block text-sm font-bold text-[#2D5A27] mb-3 flex items-center gap-2">
+                        <ChevronDown className="w-4 h-4 text-[#2D5A27]" />
+                        Tamanho do Canvas
+                      </label>
+                      <Select
+                        onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
+                        value={selectedPrintifyVariantId?.toString() || ''}
+                      >
+                        <SelectTrigger className="w-full bg-white border-2 border-[#E8E0D0]/60 text-[#2D5A27] h-14 shadow-sm hover:border-[#2D5A27]/50 focus:border-[#2D5A27] transition-colors duration-200 font-medium">
+                          <SelectValue placeholder="Selecione um tamanho">
+                            {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Selecione uma opção'}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="bg-white text-[#2D5A27] border-[#E8E0D0] max-h-60 shadow-xl">
+                          {product.variants?.map((variant) => (
+                            <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-[#F5F1E8]/50">
+                              {variant.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {product.id === 'framed_canvas' && (
+                    <>
+                      {/* Seletor de Cor da Moldura */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-bold text-[#2D5A27] mb-3 flex items-center gap-2">
+                          <ChevronDown className="w-4 h-4 text-[#2D5A27]" />
+                          Cor da Moldura
+                        </label>
+                        <Select onValueChange={setSelectedFrameColor} value={selectedFrameColor || ''}>
+                          <SelectTrigger className="w-full bg-white border-2 border-[#E8E0D0]/60 text-[#2D5A27] h-14 shadow-sm hover:border-[#2D5A27]/50 focus:border-[#2D5A27] transition-colors duration-200 font-medium">
+                            <SelectValue placeholder="Selecione uma cor">
+                              {selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="bg-white text-[#2D5A27] border-[#E8E0D0] max-h-60 shadow-xl">
+                            {Array.from(new Set(product.variants?.map(v => v.title.match(/(Black|Espresso|White)/)?.[1]))).filter(Boolean).map(color => (
+                              <SelectItem key={color} value={color || ''} className="hover:bg-[#F5F1E8]/50">
+                                {color === 'Espresso' ? 'Castanho' : color}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Seletor de Tamanho da Moldura */}
+                      <div>
+                        <label className="block text-sm font-bold text-[#2D5A27] mb-3 flex items-center gap-2">
+                          <ChevronDown className="w-4 h-4 text-[#2D5A27]" />
+                          Tamanho
+                        </label>
+                        <Select onValueChange={setSelectedSizeLabel} value={selectedSizeLabel || ''}>
+                          <SelectTrigger className="w-full bg-white border-2 border-[#E8E0D0]/60 text-[#2D5A27] h-14 shadow-sm hover:border-[#2D5A27]/50 focus:border-[#2D5A27] transition-colors duration-200 font-medium">
+                            <SelectValue placeholder="Selecione um tamanho">
+                              {selectedSizeLabel}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="bg-white text-[#2D5A27] border-[#E8E0D0] max-h-60 shadow-xl">
+                            {Array.from(new Set(product.variants?.map(v => v.title.match(/(\d+" x \d+")/)?.[1]))).filter(Boolean).sort((a,b) => {
+                                const numA = parseInt(a!.split('"')[0]);
+                                const numB = parseInt(b!.split('"')[0]);
+                                return numA - numB;
+                            }).map(size => (
+                              <SelectItem key={size} value={size || ''} className="hover:bg-[#F5F1E8]/50">
+                                {size}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  )}
 
                   {/* 6. BLOCO DE AÇÕES - LÓGICA CONDICIONAL */}
                   <div className="pt-4">

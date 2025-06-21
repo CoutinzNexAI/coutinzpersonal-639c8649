@@ -117,15 +117,40 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 944, // Framed Canvas
     printifyPrintProviderId: 105, // Jondo
     variants: [
-      { id: 111888, title: '6″ x 6″ / Black', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 111896, title: '6″ x 6″ / Espresso', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 111904, title: '6″ x 6″ / White', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 111889, title: '8″ x 8″ / Black', placeholderWidth: 2400, placeholderHeight: 2400, isGiftPackaging: false, priceAdjustment: 5.00 },
-      { id: 111897, title: '8″ x 8″ / Espresso', placeholderWidth: 2400, placeholderHeight: 2400, isGiftPackaging: false, priceAdjustment: 5.00 },
-      { id: 111905, title: '8″ x 8″ / White', placeholderWidth: 2400, placeholderHeight: 2400, isGiftPackaging: false, priceAdjustment: 5.00 },
-      { id: 111890, title: '10″ x 10″ / Black', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 10.00 },
-      { id: 111898, title: '10″ x 10″ / Espresso', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 10.00 },
-      { id: 111906, title: '10″ x 10″ / White', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 10.00 },
+      // 6" x 6" - Tamanho base
+      { id: 111888, title: '6" x 6" / Black / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
+      { id: 111896, title: '6" x 6" / Espresso / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
+      { id: 111904, title: '6" x 6" / White / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
+      
+      // 10" x 10"
+      { id: 111890, title: '10" x 10" / Black / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 5.00 },
+      { id: 111898, title: '10" x 10" / Espresso / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 5.00 },
+      { id: 111906, title: '10" x 10" / White / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 5.00 },
+      
+      // 14" x 14"
+      { id: 111891, title: '14" x 14" / Black / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 10.00 },
+      { id: 111899, title: '14" x 14" / Espresso / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 10.00 },
+      { id: 111907, title: '14" x 14" / White / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 10.00 },
+      
+      // 16" x 16"
+      { id: 111892, title: '16" x 16" / Black / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 15.00 },
+      { id: 111900, title: '16" x 16" / Espresso / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 15.00 },
+      { id: 111908, title: '16" x 16" / White / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 15.00 },
+      
+      // 20" x 20"
+      { id: 111893, title: '20" x 20" / Black / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 20.00 },
+      { id: 111901, title: '20" x 20" / Espresso / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 20.00 },
+      { id: 111909, title: '20" x 20" / White / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 20.00 },
+      
+      // 24" x 24"
+      { id: 111894, title: '24" x 24" / Black / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 25.00 },
+      { id: 111902, title: '24" x 24" / Espresso / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 25.00 },
+      { id: 111910, title: '24" x 24" / White / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 25.00 },
+      
+      // 32" x 32"
+      { id: 88302, title: '32" x 32" / Black / 1.25"', placeholderWidth: 9600, placeholderHeight: 9600, isGiftPackaging: false, priceAdjustment: 30.00 },
+      { id: 107272, title: '32" x 32" / Espresso / 1.25"', placeholderWidth: 9600, placeholderHeight: 9600, isGiftPackaging: false, priceAdjustment: 30.00 },
+      { id: 107273, title: '32" x 32" / White / 1.25"', placeholderWidth: 9600, placeholderHeight: 9600, isGiftPackaging: false, priceAdjustment: 30.00 },
     ],
     printAreasConfig: [{
       position: 'front',
