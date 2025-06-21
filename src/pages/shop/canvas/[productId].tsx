@@ -138,12 +138,21 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   useEffect(() => {
     if (product && product.id === 'framed_canvas' && selectedFrameColor && selectedSizeLabel) {
       const foundVariant = product.variants?.find(variant => {
-        // IMPORTANTE: as strings de `selectedSizeLabel` e `selectedFrameColor` devem corresponder
-        // EXATAMENTE aos pedaços do `variant.title` da Printify.
-        const matchesColor = variant.title.includes(selectedFrameColor || '');
-        const matchesSize = variant.title.includes(selectedSizeLabel || '');
+        // Extrai a cor e o tamanho do título EXATO da variante Printify
+        const variantSizeMatch = variant.title.match(/(\d+" x \d+″|\d+" x \d+")/); // Captura "xx" x xx" ou "xx″ x xx″"
+        const variantColorMatch = variant.title.match(/(Black|Espresso|White)/); // Captura a cor
 
-        return matchesColor && matchesSize;
+        const extractedVariantSize = variantSizeMatch ? variantSizeMatch[1] : '';
+        const extractedVariantColor = variantColorMatch ? variantColorMatch[1] : '';
+
+        // A correspondência deve ser EXATA para ambas as partes
+        const matchesSize = extractedVariantSize === selectedSizeLabel;
+        // Para a cor, garantir que "Castanho" no frontend corresponde a "Espresso" da Printify
+        const matchesColor = selectedFrameColor === 'Castanho'
+            ? extractedVariantColor === 'Espresso'
+            : extractedVariantColor === selectedFrameColor;
+
+        return matchesSize && matchesColor;
       });
 
       if (foundVariant && foundVariant.id !== selectedPrintifyVariantId) {
@@ -263,11 +272,10 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         quantity: 1,
         customizations: {
           variant: selectedVariant?.title || 'Opção não encontrada',
-          ...(product.id === 'custom_canvas' && { canvasEdgeType: 'mirror' }), // FIXO
-          ...(product.id === 'framed_canvas' && {
-            frameColor: selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor === 'Black' ? 'Preto' : selectedFrameColor === 'White' ? 'Branco' : selectedFrameColor, // Passa a cor selecionada traduzida
-            canvasEdgeType: 'mirror' // Borda espelhada também para framed_canvas no carrinho
-          }),
+          // Aplica print_on_side: 'mirror' a ambos os tipos de Canvas
+          ...(product.id === 'custom_canvas' || product.id === 'framed_canvas' ? { canvasEdgeType: 'mirror' } : {}),
+          // Adiciona frameColor apenas para framed_canvas, com a tradução para exibição se necessário
+          ...(product.id === 'framed_canvas' && selectedFrameColor && { frameColor: selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor === 'Black' ? 'Preto' : selectedFrameColor === 'White' ? 'Branco' : selectedFrameColor }),
         },
         imageAdjustments: imageAdjustments,
         printifyProductId: printifyProductId,
@@ -559,7 +567,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                         <Select onValueChange={setSelectedFrameColor} value={selectedFrameColor || ''}>
                           <SelectTrigger className="w-full bg-white border-2 border-[#E8E0D0]/60 text-[#2D5A27] h-14 shadow-sm hover:border-[#2D5A27]/50 focus:border-[#2D5A27] transition-colors duration-200 font-medium">
                             <SelectValue placeholder="Selecione uma cor">
-                              {selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor}
+                              {selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor === 'Black' ? 'Preto' : selectedFrameColor === 'White' ? 'Branco' : selectedFrameColor}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent className="bg-white text-[#2D5A27] border-[#E8E0D0] max-h-60 shadow-xl">

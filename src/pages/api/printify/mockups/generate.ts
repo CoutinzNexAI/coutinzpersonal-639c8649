@@ -562,10 +562,8 @@ export default async function handler(
           price: 1000, // Preço dummy para mockup
           is_enabled: true
         }],
-        // *** ADICIONAR print_details AQUI, NO NÍVEL SUPERIOR DO PAYLOAD ***
-        ...(productId === 'custom_canvas' && req.body.printDetails && { 
-          print_details: req.body.printDetails 
-        }),
+        // *** MODIFICA AQUI PARA GARANTIR print_details PARA AMBOS ***
+        ...(productId === 'custom_canvas' || productId === 'framed_canvas' ? { print_details: { print_on_side: 'mirror' } } : {}),
         print_areas: [{
           variant_ids: [targetVariantId],
           placeholders: [{
