@@ -167,6 +167,20 @@ export default function ProductCanvas({
             requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
           }
         }
+
+        // Para Poster products, adicionar printifyImageId se disponível
+        if (selectedProduct.id.includes('poster_')) {
+          if (selectedImageId) {
+            // Usar selectedImageId diretamente se disponível
+            requestBody.printifyImageId = selectedImageId;
+          } else if (userImageUrl) {
+            // Fallback: extrair printifyImageId da URL da imagem
+            const printifyImageIdMatch = userImageUrl.match(/\/([a-f0-9]{24})$/);
+            if (printifyImageIdMatch) {
+              requestBody.printifyImageId = printifyImageIdMatch[1];
+            }
+          }
+        }
       }
 
       console.log('🔍 [ProductCanvas DEBUG] generateMockups chamado com:', { requestBody });

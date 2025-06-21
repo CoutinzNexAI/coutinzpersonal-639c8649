@@ -538,14 +538,15 @@ export default async function handler(
       });
     } else if (productId === 'custom_canvas' || productId === 'framed_canvas' ||
                productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy') {
-      // LÓGICA ESPECÍFICA PARA CANVAS
-      console.log(`🔄 Processing Canvas product: ${productId}`);
+      // LÓGICA ESPECÍFICA PARA CANVAS/POSTER
+      console.log(`🔄 Processing Canvas/Poster product: ${productId}`);
 
       // Validar que printifyImageId está presente
-      // COMENTADO TEMPORARIAMENTE - o frontend garante que o ID é enviado agora
-      // if (!printifyImageId) {
-      //   throw new Error('printifyImageId is required for Canvas products');
-      // }
+      console.log('🔍 [DEBUG] printifyImageId recebido:', printifyImageId);
+      if (!printifyImageId) {
+        console.log('❌ [ERROR] printifyImageId é obrigatório para Canvas/Poster products');
+        throw new Error('printifyImageId is required for Canvas/Poster products');
+      }
 
       const printAreaConfig = product.printAreasConfig?.[0];
       if (!printAreaConfig) {
@@ -581,7 +582,7 @@ export default async function handler(
         }]
       };
 
-      console.log('📤 Canvas payload:', JSON.stringify(printifyProductPayload, null, 2));
+      console.log(`📤 ${productId} payload:`, JSON.stringify(printifyProductPayload, null, 2));
 
       const printifyProductResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
         method: 'POST',
