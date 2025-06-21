@@ -436,10 +436,12 @@ export default async function handler(
               position: 'front',
               images: [{
                 id: logoImageId, // ID fixo do logo
-                x: 0.75,
+                x: 0.5,
                 y: 0.25, // Posicionar mais para cima no peito
                 scale: 0.3, // Reduzir escala para garantir que o logo esteja visível
-                angle: 0
+                angle: 0,
+                is_default: true, // Forçar como imagem principal da vista frontal
+                is_selected_for_publishing: true // Forçar para publicação/mockups
               }]
             }]
           },
