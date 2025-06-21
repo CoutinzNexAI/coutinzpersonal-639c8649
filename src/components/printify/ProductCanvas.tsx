@@ -41,6 +41,7 @@ interface ProductCanvasProps {
   selectedPrintifyVariantId?: number | null;
   allImageAdjustments?: AllImageAdjustments;
   selectedPhraseText?: string;
+  mockupUrl?: string;
 }
 
 interface GenerateMockupResponse {
@@ -65,7 +66,8 @@ export default function ProductCanvas({
   onImageAdjust,
   selectedPrintifyVariantId,
   allImageAdjustments,
-  selectedPhraseText
+  selectedPhraseText,
+  mockupUrl
 }: ProductCanvasProps) {
   const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
@@ -251,7 +253,7 @@ export default function ProductCanvas({
           {/* Mockup inicial maximizado */}
           <div className="relative w-full h-full flex items-center justify-center p-12">
             <img
-              src={selectedProduct.mockupInitialPath}
+              src={mockupUrl || selectedProduct.mockupInitialPath}
               alt={`${selectedProduct.name} mockup inicial`}
               className="max-w-full max-h-full object-contain drop-shadow-2xl"
               style={{ maxHeight: '85%' }}
@@ -329,7 +331,7 @@ export default function ProductCanvas({
     <div className="relative w-full h-full flex items-center justify-center">
       <div className="relative">
         <img
-          src={selectedProduct.mockupInitialPath}
+          src={mockupUrl || selectedProduct.mockupInitialPath}
           alt="Preview inicial"
           className="max-w-full max-h-full object-contain drop-shadow-xl"
           style={{ maxHeight: '80%' }}

@@ -369,7 +369,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'custom_youth_hoodie': {
     id: 'custom_youth_hoodie',
     name: 'Sweat de Criança Personalizada',
-    mockupInitialPath: '/assets/mockups/hoodie/youth_hoodie_blank.svg', // Mockup base
+    mockupInitialPath: 'https://i.imgur.com/3lGKmJy.png', // Mockup base temporário (PNG)
     basePrice: 40.00, // Euros
     category: 'roupa',
     printifyBlueprintId: 314, // Youth Heavy Blend Hooded Sweatshirt

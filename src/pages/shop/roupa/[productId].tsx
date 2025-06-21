@@ -69,6 +69,7 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
       const foundProduct = getPrintifyProduct(productId);
       if (foundProduct && foundProduct.category === 'roupa') {
         setProduct(foundProduct);
+        setDisplayedMockupUrl(foundProduct.mockupInitialPath); // Set initial mockup URL
         if (foundProduct.variants && foundProduct.variants.length > 0) {
           setSelectedPrintifyVariantId(foundProduct.variants[0].id);
         }
@@ -81,6 +82,7 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
         toast.error('Produto não encontrado');
       }
     } else if (initialProduct) {
+      setDisplayedMockupUrl(initialProduct.mockupInitialPath); // Set initial mockup URL
       if (initialProduct.variants && initialProduct.variants.length > 0) {
         setSelectedPrintifyVariantId(initialProduct.variants[0].id);
       }
@@ -98,9 +100,9 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
       setCustomerPrintifyImageId('');
       setDynamicPhrasePrintifyImageId('');
       setPrintifyProductId('');
-      setDisplayedMockupUrl(''); // Reset da URL do mockup exibido
+      setDisplayedMockupUrl(product?.mockupInitialPath || ''); // Reset para mockup inicial
     }
-  }, [selectedPrintifyVariantId, selectedPhraseText]);
+  }, [selectedPrintifyVariantId, selectedPhraseText, product]);
 
   // Calcular posicionamento para múltiplas imagens
   useEffect(() => {
@@ -245,7 +247,7 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
     setCustomerPrintifyImageId('');
     setDynamicPhrasePrintifyImageId('');
     setPrintifyProductId('');
-    setDisplayedMockupUrl(''); // Reset da URL do mockup exibido
+    setDisplayedMockupUrl(product?.mockupInitialPath || ''); // Reset para mockup inicial
     
     toast.success('Arte selecionada com sucesso!');
   };
@@ -257,7 +259,7 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
     setCustomerPrintifyImageId('');
     setDynamicPhrasePrintifyImageId('');
     setPrintifyProductId('');
-    setDisplayedMockupUrl(''); // Reset da URL do mockup exibido
+    setDisplayedMockupUrl(product?.mockupInitialPath || ''); // Reset para mockup inicial
     setAllImageAdjustments(undefined);
   };
 
@@ -313,6 +315,7 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
                   allImageAdjustments={allImageAdjustments}
                   selectedPrintifyVariantId={selectedPrintifyVariantId}
                   selectedPhraseText={selectedPhraseText}
+                  mockupUrl={displayedMockupUrl}
                 />
               </div>
 
