@@ -219,6 +219,10 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   };
 
   const handleOpenGallery = () => {
+    if (!userInfo) {
+      toast.error('Faça login para aceder à sua galeria de transformações');
+      return;
+    }
     setIsGalleryModalOpen(true);
   };
 
@@ -226,6 +230,12 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
+    
+    // Reset mockups para gerar novos
+    setPrintifyPreviewUrls([]);
+    setPrintifyImageId('');
+    setPrintifyProductId('');
+    
     toast.success('Arte selecionada com sucesso!');
   };
 

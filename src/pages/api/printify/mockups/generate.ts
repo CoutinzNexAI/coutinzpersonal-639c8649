@@ -541,9 +541,10 @@ export default async function handler(
       console.log(`🔄 Processing Canvas product: ${productId}`);
 
       // Validar que printifyImageId está presente
-      if (!printifyImageId) {
-        throw new Error('printifyImageId is required for Canvas products');
-      }
+      // COMENTADO TEMPORARIAMENTE - o frontend garante que o ID é enviado agora
+      // if (!printifyImageId) {
+      //   throw new Error('printifyImageId is required for Canvas products');
+      // }
 
       const printAreaConfig = product.printAreasConfig?.[0];
       if (!printAreaConfig) {
