@@ -57,6 +57,7 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
   const [customerPrintifyImageId, setCustomerPrintifyImageId] = useState<string>('');
   const [dynamicPhrasePrintifyImageId, setDynamicPhrasePrintifyImageId] = useState<string>('');
   const [printifyProductId, setPrintifyProductId] = useState<string>('');
+  const [displayedMockupUrl, setDisplayedMockupUrl] = useState<string>('');
 
   // Estados específicos para sweat
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
@@ -97,6 +98,7 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
       setCustomerPrintifyImageId('');
       setDynamicPhrasePrintifyImageId('');
       setPrintifyProductId('');
+      setDisplayedMockupUrl(''); // Reset da URL do mockup exibido
     }
   }, [selectedPrintifyVariantId, selectedPhraseText]);
 
@@ -142,6 +144,13 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
     setCustomerPrintifyImageId(data.customerPrintifyImageId);
     setDynamicPhrasePrintifyImageId(data.dynamicPhrasePrintifyImageId);
     setPrintifyProductId(data.printifyProductId);
+    
+    // Atualizar a URL do mockup exibido para o primeiro preview da Printify
+    if (data.previewUrls && data.previewUrls.length > 0) {
+      setDisplayedMockupUrl(data.previewUrls[0]);
+      console.log('✅ Mockup URL atualizada para:', data.previewUrls[0]);
+    }
+    
     console.log('✅ Printify mockups received:', data);
   }, []);
 
@@ -236,6 +245,7 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
     setCustomerPrintifyImageId('');
     setDynamicPhrasePrintifyImageId('');
     setPrintifyProductId('');
+    setDisplayedMockupUrl(''); // Reset da URL do mockup exibido
     
     toast.success('Arte selecionada com sucesso!');
   };
@@ -247,6 +257,7 @@ const RoupaDetailPage: React.FC<RoupaDetailPageProps> = ({ product: initialProdu
     setCustomerPrintifyImageId('');
     setDynamicPhrasePrintifyImageId('');
     setPrintifyProductId('');
+    setDisplayedMockupUrl(''); // Reset da URL do mockup exibido
     setAllImageAdjustments(undefined);
   };
 
