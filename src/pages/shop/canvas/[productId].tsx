@@ -42,11 +42,13 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   const { userInfo, session } = useAuth();
   
   const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('https://printify-upload.s3.amazonaws.com/684d920a45ec86ab347594c5');
-  const [selectedImageId, setSelectedImageId] = useState<string | null>('684d920a45ec86ab347594c5');
+  // Inicializar os estados como vazios/nulos
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  const [mockupImageUrl, setMockupImageUrl] = useState<string | null>(null); // Garantir que está como null inicialmente
   
   // Estados para Printify
   const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);

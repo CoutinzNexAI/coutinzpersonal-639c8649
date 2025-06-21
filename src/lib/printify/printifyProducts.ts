@@ -77,11 +77,17 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 1159, // Canvas Stretched 0.75"
     printifyPrintProviderId: 105, // Jondo
     variants: [
-      { id: 91656, title: '10″ x 10″', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 91658, title: '12″ x 12″', placeholderWidth: 3600, placeholderHeight: 3600, isGiftPackaging: false, priceAdjustment: 5.00 },
-      { id: 91660, title: '14″ x 14″', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 10.00 },
-      { id: 91662, title: '16″ x 16″', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 15.00 },
-      { id: 91664, title: '18″ x 18″', placeholderWidth: 5400, placeholderHeight: 5400, isGiftPackaging: false, priceAdjustment: 20.00 },
+      // Inclui o tamanho 6"
+      { id: 101418, title: '6" x 6"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 }, // A partir de 20 euros
+      // Mantém os tamanhos 10", 12", 14", 16"
+      { id: 91656, title: '10″ x 10″', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 5.00 },
+      { id: 91657, title: '12″ x 12″', placeholderWidth: 3600, placeholderHeight: 3600, isGiftPackaging: false, priceAdjustment: 10.00 },
+      { id: 91658, title: '14" x 14"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 15.00 },
+      { id: 91659, title: '16″ x 16″', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 20.00 },
+      // Inclui 20", 24", 30" e remove o 32" se existia
+      { id: 91660, title: '20″ x 20″', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 25.00 },
+      { id: 91661, title: '24″ x 24″', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 30.00 },
+      { id: 91662, title: '30″ x 30″', placeholderWidth: 9000, placeholderHeight: 9000, isGiftPackaging: false, priceAdjustment: 35.00 },
     ],
     printAreasConfig: [{
       position: 'front',
