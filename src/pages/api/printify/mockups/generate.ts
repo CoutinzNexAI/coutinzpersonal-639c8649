@@ -436,7 +436,7 @@ export default async function handler(
               position: 'front',
               images: [{
                 id: logoImageId, // ID fixo do logo
-                x: 0.6,
+                x: 0.75,
                 y: 0.25, // Posicionar mais para cima no peito
                 scale: 0.3, // Reduzir escala para garantir que o logo esteja visível
                 angle: 0
@@ -453,14 +453,14 @@ export default async function handler(
                   id: customerPrintifyImageId, // Imagem do cliente
                   x: customerImageAdjustments?.x || 0.5,
                   y: customerImageAdjustments?.y || 0.5,
-                  scale: customerImageAdjustments?.scale || 1.0,
+                  scale: customerImageAdjustments?.scale || 0.9,
                   angle: customerImageAdjustments?.rotation || 0
                 },
                 {
                   id: dynamicPhrasePrintifyImageId, // Frase
                   x: phraseImageAdjustments?.x || 0.5,
                   y: phraseImageAdjustments?.y || 0.85, // Mais em baixo
-                  scale: phraseImageAdjustments?.scale || 1.0, // Ajustar conforme necessário, mas 1.0 é um bom início para imagens geradas
+                  scale: phraseImageAdjustments?.scale || 0.8, // Ajustar conforme necessário, mas 1.0 é um bom início para imagens geradas
                   angle: phraseImageAdjustments?.rotation || 0
                 }
               ]
