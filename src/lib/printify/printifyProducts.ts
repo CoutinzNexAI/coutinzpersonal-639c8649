@@ -613,9 +613,9 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       allowsUserImage: true,
       defaultX: 0.5,
       defaultY: 0.5,
-      defaultScale: 1.0,
+      defaultScale: 1.0, // Será recalculado no frontend
       defaultAngle: 0,
-      fitMethod: 'slice',
+      fitMethod: 'contain', // Alterado para 'contain' para Posters Verticais
     }],
     allowsPrintDetails: false,
     supportsManualAdjustment: false,

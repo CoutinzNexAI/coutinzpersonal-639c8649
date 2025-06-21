@@ -144,23 +144,35 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       if (selectedVariant && product.printAreasConfig && product.printAreasConfig.length > 0) {
         const printAreaConfig = product.printAreasConfig[0]; // Assumindo apenas uma área de impressão para poster
 
-        // Dimensões da sua arte em pixels
-        const userImageWidth = 1016;
-        const userImageHeight = 1016;
+        // Dimensões da sua arte em pixels (usando valores fixos como 1016x1016, ou de userImageNaturalWidth/Height se disponíveis)
+        // Para Posters, userImageWidth/Height deveriam vir da imagem selecionada da galeria.
+        // Se a imagem da galeria sempre tiver a mesma dimensão (ex: quadrada), use isso.
+        // Caso contrário, precisaria de obter essas dimensões da imagem real.
+        // Por agora, manter os valores fixos de exemplo, se não houver acesso às dimensões reais da imagem
+        const userImageWidth = 1016; // Asumindo que as suas imagens AI têm esta largura
+        const userImageHeight = 1016; // Asumindo que as suas imagens AI têm esta altura
 
-        // Dimensões do placeholder da variante selecionada
         const placeholderWidth = selectedVariant.placeholderWidth;
         const placeholderHeight = selectedVariant.placeholderHeight;
 
-        // Calcular defaultScale para 'slice'
-        const initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
+        let initialScale = 1.0;
 
-        // Define os ajustes iniciais para a imagem - SEMPRE CENTRADO
+        // *** LÓGICA DE ESCALA ESPECÍFICA PARA POSTERS VERTICAIS ***
+        if (product.id === 'poster_vertical_semi_glossy') {
+          // Para posters verticais, queremos que a imagem preencha a LARGURA do placeholder
+          // e a altura se ajuste proporcionalmente, cortando o topo/base se necessário.
+          initialScale = placeholderWidth / userImageWidth;
+        } else {
+          // Lógica existente para Canvas e Posters Horizontais (que já funciona)
+          // Calcula defaultScale para 'slice' ou outros produtos que preenchem área
+          initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
+        }
+
         setImageAdjustments({
-          x: 0.5, // SEMPRE centrado horizontalmente
-          y: 0.5, // SEMPRE centrado verticalmente
-          scale: initialScale, // Use o scale calculado
-          rotation: 0 // Sem rotação inicial
+          x: 0.5,
+          y: 0.5,
+          scale: initialScale,
+          rotation: 0,
         });
       }
     }
