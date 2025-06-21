@@ -304,6 +304,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                   imageAdjustments={imageAdjustments}
                   onImageAdjust={setImageAdjustments}
                   selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  selectedImageId={selectedImageId}
                 />
               </div>
 

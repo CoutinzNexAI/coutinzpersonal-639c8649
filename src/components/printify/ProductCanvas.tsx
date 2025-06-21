@@ -42,6 +42,7 @@ interface ProductCanvasProps {
   allImageAdjustments?: AllImageAdjustments;
   selectedPhraseText?: string;
   mockupUrl?: string;
+  selectedImageId?: string | null; // Para Canvas products
 }
 
 interface GenerateMockupResponse {
@@ -67,7 +68,8 @@ export default function ProductCanvas({
   selectedPrintifyVariantId,
   allImageAdjustments,
   selectedPhraseText,
-  mockupUrl
+  mockupUrl,
+  selectedImageId
 }: ProductCanvasProps) {
   const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
@@ -146,6 +148,20 @@ export default function ProductCanvas({
           imageAdjustments: selectedProduct.supportsManualAdjustment ? imageAdjustments : undefined,
           selectedPrintifyVariantId: selectedPrintifyVariantId,
         };
+
+        // Para Canvas products, adicionar printifyImageId se disponível
+        if ((selectedProduct.id === 'custom_canvas' || selectedProduct.id === 'framed_canvas')) {
+          if (selectedImageId) {
+            // Usar selectedImageId diretamente se disponível
+            requestBody.printifyImageId = selectedImageId;
+          } else if (userImageUrl) {
+            // Fallback: extrair printifyImageId da URL da imagem
+            const printifyImageIdMatch = userImageUrl.match(/\/([a-f0-9]{24})$/);
+            if (printifyImageIdMatch) {
+              requestBody.printifyImageId = printifyImageIdMatch[1];
+            }
+          }
+        }
       }
 
       const response = await fetch('/api/printify/mockups/generate', {
