@@ -542,8 +542,8 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/poster/poster_horizontal_blank.png',
     basePrice: 15.00,
     category: 'poster',
-    printifyBlueprintId: 480,
-    printifyPrintProviderId: 30,
+    printifyBlueprintId: 1220,
+    printifyPrintProviderId: 105,
     variants: [
       // Apenas variantes horizontais
       { id: 63334, title: '7″ × 5″ (Horizontal)', placeholderWidth: 2100, placeholderHeight: 1500, isGiftPackaging: false, priceAdjustment: 0.00 },
@@ -578,8 +578,8 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/poster/poster_vertical_blank.png',
     basePrice: 15.00,
     category: 'poster',
-    printifyBlueprintId: 480,
-    printifyPrintProviderId: 30,
+    printifyBlueprintId: 1220,
+    printifyPrintProviderId: 105,
     variants: [
       // Apenas variantes verticais
       { id: 63333, title: '5″ × 7″ (Vertical)', placeholderWidth: 1500, placeholderHeight: 2100, isGiftPackaging: false, priceAdjustment: 0.00 },
