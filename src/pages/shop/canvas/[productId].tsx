@@ -1,480 +1,547 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
-import Image from 'next/image';
-import toast from 'react-hot-toast';
-import { ChevronLeft, Upload, Sparkles, ShoppingCart } from 'lucide-react';
+import Head from 'next/head';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Shield, Sparkles, Truck, Award, Check, Upload, RotateCw, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-
-import { PIC_TUZ_PRINTIFY_PRODUCT_MAP, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { toast } from '@/components/ui/sonner';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
+import ProductCanvas from '@/components/printify/ProductCanvas';
+import { ChevronLeft } from 'lucide-react';
+import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
+import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
 
-interface ImageAdjustment {
-  x: number;
-  y: number;
-  scale: number;
-  rotation?: number;
+interface ImageAdjustments {
+  x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
+  y: number;          // Posição Y da imagem dentro da área de impressão (0-1, percentagem)
+  scale: number;      // Zoom (escala, 1 = tamanho original)
+  rotation?: number;  // Rotação em graus (se suportada pelo produto)
+  cropArea?: {        // Área de crop da imagem original
+    x: number;        // X do crop em percentagem da imagem original
+    y: number;        // Y do crop em percentagem da imagem original
+    width: number;    // Largura do crop em percentagem da imagem original
+    height: number;   // Altura do crop em percentagem da imagem original
+  };
 }
 
-const CanvasProductPage = () => {
+interface CanvasDetailPageProps {
+  product: PrintifyProductMapping;
+}
+
+const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialProduct }) => {
   const router = useRouter();
   const { productId } = router.query;
-  // const { addItem } = useCart();
-  const addItem = (item: Omit<import('@/lib/cart/cartTypes').CartItem, 'id' | 'addedAt'>) => CartService.addToCart(item);
-
-  // Estados principais
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
-  const [selectedImageId, setSelectedImageId] = useState<string>('');
-  const [isGeneratingMockup, setIsGeneratingMockup] = useState(false);
-  const [mockupImageUrl, setMockupImageUrl] = useState<string>('');
-  const [userImageNaturalWidth, setUserImageNaturalWidth] = useState<number>(0);
-  const [userImageNaturalHeight, setUserImageNaturalHeight] = useState<number>(0);
+  const { userInfo, session } = useAuth();
   
-  // Estados específicos do Canvas
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
-  const [selectedEdgeType, setSelectedEdgeType] = useState<string>('regular');
-  const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustment>({
-    x: 0.5,
-    y: 0.5,
-    scale: 1.0,
-    rotation: 0,
-  });
+  const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  
+  // Estados para Printify
+  const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
+  const [printifyImageId, setPrintifyImageId] = useState<string>('');
+  const [printifyProductId, setPrintifyProductId] = useState<string>('');
 
-  // Refs
-  const mockupContainerRef = useRef<HTMLDivElement>(null);
-  const userImageRef = useRef<HTMLImageElement>(null);
+  // Estado específico para seleção de variante do canvas
+  const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
 
-  // Buscar produto
-  const product: PrintifyProductMapping | undefined = productId 
-    ? PIC_TUZ_PRINTIFY_PRODUCT_MAP[productId as string] 
-    : undefined;
+  // Estado específico para Canvas - FIXO em "mirror"
+  const [selectedEdgeType] = useState<string>('mirror');
 
-  // Definir variante padrão
+  // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
-    if (product?.variants && product.variants.length > 0 && !selectedVariantId) {
-      setSelectedVariantId(product.variants[0].id);
-    }
-  }, [product, selectedVariantId]);
-
-  // Calcular escala inicial da imagem baseada na variante selecionada
-  useEffect(() => {
-    if (userImageNaturalWidth && userImageNaturalHeight && product && selectedVariantId) {
-      const selectedVariant = product.variants?.find(v => v.id === selectedVariantId);
-      if (selectedVariant) {
-        // Para Canvas, usar 'slice' - a imagem deve preencher a área cortando o excesso
-        const widthRatio = selectedVariant.placeholderWidth / userImageNaturalWidth;
-        const heightRatio = selectedVariant.placeholderHeight / userImageNaturalHeight;
-        const initialScale = Math.max(widthRatio, heightRatio); // Escolher a maior escala para garantir preenchimento
-
-        setImageAdjustments(prev => ({
-          ...prev,
-          scale: initialScale
-        }));
-      }
-    }
-  }, [userImageNaturalWidth, userImageNaturalHeight, product, selectedVariantId]);
-
-  // Handlers
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setSelectedImageUrl(url);
-      setMockupImageUrl(''); // Limpar mockup anterior
-      setSelectedImageId(''); // Limpar ID da Printify
-    }
-  };
-
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    setUserImageNaturalWidth(img.naturalWidth);
-    setUserImageNaturalHeight(img.naturalHeight);
-  };
-
-  const handleUploadToPrintify = async () => {
-    if (!selectedFile) {
-      toast.error('Por favor, selecione uma imagem primeiro');
-      return;
-    }
-
-    const uploadToast = toast.loading('A carregar imagem para a Printify...');
-
-    try {
-      // Converter file para base64
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64Data = e.target?.result as string;
-        const base64Content = base64Data.split(',')[1]; // Remover "data:image/...;base64,"
-
-        const response = await fetch('/api/printify/uploads/image', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            imageBase64: base64Content,
-            fileName: selectedFile.name,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          setSelectedImageId(data.imageId);
-          toast.success('Imagem carregada com sucesso!', { id: uploadToast });
-        } else {
-          throw new Error(data.error || 'Erro no upload');
+    if (!initialProduct && typeof productId === 'string') {
+      const foundProduct = getPrintifyProduct(productId);
+      if (foundProduct && foundProduct.category === 'canvas') {
+        setProduct(foundProduct);
+        if (foundProduct.variants && foundProduct.variants.length > 0) {
+          setSelectedPrintifyVariantId(foundProduct.variants[0].id);
         }
-      };
-
-      reader.readAsDataURL(selectedFile);
-    } catch (error) {
-      console.error('Erro no upload:', error);
-      toast.error('Erro ao carregar imagem', { id: uploadToast });
+      } else {
+        router.push('/shop');
+        toast.error('Produto não encontrado');
+      }
+    } else if (initialProduct) {
+      // Set default variant for initial product
+      if (initialProduct.variants && initialProduct.variants.length > 0) {
+        setSelectedPrintifyVariantId(initialProduct.variants[0].id);
+      }
     }
-  };
+  }, [productId, initialProduct, router]);
 
-  const handleGenerateMockup = async () => {
-    if (!selectedImageUrl || !product || !selectedVariantId || !selectedImageId) {
-      toast.error('Por favor, complete todos os passos necessários');
+  // Reset estados quando a variante muda (mesmo se já há imagem selecionada)
+  useEffect(() => {
+    if (selectedImageUrl && selectedPrintifyVariantId) {
+      // Reset mockups Printify para forçar nova geração quando variante muda
+      setPrintifyPreviewUrls([]);
+      setPrintifyImageId('');
+      setPrintifyProductId('');
+    }
+  }, [selectedPrintifyVariantId]); // Só depende da variante
+
+  // Calcular defaultScale dinâmico e atualizar imageAdjustments
+  useEffect(() => {
+    if (selectedImageUrl && product && selectedPrintifyVariantId) {
+      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+      if (selectedVariant && product.printAreasConfig && product.printAreasConfig.length > 0) {
+        const printAreaConfig = product.printAreasConfig[0]; // Assumindo apenas uma área de impressão para canvas
+
+        // Dimensões da sua arte em pixels
+        const userImageWidth = 1016;
+        const userImageHeight = 1016;
+
+        // Dimensões do placeholder da variante selecionada
+        const placeholderWidth = selectedVariant.placeholderWidth;
+        const placeholderHeight = selectedVariant.placeholderHeight;
+
+        // Calcular defaultScale para 'slice'
+        const initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
+
+        // Define os ajustes iniciais para a imagem - SEMPRE CENTRADO
+        setImageAdjustments({
+          x: 0.5, // SEMPRE centrado horizontalmente
+          y: 0.5, // SEMPRE centrado verticalmente
+          scale: initialScale, // Use o scale calculado
+          rotation: 0 // Sem rotação inicial
+        });
+      }
+    }
+  }, [selectedImageUrl, product, selectedPrintifyVariantId]); // Dependências para re-calcular
+
+  // Função para lidar com os mockups gerados pelo ProductCanvas
+  const handlePreviewReady = useCallback((data: {
+    previewUrls: string[];
+    printifyImageId: string;
+    printifyProductId: string;
+  }) => {
+    setPrintifyPreviewUrls(data.previewUrls);
+    setPrintifyImageId(data.printifyImageId);
+    setPrintifyProductId(data.printifyProductId);
+    console.log('✅ Printify mockups received:', data);
+  }, []);
+
+  const handleAddToCart = async () => {
+    // Mostrar toast se não há arte selecionada
+    if (!selectedImageUrl) {
+      toast.error('Escolha uma arte primeiro para personalizar o seu canvas!');
       return;
     }
 
-    const mockupToast = toast.loading('A gerar mockup...');
-    setIsGeneratingMockup(true);
+    if (!product || !selectedImageId) {
+      toast.error('ID da transformação não encontrado. Selecione a imagem novamente.');
+      return;
+    }
+
+    if (!userInfo) {
+      toast.error('Faça login para adicionar ao carrinho');
+      return;
+    }
+
+    // Validação específica para canvas - variante selecionada
+    if (selectedPrintifyVariantId === null) {
+      toast.error('Por favor, selecione um tamanho e cor (se aplicável).');
+      return;
+    }
+
+    // ✅ NOVO: Validação dos IDs Printify necessários
+    if (!printifyProductId || !printifyImageId) {
+      toast.error('Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.');
+      return;
+    }
+
+    // Usar a variante selecionada pelo usuário
+    const variantIdToSend = selectedPrintifyVariantId;
+    if (!variantIdToSend) {
+      toast.error('ID da variante do produto não encontrado. Contacte o suporte.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      const payload: {
-        productId: string;
-        userImageUrl: string;
-        printifyImageId: string;
-        selectedPrintifyVariantId: number;
-        imageAdjustments: ImageAdjustment;
-        userId: string;
-        printDetails?: { print_on_side: string };
-      } = {
-        productId: product.id,
-        userImageUrl: selectedImageUrl,
-        printifyImageId: selectedImageId,
-        selectedPrintifyVariantId: selectedVariantId,
-        imageAdjustments: imageAdjustments,
-        userId: 'user-canvas-test', // TODO: Usar ID real do utilizador
-      };
-
-      // Adicionar print_details apenas para custom_canvas
-      if (product.id === 'custom_canvas' && selectedEdgeType !== 'off') {
-        payload.printDetails = { print_on_side: selectedEdgeType };
-      }
-
-      const response = await fetch('/api/printify/mockups/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+      // ✅ DEBUG: Log dos valores antes de adicionar ao carrinho
+      console.log('🛒 Adicionando canvas ao carrinho com valores:', {
+        productId: productId as string,
+        printifyProductId,
+        printifyImageId,
+        printifyVariantId: variantIdToSend,
+        selectedImageUrl,
+        selectedImageId
       });
 
-      const data = await response.json();
+      // Extrair cor da moldura se for framed_canvas
+      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+      const frameColor = product.id === 'framed_canvas' && selectedVariant 
+        ? selectedVariant.title.split(' / ')[1] // Ex: "6″ x 6″ / Black" -> "Black"
+        : undefined;
 
-      if (data.success && data.previewUrls && data.previewUrls.length > 0) {
-        setMockupImageUrl(data.previewUrls[0]); // Usar primeiro mockup
-        toast.success('Mockup gerado com sucesso!', { id: mockupToast });
-      } else {
-        throw new Error(data.error || 'Erro na geração do mockup');
-      }
+      // Adicionar item ao carrinho usando o CartService - COM PRINTIFY IDs
+      const cartItem = CartService.addToCart({
+        productId: productId as string,
+        productName: product.name,
+        productCategory: product.category || 'canvas',
+        userImageUrl: selectedImageUrl,
+        userImageId: selectedImageId,
+        price: product.basePrice || product.price || 0,
+        quantity: 1,
+        customizations: {
+          variant: selectedVariant?.title || 'Tamanho não encontrado',
+          ...(product.id === 'custom_canvas' && { canvasEdgeType: selectedEdgeType as 'regular' | 'mirror' | 'off' }),
+          ...(product.id === 'framed_canvas' && frameColor && { frameColor }),
+        },
+        imageAdjustments: imageAdjustments,
+        printifyProductId: printifyProductId,
+        printifyImageId: printifyImageId,
+        printifyVariantId: variantIdToSend,
+      });
+
+      console.log('✅ Item adicionado ao carrinho:', cartItem);
+      toast.success(`${product.name} adicionado ao carrinho!`);
+      router.push('/checkout');
+
     } catch (error) {
-      console.error('Erro no mockup:', error);
-      toast.error('Erro ao gerar mockup', { id: mockupToast });
+      console.error('❌ Erro ao adicionar ao carrinho:', error);
+      toast.error('Erro ao adicionar ao carrinho. Tente novamente.');
     } finally {
-      setIsGeneratingMockup(false);
+      setLoading(false);
     }
   };
 
-  const handleAddToCart = () => {
-    if (!product || !selectedVariantId || !mockupImageUrl || !selectedImageId) {
-      toast.error('Por favor, complete o processo de personalização');
-      return;
-    }
+  const handleOpenGallery = () => {
+    setIsGalleryModalOpen(true);
+  };
 
-    const selectedVariant = product.variants?.find(v => v.id === selectedVariantId);
-    if (!selectedVariant) {
-      toast.error('Variante selecionada não encontrada');
-      return;
-    }
+  const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
+    setSelectedImageUrl(imageUrl);
+    setSelectedImageId(imageId);
+    setIsGalleryModalOpen(false);
+    toast.success('Arte selecionada com sucesso!');
+  };
 
-    const itemPrice = (product.basePrice || 0) + (selectedVariant.priceAdjustment || 0);
+  const handleResetSelection = () => {
+    setSelectedImageUrl('');
+    setSelectedImageId(null);
+    setPrintifyPreviewUrls([]);
+    setPrintifyImageId('');
+    setPrintifyProductId('');
+  };
 
-    // Extrair cor da moldura do título da variante (apenas para framed_canvas)
-    let frameColor: string | undefined;
-    if (product.id === 'framed_canvas') {
-      const colorMatch = selectedVariant.title.match(/(Black|Espresso|White)/);
-      frameColor = colorMatch ? colorMatch[1] : undefined;
-    }
-
-    const cartItem = {
-      productId: product.id,
-      productUid: `canvas-${Date.now()}`, // UID temporário
-      productName: product.name,
-      productCategory: product.category,
-      userImageUrl: selectedImageUrl,
-      printifyImageId: selectedImageId,
-      printifyVariantId: selectedVariantId,
-      price: itemPrice,
-      quantity: 1,
-      customizations: {
-        variantTitle: selectedVariant.title,
-        ...(product.id === 'custom_canvas' && { canvasEdgeType: selectedEdgeType as 'regular' | 'mirror' | 'off' }),
-        ...(product.id === 'framed_canvas' && frameColor && { frameColor }),
-      },
-      imageAdjustments: imageAdjustments,
-    };
-
-    addItem(cartItem);
-    toast.success('Produto adicionado ao carrinho!');
+  const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
+    setImageAdjustments(prev => ({
+      x: prev?.x || 0.5,
+      y: prev?.y || 0.5,
+      scale: prev?.scale || 1,
+      rotation: prev?.rotation || 0,
+      ...adjustments
+    }));
   };
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#FAF8F0] via-[#F5F1E8] to-[#E8E0D0] flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Produto não encontrado</h1>
-          <Button onClick={() => router.push('/shop/canvas')}>
-            Voltar aos Canvas
-          </Button>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#2D5A27] mx-auto mb-4"></div>
+          <p className="text-[#4A6B5B]">A carregar produto...</p>
         </div>
       </div>
     );
   }
 
-  const selectedVariant = product.variants?.find(v => v.id === selectedVariantId);
-  const currentPrice = (product.basePrice || 0) + (selectedVariant?.priceAdjustment || 0);
+  const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+  const finalPrice = (product.basePrice || 0) + (selectedVariant?.priceAdjustment || 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/shop/canvas')}
-            className="flex items-center gap-2 text-purple-600 hover:text-purple-800"
-          >
-            <ChevronLeft className="w-5 h-5" />
-            Voltar aos Canvas
-          </Button>
-        </div>
+    <>
+      <Head>
+        <title>{`${product.name} - Canvas Personalizado | PicTuz`}</title>
+        <meta name="description" content={`Personalize o seu ${product.name} com as suas criações AI. Alta qualidade e entrega rápida.`} />
+      </Head>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Coluna da Esquerda - Visualização */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pré-visualização</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div
-                  ref={mockupContainerRef}
-                  className="relative w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden"
-                >
-                  {isGeneratingMockup ? (
-                    <div className="flex flex-col items-center">
-                      <Sparkles className="w-8 h-8 animate-spin text-purple-600 mb-2" />
-                      <span>A gerar mockup...</span>
+      <div className="min-h-screen bg-gradient-to-br from-[#FAF8F0] via-[#F5F1E8] to-[#E8E0D0]">
+        <Header />
+        
+        <main className="container mx-auto px-4 py-8">
+          {/* Breadcrumb */}
+          <div className="mb-6">
+            <nav className="text-sm text-[#4A6B5B] space-x-2">
+              <Link href="/shop" className="hover:text-[#2D5A27] transition-colors">Loja</Link>
+              <span>›</span>
+              <Link href="/shop/canvas" className="hover:text-[#2D5A27] transition-colors">Canvas</Link>
+              <span>›</span>
+              <span className="text-[#2D5A27] font-medium">{product.name}</span>
+            </nav>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
+            {/* Left Column - Product Image & Canvas */}
+            <div className="space-y-6">
+              {/* Product Preview */}
+              <div className="bg-white rounded-2xl shadow-lg border border-[#E8E0D0] overflow-hidden">
+                <div className="aspect-square bg-gradient-to-br from-[#F5F1E8] to-[#E8E0D0] p-8 flex items-center justify-center">
+                  {selectedImageUrl && printifyPreviewUrls.length > 0 ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <img 
+                        src={printifyPreviewUrls[0]} 
+                        alt="Canvas Preview" 
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                      />
                     </div>
-                  ) : mockupImageUrl ? (
-                    <Image
-                      src={mockupImageUrl}
-                      alt="Mockup do Canvas"
-                      fill
-                      className="object-contain"
-                    />
+                  ) : selectedImageUrl ? (
+                    <div className="text-center space-y-4">
+                      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#2D5A27] mx-auto"></div>
+                      <p className="text-[#4A6B5B]">A gerar preview do canvas...</p>
+                    </div>
                   ) : (
-                    <Image
-                      src={product.mockupInitialPath}
-                      alt="Mockup base"
-                      fill
-                      className="object-contain"
-                    />
+                    <div className="text-center space-y-4">
+                      <div className="w-48 h-48 bg-white rounded-lg border-8 border-[#2D5A27] flex items-center justify-center shadow-lg">
+                        <div className="text-6xl">🎨</div>
+                      </div>
+                      <p className="text-[#4A6B5B]">Selecione uma arte para ver o preview</p>
+                    </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Upload e Controlos */}
-            <Card>
-              <CardContent className="pt-6 space-y-4">
-                <div>
-                  <Label htmlFor="image-upload" className="text-sm font-medium">
-                    1. Selecionar Imagem
-                  </Label>
-                  <Input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="mt-1"
+              {/* ProductCanvas for Printify Generation */}
+              {selectedImageUrl && (
+                <div className="bg-white rounded-2xl shadow-lg border border-[#E8E0D0] p-6">
+                  <h3 className="text-lg font-semibold text-[#2D5A27] mb-4">Ajustar Imagem</h3>
+                  <ProductCanvas
+                    selectedProduct={product}
+                    userImageUrl={selectedImageUrl}
+                    userId={userInfo?.id || 'anonymous'}
+                    selectedPrintifyVariantId={selectedPrintifyVariantId || 0}
+                    imageAdjustments={imageAdjustments}
+                    onImageAdjust={handleImageAdjustmentChange}
+                    onPreviewReady={handlePreviewReady}
+                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
                   />
-                  {selectedFile && (
-                    <p className="text-sm text-gray-600 mt-1">
-                      Selecionado: {selectedFile.name}
-                    </p>
-                  )}
                 </div>
+              )}
+            </div>
 
-                {selectedFile && !selectedImageId && (
-                  <Button 
-                    onClick={handleUploadToPrintify}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    2. Carregar para Printify
-                  </Button>
-                )}
-
-                {selectedImageId && selectedVariantId && (
-                  <Button 
-                    onClick={handleGenerateMockup}
-                    className="w-full"
-                    disabled={isGeneratingMockup}
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    3. Gerar Mockup
-                  </Button>
-                )}
-
-                {/* Imagem oculta para obter dimensões */}
-                {selectedImageUrl && (
-                  <img
-                    ref={userImageRef}
-                    src={selectedImageUrl}
-                    alt="User upload"
-                    style={{ display: 'none' }}
-                    onLoad={handleImageLoad}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Coluna da Direita - Opções */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>{product.name}</CardTitle>
-                <p className="text-gray-600">
-                  Canvas de alta qualidade para decorar o seu espaço
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Seletor de Variantes */}
-                <div>
-                  <Label className="text-sm font-medium">
-                    {product.id === 'framed_canvas' 
-                      ? 'Escolha o Tamanho e a Cor da Moldura:' 
-                      : 'Escolha o Tamanho:'
-                    }
-                  </Label>
-                  <Select 
-                    value={selectedVariantId?.toString() || ''} 
-                    onValueChange={(value) => setSelectedVariantId(Number(value))}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Selecione uma opção" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {product.variants?.map((variant) => {
-                        const variantPrice = (product.basePrice || 0) + (variant.priceAdjustment || 0);
-                        return (
-                          <SelectItem key={variant.id} value={variant.id.toString()}>
-                            {variant.title} - €{variantPrice.toFixed(2)}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Opções de Borda (apenas para custom_canvas) */}
-                {product.id === 'custom_canvas' && product.allowsPrintDetails && (
+            {/* Right Column - Product Details */}
+            <div className="space-y-8">
+              {/* Product Info */}
+              <div className="bg-white rounded-2xl shadow-lg border border-[#E8E0D0] p-8">
+                <div className="flex items-start justify-between mb-6">
                   <div>
-                    <Label className="text-sm font-medium mb-3 block">
-                      Opções de Borda:
-                    </Label>
-                    <RadioGroup value={selectedEdgeType} onValueChange={setSelectedEdgeType}>
-                      {product.printDetailsOptions?.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2">
-                          <RadioGroupItem value={option.value} id={option.value} />
-                          <Label htmlFor={option.value} className="text-sm">
-                            {option.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
+                    <h1 className="text-3xl font-bold text-[#2D5A27] mb-2">{product.name}</h1>
+                    <div className="flex items-center gap-4">
+                      <span className="text-3xl font-bold text-[#2D5A27]">€{finalPrice.toFixed(2)}</span>
+                      <Badge variant="secondary" className="bg-[#B8E6B8] text-[#2D5A27]">
+                        Canvas Premium
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Variant Selection */}
+                {product.variants && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-[#2D5A27] mb-2">
+                      {product.id === 'custom_canvas' ? 'Escolha o Tamanho:' : 'Escolha o Tamanho e a Cor da Moldura:'}
+                    </label>
+                    <Select 
+                      value={selectedPrintifyVariantId?.toString() || ''}
+                      onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={product.id === 'custom_canvas' ? 'Selecione um tamanho' : 'Selecione tamanho e cor'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {product.variants.map((variant) => (
+                          <SelectItem key={variant.id} value={variant.id.toString()}>
+                            <div className="flex justify-between items-center w-full">
+                              <span>{variant.title}</span>
+                              {variant.priceAdjustment > 0 && (
+                                <span className="text-[#4A6B5B] text-sm ml-2">
+                                  +€{variant.priceAdjustment.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
 
-                <Separator />
-
-                {/* Preço */}
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600">
-                    €{currentPrice.toFixed(2)}
-                  </div>
-                  <p className="text-sm text-gray-500">Preço final (IVA incluído)</p>
+                {/* Art Selection */}
+                <div className="mb-8">
+                  <label className="block text-sm font-medium text-[#2D5A27] mb-2">
+                    Escolha a sua Arte:
+                  </label>
+                  
+                  {!selectedImageUrl ? (
+                    <Button 
+                      onClick={handleOpenGallery}
+                      className="w-full bg-[#2D5A27] hover:bg-[#4A6B5B] text-white rounded-xl h-12"
+                    >
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      Escolher da Galeria
+                    </Button>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 p-3 bg-[#B8E6B8] rounded-xl">
+                        <Check className="w-5 h-5 text-[#2D5A27]" />
+                        <span className="text-[#2D5A27] font-medium">Arte selecionada</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={handleOpenGallery}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          Trocar Arte
+                        </Button>
+                        <Button 
+                          onClick={handleResetSelection}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Botão Adicionar ao Carrinho */}
-                <Button
+                {/* Add to Cart */}
+                <Button 
                   onClick={handleAddToCart}
-                  className="w-full"
-                  size="lg"
-                  disabled={!mockupImageUrl || !selectedVariantId || isGeneratingMockup}
+                  disabled={!selectedImageUrl || loading || !selectedPrintifyVariantId}
+                  className="w-full bg-[#2D5A27] hover:bg-[#4A6B5B] text-white rounded-xl h-14 text-lg font-semibold"
                 >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Adicionar ao Carrinho
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      A adicionar...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span>Adicionar ao Carrinho - €{finalPrice.toFixed(2)}</span>
+                    </div>
+                  )}
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Informações do Produto */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Características</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
-                    Impressão de alta qualidade
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
-                    Canvas premium esticado
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
-                    Cores vibrantes e duradouras
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
-                    Pronto a pendurar
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+              {/* Product Features */}
+              <div className="bg-white rounded-2xl shadow-lg border border-[#E8E0D0] p-8">
+                <h3 className="text-xl font-semibold text-[#2D5A27] mb-6">Características do Produto</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#B8E6B8] rounded-lg flex items-center justify-center">
+                      <span className="text-xl">🎨</span>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-[#2D5A27]">Impressão de Alta Qualidade</h4>
+                      <p className="text-sm text-[#4A6B5B]">Cores vibrantes e duradouras</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#B8E6B8] rounded-lg flex items-center justify-center">
+                      <span className="text-xl">📏</span>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-[#2D5A27]">Vários Tamanhos</h4>
+                      <p className="text-sm text-[#4A6B5B]">Desde 6"×6" até 18"×18"</p>
+                    </div>
+                  </div>
+
+                  {product.id === 'custom_canvas' && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[#B8E6B8] rounded-lg flex items-center justify-center">
+                        <span className="text-xl">🖼️</span>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-[#2D5A27]">Borda Espelhada</h4>
+                        <p className="text-sm text-[#4A6B5B]">Impressão nas bordas para efeito contínuo</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {product.id === 'framed_canvas' && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[#B8E6B8] rounded-lg flex items-center justify-center">
+                        <span className="text-xl">🖼️</span>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-[#2D5A27]">Moldura Incluída</h4>
+                        <p className="text-sm text-[#4A6B5B]">Escolha entre Black, Espresso ou White</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#B8E6B8] rounded-lg flex items-center justify-center">
+                      <Truck className="w-5 h-5 text-[#2D5A27]" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-[#2D5A27]">Entrega Rápida</h4>
+                      <p className="text-sm text-[#4A6B5B]">Produção e envio em 3-5 dias úteis</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </main>
+        
+        <Footer />
       </div>
-    </div>
+
+      {/* Gallery Modal */}
+      <TransformationGalleryModal
+        isOpen={isGalleryModalOpen}
+        onClose={() => setIsGalleryModalOpen(false)}
+        onSelectImage={handleSelectImageFromGallery}
+      />
+    </>
   );
 };
 
-export default CanvasProductPage; 
+export const getStaticPaths: GetStaticPaths = async () => {
+  const canvasProducts = getPrintifyProductsByCategory('canvas');
+  const productIds = Object.keys(canvasProducts);
+  
+  const paths = productIds.map((productId) => ({
+    params: { productId }
+  }));
+
+  return {
+    paths,
+    fallback: false
+  };
+};
+
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const productId = params?.productId as string;
+  const product = getPrintifyProduct(productId);
+  
+  if (!product || product.category !== 'canvas') {
+    return {
+      notFound: true
+    };
+  }
+
+  return {
+    props: {
+      product
+    }
+  };
+};
+
+export default CanvasDetailPage; 

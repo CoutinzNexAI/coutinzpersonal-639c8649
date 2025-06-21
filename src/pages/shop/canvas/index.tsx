@@ -1,119 +1,155 @@
 import React from 'react';
+import Head from 'next/head';
 import Link from 'next/link';
-import Image from 'next/image';
-import { ChevronLeft } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PIC_TUZ_PRINTIFY_PRODUCT_MAP } from '@/lib/printify/printifyProducts';
+import { motion } from 'framer-motion';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { getPrintifyProductsByCategory } from '@/lib/printify/printifyProducts';
 
-const CanvasCategoryPage = () => {
-  const canvasProducts = [
-    PIC_TUZ_PRINTIFY_PRODUCT_MAP['custom_canvas'],
-    PIC_TUZ_PRINTIFY_PRODUCT_MAP['framed_canvas']
-  ];
+const CanvasShopPage: React.FC = () => {
+  const canvasProducts = getPrintifyProductsByCategory('canvas');
+  const productIds = Object.keys(canvasProducts);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link 
-            href="/shop" 
-            className="flex items-center gap-2 text-purple-600 hover:text-purple-800 transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-            Voltar para a Loja
-          </Link>
-        </div>
+    <>
+      <Head>
+        <title>Canvas Personalizados - Loja PicTuz</title>
+        <meta name="description" content="Transforme as suas criações AI em canvas únicos. Canvas sem borda e com moldura personalizada." />
+        <meta name="keywords" content="canvas personalizado, quadros personalizados, impressão canvas, decoração personalizada" />
+      </Head>
 
-        {/* Title */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Nossos Canvas</h1>
-          <p className="text-gray-600 text-lg">
-            Transforme as suas fotos em arte decorativa de alta qualidade
-          </p>
-        </div>
-
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {canvasProducts.map((product) => (
-            <Link key={product.id} href={`/shop/canvas/${product.id}`}>
-              <Card className="hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
-                <CardHeader>
-                  <div className="relative w-full h-64 mb-4 rounded-lg overflow-hidden">
-                    <Image
-                      src={product.mockupInitialPath}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                      onError={(e) => {
-                        // Fallback para uma imagem placeholder se o mockup não existir
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/placeholder.svg';
-                      }}
-                    />
-                  </div>
-                  <CardTitle className="text-xl font-semibold text-gray-800">
-                    {product.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-2xl font-bold text-purple-600">
-                        A partir de €{product.basePrice?.toFixed(2)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {product.variants?.length} tamanhos disponíveis
-                      </p>
-                    </div>
-                    <div className="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium">
-                      {product.id === 'custom_canvas' ? 'Sem Moldura' : 'Com Moldura'}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-
-        {/* Features Section */}
-        <div className="mt-16 bg-white rounded-xl p-8 shadow-lg">
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
-            Por que escolher os nossos Canvas?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🎨</span>
-              </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Alta Qualidade</h3>
-              <p className="text-gray-600 text-sm">
-                Impressão profissional em canvas de alta qualidade com cores vibrantes
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📏</span>
-              </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Vários Tamanhos</h3>
-              <p className="text-gray-600 text-sm">
-                Desde 10"x10" até 18"x18", encontre o tamanho perfeito para o seu espaço
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🚚</span>
-              </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Entrega Rápida</h3>
-              <p className="text-gray-600 text-sm">
-                Produção e entrega rápida para que possa decorar o seu espaço em breve
-              </p>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-[#FAF8F0] via-[#F5F1E8] to-[#E8E0D0]">
+        <Header />
+        
+        <main className="container mx-auto px-4 py-12 md:py-16">
+          {/* Breadcrumb simplificado */}
+          <div className="mb-8">
+            <nav className="text-sm text-[#4A6B5B]">
+              <Link href="/shop" className="hover:text-[#2D5A27] transition-colors">
+                ← Voltar à Loja
+              </Link>
+            </nav>
           </div>
-        </div>
+
+          {/* Header */}
+          <div className="text-center mb-12">
+            <motion.h1 
+              className="text-3xl md:text-5xl font-bold text-[#2D5A27] mb-4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              🖼️ Canvas Personalizados
+            </motion.h1>
+            <motion.p 
+              className="text-lg text-[#4A6B5B] max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              Decore os seus espaços com arte única feita com as suas criações AI
+            </motion.p>
+          </div>
+
+          {/* Products Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {productIds.map((productId, index) => {
+              const product = canvasProducts[productId];
+              
+              return (
+                <motion.div
+                  key={productId}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                >
+                  <Link href={`/shop/canvas/${productId}`}>
+                    <div className="group bg-white rounded-2xl shadow-lg border border-[#E8E0D0] overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                      {/* Product Image */}
+                      <div className="aspect-square bg-gradient-to-br from-[#F5F1E8] to-[#E8E0D0] p-8 flex items-center justify-center relative">
+                        <div className="w-32 h-32 bg-white rounded-lg border-8 border-[#2D5A27] flex items-center justify-center relative shadow-lg">
+                          <div className="text-4xl">🎨</div>
+                          {/* Print area preview */}
+                          <div className="absolute inset-2 bg-gray-100 rounded flex items-center justify-center">
+                            <div className="text-xs text-gray-500">Arte</div>
+                          </div>
+                          {/* Frame for framed canvas */}
+                          {productId === 'framed_canvas' && (
+                            <div className="absolute inset-0 border-4 border-amber-800 rounded-lg"></div>
+                          )}
+                        </div>
+                        {/* Preview Badge */}
+                        <div className="absolute top-4 right-4 bg-[#2D5A27] text-white text-xs px-2 py-1 rounded-full">
+                          Preview
+                        </div>
+                      </div>
+                      
+                      {/* Product Info */}
+                      <div className="p-6">
+                        <h3 className="text-lg font-semibold text-[#2D5A27] mb-2 group-hover:text-[#4A6B5B] transition-colors">
+                          {product.name}
+                        </h3>
+                        
+                        {/* Specifications */}
+                        <div className="text-sm text-[#4A6B5B] space-y-1 mb-4">
+                          <div>🎨 Impressão de alta qualidade</div>
+                          <div>📏 {product.variants?.length || 0} tamanhos disponíveis</div>
+                          <div>✨ Cores vibrantes e duradouras</div>
+                          {productId === 'custom_canvas' && <div>🖼️ Opções de borda espelhada</div>}
+                          {productId === 'framed_canvas' && <div>🖼️ Moldura incluída</div>}
+                        </div>
+                        
+                        {/* Price */}
+                        <div className="flex items-center justify-between">
+                          <div className="text-lg font-bold text-[#2D5A27]">
+                            {product.basePrice ? `€${product.basePrice}` : `€${product.price || 20.00}`}
+                          </div>
+                          <div className="text-xs text-[#4A6B5B]/70">
+                            + envio
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Info Section */}
+          <motion.div 
+            className="mt-16 bg-white/80 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto border border-[#E8E0D0]"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            <h2 className="text-2xl font-semibold text-[#2D5A27] mb-6 text-center">
+              ✨ Porquê Escolher Canvas PicTuz?
+            </h2>
+            <div className="grid md:grid-cols-3 gap-6 text-sm text-[#4A6B5B]">
+              <div className="text-center">
+                <div className="text-3xl mb-3">🎨</div>
+                <h3 className="font-semibold mb-2">Qualidade Premium</h3>
+                <p>Canvas de alta qualidade com impressão durável e cores vibrantes</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl mb-3">🖼️</div>
+                <h3 className="font-semibold mb-2">Opções Versáteis</h3>
+                <p>Escolha entre canvas sem borda ou com moldura elegante</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl mb-3">⚡</div>
+                <h3 className="font-semibold mb-2">Pronto a Pendurar</h3>
+                <p>Entregue pronto para decorar imediatamente o seu espaço</p>
+              </div>
+            </div>
+          </motion.div>
+        </main>
+        
+        <Footer />
       </div>
-    </div>
+    </>
   );
 };
 
-export default CanvasCategoryPage; 
+export default CanvasShopPage; 
