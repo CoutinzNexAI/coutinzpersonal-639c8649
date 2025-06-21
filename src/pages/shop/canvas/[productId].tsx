@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'react-hot-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
 import { ChevronLeft } from 'lucide-react';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
@@ -41,12 +42,11 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   const { userInfo, session } = useAuth();
   
   const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
-  // IMAGEM JÁ PROCESSADA - vem do programa anterior
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('https://images.printify.com/5e16d66791287a0006e522b2');
-  const [selectedImageId, setSelectedImageId] = useState<string>('5e16d66791287a0006e522b2');
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
-  // Modal de galeria removido - imagem já vem processada
+  const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   
   // Estados para Printify
   const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
@@ -218,8 +218,24 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
     }
   };
 
-  // Funções removidas: handleOpenGallery, handleSelectImageFromGallery, handleResetSelection
-  // A imagem já vem processada do programa anterior
+  const handleOpenGallery = () => {
+    setIsGalleryModalOpen(true);
+  };
+
+  const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
+    setSelectedImageUrl(imageUrl);
+    setSelectedImageId(imageId);
+    setIsGalleryModalOpen(false);
+    toast.success('Arte selecionada com sucesso!');
+  };
+
+  const handleResetSelection = () => {
+    setSelectedImageUrl('');
+    setSelectedImageId(null);
+    setPrintifyPreviewUrls([]);
+    setPrintifyImageId('');
+    setPrintifyProductId('');
+  };
 
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
     setImageAdjustments(prev => ({
@@ -267,204 +283,253 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
             </nav>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
-            {/* Left Column - Product Image & Canvas */}
-            <div className="space-y-6">
-              {/* Product Preview */}
-              <div className="bg-white rounded-2xl shadow-lg border border-[#E8E0D0] overflow-hidden">
-                <div className="aspect-square bg-gradient-to-br from-[#F5F1E8] to-[#E8E0D0] p-8 flex items-center justify-center">
-                  {selectedImageUrl && printifyPreviewUrls.length > 0 ? (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <img 
-                        src={printifyPreviewUrls[0]} 
-                        alt="Canvas Preview" 
-                        className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
-                      />
-                    </div>
-                  ) : selectedImageUrl ? (
-                    <div className="text-center space-y-4">
-                      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#2D5A27] mx-auto"></div>
-                      <p className="text-[#4A6B5B]">A gerar preview do canvas...</p>
-                    </div>
-                  ) : (
-                    <div className="text-center space-y-4">
-                      <div className="w-48 h-48 bg-white rounded-lg border-8 border-[#2D5A27] flex items-center justify-center shadow-lg">
-                        <div className="text-6xl">🎨</div>
-                      </div>
-                      <p className="text-[#4A6B5B]">Selecione uma arte para ver o preview</p>
-                    </div>
-                  )}
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Coluna da Esquerda - Área Maximizada de Visualização (2 colunas) */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-2"
+            >
+              {/* Área Principal de Visualização OTIMIZADA - Mais Alta */}
+              <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-[#E8E0D0]">
+                <ProductCanvas
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady}
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                />
               </div>
 
-              {/* ProductCanvas for Printify Generation */}
-              {selectedImageUrl && (
-                <div className="bg-white rounded-2xl shadow-lg border border-[#E8E0D0] p-6">
-                  <h3 className="text-lg font-semibold text-[#2D5A27] mb-4">Ajustar Imagem</h3>
-                  <ProductCanvas
-                    selectedProduct={product}
-                    userImageUrl={selectedImageUrl}
-                    userId={userInfo?.id || 'anonymous'}
-                    selectedPrintifyVariantId={selectedPrintifyVariantId || 0}
-                    imageAdjustments={imageAdjustments}
-                    onImageAdjust={handleImageAdjustmentChange}
-                    onPreviewReady={handlePreviewReady}
-                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  />
-                </div>
-              )}
-            </div>
+              {/* Botão "Escolher Arte" SEMPRE VISÍVEL - CTA Principal */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="flex justify-center"
+              >
+                <Button
+                  onClick={handleOpenGallery}
+                  size="lg"
+                  disabled={!userInfo}
+                  className={`px-12 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                    userInfo 
+                      ? 'bg-gradient-to-r from-[#2D5A27] to-[#2D5A27]/90 hover:from-[#2D5A27]/90 hover:to-[#2D5A27] text-white' 
+                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  <Sparkles className="w-5 h-5 mr-3" />
+                  {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
+                </Button>
+              </motion.div>
 
-            {/* Right Column - Product Details */}
-            <div className="space-y-8">
-              {/* Product Info */}
-              <div className="bg-white rounded-2xl shadow-lg border border-[#E8E0D0] p-8">
-                <div className="flex items-start justify-between mb-6">
+              {/* Prompt de Login (apenas se não autenticado) */}
+              {!userInfo && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                  className="mt-4 flex justify-center"
+                >
+                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm max-w-md">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-blue-800 text-sm mb-3">
+                        Faça login para personalizar este canvas com as suas criações AI
+                      </p>
+                      <Button
+                        onClick={() => router.push('/')}
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                      >
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </motion.div>
+
+            {/* PAINEL DE CONTROLO UNIFICADO - Coluna da Direita */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="lg:col-span-1"
+            >
+              {/* CARTÃO PRINCIPAL - Painel de Controlo Único */}
+              <Card className="bg-gradient-to-br from-white to-[#F5F1E8]/30 backdrop-blur-sm border-[#E8E0D0]/30 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+                <CardContent className="p-8 space-y-6">
+                  {/* 1. TÍTULO */}
                   <div>
-                    <h1 className="text-3xl font-bold text-[#2D5A27] mb-2">{product.name}</h1>
-                    <div className="flex items-center gap-4">
-                      <span className="text-3xl font-bold text-[#2D5A27]">€{finalPrice.toFixed(2)}</span>
-                      <Badge variant="secondary" className="bg-[#B8E6B8] text-[#2D5A27]">
-                        Canvas Premium
-                      </Badge>
+                    <h1 className="text-3xl font-bold text-[#2D5A27] mb-2">
+                      {product.name}
+                    </h1>
+                  </div>
+
+                  {/* 2. PREÇO */}
+                  <div className="bg-gradient-to-r from-[#2D5A27]/10 to-[#2D5A27]/5 rounded-xl p-4 border-l-4 border-[#2D5A27]">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl font-black text-[#2D5A27] drop-shadow-sm">
+                        €{finalPrice.toFixed(2)}
+                      </span>
+                      <span className="text-sm text-[#4A6B5B]/70 font-medium">
+                        IVA incluído
+                      </span>
                     </div>
                   </div>
-                </div>
 
-                {/* Variant Selection */}
-                {product.variants && (
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-[#2D5A27] mb-2">
-                      {product.id === 'custom_canvas' ? 'Escolha o Tamanho:' : 'Escolha o Tamanho e a Cor da Moldura:'}
+                  {/* 3. INCENTIVO DE VENDA - NOVO */}
+                  <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                    <div className="flex items-center gap-2 text-green-700">
+                      <Truck className="w-4 h-4" />
+                      <span className="text-sm font-semibold">
+                        🚚 Entrega gratuita em encomendas &gt; €50
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 4. DESCRIÇÃO */}
+                  <div>
+                    <p className="text-sm text-[#4A6B5B]/80 leading-relaxed">
+                      Transforme a sua arte AI num canvas de alta qualidade! Impressão premium com cores vibrantes e duradouras, perfeito para decorar qualquer espaço.
+                    </p>
+                  </div>
+
+                  {/* 5. SELETOR DE VARIANTE */}
+                  <div>
+                    <label className="block text-sm font-bold text-[#2D5A27] mb-3 flex items-center gap-2">
+                      <ChevronDown className="w-4 h-4 text-[#2D5A27]" />
+                      {product.id === 'custom_canvas' ? 'Tamanho do Canvas' : 'Tamanho e Cor da Moldura'}
                     </label>
-                    <Select 
-                      value={selectedPrintifyVariantId?.toString() || ''}
+                    <Select
                       onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
+                      value={selectedPrintifyVariantId?.toString() || ''}
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={product.id === 'custom_canvas' ? 'Selecione um tamanho' : 'Selecione tamanho e cor'} />
+                      <SelectTrigger className="w-full bg-white border-2 border-[#E8E0D0]/60 text-[#2D5A27] h-14 shadow-sm hover:border-[#2D5A27]/50 focus:border-[#2D5A27] transition-colors duration-200 font-medium">
+                        <SelectValue placeholder={product.id === 'custom_canvas' ? 'Selecione um tamanho' : 'Selecione tamanho e cor'}>
+                          {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Selecione uma opção'}
+                        </SelectValue>
                       </SelectTrigger>
-                      <SelectContent>
-                        {product.variants.map((variant) => (
-                          <SelectItem key={variant.id} value={variant.id.toString()}>
-                            <div className="flex justify-between items-center w-full">
-                              <span>{variant.title}</span>
-                              {variant.priceAdjustment > 0 && (
-                                <span className="text-[#4A6B5B] text-sm ml-2">
-                                  +€{variant.priceAdjustment.toFixed(2)}
-                                </span>
-                              )}
-                            </div>
+                      <SelectContent className="bg-white text-[#2D5A27] border-[#E8E0D0] max-h-60 shadow-xl">
+                        {product.variants?.map((variant) => (
+                          <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-[#F5F1E8]/50">
+                            {variant.title}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                )}
 
-                {/* Art Status - Imagem já processada */}
-                <div className="mb-8">
-                  <label className="block text-sm font-medium text-[#2D5A27] mb-2">
-                    Arte Personalizada:
-                  </label>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-[#B8E6B8] rounded-xl">
-                      <Check className="w-5 h-5 text-[#2D5A27]" />
-                      <span className="text-[#2D5A27] font-medium">Arte carregada e pronta</span>
-                    </div>
-                    <div className="text-sm text-[#4A6B5B] p-3 bg-gray-50 rounded-xl">
-                      <span className="font-medium">📝 Nota:</span> A sua arte personalizada já foi processada e está pronta para impressão no canvas.
+                  {/* 6. BLOCO DE AÇÕES - LÓGICA CONDICIONAL */}
+                  <div className="pt-4">
+                    {/* BOTÃO PRINCIPAL - Estado Condicional */}
+                    <Button
+                      onClick={handleAddToCart}
+                      disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId || !userInfo}
+                      className={`w-full py-5 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform ${
+                        selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo
+                          ? 'hover:scale-[1.02] bg-gradient-to-r from-[#2D5A27] via-[#2D5A27] to-[#2D5A27]/90 hover:from-[#2D5A27]/90 hover:via-[#2D5A27] hover:to-[#2D5A27] text-white border-0' 
+                          : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                      }`}
+                      size="lg"
+                    >
+                      {loading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
+                          A adicionar...
+                        </>
+                      ) : !userInfo ? (
+                        'Faça Login para Continuar'
+                      ) : !selectedImageUrl ? (
+                        'Escolha uma Arte Primeiro'
+                      ) : !selectedPrintifyVariantId ? (
+                        'Selecione o Tamanho'
+                      ) : (!printifyProductId || !printifyImageId) ? (
+                        <>
+                          <RotateCw className="w-5 h-5 mr-3 animate-spin" />
+                          A gerar preview...
+                        </>
+                      ) : (
+                        <>
+                          <span className="mr-2">🛒</span>
+                          Adicionar ao Carrinho - €{finalPrice.toFixed(2)}
+                        </>
+                      )}
+                    </Button>
+
+                    {/* Informação Extra sobre Arte Selecionada */}
+                    {selectedImageUrl && (
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={selectedImageUrl}
+                            alt="Arte selecionada"
+                            className="w-12 h-12 rounded-lg object-cover border border-green-300"
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-green-800">
+                              ✅ Arte selecionada
+                            </p>
+                            <p className="text-xs text-green-600">
+                              Transformação AI aplicada
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={handleResetSelection}
+                            variant="outline"
+                            className="text-xs border-green-300 text-green-700 hover:bg-green-100"
+                          >
+                            Trocar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 7. BLOCO DE CONFIANÇA (Garantias) */}
+                  <div className="pt-6 border-t border-[#E8E0D0]/30">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gradient-to-br from-[#F5F1E8]/60 to-[#F5F1E8]/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                        <Shield className="w-6 h-6 text-[#2D5A27] mx-auto mb-2 drop-shadow-sm" />
+                        <span className="text-xs font-bold text-[#2D5A27]">Qualidade Premium</span>
+                      </div>
+                      <div className="bg-gradient-to-br from-[#F5F1E8]/60 to-[#F5F1E8]/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                        <Sparkles className="w-6 h-6 text-[#2D5A27] mx-auto mb-2 drop-shadow-sm" />
+                        <span className="text-xs font-bold text-[#2D5A27]">Impressão HD</span>
+                      </div>
+                      <div className="bg-gradient-to-br from-[#F5F1E8]/60 to-[#F5F1E8]/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                        <Truck className="w-6 h-6 text-[#2D5A27] mx-auto mb-2 drop-shadow-sm" />
+                        <span className="text-xs font-bold text-[#2D5A27]">Entrega 3-5d</span>
+                      </div>
+                      <div className="bg-gradient-to-br from-[#F5F1E8]/60 to-[#F5F1E8]/30 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-sm">
+                        <Award className="w-6 h-6 text-[#2D5A27] mx-auto mb-2 drop-shadow-sm" />
+                        <span className="text-xs font-bold text-[#2D5A27]">30d Garantia</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-                {/* Add to Cart */}
-                <Button 
-                  onClick={handleAddToCart}
-                  disabled={!selectedImageUrl || loading || !selectedPrintifyVariantId}
-                  className="w-full bg-[#2D5A27] hover:bg-[#4A6B5B] text-white rounded-xl h-14 text-lg font-semibold"
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      A adicionar...
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span>Adicionar ao Carrinho - €{finalPrice.toFixed(2)}</span>
-                    </div>
-                  )}
-                </Button>
-              </div>
-
-              {/* Product Features */}
-              <div className="bg-white rounded-2xl shadow-lg border border-[#E8E0D0] p-8">
-                <h3 className="text-xl font-semibold text-[#2D5A27] mb-6">Características do Produto</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#B8E6B8] rounded-lg flex items-center justify-center">
-                      <span className="text-xl">🎨</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-[#2D5A27]">Impressão de Alta Qualidade</h4>
-                      <p className="text-sm text-[#4A6B5B]">Cores vibrantes e duradouras</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#B8E6B8] rounded-lg flex items-center justify-center">
-                      <span className="text-xl">📏</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-[#2D5A27]">Vários Tamanhos</h4>
-                      <p className="text-sm text-[#4A6B5B]">Desde 6"×6" até 18"×18"</p>
-                    </div>
-                  </div>
-
-                  {product.id === 'custom_canvas' && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#B8E6B8] rounded-lg flex items-center justify-center">
-                        <span className="text-xl">🖼️</span>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-[#2D5A27]">Borda Espelhada</h4>
-                        <p className="text-sm text-[#4A6B5B]">Impressão nas bordas para efeito contínuo</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {product.id === 'framed_canvas' && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#B8E6B8] rounded-lg flex items-center justify-center">
-                        <span className="text-xl">🖼️</span>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-[#2D5A27]">Moldura Incluída</h4>
-                        <p className="text-sm text-[#4A6B5B]">Escolha entre Black, Espresso ou White</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#B8E6B8] rounded-lg flex items-center justify-center">
-                      <Truck className="w-5 h-5 text-[#2D5A27]" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-[#2D5A27]">Entrega Rápida</h4>
-                      <p className="text-sm text-[#4A6B5B]">Produção e envio em 3-5 dias úteis</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </main>
-        
+
         <Footer />
       </div>
 
-      {/* Gallery Modal removido - imagem já vem processada */}
+      {/* Modal de Galeria de Transformações */}
+      <TransformationGalleryModal
+        isOpen={isGalleryModalOpen}
+        onClose={() => setIsGalleryModalOpen(false)}
+        onSelectImage={handleSelectImageFromGallery}
+      />
     </>
   );
 };
