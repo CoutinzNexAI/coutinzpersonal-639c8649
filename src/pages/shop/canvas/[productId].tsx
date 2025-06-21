@@ -4,15 +4,14 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, Check, Upload, RotateCw, ChevronDown } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, Check, RotateCw, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'react-hot-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
 import { ChevronLeft } from 'lucide-react';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
@@ -42,11 +41,12 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   const { userInfo, session } = useAuth();
   
   const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  // IMAGEM JÁ PROCESSADA - vem do programa anterior
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('https://images.printify.com/5e16d66791287a0006e522b2');
+  const [selectedImageId, setSelectedImageId] = useState<string>('5e16d66791287a0006e522b2');
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
-  const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  // Modal de galeria removido - imagem já vem processada
   
   // Estados para Printify
   const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
@@ -138,8 +138,8 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
       return;
     }
 
-    if (!product || !selectedImageId) {
-      toast.error('ID da transformação não encontrado. Selecione a imagem novamente.');
+    if (!product) {
+      toast.error('Produto não encontrado.');
       return;
     }
 
@@ -192,7 +192,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         productName: product.name,
         productCategory: product.category || 'canvas',
         userImageUrl: selectedImageUrl,
-        userImageId: selectedImageId,
+        userImageId: selectedImageId, // ID da imagem já processada
         price: product.basePrice || product.price || 0,
         quantity: 1,
         customizations: {
@@ -218,24 +218,8 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
     }
   };
 
-  const handleOpenGallery = () => {
-    setIsGalleryModalOpen(true);
-  };
-
-  const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
-    setSelectedImageUrl(imageUrl);
-    setSelectedImageId(imageId);
-    setIsGalleryModalOpen(false);
-    toast.success('Arte selecionada com sucesso!');
-  };
-
-  const handleResetSelection = () => {
-    setSelectedImageUrl('');
-    setSelectedImageId(null);
-    setPrintifyPreviewUrls([]);
-    setPrintifyImageId('');
-    setPrintifyProductId('');
-  };
+  // Funções removidas: handleOpenGallery, handleSelectImageFromGallery, handleResetSelection
+  // A imagem já vem processada do programa anterior
 
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
     setImageAdjustments(prev => ({
@@ -378,44 +362,21 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                   </div>
                 )}
 
-                {/* Art Selection */}
+                {/* Art Status - Imagem já processada */}
                 <div className="mb-8">
                   <label className="block text-sm font-medium text-[#2D5A27] mb-2">
-                    Escolha a sua Arte:
+                    Arte Personalizada:
                   </label>
                   
-                  {!selectedImageUrl ? (
-                    <Button 
-                      onClick={handleOpenGallery}
-                      className="w-full bg-[#2D5A27] hover:bg-[#4A6B5B] text-white rounded-xl h-12"
-                    >
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      Escolher da Galeria
-                    </Button>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 p-3 bg-[#B8E6B8] rounded-xl">
-                        <Check className="w-5 h-5 text-[#2D5A27]" />
-                        <span className="text-[#2D5A27] font-medium">Arte selecionada</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          onClick={handleOpenGallery}
-                          variant="outline"
-                          className="flex-1"
-                        >
-                          Trocar Arte
-                        </Button>
-                        <Button 
-                          onClick={handleResetSelection}
-                          variant="outline"
-                          className="flex-1"
-                        >
-                          Remover
-                        </Button>
-                      </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-[#B8E6B8] rounded-xl">
+                      <Check className="w-5 h-5 text-[#2D5A27]" />
+                      <span className="text-[#2D5A27] font-medium">Arte carregada e pronta</span>
                     </div>
-                  )}
+                    <div className="text-sm text-[#4A6B5B] p-3 bg-gray-50 rounded-xl">
+                      <span className="font-medium">📝 Nota:</span> A sua arte personalizada já foi processada e está pronta para impressão no canvas.
+                    </div>
+                  </div>
                 </div>
 
                 {/* Add to Cart */}
@@ -503,12 +464,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         <Footer />
       </div>
 
-      {/* Gallery Modal */}
-      <TransformationGalleryModal
-        isOpen={isGalleryModalOpen}
-        onClose={() => setIsGalleryModalOpen(false)}
-        onSelectImage={handleSelectImageFromGallery}
-      />
+      {/* Gallery Modal removido - imagem já vem processada */}
     </>
   );
 };

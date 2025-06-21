@@ -540,9 +540,10 @@ export default async function handler(
       // LÓGICA ESPECÍFICA PARA CANVAS
       console.log(`🔄 Processing Canvas product: ${productId}`);
 
-      if (!printifyImageId) {
-        throw new Error('printifyImageId is required for Canvas products');
-      }
+      // REMOVIDO: printifyImageId agora vem garantido do frontend
+      // if (!printifyImageId) {
+      //   throw new Error('printifyImageId is required for Canvas products');
+      // }
 
       const printAreaConfig = product.printAreasConfig?.[0];
       if (!printAreaConfig) {
