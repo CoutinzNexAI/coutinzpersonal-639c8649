@@ -486,41 +486,49 @@ export default async function handler(
 
       // PASSO 5: Polling dos mockups
       console.log('🔄 Polling for youth hoodie mockups...');
-      let finalPreviewUrls: string[] = [];
       const maxAttempts = 15;
       const delayMs = 10000; // Aumentar para dar tempo à Printify para gerar mockups complexos
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         console.log(`🔄 Attempt ${attempt}/${maxAttempts}: Checking mockup status...`);
         
-        const productResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
+        const productDetails = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
         
-        if (productResponse && productResponse.images && productResponse.images.length > 0) {
-          finalPreviewUrls = productResponse.images
+        if (productDetails && productDetails.images && productDetails.images.length > 0) {
+          console.log('--- DEBUG: Resposta COMPLETA de productDetails.images da Printify ---');
+          console.log(JSON.stringify(productDetails.images, null, 2));
+          console.log('--- FIM DEBUG ---');
+          
+          const previewUrls = productDetails.images
             .filter((img: { is_default: boolean }) => img.is_default)
             .map((img: { src: string }) => img.src);
           
-          if (finalPreviewUrls.length > 0) {
-            console.log(`✅ Mockups ready! Found ${finalPreviewUrls.length} preview(s)`);
-            break;
+          if (previewUrls.length > 0) {
+            console.log(`✅ Mockups ready! Found ${previewUrls.length} preview(s)`);
+            // RETORNA IMEDIATAMENTE quando mockups estão prontos
+            return res.status(200).json({
+              success: true,
+              previewUrls: previewUrls,
+              printifyProductId: createdPrintifyProductId,
+              customerPrintifyImageId: customerPrintifyImageId,
+              dynamicPhrasePrintifyImageId: dynamicPhrasePrintifyImageId
+            });
           }
         }
         
+        // Se não houver imagens ainda, espera ANTES da próxima tentativa
         if (attempt < maxAttempts) {
           console.log(`⏳ Mockups not ready yet, waiting ${delayMs}ms...`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       }
 
-      if (finalPreviewUrls.length === 0) {
-        console.log('⚠️ No mockups generated within timeout, but product was created successfully');
-        finalPreviewUrls = [product.mockupInitialPath]; // Fallback para mockup inicial
-      }
-
-      // Retorna resposta específica para sweat de criança
+      // Se o loop terminar sem encontrar mockups, retorna um fallback
+      console.warn(`⚠️ Polling falhou após ${maxAttempts} tentativas. Nenhum mockup encontrado.`);
       return res.status(200).json({
-        success: true,
-        previewUrls: finalPreviewUrls,
+        success: false,
+        error: 'Tempo limite atingido para geração de mockups. Tente novamente mais tarde.',
+        previewUrls: [product.mockupInitialPath], // Fallback para mockup inicial
         printifyProductId: createdPrintifyProductId,
         customerPrintifyImageId: customerPrintifyImageId,
         dynamicPhrasePrintifyImageId: dynamicPhrasePrintifyImageId
