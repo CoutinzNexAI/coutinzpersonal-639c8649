@@ -436,7 +436,7 @@ export default async function handler(
               position: 'front',
               images: [{
                 id: logoImageId, // ID fixo do logo
-                x: 0.5,
+                x: 1,
                 y: 0.25, // Posicionar mais para cima no peito
                 scale: 0.3, // Reduzir escala para garantir que o logo esteja visível
                 angle: 0
@@ -533,8 +533,7 @@ export default async function handler(
         customerPrintifyImageId: customerPrintifyImageId,
         dynamicPhrasePrintifyImageId: dynamicPhrasePrintifyImageId
       });
-    }
-
+    } else {
     // LÓGICA PARA OUTROS PRODUTOS (código existente)
     const printArea = product.printAreasConfig?.[0]?.position || product.printArea || 'front';
     const printifyPlaceholder = selectedPrintifyVariant.placeholders.find(
@@ -671,7 +670,7 @@ export default async function handler(
     console.log('🔄 STEP 4: Polling Printify product for mockups...');
     let finalPreviewUrls: string[] = [];
     const maxAttempts = 15;
-    const delay = 8000;
+    const delayMs = 8000;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       console.log(`--> 🔍 Attempt ${attempt}/${maxAttempts}: Fetching Printify product ${createdPrintifyProductId} details...`);
@@ -688,8 +687,8 @@ export default async function handler(
         }
 
         if (attempt < maxAttempts) {
-        console.log(`⏳ Printify product mockups not ready yet. Waiting ${delay}ms before next attempt...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        console.log(`⏳ Printify product mockups not ready yet. Waiting ${delayMs}ms before next attempt...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
     console.log(`🏁 Printify product polling completed. Found ${finalPreviewUrls.length} preview URLs.`);
@@ -706,11 +705,12 @@ export default async function handler(
       return res.status(200).json({
         success: true,
         previewUrls: finalPreviewUrls,
-      printifyImageId: printifyImageId, // Retornar o ID da imagem na Printify Media Library
-      printifyProductId: createdPrintifyProductId, // Retornar o ID do produto Printify criado
-      customerPrintifyImageId: logoImageId, // Retornar o ID da imagem do logo
-      dynamicPhrasePrintifyImageId: selectedPhraseText, // Retornar o texto da frase
-    });
+        printifyImageId: printifyImageId, // Retornar o ID da imagem na Printify Media Library
+        printifyProductId: createdPrintifyProductId, // Retornar o ID do produto Printify criado
+        customerPrintifyImageId: logoImageId, // Retornar o ID da imagem do logo
+        dynamicPhrasePrintifyImageId: selectedPhraseText, // Retornar o texto da frase
+      });
+    }
 
   } catch (error) {
     console.error('--- [CRASH] ERRO APANHADO NO CATCH-ALL ---', error);
