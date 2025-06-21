@@ -367,8 +367,8 @@ export default async function handler(
               images: [{
                 id: logoImageId, // ID fixo do logo
                 x: 0.5,
-                y: 0.4, // Mover logo um pouco para cima
-                scale: 1.2, // Aumentar o logo para ser mais visível
+                y: 0.2, 
+                scale: 0.2, 
                 angle: 0
               }]
             }]
