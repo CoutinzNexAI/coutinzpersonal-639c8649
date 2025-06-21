@@ -46,6 +46,9 @@ interface CreateDraftRequest {
     scale: number;
     rotation?: number;
   };
+  // Novos campos para Canvas
+  printifyImageId?: string; // ID da imagem já carregada na Printify
+  printDetails?: { print_on_side: string }; // Para opções de borda do Canvas
 }
 
 interface CreateDraftResponse {
@@ -181,7 +184,7 @@ export default async function handler(
     //});
 
     const user = { id: 'test-user-ficticio-123' };
-    const { productId, userImageUrl, userId, imageAdjustments, selectedPrintifyVariantId, logoImageId, customerImageUrl, customerImageAdjustments, selectedPhraseText, phraseImageAdjustments } = req.body;
+    const { productId, userImageUrl, userId, imageAdjustments, selectedPrintifyVariantId, logoImageId, customerImageUrl, customerImageAdjustments, selectedPhraseText, phraseImageAdjustments, printifyImageId } = req.body;
 
     // Para sweat de criança, usar customerImageUrl; para outros produtos, usar userImageUrl
     const imageUrl = productId === 'custom_youth_hoodie' ? customerImageUrl : userImageUrl;
@@ -437,8 +440,8 @@ export default async function handler(
               images: [{
                 id: logoImageId, // ID fixo do logo
                 x: 0.5,
-                y: 0.25, // Posicionar mais para cima no peito
-                scale: 0.3, // Reduzir escala para garantir que o logo esteja visível
+                y: 0.4, // Posicionar mais para cima no peito
+                scale: 0.6, // Reduzir escala para garantir que o logo esteja visível
                 angle: 0,
                 is_default: true, // Forçar como imagem principal da vista frontal
                 is_selected_for_publishing: true // Forçar para publicação/mockups
@@ -533,6 +536,98 @@ export default async function handler(
         customerPrintifyImageId: customerPrintifyImageId,
         dynamicPhrasePrintifyImageId: dynamicPhrasePrintifyImageId
       });
+    } else if (productId === 'custom_canvas' || productId === 'framed_canvas') {
+      // LÓGICA ESPECÍFICA PARA CANVAS
+      console.log(`🔄 Processing Canvas product: ${productId}`);
+
+      if (!printifyImageId) {
+        throw new Error('printifyImageId is required for Canvas products');
+      }
+
+      const printAreaConfig = product.printAreasConfig?.[0];
+      if (!printAreaConfig) {
+        throw new Error('Print area configuration not found for Canvas product');
+      }
+
+      // Criar produto temporário na Printify para gerar mockup
+      const printifyProductPayload = {
+        title: `PicTuz Canvas Mockup (${user.id}-${Date.now()})`,
+        description: 'Temporary Canvas product for mockup generation',
+        blueprint_id: product.printifyBlueprintId,
+        print_provider_id: product.printifyPrintProviderId,
+        variants: [{
+          id: targetVariantId,
+          price: 1000, // Preço dummy para mockup
+          is_enabled: true
+        }],
+        print_areas: [{
+          variant_ids: [targetVariantId],
+          placeholders: [{
+            position: printAreaConfig.position,
+            images: [{
+              id: printifyImageId,
+              x: imageAdjustments?.x || printAreaConfig.defaultX,
+              y: imageAdjustments?.y || printAreaConfig.defaultY,
+              scale: imageAdjustments?.scale || printAreaConfig.defaultScale,
+              angle: imageAdjustments?.rotation || printAreaConfig.defaultAngle
+            }]
+          }],
+          // Adicionar print_details apenas para custom_canvas se especificado
+          ...(req.body.printDetails && productId === 'custom_canvas' && { 
+            print_details: req.body.printDetails 
+          })
+        }]
+      };
+
+      console.log('📤 Canvas payload:', JSON.stringify(printifyProductPayload, null, 2));
+
+      const printifyProductResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
+        method: 'POST',
+        body: JSON.stringify(printifyProductPayload)
+      });
+
+      if (!printifyProductResponse?.id) {
+        throw new Error('Failed to create Canvas product on Printify');
+      }
+
+      const createdProductId = printifyProductResponse.id;
+      console.log(`✅ Canvas product created with ID: ${createdProductId}`);
+
+      // Polling para obter mockups
+      let finalPreviewUrls: string[] = [];
+      const maxAttempts = 15;
+      const delayMs = 8000;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        console.log(`--> 🔍 Canvas polling attempt ${attempt}/${maxAttempts}...`);
+        
+        try {
+          const getProductResponse: PrintifyProduct = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdProductId}.json`);
+
+          if (getProductResponse.images && getProductResponse.images.length > 0) {
+            console.log(`✅ Canvas mockups ready! Found ${getProductResponse.images.length} preview(s) - ALL mockup views included`);
+            finalPreviewUrls = getProductResponse.images.map(img => img.src) as string[];
+            break;
+          }
+        } catch (pollError) {
+          console.warn(`⚠️ Canvas polling attempt ${attempt} failed:`, pollError);
+        }
+
+        if (attempt < maxAttempts) {
+          console.log(`⏳ Canvas mockups not ready yet. Waiting ${delayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+
+      console.log(`🏁 Canvas mockup polling completed. Found ${finalPreviewUrls.length} preview URLs.`);
+
+      return res.status(200).json({
+        success: true,
+        previewUrls: finalPreviewUrls.length > 0 ? finalPreviewUrls : [product.mockupInitialPath],
+        printifyImageId: printifyImageId,
+        printifyProductId: createdProductId,
+      });
+
     } else {
     // LÓGICA PARA OUTROS PRODUTOS (código existente)
     const printArea = product.printAreasConfig?.[0]?.position || product.printArea || 'front';

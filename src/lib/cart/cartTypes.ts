@@ -15,6 +15,8 @@ export interface CartItem {
     phoneModel?: string; // Para capas de telemóvel
     paperType?: string; // Para cadernos
     selectedPhraseText?: string; // Para sweat de criança
+    canvasEdgeType?: 'regular' | 'mirror' | 'off'; // Para Canvas Sem Borda
+    frameColor?: string; // Para Canvas com Moldura
   };
   imageAdjustments?: {
     x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)

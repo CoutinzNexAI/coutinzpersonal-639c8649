@@ -24,11 +24,11 @@ export interface PrintifyProductMapping {
     priceAdjustment?: number;
   }[];
 
-  // Propriedades para GERAÇÃO DO FICHEIRO DE IMPRESSÃO (O Teu Backend)
-  printFileBleed: number; // em mm (requisito Printify, mas não aplicamos no ficheiro)
-  printFileResolution: number; // em DPI (padrão Printify, para saber resolução ideal)
-  gelatoPrintDimensionsMm: { width: number; height: number }; // Dimensões REAIS da área de impressão em MM
-  gelatoPrintOffsetsMm: { x: number; y: number }; // Deslocamentos reais da área de impressão em MM
+  // Propriedades para GERAÇÃO DO FICHEIRO DE IMPRESSÃO (O Teu Backend) - Opcional para produtos Printify
+  printFileBleed?: number; // em mm (requisito Printify, mas não aplicamos no ficheiro)
+  printFileResolution?: number; // em DPI (padrão Printify, para saber resolução ideal)
+  gelatoPrintDimensionsMm?: { width: number; height: number }; // Dimensões REAIS da área de impressão em MM
+  gelatoPrintOffsetsMm?: { x: number; y: number }; // Deslocamentos reais da área de impressão em MM
 
   // Propriedades para Ajuste Manual (para Canecas/Capas)
   supportsManualAdjustment: boolean; // TRUE para Canecas/Capas, FALSE para Canvas/Poster/T-shirt
@@ -53,6 +53,13 @@ export interface PrintifyProductMapping {
     }>;
   }>;
 
+  // Opções de Print Details (para Canvas)
+  allowsPrintDetails?: boolean;
+  printDetailsOptions?: Array<{
+    label: string;
+    value: string;
+  }>;
+
   // Campos legados do Gelato (mantidos para compatibilidade)
   productUid?: string;
   gelatoTemplateId?: string;
@@ -60,45 +67,70 @@ export interface PrintifyProductMapping {
 }
 
 export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping> = {
-  // CANVAS 20x20cm (Dados confirmados pelo Diogo)
-  'canvas_200x200_square_slim_unframed': {
-    id: 'canvas_200x200_square_slim_unframed',
-    name: 'Quadro Canvas (20x20cm, Sem Moldura Slim)',
-    productUid: 'canvas_200x200-mm-8x8-inch_canvas_wood-fsc-slim_4-0_ver',
-    mockupInitialPath: '/assets/mockups/canvas/canvas_20x20_unframed_blank_front.png',
-    price: 30.00,
+  // CANVAS SEM BORDA (Printify Real)
+  'custom_canvas': {
+    id: 'custom_canvas',
+    name: 'Canvas Sem Borda',
+    mockupInitialPath: '/assets/mockups/canvas/canvas_unframed_blank.png',
+    basePrice: 20.00,
     category: 'canvas',
-    // NOVOS IDs REAIS DA PRINTIFY
-    printifyBlueprintId: 937, // Blueprint ID para o Canvas Matte Stretched 0.75"
-    printifyPrintProviderId: 105, // Print Provider ID para Jondo
-    printifyVariantIds: [82238], // Variant ID para o 14" x 14" / 0.75''
-    printArea: 'front', // Posição padrão para Canvas
-    // CAMPOS NECESSÁRIOS PARA A API generate-mockup.ts (migração)
-    gelatoTemplateId: '1788fb1e-20ee-4ff0-b956-d624f0d5653b', // ID do template Gelato
-    templateVariantId: 'ee116b49-394a-4e2a-96cb-9b17521c31ed', // ID da variante do template
-    printFileBleed: 4, // mm
-    printFileResolution: 300, // DPI
-    gelatoPrintDimensionsMm: { width: 200, height: 200 }, // Dimensões reais de impressão em MM
-    gelatoPrintOffsetsMm: { x: 49, y: 49 }, // Offsets reais de impressão em MM
-    supportsManualAdjustment: false, // Sem ajuste manual para este canvas
+    printifyBlueprintId: 1159, // Canvas Stretched 0.75"
+    printifyPrintProviderId: 105, // Jondo
+    variants: [
+      { id: 91656, title: '10″ x 10″', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 0.00 },
+      { id: 91658, title: '12″ x 12″', placeholderWidth: 3600, placeholderHeight: 3600, isGiftPackaging: false, priceAdjustment: 5.00 },
+      { id: 91660, title: '14″ x 14″', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 10.00 },
+      { id: 91662, title: '16″ x 16″', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 15.00 },
+      { id: 91664, title: '18″ x 18″', placeholderWidth: 5400, placeholderHeight: 5400, isGiftPackaging: false, priceAdjustment: 20.00 },
+    ],
+    printAreasConfig: [{
+      position: 'front',
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0,
+      defaultAngle: 0,
+      fitMethod: 'slice',
+    }],
+    allowsPrintDetails: true,
+    printDetailsOptions: [
+      { label: 'Borda Regular', value: 'regular' },
+      { label: 'Borda Espelhada', value: 'mirror' },
+      { label: 'Sem Borda', value: 'off' },
+    ],
+    supportsManualAdjustment: false,
   },
 
-  // CANVAS 30x30cm 
-  'canvas_300x300_square_slim_unframed': {
-    id: 'canvas_300x300_square_slim_unframed',
-    name: 'Quadro Canvas (30x30cm, Sem Moldura Slim)',
-    productUid: 'canvas_300x300-mm-12x12-inch_canvas_wood-fsc-slim_4-0_ver', // A confirmar UID real
-    mockupInitialPath: '/assets/mockups/canvas/canvas_30x30_unframed_blank_front.png',
-    price: 45.00,
+  // CANVAS COM MOLDURA (Printify Real)
+  'framed_canvas': {
+    id: 'framed_canvas',
+    name: 'Canvas com Moldura',
+    mockupInitialPath: '/assets/mockups/canvas/canvas_framed_blank.png',
+    basePrice: 40.00,
     category: 'canvas',
-    // CAMPOS PARA MOCKUP GENERATION (se necessário)
-    gelatoTemplateId: '686a0861-5ac4-4510-82bd-f2611ab7c9e0', // Mesmo template, variante diferente
-    templateVariantId: '2b1c42ff-226d-5f9e-bgg9-e982b7b69229', // ID da variante 30x30 (exemplo)
-    printArea: 'front',
-    printFileBleed: 4,
-    printFileResolution: 300,
-    gelatoPrintDimensionsMm: { width: 300, height: 300 },
-    gelatoPrintOffsetsMm: { x: 49, y: 49 },
+    printifyBlueprintId: 944, // Framed Canvas
+    printifyPrintProviderId: 105, // Jondo
+    variants: [
+      { id: 111888, title: '6″ x 6″ / Black', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
+      { id: 111896, title: '6″ x 6″ / Espresso', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
+      { id: 111904, title: '6″ x 6″ / White', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
+      { id: 111889, title: '8″ x 8″ / Black', placeholderWidth: 2400, placeholderHeight: 2400, isGiftPackaging: false, priceAdjustment: 5.00 },
+      { id: 111897, title: '8″ x 8″ / Espresso', placeholderWidth: 2400, placeholderHeight: 2400, isGiftPackaging: false, priceAdjustment: 5.00 },
+      { id: 111905, title: '8″ x 8″ / White', placeholderWidth: 2400, placeholderHeight: 2400, isGiftPackaging: false, priceAdjustment: 5.00 },
+      { id: 111890, title: '10″ x 10″ / Black', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 10.00 },
+      { id: 111898, title: '10″ x 10″ / Espresso', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 10.00 },
+      { id: 111906, title: '10″ x 10″ / White', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 10.00 },
+    ],
+    printAreasConfig: [{
+      position: 'front',
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0,
+      defaultAngle: 0,
+      fitMethod: 'slice',
+    }],
+    allowsPrintDetails: false,
     supportsManualAdjustment: false,
   },
 
@@ -120,23 +152,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     supportsManualAdjustment: false,
   },
 
-  // POSTER A4
-  'fine_arts_poster_250x250_simplified': {
-    id: 'fine_arts_poster_250x250_simplified',
-    name: 'Poster Fine Art (25x25cm)',
-    productUid: 'fine_arts_poster_geo_simplified_product_12-0_ver_250x250-mm-10x10-inch_200-gsm-80lb-enhanced-uncoated',
-    mockupInitialPath: '/assets/mockups/poster/poster_25x25_blank_front.png', // Adapta para o teu mockup local
-    price: 25.00, // Preço de exemplo, adapta
-    category: 'poster',
-    gelatoTemplateId: '2e876b51-c44b-4a66-8be5-20cae7f41fa8', // O NOVO template ID para este Poster
-    templateVariantId: '2e876b51-c44b-4a66-8be5-20cae7f41fa8', // <-- ***MUITO IMPORTANTE: SUBSTITUIR ESTE ID***
-    printArea: 'front', // Confirma que a camada no template do poster é 'layer1'
-    printFileBleed: 3, // Bleed típico para posters, confirma na doc ou template
-    printFileResolution: 300,
-    gelatoPrintDimensionsMm: { width: 250, height: 250 },
-    gelatoPrintOffsetsMm: { x: 0, y: 0 }, // Posters geralmente não têm offset
-    supportsManualAdjustment: false, // Posters geralmente não precisam de ajuste manual
-  },
+
 
   // CANECA CERÂMICA (COM AJUSTE MANUAL) - SEM MOCKUP GELATO POR ENQUANTO
   'mug_ceramic_white_330ml': {
