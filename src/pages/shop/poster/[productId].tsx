@@ -71,12 +71,19 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       if (foundProduct && foundProduct.category === 'poster') {
         setProduct(foundProduct);
         if (foundProduct.variants && foundProduct.variants.length > 0) {
-          setSelectedPrintifyVariantId(foundProduct.variants[0].id);
+          // ✅ DEBUG: Log para verificar os IDs das variantes
+          console.log('🔍 [POSTER DEBUG] Variantes disponíveis:', foundProduct.variants.map(v => ({ id: v.id, title: v.title })));
+          
+          const firstVariant = foundProduct.variants[0];
+          console.log('🔍 [POSTER DEBUG] Primeira variante selecionada:', { id: firstVariant.id, title: firstVariant.title });
+          
+          setSelectedPrintifyVariantId(firstVariant.id);
           // Extrair tamanho do primeiro variant
-          const firstVariantTitle = foundProduct.variants[0].title;
+          const firstVariantTitle = firstVariant.title;
           const sizeMatch = firstVariantTitle.match(/(\d+\.?\d*["″]? x \d+\.?\d*["″]? \((Horizontal|Vertical)\))/);
           if (sizeMatch) {
             setSelectedSizeLabel(sizeMatch[1]);
+            console.log('🔍 [POSTER DEBUG] Tamanho extraído:', sizeMatch[1]);
           }
         }
       } else {
@@ -86,12 +93,19 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     } else if (initialProduct) {
       // Set default variant for initial product
       if (initialProduct.variants && initialProduct.variants.length > 0) {
-        setSelectedPrintifyVariantId(initialProduct.variants[0].id);
+        // ✅ DEBUG: Log para verificar os IDs das variantes
+        console.log('🔍 [POSTER DEBUG] Variantes disponíveis (initial):', initialProduct.variants.map(v => ({ id: v.id, title: v.title })));
+        
+        const firstVariant = initialProduct.variants[0];
+        console.log('🔍 [POSTER DEBUG] Primeira variante selecionada (initial):', { id: firstVariant.id, title: firstVariant.title });
+        
+        setSelectedPrintifyVariantId(firstVariant.id);
         // Extrair tamanho do primeiro variant
-        const firstVariantTitle = initialProduct.variants[0].title;
+        const firstVariantTitle = firstVariant.title;
         const sizeMatch = firstVariantTitle.match(/(\d+\.?\d*["″]? x \d+\.?\d*["″]? \((Horizontal|Vertical)\))/);
         if (sizeMatch) {
           setSelectedSizeLabel(sizeMatch[1]);
+          console.log('🔍 [POSTER DEBUG] Tamanho extraído (initial):', sizeMatch[1]);
         }
       }
     }

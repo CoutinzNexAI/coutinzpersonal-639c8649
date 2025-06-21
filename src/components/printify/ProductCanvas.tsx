@@ -169,6 +169,8 @@ export default function ProductCanvas({
         }
       }
 
+      console.log('🔍 [ProductCanvas DEBUG] generateMockups chamado com:', { requestBody });
+
       const response = await fetch('/api/printify/mockups/generate', {
         method: 'POST',
         headers: {
