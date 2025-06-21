@@ -562,6 +562,10 @@ export default async function handler(
           price: 1000, // Preço dummy para mockup
           is_enabled: true
         }],
+        // *** ADICIONAR print_details AQUI, NO NÍVEL SUPERIOR DO PAYLOAD ***
+        ...(productId === 'custom_canvas' && req.body.printDetails && { 
+          print_details: req.body.printDetails 
+        }),
         print_areas: [{
           variant_ids: [targetVariantId],
           placeholders: [{
@@ -573,11 +577,8 @@ export default async function handler(
               scale: imageAdjustments?.scale || printAreaConfig.defaultScale,
               angle: imageAdjustments?.rotation || printAreaConfig.defaultAngle
             }]
-          }],
-          // Adicionar print_details apenas para custom_canvas se especificado
-          ...(req.body.printDetails && productId === 'custom_canvas' && { 
-            print_details: req.body.printDetails 
-          })
+          }]
+          // *** REMOVIDO print_details DAQUI - agora está no nível superior ***
         }]
       };
 
