@@ -6,6 +6,7 @@ import { getPrintifyProduct } from '@/lib/printify/printifyProducts';
 import { printifyFetch } from '@/lib/printify/printifyApi';
 import { PrintifyProduct, PrintifyImagePlaceholder } from '@/lib/printify/printifyTypes';
 import generatePrintFileHandler from '@/pages/api/printify/generate-print-file';
+import { generatePhraseImage } from '@/utils/imageUtils';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -287,21 +288,84 @@ export default async function handler(
     if (productId === 'custom_youth_hoodie') {
       console.log('🔄 Processing youth hoodie with multiple print areas...');
 
-      // PASSO 1: Upload da imagem do cliente para Printify
-      console.log('🔄 Uploading customer image to Printify...');
-      const customerUploadResponse = await printifyFetch('/uploads/images.json', {
-      method: 'POST',
-      body: JSON.stringify({
-          file_name: `customer-art-${Date.now()}.png`,
-          url: customerImageUrl || userImageUrl
-      })
-    });
+      // PASSO 1: Processar e fazer upload da imagem do cliente para Printify
+      console.log('🔄 Processing and uploading customer image to Printify...');
+      
+             // Obter o placeholder para a posição back (onde vai a imagem do cliente)
+       const customerBackPlaceholder = selectedPrintifyVariant.placeholders.find(
+         (p: PrintifyPlaceholder) => p.position === 'back'
+       );
+      
+      let customerPrintifyImageId: string;
+      
+             if (customerBackPlaceholder) {
+         // Usar generate-print-file.ts para processar a imagem do cliente
+         console.log('🔄 Using print file processing for customer image...');
+         
+         const mockGenerateCustomerFileReq: NextApiRequest = {
+           method: 'POST',
+           headers: {
+             'content-type': 'application/json',
+           },
+           body: {
+             imageUrl: customerImageUrl || userImageUrl,
+             productId: productId,
+             userId: userId,
+             imageAdjustments: customerImageAdjustments,
+             printifyPlaceholder: customerBackPlaceholder
+           }
+        } as NextApiRequest;
 
-      if (!customerUploadResponse?.id) {
-        throw new Error('Failed to upload customer image to Printify');
+        let generateCustomerFileData: GeneratePrintFileResponseInternal | undefined;
+        const mockGenerateCustomerFileRes = {
+          status: (_statusCode: number) => mockGenerateCustomerFileRes,
+          json: (data: GeneratePrintFileResponseInternal) => {
+            generateCustomerFileData = data;
+            return mockGenerateCustomerFileRes;
+          },
+          setHeader: () => mockGenerateCustomerFileRes,
+          end: () => mockGenerateCustomerFileRes,
+        } as unknown as NextApiResponse;
+
+        await generatePrintFileHandler(mockGenerateCustomerFileReq, mockGenerateCustomerFileRes);
+
+        if (generateCustomerFileData?.success && generateCustomerFileData?.printifyImageId) {
+          customerPrintifyImageId = generateCustomerFileData.printifyImageId;
+          console.log('✅ Customer image processed and uploaded:', customerPrintifyImageId);
+        } else {
+          console.warn('⚠️ Print file processing failed, using direct upload fallback');
+          // Fallback para upload direto
+          const customerUploadResponse = await printifyFetch('/uploads/images.json', {
+            method: 'POST',
+            body: JSON.stringify({
+              file_name: `customer-art-${Date.now()}.png`,
+              url: customerImageUrl || userImageUrl
+            })
+          });
+
+          if (!customerUploadResponse?.id) {
+            throw new Error('Failed to upload customer image to Printify');
+          }
+          customerPrintifyImageId = customerUploadResponse.id;
+          console.log('✅ Customer image uploaded (fallback):', customerPrintifyImageId);
+        }
+      } else {
+        // Fallback se não encontrar placeholder
+        console.warn('⚠️ Back placeholder not found, using direct upload');
+        const customerUploadResponse = await printifyFetch('/uploads/images.json', {
+          method: 'POST',
+          body: JSON.stringify({
+            file_name: `customer-art-${Date.now()}.png`,
+            url: customerImageUrl || userImageUrl
+          })
+        });
+
+        if (!customerUploadResponse?.id) {
+          throw new Error('Failed to upload customer image to Printify');
+        }
+        customerPrintifyImageId = customerUploadResponse.id;
+        console.log('✅ Customer image uploaded (direct):', customerPrintifyImageId);
       }
-      const customerPrintifyImageId = customerUploadResponse.id;
-      console.log('✅ Customer image uploaded:', customerPrintifyImageId);
 
       // PASSO 2: Gerar e fazer upload da imagem da frase (se não for "Sem frase")
       let dynamicPhrasePrintifyImageId = '';
@@ -309,17 +373,23 @@ export default async function handler(
       if (selectedPhraseText && selectedPhraseText !== 'Sem frase') {
         console.log('🔄 Generating phrase image for:', selectedPhraseText);
         
-        // Aqui implementarias a geração da imagem da frase
-        // Por enquanto, usar um ID estático baseado na frase
-        const phraseImageMapping: Record<string, string> = {
-          'PicTuz - since 2025': '68548af2cc947707f0ee650f',
-          'Criado com IA': '68548af3cc947707f0ee651a',
-          'Arte Personalizada': '68548af4cc947707f0ee652b',
-          'Feito em Portugal': '68548af5cc947707f0ee653c',
-        };
-        
-        dynamicPhrasePrintifyImageId = phraseImageMapping[selectedPhraseText] || '68548b05a7a3520a5d3534c0';
-        console.log('✅ Phrase image ID:', dynamicPhrasePrintifyImageId);
+        try {
+          // Gerar a imagem da frase dinamicamente
+          dynamicPhrasePrintifyImageId = await generatePhraseImage(selectedPhraseText);
+          console.log('✅ Phrase image ID generated:', dynamicPhrasePrintifyImageId);
+        } catch (phraseError) {
+          console.warn('⚠️ Failed to generate phrase image, using fallback:', phraseError);
+          // Fallback para o mapeamento estático
+          const phraseImageMapping: Record<string, string> = {
+            'PicTuz - since 2025': '68548af2cc947707f0ee650f',
+            'Criado com IA': '68548af3cc947707f0ee651a',
+            'Arte Personalizada': '68548af4cc947707f0ee652b',
+            'Feito em Portugal': '68548af5cc947707f0ee653c',
+          };
+          
+          dynamicPhrasePrintifyImageId = phraseImageMapping[selectedPhraseText] || '68548b05a7a3520a5d3534c0';
+          console.log('✅ Fallback phrase image ID:', dynamicPhrasePrintifyImageId);
+        }
       } else {
         // "Sem frase" - usar imagem transparente
         dynamicPhrasePrintifyImageId = '68548b05a7a3520a5d3534c0';
@@ -367,8 +437,8 @@ export default async function handler(
               images: [{
                 id: logoImageId, // ID fixo do logo
                 x: 0.5,
-                y: 0.2, 
-                scale: 0.2, 
+                y: 0.25, // Posicionar mais para cima no peito
+                scale: 0.3, // Reduzir escala para garantir que o logo esteja visível
                 angle: 0
               }]
             }]
@@ -390,7 +460,7 @@ export default async function handler(
                   id: dynamicPhrasePrintifyImageId, // Frase
                   x: phraseImageAdjustments?.x || 0.5,
                   y: phraseImageAdjustments?.y || 0.85, // Mais em baixo
-                  scale: phraseImageAdjustments?.scale || 1.0,
+                  scale: phraseImageAdjustments?.scale || 1.0, // Ajustar conforme necessário, mas 1.0 é um bom início para imagens geradas
                   angle: phraseImageAdjustments?.rotation || 0
                 }
               ]
@@ -418,7 +488,7 @@ export default async function handler(
       console.log('🔄 Polling for youth hoodie mockups...');
       let finalPreviewUrls: string[] = [];
       const maxAttempts = 15;
-      const delayMs = 2000;
+      const delayMs = 10000; // Aumentar para dar tempo à Printify para gerar mockups complexos
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         console.log(`🔄 Attempt ${attempt}/${maxAttempts}: Checking mockup status...`);
