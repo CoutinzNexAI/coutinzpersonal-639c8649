@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getPrintifyProductsByCategory } from '@/lib/printify/printifyProducts';
+import { PIC_TUZ_PRINTIFY_PRODUCT_MAP } from '@/lib/printify/printifyProducts';
 
 const PosterShopPage: React.FC = () => {
-  const posterProducts = getPrintifyProductsByCategory('poster');
-  const productIds = Object.keys(posterProducts);
+  const posterProducts = [
+    PIC_TUZ_PRINTIFY_PRODUCT_MAP['poster_horizontal_semi_glossy'],
+    PIC_TUZ_PRINTIFY_PRODUCT_MAP['poster_vertical_semi_glossy'],
+  ];
 
   return (
     <>
@@ -53,18 +55,17 @@ const PosterShopPage: React.FC = () => {
 
           {/* Products Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {productIds.map((productId, index) => {
-              const product = posterProducts[productId];
-              const isHorizontal = productId === 'poster_horizontal_semi_glossy';
+            {posterProducts.map((product, index) => {
+              const isHorizontal = product.id === 'poster_horizontal_semi_glossy';
               
               return (
                 <motion.div
-                  key={productId}
+                  key={product.id}
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
-                  <Link href={`/shop/poster/${productId}`}>
+                  <Link href={`/shop/poster/${product.id}`}>
                     <div className="group bg-white rounded-2xl shadow-lg border border-[#E8E0D0] overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
                       {/* Product Image */}
                       <div className="aspect-square bg-gradient-to-br from-[#F5F1E8] to-[#E8E0D0] p-8 flex items-center justify-center relative">

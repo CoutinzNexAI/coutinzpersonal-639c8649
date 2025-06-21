@@ -32,7 +32,7 @@ const categories: Category[] = [
     galleryImage: '/assets/mockups/poster/poster_horizontal_blank.png',
     gradient: 'from-orange-400 to-red-500',
     icon: '📋',
-    items: ['Semi Brilho', 'Horizontal & Vertical', 'Vários Tamanhos']
+    items: ['Horizontal', 'Vertical']
   },
   {
     name: 'Roupa',

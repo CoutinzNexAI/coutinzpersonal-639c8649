@@ -61,6 +61,9 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // Estado específico para Poster - FIXO em "mirror"
   const [selectedEdgeType] = useState<string>('mirror');
 
+  // Estado para seleção de tamanho (para posters)
+  const [selectedSizeLabel, setSelectedSizeLabel] = useState<string | null>(null);
+
   // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
     if (!initialProduct && typeof productId === 'string') {
@@ -69,6 +72,12 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         setProduct(foundProduct);
         if (foundProduct.variants && foundProduct.variants.length > 0) {
           setSelectedPrintifyVariantId(foundProduct.variants[0].id);
+          // Extrair tamanho do primeiro variant
+          const firstVariantTitle = foundProduct.variants[0].title;
+          const sizeMatch = firstVariantTitle.match(/(\d+\.?\d*["″]? x \d+\.?\d*["″]? \((Horizontal|Vertical)\))/);
+          if (sizeMatch) {
+            setSelectedSizeLabel(sizeMatch[1]);
+          }
         }
       } else {
         router.push('/shop');
@@ -78,9 +87,31 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       // Set default variant for initial product
       if (initialProduct.variants && initialProduct.variants.length > 0) {
         setSelectedPrintifyVariantId(initialProduct.variants[0].id);
+        // Extrair tamanho do primeiro variant
+        const firstVariantTitle = initialProduct.variants[0].title;
+        const sizeMatch = firstVariantTitle.match(/(\d+\.?\d*["″]? x \d+\.?\d*["″]? \((Horizontal|Vertical)\))/);
+        if (sizeMatch) {
+          setSelectedSizeLabel(sizeMatch[1]);
+        }
       }
     }
   }, [productId, initialProduct, router]);
+
+  // useEffect para encontrar selectedPrintifyVariantId com base no tamanho selecionado
+  useEffect(() => {
+    if (product && selectedSizeLabel && product.variants) {
+      const foundVariant = product.variants.find(variant => 
+        variant.title.includes(selectedSizeLabel)
+      );
+
+      if (foundVariant && foundVariant.id !== selectedPrintifyVariantId) {
+        setSelectedPrintifyVariantId(foundVariant.id);
+      } else if (!foundVariant && selectedPrintifyVariantId !== null) {
+        setSelectedPrintifyVariantId(null);
+        toast.error('Combinação de tamanho não encontrada para o Poster.');
+      }
+    }
+  }, [selectedSizeLabel, product, selectedPrintifyVariantId]);
 
   // Reset estados quando a variante muda
   useEffect(() => {
@@ -90,7 +121,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       setPrintifyImageId('');
       setPrintifyProductId('');
     }
-  }, [selectedPrintifyVariantId]);
+  }, [selectedPrintifyVariantId, selectedSizeLabel]);
 
   // Calcular defaultScale dinâmico e atualizar imageAdjustments
   useEffect(() => {
@@ -196,9 +227,12 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         quantity: 1,
         customizations: {
           variant: selectedVariant?.title || 'Opção não encontrada',
-          // Aplica print_on_side: 'mirror' a ambos os tipos de Poster
-          canvasEdgeType: 'mirror',
-          paperType: 'Semi Glossy'
+          // Para Canvas sem borda (custom_canvas) E Canvas com moldura (framed_canvas) E Posters
+          ...(product.id === 'custom_canvas' || product.id === 'framed_canvas' || product.id.includes('poster_') ? { canvasEdgeType: 'mirror' } : {}),
+          // Para Canvas com moldura
+          ...(product.id === 'framed_canvas' && { frameColor: 'N/A' }),
+          // Para Posters
+          ...(product.id.includes('poster_') ? { paperType: 'Semi Glossy' } : {}),
         },
         imageAdjustments: imageAdjustments,
         printifyProductId: printifyProductId,
@@ -459,18 +493,38 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       Escolha o Tamanho
                     </label>
                     <Select
-                      onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
-                      value={selectedPrintifyVariantId?.toString() || ''}
+                      onValueChange={(value) => {
+                        // Encontrar o variant com base no título selecionado
+                        const selectedVariant = product.variants?.find(v => v.title.includes(value));
+                        if (selectedVariant) {
+                          setSelectedSizeLabel(value);
+                          setSelectedPrintifyVariantId(selectedVariant.id);
+                        }
+                      }}
+                      value={selectedSizeLabel || ''}
                     >
                       <SelectTrigger className="w-full bg-white border-2 border-[#E8E0D0]/60 text-[#2D5A27] h-14 shadow-sm hover:border-[#2D5A27]/50 focus:border-[#2D5A27] transition-colors duration-200 font-medium">
                         <SelectValue placeholder="Selecione um tamanho">
-                          {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Selecione uma opção'}
+                          {selectedSizeLabel || 'Selecione um tamanho'}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="bg-white text-[#2D5A27] border-[#E8E0D0] max-h-60 shadow-xl">
-                        {product.variants?.map((variant) => (
-                          <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-[#F5F1E8]/50">
-                            {variant.title}
+                        {/* Obter tamanhos únicos e ordenados */}
+                        {Array.from(new Set(
+                          product.variants?.map(v => {
+                            const sizeMatch = v.title.match(/(\d+\.?\d*["″]? x \d+\.?\d*["″]? \((Horizontal|Vertical)\))/);
+                            return sizeMatch ? sizeMatch[1] : null;
+                          }).filter(Boolean)
+                        )).sort((a, b) => {
+                          // Ordenação por área (largura x altura)
+                          const parseSize = (s: string) => {
+                            const parts = s.replace(/["″()]/g, '').split(' x ').map(part => parseFloat(part));
+                            return parts[0] * parts[1]; // área total
+                          };
+                          return parseSize(a || '') - parseSize(b || '');
+                        }).map(size => (
+                          <SelectItem key={size} value={size || ''} className="hover:bg-[#F5F1E8]/50">
+                            {size}
                           </SelectItem>
                         ))}
                       </SelectContent>
