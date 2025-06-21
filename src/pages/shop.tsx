@@ -27,6 +27,14 @@ const categories: Category[] = [
     items: ['Canvas Premium', 'Molduras Elegantes', 'Impressão HD']
   },
   {
+    name: 'Posters',
+    href: '/shop/poster',
+    galleryImage: '/assets/mockups/poster/poster_horizontal_blank.png',
+    gradient: 'from-orange-400 to-red-500',
+    icon: '📋',
+    items: ['Semi Brilho', 'Horizontal & Vertical', 'Vários Tamanhos']
+  },
+  {
     name: 'Roupa',
     href: '/shop/apparel',
     galleryImage: '/assets/gallery-images/person_wearing_tshirt.png',

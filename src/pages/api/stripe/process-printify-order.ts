@@ -524,7 +524,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           printifyLineItems.push(lineItem);
           console.log('✅ Youth hoodie line item added:', lineItem);
 
-        } else if (cartItem.productId === 'custom_canvas' || cartItem.productId === 'framed_canvas') {
+        } else if (cartItem.productId === 'custom_canvas' || cartItem.productId === 'framed_canvas' ||
+                   cartItem.productId === 'poster_horizontal_semi_glossy' || cartItem.productId === 'poster_vertical_semi_glossy') {
           // LÓGICA ESPECÍFICA PARA CANVAS
           console.log('🔄 Processing Canvas order:', cartItem.productId);
 

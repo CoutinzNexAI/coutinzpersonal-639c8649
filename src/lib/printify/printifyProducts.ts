@@ -534,6 +534,78 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       },
     ],
   },
+
+  // POSTER HORIZONTAL (SEMI BRILHO)
+  'poster_horizontal_semi_glossy': {
+    id: 'poster_horizontal_semi_glossy',
+    name: 'Poster Horizontal (Semi Brilho)',
+    mockupInitialPath: '/assets/mockups/poster/poster_horizontal_blank.png',
+    basePrice: 15.00,
+    category: 'poster',
+    printifyBlueprintId: 480,
+    printifyPrintProviderId: 30,
+    variants: [
+      // Apenas variantes horizontais
+      { id: 63334, title: '7″ × 5″ (Horizontal)', placeholderWidth: 2100, placeholderHeight: 1500, isGiftPackaging: false, priceAdjustment: 0.00 },
+      { id: 63336, title: '10″ × 8″ (Horizontal)', placeholderWidth: 3000, placeholderHeight: 2400, isGiftPackaging: false, priceAdjustment: 3.00 },
+      { id: 63338, title: '14″ × 11″ (Horizontal)', placeholderWidth: 4200, placeholderHeight: 3300, isGiftPackaging: false, priceAdjustment: 6.00 },
+      { id: 63340, title: '18″ × 12″ (Horizontal)', placeholderWidth: 5400, placeholderHeight: 3600, isGiftPackaging: false, priceAdjustment: 9.00 },
+      { id: 63342, title: '24″ × 18″ (Horizontal)', placeholderWidth: 7200, placeholderHeight: 5400, isGiftPackaging: false, priceAdjustment: 12.00 },
+      { id: 63344, title: '36″ × 24″ (Horizontal)', placeholderWidth: 10800, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 15.00 },
+    ],
+    printAreasConfig: [{
+      position: 'front',
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0,
+      defaultAngle: 0,
+      fitMethod: 'slice',
+    }],
+    allowsPrintDetails: true,
+    printDetailsOptions: [
+      { label: 'Borda Regular', value: 'regular' },
+      { label: 'Borda Espelhada', value: 'mirror' },
+      { label: 'Sem Borda', value: 'off' },
+    ],
+    supportsManualAdjustment: false,
+  },
+
+  // POSTER VERTICAL (SEMI BRILHO)
+  'poster_vertical_semi_glossy': {
+    id: 'poster_vertical_semi_glossy',
+    name: 'Poster Vertical (Semi Brilho)',
+    mockupInitialPath: '/assets/mockups/poster/poster_vertical_blank.png',
+    basePrice: 15.00,
+    category: 'poster',
+    printifyBlueprintId: 480,
+    printifyPrintProviderId: 30,
+    variants: [
+      // Apenas variantes verticais
+      { id: 63333, title: '5″ × 7″ (Vertical)', placeholderWidth: 1500, placeholderHeight: 2100, isGiftPackaging: false, priceAdjustment: 0.00 },
+      { id: 63335, title: '8″ × 10″ (Vertical)', placeholderWidth: 2400, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 3.00 },
+      { id: 63337, title: '11″ × 14″ (Vertical)', placeholderWidth: 3300, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 6.00 },
+      { id: 63339, title: '12″ × 18″ (Vertical)', placeholderWidth: 3600, placeholderHeight: 5400, isGiftPackaging: false, priceAdjustment: 9.00 },
+      { id: 63341, title: '18″ × 24″ (Vertical)', placeholderWidth: 5400, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 12.00 },
+      { id: 63343, title: '24″ × 36″ (Vertical)', placeholderWidth: 7200, placeholderHeight: 10800, isGiftPackaging: false, priceAdjustment: 15.00 },
+    ],
+    printAreasConfig: [{
+      position: 'front',
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0,
+      defaultAngle: 0,
+      fitMethod: 'slice',
+    }],
+    allowsPrintDetails: true,
+    printDetailsOptions: [
+      { label: 'Borda Regular', value: 'regular' },
+      { label: 'Borda Espelhada', value: 'mirror' },
+      { label: 'Sem Borda', value: 'off' },
+    ],
+    supportsManualAdjustment: false,
+  },
 };
 
 // Função utilitária para obter produto por ID
