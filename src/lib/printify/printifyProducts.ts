@@ -43,7 +43,7 @@ export interface PrintifyProductMapping {
     defaultY: number;
     defaultScale: number;
     defaultAngle: number;
-    fitMethod: 'fit' | 'slice' | 'contain';
+    fitMethod?: 'fit' | 'slice' | 'contain'; // Opcional para permitir uso padrão da Printify
     allowsDynamicText?: boolean; // Para texto dinâmico
     dynamicTextOptions?: Array<{
       text: string;
@@ -433,10 +433,9 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
         allowsUserImage: false,
         staticImageId: '684d920a45ec86ab347594c5', // ID Printify do logo
         defaultX: 0.5,
-        defaultY: 0.5,
-        defaultScale: 0.85,
+        defaultY: 0.25,
+        defaultScale: 0.6,
         defaultAngle: 0,
-        fitMethod: 'contain', // Logo não deve ser cortado
       },
       // Área 2: IMAGEM DO CLIENTE E FRASE (Costas)
       {
