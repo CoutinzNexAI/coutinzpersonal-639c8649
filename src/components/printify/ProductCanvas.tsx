@@ -220,7 +220,8 @@ export default function ProductCanvas({
     selectedPrintifyVariantId, 
     onPreviewReady,
     allImageAdjustments,
-    selectedPhraseText
+    selectedPhraseText,
+    selectedImageId
   ]);
 
   // Auto-generate mockup when component mounts (if not already generated)
