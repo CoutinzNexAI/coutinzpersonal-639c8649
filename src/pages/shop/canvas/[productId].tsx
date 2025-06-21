@@ -103,14 +103,14 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
       const uniqueSizes = new Set<string>();
 
       product.variants.forEach(variant => {
-        // Extrair cor e tamanho do título da variante
-        // Exemplo de título: "14" x 14" / Black / 1.25""
-        const sizeMatch = variant.title.match(/(\d+" x \d+")/); // Pega "xx" x xx""
-        const colorMatch = variant.title.match(/(Black|Espresso|White)/); // Pega a cor
-
+        // Usar RegEx para extrair tamanho (ex: "14" x 14")
+        const sizeMatch = variant.title.match(/(\d+" x \d+″|\d+" x \d+")/); // Captura "xx" x xx" ou "xx″ x xx″"
         if (sizeMatch && sizeMatch[1]) {
           uniqueSizes.add(sizeMatch[1]);
         }
+
+        // Usar RegEx para extrair cor (ex: "Black", "Espresso", "White")
+        const colorMatch = variant.title.match(/(Black|Espresso|White)/);
         if (colorMatch && colorMatch[1]) {
           uniqueColors.add(colorMatch[1]);
         }
@@ -138,9 +138,10 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   useEffect(() => {
     if (product && product.id === 'framed_canvas' && selectedFrameColor && selectedSizeLabel) {
       const foundVariant = product.variants?.find(variant => {
-        // Verifica se o título da variante contém a cor e o tamanho selecionados
-        const matchesColor = variant.title.includes(selectedFrameColor);
-        const matchesSize = variant.title.includes(selectedSizeLabel); // Ex: "10" x 10""
+        // IMPORTANTE: as strings de `selectedSizeLabel` e `selectedFrameColor` devem corresponder
+        // EXATAMENTE aos pedaços do `variant.title` da Printify.
+        const matchesColor = variant.title.includes(selectedFrameColor || '');
+        const matchesSize = variant.title.includes(selectedSizeLabel || '');
 
         return matchesColor && matchesSize;
       });
@@ -263,9 +264,10 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         customizations: {
           variant: selectedVariant?.title || 'Opção não encontrada',
           ...(product.id === 'custom_canvas' && { canvasEdgeType: 'mirror' }), // FIXO
-          ...(product.id === 'framed_canvas' && selectedFrameColor && { 
-            frameColor: selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor 
-          }), // Passa a cor selecionada
+          ...(product.id === 'framed_canvas' && {
+            frameColor: selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor === 'Black' ? 'Preto' : selectedFrameColor === 'White' ? 'Branco' : selectedFrameColor, // Passa a cor selecionada traduzida
+            canvasEdgeType: 'mirror' // Borda espelhada também para framed_canvas no carrinho
+          }),
         },
         imageAdjustments: imageAdjustments,
         printifyProductId: printifyProductId,
@@ -563,7 +565,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                           <SelectContent className="bg-white text-[#2D5A27] border-[#E8E0D0] max-h-60 shadow-xl">
                             {Array.from(new Set(product.variants?.map(v => v.title.match(/(Black|Espresso|White)/)?.[1]))).filter(Boolean).map(color => (
                               <SelectItem key={color} value={color || ''} className="hover:bg-[#F5F1E8]/50">
-                                {color === 'Espresso' ? 'Castanho' : color}
+                                {color === 'Espresso' ? 'Castanho' : color === 'Black' ? 'Preto' : color === 'White' ? 'Branco' : color}
                               </SelectItem>
                             ))}
                           </SelectContent>

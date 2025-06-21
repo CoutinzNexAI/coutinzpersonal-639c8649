@@ -162,8 +162,8 @@ export default function ProductCanvas({
             }
           }
 
-          // *** ADICIONAR PRINTDETAILS PARA CUSTOM_CANVAS ***
-          if (selectedProduct.id === 'custom_canvas') {
+          // *** ADICIONAR PRINTDETAILS PARA CANVAS (CUSTOM E FRAMED) ***
+          if (selectedProduct.id === 'custom_canvas' || selectedProduct.id === 'framed_canvas') {
             requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
           }
         }
