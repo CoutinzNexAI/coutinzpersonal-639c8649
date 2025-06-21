@@ -161,6 +161,11 @@ export default function ProductCanvas({
               requestBody.printifyImageId = printifyImageIdMatch[1];
             }
           }
+
+          // *** ADICIONAR PRINTDETAILS PARA CUSTOM_CANVAS ***
+          if (selectedProduct.id === 'custom_canvas') {
+            requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
+          }
         }
       }
 
