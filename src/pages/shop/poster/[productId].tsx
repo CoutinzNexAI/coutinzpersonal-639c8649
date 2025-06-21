@@ -227,11 +227,11 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         quantity: 1,
         customizations: {
           variant: selectedVariant?.title || 'Opção não encontrada',
-          // Para Canvas sem borda (custom_canvas) E Canvas com moldura (framed_canvas) E Posters
-          ...(product.id === 'custom_canvas' || product.id === 'framed_canvas' || product.id.includes('poster_') ? { canvasEdgeType: 'mirror' } : {}),
+          // 'mirror' apenas para Canvas, REMOVER para Posters
+          ...(product.id === 'custom_canvas' || product.id === 'framed_canvas' ? { canvasEdgeType: 'mirror' } : {}),
           // Para Canvas com moldura
           ...(product.id === 'framed_canvas' && { frameColor: 'N/A' }),
-          // Para Posters
+          // Para Posters:
           ...(product.id.includes('poster_') ? { paperType: 'Semi Glossy' } : {}),
         },
         imageAdjustments: imageAdjustments,

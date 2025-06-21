@@ -524,8 +524,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           printifyLineItems.push(lineItem);
           console.log('✅ Youth hoodie line item added:', lineItem);
 
-        } else if (cartItem.productId === 'custom_canvas' || cartItem.productId === 'framed_canvas' ||
-                   cartItem.productId === 'poster_horizontal_semi_glossy' || cartItem.productId === 'poster_vertical_semi_glossy') {
+        } else if (cartItem.productId === 'custom_canvas' || cartItem.productId === 'framed_canvas') {
           // LÓGICA ESPECÍFICA PARA CANVAS
           console.log('🔄 Processing Canvas order:', cartItem.productId);
 
@@ -540,9 +539,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           let printDetailsForCanvas: { print_on_side: string } | undefined = undefined;
           
-          // Verificar se há opções de borda para custom_canvas
-          if (cartItem.productId === 'custom_canvas' && cartItem.customizations?.canvasEdgeType) {
-            printDetailsForCanvas = { print_on_side: cartItem.customizations.canvasEdgeType };
+          // Verificar se há opções de borda para custom_canvas ou framed_canvas
+          if (cartItem.productId === 'custom_canvas' || cartItem.productId === 'framed_canvas') {
+            printDetailsForCanvas = { print_on_side: 'mirror' };
           }
 
           const lineItem = {
@@ -569,6 +568,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           printifyLineItems.push(lineItem);
           console.log('✅ Canvas line item added:', lineItem);
+
+        } else if (cartItem.productId.includes('poster_')) {
+          // Lógica para Posters (sem print_details)
+          console.log('🔄 Processing Poster order:', cartItem.productId);
+          
+          if (!cartItem.printifyImageId || !cartItem.printifyVariantId) {
+            throw new Error(`Poster missing required fields: printifyImageId or printifyVariantId`);
+          }
+          
+          const printAreaConfig = productMapping.printAreasConfig?.[0];
+          if (!printAreaConfig) {
+            throw new Error('Print area configuration not found for Poster product');
+          }
+          
+          // Construir lineItem SEM print_details para posters
+          const lineItem = {
+            blueprint_id: productMapping.printifyBlueprintId,
+            print_provider_id: productMapping.printifyPrintProviderId,
+            variant_id: cartItem.printifyVariantId,
+            quantity: cartItem.quantity,
+            print_areas: [{
+              variant_ids: [cartItem.printifyVariantId],
+              placeholders: [{
+                position: printAreaConfig.position,
+                images: [{
+                  id: cartItem.printifyImageId,
+                  x: cartItem.imageAdjustments?.x || printAreaConfig.defaultX,
+                  y: cartItem.imageAdjustments?.y || printAreaConfig.defaultY,
+                  scale: cartItem.imageAdjustments?.scale || printAreaConfig.defaultScale,
+                  angle: cartItem.imageAdjustments?.rotation || printAreaConfig.defaultAngle
+                }]
+              }]
+            }]
+          };
+          
+          printifyLineItems.push(lineItem);
+          console.log('✅ Poster line item added:', lineItem);
 
         } else {
           // LÓGICA PARA OUTROS PRODUTOS (código existente)

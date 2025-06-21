@@ -563,9 +563,8 @@ export default async function handler(
           price: 1000, // Preço dummy para mockup
           is_enabled: true
         }],
-        // *** MODIFICA AQUI PARA GARANTIR print_details PARA CANVAS E POSTERS ***
-        ...(productId === 'custom_canvas' || productId === 'framed_canvas' || 
-           productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy' ? { print_details: { print_on_side: 'mirror' } } : {}),
+        // *** MODIFICA ESTA CONDIÇÃO para APENAS Canvas ***
+        ...(productId === 'custom_canvas' || productId === 'framed_canvas' ? { print_details: { print_on_side: 'mirror' } } : {}),
         print_areas: [{
           variant_ids: [targetVariantId],
           placeholders: [{
