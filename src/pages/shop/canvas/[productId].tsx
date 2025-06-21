@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
-// Temporary toast implementation
-const toast = {
-  loading: (msg: string) => { console.log('Loading:', msg); return 'toast-id'; },
-  success: (msg: string, options?: { id?: string }) => { console.log('Success:', msg); return 'toast-id'; },
-  error: (msg: string, options?: { id?: string }) => { console.log('Error:', msg); return 'toast-id'; },
-};
+import toast from 'react-hot-toast';
 import { ChevronLeft, Upload, Sparkles, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +25,7 @@ const CanvasProductPage = () => {
   const router = useRouter();
   const { productId } = router.query;
   // const { addItem } = useCart();
-  const addItem = (item: any) => CartService.addToCart(item);
+  const addItem = (item: Omit<import('@/lib/cart/cartTypes').CartItem, 'id' | 'addedAt'>) => CartService.addToCart(item);
 
   // Estados principais
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -156,7 +151,15 @@ const CanvasProductPage = () => {
     setIsGeneratingMockup(true);
 
     try {
-      const payload = {
+      const payload: {
+        productId: string;
+        userImageUrl: string;
+        printifyImageId: string;
+        selectedPrintifyVariantId: number;
+        imageAdjustments: ImageAdjustment;
+        userId: string;
+        printDetails?: { print_on_side: string };
+      } = {
         productId: product.id,
         userImageUrl: selectedImageUrl,
         printifyImageId: selectedImageId,
@@ -227,7 +230,7 @@ const CanvasProductPage = () => {
       quantity: 1,
       customizations: {
         variantTitle: selectedVariant.title,
-        ...(product.id === 'custom_canvas' && { canvasEdgeType: selectedEdgeType }),
+        ...(product.id === 'custom_canvas' && { canvasEdgeType: selectedEdgeType as 'regular' | 'mirror' | 'off' }),
         ...(product.id === 'framed_canvas' && frameColor && { frameColor }),
       },
       imageAdjustments: imageAdjustments,
