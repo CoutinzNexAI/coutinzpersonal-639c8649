@@ -227,16 +227,56 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   };
 
   const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
-    setSelectedImageUrl(imageUrl);
-    setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
     
-    // Reset mockups para gerar novos
-    setPrintifyPreviewUrls([]);
-    setPrintifyImageId('');
-    setPrintifyProductId('');
-    
-    toast.success('Arte selecionada com sucesso!');
+    if (!imageUrl) {
+      toast.error('URL da imagem transformada não encontrado.');
+      return;
+    }
+
+    // --- PASSO 1: Carregar a imagem transformada para a Printify Media Library ---
+    toast.loading('A carregar arte para Printify...');
+    setLoading(true);
+
+    try {
+      const printifyUploadResponse = await fetch('/api/printify/uploads/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageUrl: imageUrl, // URL da imagem transformada (ex: do Supabase)
+          fileName: `transformed-image-${imageId || Date.now()}.png`
+        }),
+      });
+
+      const uploadData = await printifyUploadResponse.json();
+
+      if (printifyUploadResponse.ok && uploadData.success && uploadData.imageId) {
+        // --- PASSO 2: Atualizar estados com o ID e URL da Printify ---
+        setSelectedImageId(uploadData.imageId); // ESTE É O ID VÁLIDO DA PRINTIFY!
+        setSelectedImageUrl(uploadData.previewUrl || imageUrl); // Usa o URL Printify retornado
+        
+        // Reset mockups para gerar novos
+        setPrintifyPreviewUrls([]);
+        setPrintifyImageId('');
+        setPrintifyProductId('');
+        
+        toast.dismiss();
+        toast.success('Arte carregada para Printify com sucesso!');
+      } else {
+        toast.dismiss();
+        toast.error(uploadData.error || 'Erro ao carregar arte para Printify. Tente novamente.');
+        setSelectedImageId(null);
+        setSelectedImageUrl('');
+      }
+    } catch (error) {
+      console.error('❌ Erro no upload da arte para Printify:', error);
+      toast.dismiss();
+      toast.error('Erro na comunicação ao carregar arte para Printify.');
+      setSelectedImageId(null);
+      setSelectedImageUrl('');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleResetSelection = () => {
