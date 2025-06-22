@@ -157,18 +157,17 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
 
         let initialScale = 1.0;
 
-        // *** LÓGICA DE ESCALA ESPECÍFICA PARA POSTERS ***
+        // --- LÓGICA DE ESCALA ESPECÍFICA PARA POSTERS ---
         if (product.id === 'poster_vertical_semi_glossy') {
-          // Para posters verticais, queremos que a imagem preencha a LARGURA do placeholder.
-          // Isso vai cortar a altura da imagem original, se necessário, mas garante que não há barras laterais.
+          // Para posters verticais (imagem quadrada em placeholder alto/estreito),
+          // queremos que a imagem preencha a LARGURA do placeholder, cortando a altura.
           initialScale = placeholderWidth / userImageWidth;
         } else if (product.id === 'poster_horizontal_semi_glossy') {
-          // Para posters horizontais, queremos que a imagem preencha a ALTURA do placeholder.
-          // Isso vai cortar a largura da imagem original, se necessário, mas garante que não há barras verticais.
+          // Para posters horizontais (imagem quadrada em placeholder largo/baixo),
+          // queremos que a imagem preencha a ALTURA do placeholder, cortando a largura.
           initialScale = placeholderHeight / userImageHeight;
         } else {
-          // Lógica existente para Canvas (Math.max para 'slice')
-          // Ou se tiver outros produtos com 'slice' que quer que preencham a área.
+          // Para Canvas (que queremos que cubra tudo, indiferente da orientação)
           initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
         }
 

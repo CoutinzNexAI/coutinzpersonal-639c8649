@@ -570,9 +570,9 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       allowsUserImage: true,
       defaultX: 0.5,
       defaultY: 0.5,
-      defaultScale: 1.0, // Será recalculado no frontend
+      defaultScale: 1.0,
       defaultAngle: 0,
-      fitMethod: 'contain', // Alterado para 'contain' para Posters Horizontais
+      fitMethod: 'slice',
     }],
     allowsPrintDetails: false,
     supportsManualAdjustment: false,
@@ -613,9 +613,9 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       allowsUserImage: true,
       defaultX: 0.5,
       defaultY: 0.5,
-      defaultScale: 1.0, // Será recalculado no frontend
+      defaultScale: 1.0, // Mantenha como 1.0; o cálculo real será no frontend
       defaultAngle: 0,
-      fitMethod: 'contain', // Alterado para 'contain' para Posters Verticais
+      fitMethod: 'slice', // Alterado para 'slice' para Posters Verticais
     }],
     allowsPrintDetails: false,
     supportsManualAdjustment: false,

@@ -355,17 +355,17 @@ export default async function handler(
       } else {
         // Fallback se não encontrar placeholder
         console.warn('⚠️ Back placeholder not found, using direct upload');
-        const customerUploadResponse = await printifyFetch('/uploads/images.json', {
-          method: 'POST',
-          body: JSON.stringify({
-            file_name: `customer-art-${Date.now()}.png`,
-            url: customerImageUrl || userImageUrl
-          })
-        });
+      const customerUploadResponse = await printifyFetch('/uploads/images.json', {
+      method: 'POST',
+      body: JSON.stringify({
+          file_name: `customer-art-${Date.now()}.png`,
+          url: customerImageUrl || userImageUrl
+      })
+    });
 
-        if (!customerUploadResponse?.id) {
-          throw new Error('Failed to upload customer image to Printify');
-        }
+      if (!customerUploadResponse?.id) {
+        throw new Error('Failed to upload customer image to Printify');
+      }
         customerPrintifyImageId = customerUploadResponse.id;
         console.log('✅ Customer image uploaded (direct):', customerPrintifyImageId);
       }
@@ -383,14 +383,14 @@ export default async function handler(
         } catch (phraseError) {
           console.warn('⚠️ Failed to generate phrase image, using fallback:', phraseError);
           // Fallback para o mapeamento estático
-          const phraseImageMapping: Record<string, string> = {
-            'PicTuz - since 2025': '68548af2cc947707f0ee650f',
-            'Criado com IA': '68548af3cc947707f0ee651a',
-            'Arte Personalizada': '68548af4cc947707f0ee652b',
-            'Feito em Portugal': '68548af5cc947707f0ee653c',
-          };
-          
-          dynamicPhrasePrintifyImageId = phraseImageMapping[selectedPhraseText] || '68548b05a7a3520a5d3534c0';
+        const phraseImageMapping: Record<string, string> = {
+          'PicTuz - since 2025': '68548af2cc947707f0ee650f',
+          'Criado com IA': '68548af3cc947707f0ee651a',
+          'Arte Personalizada': '68548af4cc947707f0ee652b',
+          'Feito em Portugal': '68548af5cc947707f0ee653c',
+        };
+        
+        dynamicPhrasePrintifyImageId = phraseImageMapping[selectedPhraseText] || '68548b05a7a3520a5d3534c0';
           console.log('✅ Fallback phrase image ID:', dynamicPhrasePrintifyImageId);
         }
       } else {
@@ -803,11 +803,11 @@ export default async function handler(
       return res.status(200).json({
         success: true,
         previewUrls: finalPreviewUrls,
-        printifyImageId: printifyImageId, // Retornar o ID da imagem na Printify Media Library
-        printifyProductId: createdPrintifyProductId, // Retornar o ID do produto Printify criado
-        customerPrintifyImageId: logoImageId, // Retornar o ID da imagem do logo
-        dynamicPhrasePrintifyImageId: selectedPhraseText, // Retornar o texto da frase
-      });
+      printifyImageId: printifyImageId, // Retornar o ID da imagem na Printify Media Library
+      printifyProductId: createdPrintifyProductId, // Retornar o ID do produto Printify criado
+      customerPrintifyImageId: logoImageId, // Retornar o ID da imagem do logo
+      dynamicPhrasePrintifyImageId: selectedPhraseText, // Retornar o texto da frase
+    });
     }
 
   } catch (error) {
