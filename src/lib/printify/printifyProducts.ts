@@ -190,26 +190,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
 
 
 
-  // CANECA CERÂMICA (COM AJUSTE MANUAL) - SEM MOCKUP GELATO POR ENQUANTO
-  'mug_ceramic_white_330ml': {
-    id: 'mug_ceramic_white_330ml',
-    name: 'Caneca Cerâmica (Branca, 330ml)',
-    productUid: 'mug_ceramic_white_330ml_product_uid', // A confirmar UID real
-    mockupInitialPath: '/assets/mockups/mug/mug_white_blank.png',
-    price: 18.00,
-    category: 'mug',
-    // SEM gelatoTemplateId/templateVariantId/printArea - usa apenas ajuste manual local
-    printFileBleed: 2,
-    printFileResolution: 300,
-    gelatoPrintDimensionsMm: { width: 200, height: 120 }, // Área lateral da caneca
-    gelatoPrintOffsetsMm: { x: 10, y: 10 }, // Margem da área de impressão
-    supportsManualAdjustment: true, // CANECA PRECISA DE AJUSTE MANUAL
-    adjustmentLimits: {
-      minZoom: 0.8,
-      maxZoom: 2.5,
-      allowRotation: false // Sem rotação para canecas
-    }
-  },
+
 
   // CAPA DE TELEMÓVEL PERSONALIZADA (COM AJUSTE MANUAL E MÚLTIPLAS VARIANTES)
   'custom_phone_case': {
@@ -284,8 +265,8 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 441,
     printifyPrintProviderId: 30, // OPT OnDemand
     variants: [
-      { id: 62327, title: '11oz', placeholderWidth: 2717, placeholderHeight: 1146, isGiftPackaging: false },
-      { id: 62328, title: '15oz', placeholderWidth: 2811, placeholderHeight: 1276, isGiftPackaging: false },
+      { id: 62327, title: 'Padrão (330ml)', placeholderWidth: 2717, placeholderHeight: 1146, isGiftPackaging: false },
+      { id: 62328, title: 'Grande (450ml)', placeholderWidth: 2811, placeholderHeight: 1276, isGiftPackaging: false },
     ],
     printFileBleed: 2, // Ajustar conforme a Printify, 2mm é um bom default
     printFileResolution: 300,

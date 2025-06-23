@@ -355,35 +355,51 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                     </p>
                   </div>
 
-                  {/* Seletor de Tamanho */}
-                  <div className="relative">
-                    <Select
-                      onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
-                      value={selectedPrintifyVariantId?.toString() || ''}
-                    >
-                      <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
-                          <SelectValue placeholder="Escolha o tamanho">
-                            <span className="truncate">
-                              {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o tamanho'}
-                            </span>
-                          </SelectValue>
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
-                        {product.variants?.map((variant) => (
-                          <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
-                            {variant.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    
-                    <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
-                      ☕ Tamanho da Caneca
-                    </label>
-                  </div>
+                  {/* Seletor/Display de Tamanho */}
+                  {product.variants && product.variants.length > 1 ? (
+                    // Se há múltiplas variantes, mostrar dropdown
+                    <div className="relative">
+                      <Select
+                        onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
+                        value={selectedPrintifyVariantId?.toString() || ''}
+                      >
+                        <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
+                            <SelectValue placeholder="Escolha o tamanho">
+                              <span className="truncate">
+                                {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o tamanho'}
+                              </span>
+                            </SelectValue>
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
+                          {product.variants?.map((variant) => (
+                            <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
+                              {variant.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
+                        ☕ Tamanho da Caneca
+                      </label>
+                    </div>
+                  ) : (
+                    // Se há apenas 1 variante, apenas mostrar o tamanho (sem dropdown)
+                    <div className="relative p-4 bg-ghibli-cream/30 rounded-xl border border-ghibli-sand/40">
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-ghibli-moss"></div>
+                        <span className="text-ghibli-earth font-semibold">
+                          💝 Tamanho: {product.variants?.[0]?.title || 'Tamanho único'}
+                        </span>
+                      </div>
+                      <p className="text-center text-xs text-ghibli-earth/70 mt-1">
+                        Formato especial de coração
+                      </p>
+                    </div>
+                  )}
 
                   {/* Botão Principal */}
                   <div className="pt-3">

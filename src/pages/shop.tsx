@@ -60,27 +60,19 @@ const categories: Category[] = [
   },
   {
     name: 'Sacos',
-    href: '/shop/bags',
+    href: '/shop/bag',
     galleryImage: '/fotousar/mae2filhos.png',
     gradient: 'from-green-400 to-emerald-500',
     icon: '🎒',
-    items: ['Tote Bags', 'Backpacks', 'Gym Bags']
-  },
-  {
-    name: 'Cadernos',
-    href: '/shop/stationery',
-    galleryImage: '/fotousar/rapazfaculdade.png',
-    gradient: 'from-red-400 to-rose-500',
-    icon: '📓',
-    items: ['Cadernos A5', 'Journals', 'Planners']
+    items: ['Tote Bags', 'Impressão Durável', 'Eco-Friendly']
   },
   {
     name: 'Escritório',
-    href: '/shop/office',
+    href: '/shop/escritorio',
     galleryImage: '/fotousar/passeioporto.png',
     gradient: 'from-gray-400 to-slate-500',
     icon: '🏢',
-    items: ['Mousepad', 'Calendários', 'Organizadores']
+    items: ['Cadernos', 'Mousepads', 'Personalizado']
   }
 ];
 
