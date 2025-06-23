@@ -304,7 +304,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-2 sm:px-4 pt-8 pb-6 sm:pt-12 sm:pb-8 lg:py-8">
+        <main className="container mx-auto px-2 sm:px-4 pt-16 pb-6 sm:pt-12 sm:pb-8 lg:py-8">
           {/* Breadcrumb - Hidden on mobile for cleaner look */}
           <nav className="mb-4 lg:mb-8 hidden sm:block">
             <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
@@ -472,7 +472,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                             <span className="truncate">
                               {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o seu modelo'}
                             </span>
-                          </SelectValue>
+                        </SelectValue>
                         </div>
                       </SelectTrigger>
                       <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
@@ -507,14 +507,14 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                         <div className="mt-2 text-xs text-ghibli-earth/70">✨ Aplicando transformação AI</div>
                       </div>
                     ) : (
-                      <Button
-                        onClick={handleAddToCart}
-                        disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId || !userInfo}
+                    <Button
+                      onClick={handleAddToCart}
+                      disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId || !userInfo}
                         className={`group relative w-full py-5 sm:py-6 text-base sm:text-lg font-bold rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl hover:shadow-xl sm:hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
-                          selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo
+                        selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo
                             ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white' 
-                            : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
-                        }`}
+                          : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                      }`}
                       >
                         {/* Shimmer effect */}
                         {selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo && (
@@ -522,29 +522,29 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                         )}
                         
                         <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
-                          {loading ? (
-                            <>
+                      {loading ? (
+                        <>
                               <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                               <span>A adicionar...</span>
-                            </>
-                          ) : !userInfo ? (
+                        </>
+                      ) : !userInfo ? (
                             <span className="text-center">Faça Login para Continuar</span>
-                          ) : !selectedImageUrl ? (
+                      ) : !selectedImageUrl ? (
                             <span className="text-center">Escolha uma Arte Primeiro</span>
-                          ) : !selectedPrintifyVariantId ? (
+                      ) : !selectedPrintifyVariantId ? (
                             <span className="text-center">Selecione o Modelo</span>
-                          ) : (
-                            <>
+                      ) : (
+                        <>
                               <span className="text-lg sm:text-xl">🛒</span>
                               <span className="hidden sm:inline">Adicionar ao Carrinho</span>
                               <span className="sm:hidden">Adicionar</span>
                               <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center">
                                 <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                               </div>
-                            </>
-                          )}
+                        </>
+                      )}
                         </span>
-                      </Button>
+                          </Button>
                     )}
                   </div>
 
