@@ -84,39 +84,22 @@ const ShopPage: React.FC = () => {
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Prepare gallery items from categories with validation
-  const galleryItems = categories.map(category => ({
-    image: category.galleryImage,
-    text: category.name
-  }));
 
-  // Debug log for gallery items - CRITICAL FOR DEBUGGING
-  console.log('DADOS PARA A GALERIA:', galleryItems);
-  console.log('Validação:', {
-    hasItems: galleryItems.length > 0,
-    allHaveImages: galleryItems.every(item => item.image),
-    allHaveText: galleryItems.every(item => item.text),
-    firstItem: galleryItems[0]
-  });
-
-  const handleGalleryItemClick = (item: GalleryItem, index: number) => {
-    const category = categories[index];
-    if (category) {
-      router.push(category.href);
-    }
-  };
 
   // Safe gallery component with error boundary
   const SafeGallery = () => {
     try {
       return (
         <CircularGallery
-          items={galleryItems}
-          bend={3}
-          textColor="#2D5A27"
-          borderRadius={0.1}
-          font="bold 28px Inter"
-          onItemClick={handleGalleryItemClick}
+          onProductSelect={(product) => {
+            // Find matching category and navigate
+            const categoryIndex = categories.findIndex(cat => cat.name === product.name);
+            if (categoryIndex >= 0) {
+              router.push(categories[categoryIndex].href);
+            }
+          }}
+          autoRotationSpeed={0.2}
+          className="w-full h-full"
         />
       );
     } catch (error) {
