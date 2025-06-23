@@ -89,7 +89,8 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
   // Calcular defaultScale dinâmico e atualizar imageAdjustments
   useEffect(() => {
-    if (selectedImageUrl && product && selectedPrintifyVariantId) {
+    // 🔥 FIX: Só recalcula se imageAdjustments é undefined (foi resetado)
+    if (selectedImageUrl && product && selectedPrintifyVariantId && !imageAdjustments) {
       const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
       if (selectedVariant && product.printAreasConfig && product.printAreasConfig.length > 0) {
         const printAreaConfig = product.printAreasConfig[0]; // Assumindo apenas uma área de impressão para capas
@@ -105,6 +106,8 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         // Calcular defaultScale para 'slice'
         const initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
 
+        console.log(`🎯 Calculando scale limpo: ${initialScale} (placeholder: ${placeholderWidth}x${placeholderHeight}, user: ${userImageWidth}x${userImageHeight})`);
+
         // Define os ajustes iniciais para a imagem - SEMPRE CENTRADO
         setImageAdjustments({
           x: 0.5, // SEMPRE centrado horizontalmente
@@ -114,7 +117,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         });
       }
     }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId]); // Dependências para re-calcular
+  }, [selectedImageUrl, product, selectedPrintifyVariantId, imageAdjustments]); // Adicionei imageAdjustments às dependências
 
   // Função para lidar com os mockups gerados pelo ProductCanvas
   const handlePreviewReady = useCallback((data: {
