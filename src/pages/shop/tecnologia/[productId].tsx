@@ -225,6 +225,9 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setPrintifyImageId('');
     setPrintifyProductId('');
     
+    // 🔥 FIX: Reset imageAdjustments para evitar duplo scaling quando troca arte
+    setImageAdjustments(undefined);
+    
     toast.success('Arte selecionada com sucesso!');
   };
 
@@ -394,7 +397,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                       </div>
                       <Button
                         size="sm"
-                        onClick={handleResetSelection}
+                        onClick={handleOpenGallery}
                         variant="outline"
                         className="text-xs border-green-300 text-green-700 hover:bg-green-100"
                       >
@@ -452,24 +455,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     </label>
                   </div>
 
-                  {/* ⚠️ 6. ESTADO SEM ARTE - MAIS APELATIVO */}
-                  {!selectedImageUrl && (
-                    <div className="p-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-dashed border-blue-200 text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Upload className="w-8 h-8 text-blue-500" />
-                      </div>
-                      <h3 className="font-bold text-blue-900 mb-2">Escolha a sua Arte</h3>
-                      <p className="text-sm text-blue-700 mb-4">Selecione uma transformação AI da sua galeria</p>
-                      <Button 
-                        size="sm" 
-                        onClick={handleOpenGallery}
-                        disabled={!userInfo}
-                        className="bg-blue-500 hover:bg-blue-600"
-                      >
-                        Explorar Galeria
-                      </Button>
-                    </div>
-                  )}
+
 
                   {/* 🛒 7. BOTÃO PRINCIPAL COMPLETAMENTE REDESENHADO */}
                   <div className="pt-2">
@@ -547,14 +533,14 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                       <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Truck className="w-4 h-4 text-ghibli-moss" />
                       </div>
-                      <span className="text-xs font-bold text-ghibli-earth">3-5 dias</span>
+                      <span className="text-xs font-bold text-ghibli-earth">~1 semana</span>
                     </div>
                     
                     <div className="group p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
                       <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Award className="w-4 h-4 text-ghibli-moss" />
                       </div>
-                      <span className="text-xs font-bold text-ghibli-earth">30d Garantia</span>
+                      <span className="text-xs font-bold text-ghibli-earth">Garantia Total</span>
                     </div>
                   </div>
                 </CardContent>
