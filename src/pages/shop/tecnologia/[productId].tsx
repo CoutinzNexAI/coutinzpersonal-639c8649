@@ -303,7 +303,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 lg:py-8">
+        <main className="container mx-auto px-2 sm:px-4 py-6 sm:py-8 lg:py-8">
           {/* Breadcrumb - Hidden on mobile for cleaner look */}
           <nav className="mb-4 lg:mb-8 hidden sm:block">
             <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
@@ -315,15 +315,16 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
             </ol>
           </nav>
 
-          {/* 📱 MOBILE-FIRST APPROACH: Stack vertical em mobile, grid em desktop */}
+          {/* 📱 MOBILE-FIRST: Mockup primeiro, depois painel de compra */}
+          {/* 🖥️ DESKTOP: Layout em grid como antes */}
           <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
-            {/* 📱 MOBILE: Painel de compra PRIMEIRO (mais importante) */}
-            {/* 🖥️ DESKTOP: Área de visualização à esquerda (como antes) */}
+            {/* 📱 MOBILE: Mockup + Botão PRIMEIRO (ordem 1) */}
+            {/* 🖥️ DESKTOP: Área de visualização à esquerda (ordem 1) */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="lg:col-span-2 order-2 lg:order-1"
+              className="lg:col-span-2 order-1"
             >
               {/* Área Principal de Visualização OTIMIZADA para MOBILE */}
               <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[700px] bg-white rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl overflow-hidden mb-4 lg:mb-6 border border-ghibli-sand/20">
@@ -387,12 +388,12 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
               )}
             </motion.div>
 
-            {/* 🎨 PAINEL DE CONTROLO MOBILE-FIRST - PRIMEIRO em mobile, direita em desktop */}
+            {/* 🎨 PAINEL DE CONTROLO - SEGUNDO em mobile, direita em desktop */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="lg:col-span-1 order-1 lg:order-2"
+              className="lg:col-span-1 order-2"
             >
               {/* 🚀 CARTÃO PRINCIPAL MOBILE-FIRST DESIGN */}
               <Card className="relative overflow-hidden bg-gradient-to-br from-white via-white to-ghibli-cream/20 backdrop-blur-xl border border-ghibli-sand/20 shadow-lg lg:shadow-2xl hover:shadow-xl lg:hover:shadow-3xl transition-all duration-500 rounded-2xl lg:rounded-3xl mx-2 sm:mx-0">
