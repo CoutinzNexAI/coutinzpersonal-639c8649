@@ -541,9 +541,43 @@ export default async function handler(
       // LÓGICA ESPECÍFICA PARA CANVAS/POSTER
       console.log(`🔄 Processing Canvas/Poster product: ${productId}`);
 
-      // Validar que printifyImageId está presente
-      console.log('🔍 [DEBUG] printifyImageId recebido:', printifyImageId);
-      if (!printifyImageId) {
+      // Para Canvas, sempre fazer upload da imagem primeiro se não temos printifyImageId
+      let finalPrintifyImageId = printifyImageId;
+      
+      if (!finalPrintifyImageId && userImageUrl) {
+        console.log('🔄 Canvas: Fazendo upload da imagem para Printify primeiro...');
+        
+        try {
+          const uploadResponse = await fetch(new URL('/api/printify/uploads/image', req.url).href, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              imageUrl: userImageUrl,
+              fileName: `canvas_image_${Date.now()}.jpg`
+            }),
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error(`Upload failed with status: ${uploadResponse.status}`);
+          }
+
+          const uploadData = await uploadResponse.json();
+          if (uploadData.success && uploadData.printifyImageId) {
+            finalPrintifyImageId = uploadData.printifyImageId;
+            console.log('✅ Canvas: Imagem carregada para Printify com ID:', finalPrintifyImageId);
+          } else {
+            throw new Error(uploadData.error || 'Failed to upload image to Printify');
+          }
+        } catch (uploadError) {
+          console.error('❌ Erro no upload da imagem para Printify:', uploadError);
+          throw new Error(`Failed to upload image: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
+        }
+      }
+
+      // Agora validar que temos printifyImageId
+      if (!finalPrintifyImageId) {
         console.log('❌ [ERROR] printifyImageId é obrigatório para Canvas/Poster products');
         throw new Error('printifyImageId is required for Canvas/Poster products');
       }
@@ -571,7 +605,7 @@ export default async function handler(
           placeholders: [{
             position: printAreaConfig.position,
             images: [{
-              id: printifyImageId,
+              id: finalPrintifyImageId,
               x: imageAdjustments?.x || printAreaConfig.defaultX,
               y: imageAdjustments?.y || printAreaConfig.defaultY,
               scale: imageAdjustments?.scale || printAreaConfig.defaultScale,
@@ -627,7 +661,7 @@ export default async function handler(
       return res.status(200).json({
         success: true,
         previewUrls: finalPreviewUrls.length > 0 ? finalPreviewUrls : [product.mockupInitialPath],
-        printifyImageId: printifyImageId,
+        printifyImageId: finalPrintifyImageId,
         printifyProductId: createdProductId,
       });
 
