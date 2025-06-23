@@ -275,9 +275,9 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-4 py-8">
-          {/* Breadcrumb */}
-          <nav className="mb-8">
+        <main className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 lg:py-8">
+          {/* Breadcrumb - Hidden on mobile for cleaner look */}
+          <nav className="mb-4 lg:mb-8 hidden sm:block">
             <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
               <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
               <li className="text-ghibli-earth/50">/</li>
@@ -287,16 +287,18 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
             </ol>
           </nav>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Coluna da Esquerda - Área Maximizada de Visualização (2 colunas) */}
+          {/* 📱 MOBILE-FIRST APPROACH: Stack vertical em mobile, grid em desktop */}
+          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
+            {/* 📱 MOBILE: Painel de compra PRIMEIRO (mais importante) */}
+            {/* 🖥️ DESKTOP: Área de visualização à esquerda (como antes) */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="lg:col-span-2"
+              className="lg:col-span-2 order-2 lg:order-1"
             >
-              {/* Área Principal de Visualização OTIMIZADA - Mais Alta */}
-              <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-ghibli-sand/20">
+              {/* Área Principal de Visualização OTIMIZADA para MOBILE */}
+              <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[700px] bg-white rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl overflow-hidden mb-4 lg:mb-6 border border-ghibli-sand/20">
                 <ProductCanvas
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
@@ -310,46 +312,44 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                 />
               </div>
 
-              {/* Botão "Escolher Arte" SEMPRE VISÍVEL - CTA Principal */}
+              {/* Botão "Escolher Arte" OTIMIZADO para MOBILE */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
-                className="flex justify-center"
+                className="flex justify-center px-4 lg:px-0"
               >
                 <Button
                   onClick={handleOpenGallery}
-                  size="lg"
                   disabled={!userInfo}
-                  className={`px-12 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                  className={`w-full sm:w-auto px-8 sm:px-12 py-4 lg:py-4 text-base lg:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl lg:rounded-2xl ${
                     userInfo 
                       ? 'bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white' 
                       : 'bg-gray-400 text-gray-600 cursor-not-allowed'
                   }`}
                 >
-                  <Upload className="w-5 h-5 mr-3" />
+                  <Upload className="w-5 h-5 mr-2 lg:mr-3" />
                   {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
                 </Button>
               </motion.div>
 
-              {/* Prompt de Login (apenas se não autenticado) */}
+              {/* Prompt de Login OTIMIZADO para MOBILE */}
               {!userInfo && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.5 }}
-                  className="mt-4 flex justify-center"
+                  className="mt-4 flex justify-center px-4 lg:px-0"
                 >
-                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm max-w-md">
+                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm w-full sm:max-w-md">
                     <CardContent className="p-4 text-center">
-                      <p className="text-blue-800 text-sm mb-3">
+                      <p className="text-blue-800 text-sm sm:text-base mb-3">
                         Faça login para personalizar esta capa com as suas criações AI
                       </p>
                       <Button
                         onClick={() => router.push('/')}
                         variant="outline"
-                        size="sm"
-                        className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                        className="w-full sm:w-auto border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
                       >
                         Fazer Login
                       </Button>
@@ -359,29 +359,29 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
               )}
             </motion.div>
 
-            {/* 🎨 PAINEL DE CONTROLO REDESENHADO - Coluna da Direita */}
+            {/* 🎨 PAINEL DE CONTROLO MOBILE-FIRST - PRIMEIRO em mobile, direita em desktop */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="lg:col-span-1"
+              className="lg:col-span-1 order-1 lg:order-2"
             >
-              {/* 🚀 CARTÃO PRINCIPAL COMPLETAMENTE REDESENHADO */}
-              <Card className="relative overflow-hidden bg-gradient-to-br from-white via-white to-ghibli-cream/20 backdrop-blur-xl border border-ghibli-sand/20 shadow-2xl hover:shadow-3xl transition-all duration-500 rounded-3xl">
+              {/* 🚀 CARTÃO PRINCIPAL MOBILE-FIRST DESIGN */}
+              <Card className="relative overflow-hidden bg-gradient-to-br from-white via-white to-ghibli-cream/20 backdrop-blur-xl border border-ghibli-sand/20 shadow-lg lg:shadow-2xl hover:shadow-xl lg:hover:shadow-3xl transition-all duration-500 rounded-2xl lg:rounded-3xl mx-2 sm:mx-0">
                 
                 {/* ✨ Elementos decorativos subtis */}
                 <div className="absolute inset-0 bg-paper-texture opacity-30"></div>
                 <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-ghibli-moss/10 to-ghibli-moss-light/10 rounded-full blur-xl"></div>
                 <div className="absolute bottom-6 left-6 w-16 h-16 bg-gradient-to-br from-ghibli-sunflower/10 to-ghibli-poppy/10 rounded-full blur-xl"></div>
                 
-                <CardContent className="relative z-10 p-6 space-y-4">
-                  {/* 🎯 1. TÍTULO + PREÇO JUNTOS (mais compacto e impactante) */}
-                  <div className="text-center pb-4 border-b border-ghibli-sand/30">
-                    <h1 className="text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-1">
+                <CardContent className="relative z-10 p-4 sm:p-6 space-y-3 sm:space-y-4">
+                  {/* 🎯 1. TÍTULO + PREÇO MOBILE-OPTIMIZED */}
+                  <div className="text-center pb-3 sm:pb-4 border-b border-ghibli-sand/30">
+                    <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-1">
                       Capa de Telemóvel Personalizada
                     </h1>
                     <div className="inline-block">
-                      <div className="text-4xl font-black text-ghibli-moss drop-shadow-sm">
+                      <div className="text-3xl sm:text-4xl font-black text-ghibli-moss drop-shadow-sm">
                         €25.00
                       </div>
                       <div className="text-center text-xs text-ghibli-earth/60 font-medium -mt-1">
@@ -390,56 +390,58 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     </div>
                   </div>
 
-                  {/* 🎨 2. STATUS ARTE (mais visual e integrado) */}
+                  {/* 🎨 2. STATUS ARTE MOBILE-OPTIMIZED */}
                   {selectedImageUrl && (
-                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                      <img src={selectedImageUrl} className="w-12 h-12 rounded-lg object-cover border border-green-300" alt="Arte selecionada" />
-                      <div className="flex-1">
+                    <div className="flex items-center gap-2 sm:gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                      <img src={selectedImageUrl} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover border border-green-300" alt="Arte selecionada" />
+                      <div className="flex-1 min-w-0">
                         <p className="font-semibold text-green-800 text-sm">✅ Arte Aplicada</p>
-                        <p className="text-xs text-green-600">Transformação AI pronta</p>
+                        <p className="text-xs text-green-600 truncate">Transformação AI pronta</p>
                       </div>
                       <Button
                         size="sm"
                         onClick={handleOpenGallery}
                         variant="outline"
-                        className="text-xs border-green-300 text-green-700 hover:bg-green-100"
+                        className="text-xs px-3 py-1 border-green-300 text-green-700 hover:bg-green-100 shrink-0"
                       >
                         Trocar
                       </Button>
                     </div>
                   )}
 
-                  {/* 🚀 3. INCENTIVO DE ENTREGA MELHORADO */}
-                  <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 rounded-xl border-l-4 border-emerald-400">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <Truck className="w-5 h-5 text-emerald-600" />
+                  {/* 🚀 3. INCENTIVO DE ENTREGA MOBILE-OPTIMIZED */}
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 rounded-xl border-l-4 border-emerald-400">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                      <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="font-bold text-emerald-800 text-sm">Envio GRÁTIS</p>
                       <p className="text-xs text-emerald-600">em encomendas superiores a €50</p>
                     </div>
-                    <div className="text-2xl">🎁</div>
+                    <div className="text-xl sm:text-2xl shrink-0">🎁</div>
                   </div>
 
-                  {/* 📝 4. DESCRIÇÃO MELHOR FORMATADA */}
-                  <div>
-                    <p className="text-sm text-ghibli-earth/80 leading-relaxed font-medium">
+                  {/* 📝 4. DESCRIÇÃO MOBILE-OPTIMIZED */}
+                  <div className="px-1">
+                    <p className="text-sm leading-relaxed font-medium text-ghibli-earth/80">
                       Proteja o seu telemóvel com <span className="font-bold text-ghibli-moss">estilo único</span>! 
                       Proteção premium com as suas criações AI em <span className="font-bold">alta qualidade</span>.
                     </p>
                   </div>
 
-                  {/* 🎯 5. SELETOR DE MODELO REDESENHADO */}
+                  {/* 🎯 5. SELETOR DE MODELO MOBILE-FIRST */}
                   <div className="relative">
                     <Select
                       onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
                       value={selectedPrintifyVariantId?.toString() || ''}
                     >
-                      <SelectTrigger className="w-full h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-4 pr-10">
-                        <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-ghibli-moss"></div>
+                      <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
                           <SelectValue placeholder="Escolha o seu modelo">
-                            {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o seu modelo'}
+                            <span className="truncate">
+                              {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o seu modelo'}
+                            </span>
                           </SelectValue>
                         </div>
                       </SelectTrigger>
@@ -452,25 +454,25 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                       </SelectContent>
                     </Select>
                     
-                    {/* Label mais integrado */}
-                    <label className="absolute -top-2 left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
+                    {/* Label mobile-optimized */}
+                    <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
                       📱 Modelo do Telemóvel
                     </label>
                   </div>
 
 
 
-                  {/* 🛒 7. BOTÃO PRINCIPAL COMPLETAMENTE REDESENHADO */}
-                  <div className="pt-2">
+                  {/* 🛒 7. BOTÃO PRINCIPAL MOBILE-FIRST */}
+                  <div className="pt-3">
                     {(!printifyProductId || !printifyImageId) && selectedImageUrl ? (
-                      <div className="w-full py-6 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-2xl text-center">
+                      <div className="w-full py-5 sm:py-6 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-xl lg:rounded-2xl text-center">
                         <div className="flex items-center justify-center space-x-2">
                           <div className="flex space-x-1">
                             <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce"></div>
                             <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                             <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                           </div>
-                          <span className="text-ghibli-moss font-medium">Criando a sua capa mágica...</span>
+                          <span className="text-ghibli-moss font-medium text-sm sm:text-base">Criando a sua capa mágica...</span>
                         </div>
                         <div className="mt-2 text-xs text-ghibli-earth/70">✨ Aplicando transformação AI</div>
                       </div>
@@ -478,36 +480,36 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                       <Button
                         onClick={handleAddToCart}
                         disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId || !userInfo}
-                        className={`group relative w-full py-6 text-lg font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
+                        className={`group relative w-full py-5 sm:py-6 text-base sm:text-lg font-bold rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl hover:shadow-xl sm:hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
                           selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo
                             ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white' 
                             : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
                         }`}
-                        size="lg"
                       >
                         {/* Shimmer effect */}
                         {selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo && (
                           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
                         )}
                         
-                        <span className="relative z-10 flex items-center justify-center gap-3">
+                        <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
                           {loading ? (
                             <>
-                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              A adicionar...
+                              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              <span>A adicionar...</span>
                             </>
                           ) : !userInfo ? (
-                            'Faça Login para Continuar'
+                            <span className="text-center">Faça Login para Continuar</span>
                           ) : !selectedImageUrl ? (
-                            'Escolha uma Arte Primeiro'
+                            <span className="text-center">Escolha uma Arte Primeiro</span>
                           ) : !selectedPrintifyVariantId ? (
-                            'Selecione o Modelo'
+                            <span className="text-center">Selecione o Modelo</span>
                           ) : (
                             <>
-                              <span className="text-xl">🛒</span>
-                              Adicionar ao Carrinho
-                              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                                <ArrowRight className="w-4 h-4" />
+                              <span className="text-lg sm:text-xl">🛒</span>
+                              <span className="hidden sm:inline">Adicionar ao Carrinho</span>
+                              <span className="sm:hidden">Adicionar</span>
+                              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center">
+                                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                               </div>
                             </>
                           )}
@@ -516,32 +518,32 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     )}
                   </div>
 
-                  {/* 🛡️ 8. GRID DE GARANTIAS MAIS VISUAL */}
-                  <div className="grid grid-cols-2 gap-3 pt-4">
-                    <div className="group p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
-                      <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Shield className="w-4 h-4 text-ghibli-moss" />
+                  {/* 🛡️ 8. GRID DE GARANTIAS MOBILE-OPTIMIZED */}
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-3 sm:pt-4">
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
                       <span className="text-xs font-bold text-ghibli-earth">Proteção Premium</span>
                     </div>
                     
-                    <div className="group p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
-                      <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Sparkles className="w-4 h-4 text-ghibli-moss" />
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
                       <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
                     </div>
                     
-                    <div className="group p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
-                      <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Truck className="w-4 h-4 text-ghibli-moss" />
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Truck className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
                       <span className="text-xs font-bold text-ghibli-earth">~1 semana</span>
                     </div>
                     
-                    <div className="group p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
-                      <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Award className="w-4 h-4 text-ghibli-moss" />
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Award className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
                       <span className="text-xs font-bold text-ghibli-earth">Garantia Total</span>
                     </div>
