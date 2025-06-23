@@ -103,16 +103,16 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         const placeholderWidth = selectedVariant.placeholderWidth;
         const placeholderHeight = selectedVariant.placeholderHeight;
 
-        // Calcular defaultScale para 'slice'
-        const initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
+        // 🎯 MODO "Fill to placeholder" - scale 1.0 com X e Y centrados
+        const fillScale = 1.0;
 
-        console.log(`🎯 PRIMEIRA SELEÇÃO - Calculando scale inicial: ${initialScale} (placeholder: ${placeholderWidth}x${placeholderHeight}, image: ${userImageWidth}x${userImageHeight})`);
+        console.log(`🎯 PRIMEIRA SELEÇÃO - Modo Fill to Placeholder: scale=${fillScale}, centrado (placeholder: ${placeholderWidth}x${placeholderHeight}, image: ${userImageWidth}x${userImageHeight})`);
 
-        // Define os ajustes iniciais para a imagem
+        // Define os ajustes iniciais - modo "Fill to placeholder" centrado
         setImageAdjustments({
-          x: printAreaConfig.defaultX || 0.5,
-          y: printAreaConfig.defaultY || 0.5,
-          scale: initialScale, // Use o scale calculado
+          x: 0.5, // SEMPRE centrado horizontalmente
+          y: 0.5, // SEMPRE centrado verticalmente
+          scale: fillScale, // Scale 1.0 = Fill to placeholder
           rotation: printAreaConfig.defaultAngle || 0
         });
       }
@@ -243,16 +243,17 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         const placeholderWidth = selectedVariant.placeholderWidth;
         const placeholderHeight = selectedVariant.placeholderHeight;
         
-        // Calcular scale correto para a nova imagem
-        const initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
+        // 🎯 MODO "Fill to placeholder" - scale 1.0 com X e Y centrados
+        // Printify vai fazer o cover/fill automaticamente no backend
+        const fillScale = 1.0;
         
-        console.log(`🔄 RESET COMPLETO - Nova arte selecionada. Calculando scale limpo: ${initialScale} (placeholder: ${placeholderWidth}x${placeholderHeight}, image: ${userImageWidth}x${userImageHeight})`);
+        console.log(`🔄 RESET COMPLETO - Nova arte selecionada. Modo Fill to Placeholder: scale=${fillScale}, centrado (placeholder: ${placeholderWidth}x${placeholderHeight}, image: ${userImageWidth}x${userImageHeight})`);
         
-        // Resetar para valores padrão com scale correto
+        // Resetar para modo "Fill to placeholder" centrado
         setImageAdjustments({
-          x: printAreaConfig.defaultX || 0.5,
-          y: printAreaConfig.defaultY || 0.5,
-          scale: initialScale, // Scale calculado para a nova imagem
+          x: 0.5, // SEMPRE centrado horizontalmente
+          y: 0.5, // SEMPRE centrado verticalmente  
+          scale: fillScale, // Scale 1.0 = Fill to placeholder
           rotation: printAreaConfig.defaultAngle || 0,
           cropArea: undefined // Limpar qualquer crop anterior
         });
@@ -303,7 +304,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-2 sm:px-4 py-6 sm:py-8 lg:py-8">
+        <main className="container mx-auto px-2 sm:px-4 pt-8 pb-6 sm:pt-12 sm:pb-8 lg:py-8">
           {/* Breadcrumb - Hidden on mobile for cleaner look */}
           <nav className="mb-4 lg:mb-8 hidden sm:block">
             <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
