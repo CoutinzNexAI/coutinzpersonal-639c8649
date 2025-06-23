@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { Menu, X, ShoppingCart, Sparkles } from "lucide-react";
 import UserMenu from "./UserMenu";
 import { PicCoinBalance } from './PicCoinBalance';
 import { CartService } from '@/lib/cart/cartService';
@@ -185,6 +185,26 @@ const Header: React.FC = () => {
   
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
+            <Link
+              href="/community"
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+            >
+              Comunidade
+            </Link>
+            <Link
+              href="/gallery-demo"
+              className="text-gray-600 hover:text-purple-600 transition-colors font-medium flex items-center gap-1"
+            >
+              <Sparkles className="w-4 h-4" />
+              Galeria
+            </Link>
+            <Link
+              href="/loja"
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+            >
+              Loja
+            </Link>
+            
             {navLinks.map((link, index) => (
               <motion.div
               key={link.id}
@@ -298,26 +318,77 @@ const Header: React.FC = () => {
                 }}
               >
                 <nav className="flex flex-col space-y-3">
+                  <motion.div
+                    variants={itemVariants}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <Link
+                      href="/community"
+                      className={cn(
+                        "block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                        "text-ghibli-wood hover:text-ghibli-moss",
+                        "bg-ghibli-cream/20 hover:bg-ghibli-cream/40 border border-transparent hover:border-ghibli-sand/30"
+                      )}
+                      onClick={closeMobileMenu}
+                    >
+                      Comunidade
+                    </Link>
+                  </motion.div>
+                  <motion.div
+                    variants={itemVariants}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Link
+                      href="/gallery-demo"
+                      className={cn(
+                        "block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                        "text-ghibli-wood hover:text-ghibli-moss",
+                        "bg-ghibli-cream/20 hover:bg-ghibli-cream/40 border border-transparent hover:border-ghibli-sand/30"
+                      )}
+                      onClick={closeMobileMenu}
+                    >
+                      <div className="flex items-center gap-1">
+                        <Sparkles className="w-4 h-4" />
+                        Galeria
+                      </div>
+                    </Link>
+                  </motion.div>
+                  <motion.div
+                    variants={itemVariants}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <Link
+                      href="/loja"
+                      className={cn(
+                        "block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                        "text-ghibli-wood hover:text-ghibli-moss",
+                        "bg-ghibli-cream/20 hover:bg-ghibli-cream/40 border border-transparent hover:border-ghibli-sand/30"
+                      )}
+                      onClick={closeMobileMenu}
+                    >
+                      Loja
+                    </Link>
+                  </motion.div>
                   {navLinks.map((link, index) => (
                     <motion.div
-                  key={link.id}
+                      key={link.id}
                       variants={itemVariants}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: index * 0.1 + 0.4 }}
                     >
                       <Link
-                  href={link.href}
+                        href={link.href}
                         className={cn(
                           "block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
                           "text-ghibli-wood hover:text-ghibli-moss",
                           "bg-ghibli-cream/20 hover:bg-ghibli-cream/40 border border-transparent hover:border-ghibli-sand/30"
                         )}
-                  onClick={closeMobileMenu}
-                >
-                  {link.label}
+                        onClick={closeMobileMenu}
+                      >
+                        {link.label}
                       </Link>
                     </motion.div>
-              ))}
-            </nav>
+                  ))}
+                </nav>
               </motion.div>
             </div>
           </motion.div>

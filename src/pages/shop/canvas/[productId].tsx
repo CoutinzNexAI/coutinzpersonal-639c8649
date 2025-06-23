@@ -17,19 +17,8 @@ import { ChevronLeft } from 'lucide-react';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
-
-interface ImageAdjustments {
-  x: number;
-  y: number;
-  scale: number;
-  rotation?: number;
-  cropArea?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-}
+import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
+import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
 
 interface CanvasDetailPageProps {
   product: PrintifyProductMapping;
@@ -377,17 +366,12 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
 
             {/* Painel de Controlo */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              {...PRODUCT_ANIMATIONS.sidebar}
               className="lg:col-span-1 order-2"
             >
-              <Card className="relative overflow-hidden bg-gradient-to-br from-white via-white to-ghibli-cream/20 backdrop-blur-xl border border-ghibli-sand/20 shadow-lg lg:shadow-2xl hover:shadow-xl lg:hover:shadow-3xl transition-all duration-500 rounded-2xl lg:rounded-3xl mx-2 sm:mx-0">
+              <Card className={PRODUCT_STYLES.card}>
                 
-                {/* Elementos decorativos */}
-                <div className="absolute inset-0 bg-paper-texture opacity-30"></div>
-                <div className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-ghibli-moss/10 to-ghibli-moss-light/10 rounded-full blur-xl"></div>
-                <div className="absolute bottom-6 left-6 w-16 h-16 bg-gradient-to-br from-ghibli-sunflower/10 to-ghibli-poppy/10 rounded-full blur-xl"></div>
+                <ProductCardDecorations />
                 
                 <CardContent className="relative z-10 p-4 sm:p-6 space-y-3 sm:space-y-4">
                   {/* Título + Preço */}

@@ -4,11 +4,10 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, Check, RotateCw, ChevronDown } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'react-hot-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -18,19 +17,9 @@ import { ChevronLeft } from 'lucide-react';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
-
-interface ImageAdjustments {
-  x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
-  y: number;          // Posição Y da imagem dentro da área de impressão (0-1, percentagem)
-  scale: number;      // Zoom (escala, 1 = tamanho original)
-  rotation?: number;  // Rotação em graus (se suportada pelo produto)
-  cropArea?: {        // Área de crop da imagem original
-    x: number;        // X do crop em percentagem da imagem original
-    y: number;        // Y do crop em percentagem da imagem original
-    width: number;    // Largura do crop em percentagem da imagem original
-    height: number;   // Altura do crop em percentagem da imagem original
-  };
-}
+import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
+import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
+import { validatePurchase } from '@/utils/productValidation';
 
 interface PosterDetailPageProps {
   product: PrintifyProductMapping;
