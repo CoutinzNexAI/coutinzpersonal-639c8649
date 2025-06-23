@@ -87,17 +87,17 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     }
   }, [selectedPrintifyVariantId]); // Só depende da variante
 
-  // Calcular defaultScale dinâmico e atualizar imageAdjustments
+  // Calcular defaultScale dinâmico e atualizar imageAdjustments (PRIMEIRA seleção de imagem)
   useEffect(() => {
-    // 🔥 FIX: Só recalcula se imageAdjustments é undefined (foi resetado)
+    // 🎯 APENAS para primeira seleção - se não há imageAdjustments definido
     if (selectedImageUrl && product && selectedPrintifyVariantId && !imageAdjustments) {
       const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
       if (selectedVariant && product.printAreasConfig && product.printAreasConfig.length > 0) {
         const printAreaConfig = product.printAreasConfig[0]; // Assumindo apenas uma área de impressão para capas
 
-        // Dimensões da sua arte em pixels
-        const userImageWidth = 1016;
-        const userImageHeight = 1016;
+        // Dimensões da imagem AI (padrão 1024x1024 para transformações PicTuz)
+        const userImageWidth = 1024;
+        const userImageHeight = 1024;
 
         // Dimensões do placeholder da variante selecionada
         const placeholderWidth = selectedVariant.placeholderWidth;
@@ -106,18 +106,18 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         // Calcular defaultScale para 'slice'
         const initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
 
-        console.log(`🎯 Calculando scale limpo: ${initialScale} (placeholder: ${placeholderWidth}x${placeholderHeight}, user: ${userImageWidth}x${userImageHeight})`);
+        console.log(`🎯 PRIMEIRA SELEÇÃO - Calculando scale inicial: ${initialScale} (placeholder: ${placeholderWidth}x${placeholderHeight}, image: ${userImageWidth}x${userImageHeight})`);
 
-        // Define os ajustes iniciais para a imagem - SEMPRE CENTRADO
+        // Define os ajustes iniciais para a imagem
         setImageAdjustments({
-          x: 0.5, // SEMPRE centrado horizontalmente
-          y: 0.5, // SEMPRE centrado verticalmente
+          x: printAreaConfig.defaultX || 0.5,
+          y: printAreaConfig.defaultY || 0.5,
           scale: initialScale, // Use o scale calculado
-          rotation: 0 // Sem rotação inicial
+          rotation: printAreaConfig.defaultAngle || 0
         });
       }
     }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId, imageAdjustments]); // Adicionei imageAdjustments às dependências
+  }, [selectedImageUrl, product, selectedPrintifyVariantId, imageAdjustments]); // Dependências corretas
 
   // Função para lidar com os mockups gerados pelo ProductCanvas
   const handlePreviewReady = useCallback((data: {
@@ -228,8 +228,36 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setPrintifyImageId('');
     setPrintifyProductId('');
     
-    // 🔥 FIX: Reset imageAdjustments para evitar duplo scaling quando troca arte
-    setImageAdjustments(undefined);
+    // *** CORREÇÃO CRÍTICA: Reset imageAdjustments para valores padrão do produto ***
+    // Isso força um novo cálculo de scale baseado na nova imagem e variante selecionada
+    if (product && selectedPrintifyVariantId) {
+      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+      if (selectedVariant && product.printAreasConfig?.[0]) {
+        const printAreaConfig = product.printAreasConfig[0];
+        
+        // Dimensões da imagem AI (padrão 1024x1024 para transformações PicTuz)
+        const userImageWidth = 1024;
+        const userImageHeight = 1024;
+        
+        // Dimensões do placeholder da variante selecionada
+        const placeholderWidth = selectedVariant.placeholderWidth;
+        const placeholderHeight = selectedVariant.placeholderHeight;
+        
+        // Calcular scale correto para a nova imagem
+        const initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
+        
+        console.log(`🔄 RESET COMPLETO - Nova arte selecionada. Calculando scale limpo: ${initialScale} (placeholder: ${placeholderWidth}x${placeholderHeight}, image: ${userImageWidth}x${userImageHeight})`);
+        
+        // Resetar para valores padrão com scale correto
+        setImageAdjustments({
+          x: printAreaConfig.defaultX || 0.5,
+          y: printAreaConfig.defaultY || 0.5,
+          scale: initialScale, // Scale calculado para a nova imagem
+          rotation: printAreaConfig.defaultAngle || 0,
+          cropArea: undefined // Limpar qualquer crop anterior
+        });
+      }
+    }
     
     toast.success('Arte selecionada com sucesso!');
   };
