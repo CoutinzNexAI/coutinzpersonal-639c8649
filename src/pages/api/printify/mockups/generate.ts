@@ -93,15 +93,44 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<CreateDraftResponse>
 ) {
-  console.log("🚀 [API] Printify Mockups Generate - Starting");
+  console.log("--- [INÍCIO] /api/printify/mockups/generate ---");
   
+  // 🔍 LOGS DE DEPURAÇÃO DETALHADOS
+  console.log("🔍 [DEBUG] Request method:", req.method);
+  console.log("🔍 [DEBUG] Request URL:", req.url);
+  console.log("🔍 [DEBUG] Request headers:", JSON.stringify(req.headers, null, 2));
+  console.log("🔍 [DEBUG] Request body type:", typeof req.body);
+  console.log("🔍 [DEBUG] Request body keys:", Object.keys(req.body || {}));
+  console.log("🔍 [DEBUG] Request body content:", JSON.stringify(req.body, null, 2));
+  console.log("🔍 [DEBUG] Request query:", JSON.stringify(req.query, null, 2));
+  console.log("🔍 [DEBUG] User-Agent:", req.headers['user-agent']);
+  console.log("🔍 [DEBUG] Content-Type:", req.headers['content-type']);
+  console.log("🔍 [DEBUG] Content-Length:", req.headers['content-length']);
+
   // Suporte para OPTIONS (CORS preflight)
   if (req.method === 'OPTIONS') {
+    console.log("✅ [DEBUG] OPTIONS preflight request - setting CORS headers");
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Max-Age', '86400');
     return res.status(200).end();
+  }
+
+  // Temporariamente aceitar GET para depuração
+  if (req.method === 'GET') {
+    console.log("⚠️ [DEBUG] GET request received - returning debug info");
+    return res.status(200).json({
+      success: false,
+      error: 'GET request received for debugging',
+      debug: {
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        body: req.body,
+        query: req.query
+      }
+    });
   }
 
   if (req.method !== 'POST') {
@@ -113,7 +142,8 @@ export default async function handler(
   }
 
   try {
-    // 🔐 Verificação de configuração básica
+    console.log("🔐 PASSO 0: A verificar autenticação...");
+
     if (!process.env.PRINTIFY_SHOP_ID) {
       console.log("❌ ERRO: PRINTIFY_SHOP_ID não está configurado");
       return res.status(500).json({
@@ -122,41 +152,59 @@ export default async function handler(
       });
     }
 
-    // 📋 Extrair e validar dados do request
-    const { 
-      productId, 
-      userImageUrl, 
-      userId, 
-      imageAdjustments, 
-      selectedPrintifyVariantId, 
-      logoImageId, 
-      customerImageUrl, 
-      customerImageAdjustments, 
-      selectedPhraseText, 
-      phraseImageAdjustments, 
-      printifyImageId 
-    } = req.body;
+    //const authHeader = req.headers.authorization;
+    //if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    //  console.log("❌ ERRO: Token de autorização em falta");
+    //  return res.status(401).json({
+    //    success: false,
+    //    error: 'Unauthorized - missing token'
+    //  });
+    //}
+
+    //const token = authHeader.substring(7);
+    //const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    //if (error || !user) {
+    //  console.log("❌ ERRO: Token inválido:", error?.message);
+    //  return res.status(401).json({
+    //    success: false,
+    //    error: 'Unauthorized - invalid token'
+    //  });
+    //}
+
+    //console.log("✅ Autenticação bem-sucedida. User ID:", user.id);
+
+    //const { productId, userImageUrl, userId, imageAdjustments }: CreateDraftRequest = req.body;
+
+    //console.log("📋 Dados recebidos:", { 
+      //productId, 
+      //userImageUrl: userImageUrl?.substring(0, 50) + '...', 
+      //userId,
+      //hasImageAdjustments: !!imageAdjustments
+    //});
+
+    const user = { id: 'test-user-ficticio-123' };
+    const { productId, userImageUrl, userId, imageAdjustments, selectedPrintifyVariantId, logoImageId, customerImageUrl, customerImageAdjustments, selectedPhraseText, phraseImageAdjustments, printifyImageId } = req.body;
 
     // Para sweat de criança, usar customerImageUrl; para outros produtos, usar userImageUrl
     const imageUrl = productId === 'custom_youth_hoodie' ? customerImageUrl : userImageUrl;
 
-    console.log("📋 Processando produto:", { 
-      productId, 
-      userId,
-      hasImageUrl: !!imageUrl,
-      isYouthHoodie: productId === 'custom_youth_hoodie'
-    });
-
-    // ✅ Validações básicas
+    // Validações básicas
     if (!productId || !imageUrl || !userId) {
-      console.log("❌ ERRO: Campos obrigatórios em falta");
+      console.log("❌ ERRO: Campos obrigatórios em falta:", { 
+        productId: !!productId, 
+        userImageUrl: !!userImageUrl,
+        customerImageUrl: !!customerImageUrl,
+        imageUrl: !!imageUrl,
+        userId: !!userId 
+      });
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: productId, imageUrl, userId'
+        error: 'Missing required fields: productId, imageUrl (userImageUrl or customerImageUrl), userId'
       });
     }
 
-    // 🎯 Validação específica para capas de telemóvel
+    // Validação específica para capas de telemóvel
     if (productId === 'custom_phone_case' && !selectedPrintifyVariantId) {
       console.log("❌ ERRO: selectedPrintifyVariantId é obrigatório para capas de telemóvel");
       return res.status(400).json({
@@ -165,10 +213,14 @@ export default async function handler(
       });
     }
 
-    // 👕 Validação específica para sweat de criança
+    // Validação específica para sweat de criança
     if (productId === 'custom_youth_hoodie') {
       if (!selectedPrintifyVariantId || !logoImageId || !selectedPhraseText) {
-        console.log("❌ ERRO: Campos obrigatórios para sweat de criança em falta");
+        console.log("❌ ERRO: Campos obrigatórios para sweat de criança em falta:", { 
+          selectedPrintifyVariantId: !!selectedPrintifyVariantId,
+          logoImageId: !!logoImageId,
+          selectedPhraseText: !!selectedPhraseText
+        });
         return res.status(400).json({
           success: false,
           error: 'Para sweat de criança são obrigatórios: selectedPrintifyVariantId, logoImageId, selectedPhraseText'
@@ -176,36 +228,38 @@ export default async function handler(
       }
     }
 
-    // 🔍 Buscar produto no nosso mapeamento
+    // Buscar produto no nosso mapeamento
     const product = getPrintifyProduct(productId);
     if (!product || !product.printifyBlueprintId || !product.printifyPrintProviderId) {
-      console.log("❌ ERROR: Product not found in Printify mapping:", productId);
+      console.log("❌ ERROR: Product not found in Printify mapping or missing Printify IDs:", productId);
       return res.status(404).json({
         success: false,
-        error: `Product not found in Printify mapping: ${productId}`
+        error: `Product not found in Printify mapping or missing Printify IDs: ${productId}`
       });
     }
 
-    // ✅ Verificar se tem variants
-    const hasVariants = (product.variants && product.variants.length > 0) || 
-                       (product.printifyVariantIds && product.printifyVariantIds.length > 0);
+    // Verificar se tem variants (para capas) ou printifyVariantIds (para outros produtos)
+    const hasVariants = (product.variants && product.variants.length > 0) || (product.printifyVariantIds && product.printifyVariantIds.length > 0);
     if (!hasVariants) {
-      console.log("❌ ERROR: Product has no variants:", productId);
+      console.log("❌ ERROR: Product has no variants or printifyVariantIds:", productId);
       return res.status(404).json({
         success: false,
         error: `Product has no variants configured: ${productId}`
       });
     }
 
-    console.log(`✅ Product found: ${product.name} (Blueprint: ${product.printifyBlueprintId})`);
+    console.log(`✅ Product found in mapping: ${product.name} (Blueprint: ${product.printifyBlueprintId}, PP: ${product.printifyPrintProviderId})`);
 
-    // 🔄 Obter detalhes das variantes da Printify
-    console.log('🔄 Fetching Printify blueprint variant details...');
+    // PASSO 1.5: Obter Detalhes do Placeholder da Printify
+    console.log('🔄 STEP 1.5: Fetching Printify blueprint variant details...');
     const printifyVariantsResponse = await printifyFetch(
       `/catalog/blueprints/${product.printifyBlueprintId}/print_providers/${product.printifyPrintProviderId}/variants.json?show-out-of-stock=1`
     );
 
-    // 🎯 Determinar qual variante usar
+    // Debug: Log all available variants
+    console.log('🔍 DEBUG: Available variants from Printify API:', printifyVariantsResponse.variants);
+
+    // Determinar qual variante usar
     let targetVariantId: number;
     if (selectedPrintifyVariantId) {
       targetVariantId = selectedPrintifyVariantId;
@@ -213,10 +267,9 @@ export default async function handler(
       targetVariantId = product.variants[0].id;
     } else if (product.printifyVariantIds && product.printifyVariantIds.length > 0) {
       targetVariantId = product.printifyVariantIds[0];
-    } else {
+      } else {
       throw new Error('No variant ID available for the product');
     }
-    
     console.log('🎯 Selected variant ID:', targetVariantId);
 
     const selectedPrintifyVariant = printifyVariantsResponse.variants.find(
@@ -224,48 +277,46 @@ export default async function handler(
     );
 
     if (!selectedPrintifyVariant) {
-      console.error('❌ Variant not found! Available variant IDs:', 
-        printifyVariantsResponse.variants.map((v: PrintifyVariant) => v.id)
-      );
-      throw new Error(`Printify variant with ID ${targetVariantId} not found`);
+      console.error('❌ Variant not found! Available variant IDs:', printifyVariantsResponse.variants.map((v: PrintifyVariant) => v.id));
+      throw new Error(`Printify variant with ID ${targetVariantId} not found. Available IDs: ${printifyVariantsResponse.variants.map((v: PrintifyVariant) => v.id).join(', ')}`);
     }
 
     if (!selectedPrintifyVariant.placeholders || selectedPrintifyVariant.placeholders.length === 0) {
       throw new Error('Printify variant placeholders not found for the selected product.');
     }
 
-    console.log('✅ Printify variant details obtained');
+    console.log('✅ Printify variant details:', selectedPrintifyVariant);
 
-    // 👕 LÓGICA ESPECÍFICA PARA SWEAT DE CRIANÇA
+    // LÓGICA ESPECÍFICA PARA SWEAT DE CRIANÇA
     if (productId === 'custom_youth_hoodie') {
       console.log('🔄 Processing youth hoodie with multiple print areas...');
 
       // PASSO 1: Processar e fazer upload da imagem do cliente para Printify
       console.log('🔄 Processing and uploading customer image to Printify...');
       
-      // Obter o placeholder para a posição back (onde vai a imagem do cliente)
-      const customerBackPlaceholder = selectedPrintifyVariant.placeholders.find(
-        (p: PrintifyPlaceholder) => p.position === 'back'
-      );
+             // Obter o placeholder para a posição back (onde vai a imagem do cliente)
+       const customerBackPlaceholder = selectedPrintifyVariant.placeholders.find(
+         (p: PrintifyPlaceholder) => p.position === 'back'
+       );
       
       let customerPrintifyImageId: string;
       
-      if (customerBackPlaceholder) {
-        // Usar generate-print-file.ts para processar a imagem do cliente
-        console.log('🔄 Using print file processing for customer image...');
-        
-        const mockGenerateCustomerFileReq: NextApiRequest = {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-          },
-          body: {
-            imageUrl: customerImageUrl || userImageUrl,
-            productId: productId,
-            userId: userId,
-            imageAdjustments: customerImageAdjustments,
-            printifyPlaceholder: customerBackPlaceholder
-          }
+             if (customerBackPlaceholder) {
+         // Usar generate-print-file.ts para processar a imagem do cliente
+         console.log('🔄 Using print file processing for customer image...');
+         
+         const mockGenerateCustomerFileReq: NextApiRequest = {
+           method: 'POST',
+           headers: {
+             'content-type': 'application/json',
+           },
+           body: {
+             imageUrl: customerImageUrl || userImageUrl,
+             productId: productId,
+             userId: userId,
+             imageAdjustments: customerImageAdjustments,
+             printifyPlaceholder: customerBackPlaceholder
+           }
         } as NextApiRequest;
 
         let generateCustomerFileData: GeneratePrintFileResponseInternal | undefined;
@@ -304,17 +355,17 @@ export default async function handler(
       } else {
         // Fallback se não encontrar placeholder
         console.warn('⚠️ Back placeholder not found, using direct upload');
-        const customerUploadResponse = await printifyFetch('/uploads/images.json', {
-          method: 'POST',
-          body: JSON.stringify({
-            file_name: `customer-art-${Date.now()}.png`,
-            url: customerImageUrl || userImageUrl
-          })
-        });
+      const customerUploadResponse = await printifyFetch('/uploads/images.json', {
+      method: 'POST',
+      body: JSON.stringify({
+          file_name: `customer-art-${Date.now()}.png`,
+          url: customerImageUrl || userImageUrl
+      })
+    });
 
-        if (!customerUploadResponse?.id) {
-          throw new Error('Failed to upload customer image to Printify');
-        }
+      if (!customerUploadResponse?.id) {
+        throw new Error('Failed to upload customer image to Printify');
+      }
         customerPrintifyImageId = customerUploadResponse.id;
         console.log('✅ Customer image uploaded (direct):', customerPrintifyImageId);
       }
@@ -332,14 +383,14 @@ export default async function handler(
         } catch (phraseError) {
           console.warn('⚠️ Failed to generate phrase image, using fallback:', phraseError);
           // Fallback para o mapeamento estático
-          const phraseImageMapping: Record<string, string> = {
-            'PicTuz - since 2025': '68548af2cc947707f0ee650f',
-            'Criado com IA': '68548af3cc947707f0ee651a',
-            'Arte Personalizada': '68548af4cc947707f0ee652b',
-            'Feito em Portugal': '68548af5cc947707f0ee653c',
-          };
+        const phraseImageMapping: Record<string, string> = {
+          'PicTuz - since 2025': '68548af2cc947707f0ee650f',
+          'Criado com IA': '68548af3cc947707f0ee651a',
+          'Arte Personalizada': '68548af4cc947707f0ee652b',
+          'Feito em Portugal': '68548af5cc947707f0ee653c',
+        };
         
-          dynamicPhrasePrintifyImageId = phraseImageMapping[selectedPhraseText] || '68548b05a7a3520a5d3534c0';
+        dynamicPhrasePrintifyImageId = phraseImageMapping[selectedPhraseText] || '68548b05a7a3520a5d3534c0';
           console.log('✅ Fallback phrase image ID:', dynamicPhrasePrintifyImageId);
         }
       } else {
@@ -348,105 +399,142 @@ export default async function handler(
         console.log('✅ Using transparent image for "no phrase"');
       }
 
-      // PASSO 3: Criar produto temporário na Printify para gerar mockup
+      // PASSO 3: Obter placeholders para front e back
+      const frontPlaceholder = selectedPrintifyVariant.placeholders.find(
+        (p: PrintifyPlaceholder) => p.position === 'front'
+      );
+      const backPlaceholder = selectedPrintifyVariant.placeholders.find(
+        (p: PrintifyPlaceholder) => p.position === 'back'
+      );
+
+      if (!frontPlaceholder || !backPlaceholder) {
+        throw new Error('Front or back placeholder not found for youth hoodie');
+      }
+
+      // PASSO 4: Criar produto com múltiplas áreas de impressão
+      console.log('🔄 Creating youth hoodie product with multiple print areas...');
+      console.log('🔍 DEBUG: Logo ID being used:', logoImageId);
+      console.log('🔍 DEBUG: Customer Image ID:', customerPrintifyImageId);
+      console.log('🔍 DEBUG: Phrase Image ID:', dynamicPhrasePrintifyImageId);
+      console.log('🔍 DEBUG: Selected variant ID:', targetVariantId);
+      
+      const printifyProductTitle = `PicTuz Youth Hoodie (${user.id}-${Date.now()})`;
+      const productPrice = (product.basePrice || 40) * 100; // 40€ em cêntimos
+
       const printifyProductPayload = {
-        title: `PicTuz Youth Hoodie Mockup (${userId}-${Date.now()})`,
-        description: 'Temporary Youth Hoodie product for mockup generation',
+        title: printifyProductTitle,
+        description: `Custom youth hoodie for user ${user.id} with logo, custom art, and phrase.`,
         blueprint_id: product.printifyBlueprintId,
         print_provider_id: product.printifyPrintProviderId,
         variants: [{
           id: targetVariantId,
-          price: 1000, // Preço dummy para mockup
+          price: productPrice,
           is_enabled: true
         }],
         print_areas: [
+          // Área 1: Logo na frente
           {
             variant_ids: [targetVariantId],
-            placeholders: [
-              {
-                position: 'front',
-                images: [
-                  {
-                    id: logoImageId, // Logo fixo na frente
-                    x: 0.5,
-                    y: 0.42,
-                    scale: 0.8,
-                    angle: 0
-                  },
-                  {
-                    id: dynamicPhrasePrintifyImageId, // Frase abaixo do logo
-                    x: 0.5,
-                    y: 0.65,
-                    scale: phraseImageAdjustments?.scale || 0.5,
-                    angle: phraseImageAdjustments?.rotation || 0
-                  }
-                ]
-              },
-              {
-                position: 'back',
-                images: [
-                  {
-                    id: customerPrintifyImageId, // Imagem do cliente nas costas
-                    x: customerImageAdjustments?.x || 0.5,
-                    y: customerImageAdjustments?.y || 0.42,
-                    scale: customerImageAdjustments?.scale || 0.8,
-                    angle: customerImageAdjustments?.rotation || 0
-                  }
-                ]
-              }
-            ]
+            placeholders: [{
+              position: 'front',
+              images: [{
+                id: logoImageId, // ID fixo do logo
+                x: 0.5,
+                y: 0.4, // Posicionar mais para cima no peito
+                scale: 0.6, // Reduzir escala para garantir que o logo esteja visível
+                angle: 0,
+                is_default: true, // Forçar como imagem principal da vista frontal
+                is_selected_for_publishing: true // Forçar para publicação/mockups
+              }]
+            }]
+          },
+          // Área 2: Arte do cliente e frase nas costas
+          {
+            variant_ids: [targetVariantId],
+            placeholders: [{
+              position: 'back',
+              images: [
+                {
+                  id: customerPrintifyImageId, // Imagem do cliente
+                  x: customerImageAdjustments?.x || 0.5,
+                  y: customerImageAdjustments?.y || 0.5,
+                  scale: customerImageAdjustments?.scale || 0.9,
+                  angle: customerImageAdjustments?.rotation || 0
+                },
+                {
+                  id: dynamicPhrasePrintifyImageId, // Frase
+                  x: phraseImageAdjustments?.x || 0.5,
+                  y: phraseImageAdjustments?.y || 0.85, // Mais em baixo
+                  scale: phraseImageAdjustments?.scale || 0.8, // Ajustar conforme necessário, mas 1.0 é um bom início para imagens geradas
+                  angle: phraseImageAdjustments?.rotation || 0
+                }
+              ]
+            }]
           }
         ]
       };
 
-      console.log('📤 Youth Hoodie payload:', JSON.stringify(printifyProductPayload, null, 2));
+      console.log('📤 Creating youth hoodie product:', JSON.stringify(printifyProductPayload, null, 2));
 
       const printifyProductResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
         method: 'POST',
         body: JSON.stringify(printifyProductPayload)
       });
 
-      if (!printifyProductResponse?.id) {
-        throw new Error('Failed to create Youth Hoodie product on Printify');
+      if (!printifyProductResponse || !printifyProductResponse.id) {
+        console.error('Printify product creation response error:', printifyProductResponse);
+        throw new Error('Failed to create youth hoodie product for mockup generation.');
       }
 
-      const createdProductId = printifyProductResponse.id;
-      console.log('✅ Youth Hoodie product created with ID:', createdProductId);
+      const createdPrintifyProductId = printifyProductResponse.id;
+      console.log(`✅ Youth hoodie product created. ID: ${createdPrintifyProductId}`);
 
-      // Polling para obter mockups
-      let finalPreviewUrls: string[] = [];
+      // PASSO 5: Polling dos mockups
+      console.log('🔄 Polling for youth hoodie mockups...');
       const maxAttempts = 15;
-      const delayMs = 8000;
+      const delayMs = 10000; // Aumentar para dar tempo à Printify para gerar mockups complexos
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        console.log(`--> 🔍 Youth Hoodie polling attempt ${attempt}/${maxAttempts}...`);
+        console.log(`🔄 Attempt ${attempt}/${maxAttempts}: Checking mockup status...`);
         
-        try {
-          const getProductResponse: PrintifyProduct = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdProductId}.json`);
-
-          if (getProductResponse.images && getProductResponse.images.length > 0) {
-            console.log(`✅ Youth Hoodie mockups ready! Found ${getProductResponse.images.length} preview(s)`);
-            finalPreviewUrls = getProductResponse.images.map(img => img.src) as string[];
-            break;
+        const productDetails = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
+        
+        if (productDetails && productDetails.images && productDetails.images.length > 0) {
+          console.log('--- DEBUG: Resposta COMPLETA de productDetails.images da Printify ---');
+          console.log(JSON.stringify(productDetails.images, null, 2));
+          console.log('--- FIM DEBUG ---');
+          
+          const previewUrls = productDetails.images.map((img: { src: string }) => img.src);
+          
+          if (previewUrls.length > 0) {
+            console.log(`✅ Mockups ready! Found ${previewUrls.length} preview(s) - ALL mockup views included`);
+            // RETORNA IMEDIATAMENTE quando mockups estão prontos
+            return res.status(200).json({
+              success: true,
+              previewUrls: previewUrls,
+              printifyProductId: createdPrintifyProductId,
+              customerPrintifyImageId: customerPrintifyImageId,
+              dynamicPhrasePrintifyImageId: dynamicPhrasePrintifyImageId
+            });
           }
-        } catch (pollError) {
-          console.warn(`⚠️ Youth Hoodie polling attempt ${attempt} failed:`, pollError);
         }
-
+        
+        // Se não houver imagens ainda, espera ANTES da próxima tentativa
         if (attempt < maxAttempts) {
-          console.log(`⏳ Youth Hoodie mockups not ready yet. Waiting ${delayMs}ms...`);
+          console.log(`⏳ Mockups not ready yet, waiting ${delayMs}ms...`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       }
 
-      console.log(`🏁 Youth Hoodie mockup polling completed. Found ${finalPreviewUrls.length} preview URLs.`);
-
+      // Se o loop terminar sem encontrar mockups, retorna um fallback
+      console.warn(`⚠️ Polling falhou após ${maxAttempts} tentativas. Nenhum mockup encontrado.`);
       return res.status(200).json({
-        success: true,
-        previewUrls: finalPreviewUrls.length > 0 ? finalPreviewUrls : [product.mockupInitialPath],
+        success: false,
+        error: 'Tempo limite atingido para geração de mockups. Tente novamente mais tarde.',
+        previewUrls: [product.mockupInitialPath], // Fallback para mockup inicial
+        printifyProductId: createdPrintifyProductId,
         customerPrintifyImageId: customerPrintifyImageId,
-        dynamicPhrasePrintifyImageId: dynamicPhrasePrintifyImageId,
-        printifyProductId: createdProductId,
+        dynamicPhrasePrintifyImageId: dynamicPhrasePrintifyImageId
       });
     } else if (productId === 'custom_canvas' || productId === 'framed_canvas' ||
                productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy') {
@@ -508,7 +596,7 @@ export default async function handler(
 
       // Criar produto temporário na Printify para gerar mockup
       const printifyProductPayload = {
-        title: `PicTuz Canvas Mockup (${userId}-${Date.now()})`,
+        title: `PicTuz Canvas Mockup (${user.id}-${Date.now()})`,
         description: 'Temporary Canvas product for mockup generation',
         blueprint_id: product.printifyBlueprintId,
         print_provider_id: product.printifyPrintProviderId,
@@ -642,7 +730,7 @@ export default async function handler(
 
     // PASSO 3: Criar Produto Printify Temporário (para Mockups)
     console.log('🔄 STEP 3: Creating temporary Printify product for mockup generation...');
-    const printifyProductTitle = `PicTuz Custom ${product.name} (${userId}-${Date.now()})`;
+    const printifyProductTitle = `PicTuz Custom ${product.name} (${user.id}-${Date.now()})`;
 
     // Lógica para calcular x, y, scale para Printify (baseado em gelatoPrintOffsetsMm e dimensões Printify)
     // Estes são cálculos complexos e precisarão de ser afinados
@@ -674,7 +762,7 @@ export default async function handler(
     
     const printifyProductPayload = {
       title: printifyProductTitle,
-      description: `Custom product generated for user ${userId} via PicTuz AI.`,
+      description: `Custom product generated for user ${user.id} via PicTuz AI.`,
       blueprint_id: product.printifyBlueprintId,
       print_provider_id: product.printifyPrintProviderId,
       variants: [{

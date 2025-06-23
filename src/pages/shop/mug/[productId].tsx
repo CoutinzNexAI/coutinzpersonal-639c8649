@@ -66,7 +66,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         toast.error('Produto não encontrado');
       }
     } else if (initialProduct?.variants?.length) {
-      setSelectedPrintifyVariantId(initialProduct.variants[0].id);
+        setSelectedPrintifyVariantId(initialProduct.variants[0].id);
     }
   }, [productId, initialProduct, router]);
 
@@ -125,7 +125,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         printifyImageId,
         printifyVariantId: selectedPrintifyVariantId!,
       });
-
+      
       toast.success('Caneca adicionada ao carrinho!', {
         description: 'Continue as compras ou vá para o checkout',
         action: {
@@ -215,17 +215,17 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               className="lg:col-span-2 order-1"
             >
               <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[700px] bg-white rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl overflow-hidden mb-4 lg:mb-6 border border-ghibli-sand/20">
-                <ProductCanvas
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={imageAdjustments}
-                  onImageAdjust={setImageAdjustments}
-                  selectedPrintifyVariantId={selectedPrintifyVariantId}
-                />
+              <ProductCanvas
+                selectedProduct={product}
+                userImageUrl={selectedImageUrl}
+                userId={userInfo?.id}
+                printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                onPreviewReady={handlePreviewReady}
+                onSelectImage={handleOpenGallery}
+                imageAdjustments={imageAdjustments}
+                onImageAdjust={setImageAdjustments}
+                selectedPrintifyVariantId={selectedPrintifyVariantId}
+              />
               </div>
 
               {/* Botão "Escolher Arte" */}
@@ -288,8 +288,8 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                   {/* Título + Preço */}
                   <div className="text-center pb-3 sm:pb-4 border-b border-ghibli-sand/30">
                     <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-1">
-                      {product.name}
-                    </h1>
+                  {product.name}
+                </h1>
                     <div className="inline-block">
                       <div className="text-3xl sm:text-4xl font-black text-ghibli-moss drop-shadow-sm">
                         €{currentPrice.toFixed(2)}
@@ -329,24 +329,24 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       <p className="text-xs text-emerald-600">em encomendas superiores a €50</p>
                     </div>
                     <div className="text-xl sm:text-2xl shrink-0">🎁</div>
-                  </div>
+              </div>
 
-                  {/* Descrição */}
+              {/* Descrição */}
                   <div className="px-1">
                     <p className="text-sm leading-relaxed font-medium text-ghibli-earth/80">
                       Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span>! 
                       Impressão duradoura e <span className="font-bold">resistente à lavagem</span>. Perfeita para o seu café matinal.
-                    </p>
-                  </div>
+                </p>
+              </div>
 
                   {/* Seletor/Display de Tamanho */}
                   {product.variants && product.variants.length > 1 ? (
                     // Se há múltiplas variantes, mostrar dropdown
                     <div className="relative">
-                      <Select
-                        onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
-                        value={selectedPrintifyVariantId?.toString() || ''}
-                      >
+                  <Select
+                    onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
+                    value={selectedPrintifyVariantId?.toString() || ''}
+                  >
                         <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
                           <div className="flex items-center gap-2 sm:gap-3">
                             <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
@@ -354,22 +354,22 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                               <span className="truncate">
                                 {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o tamanho'}
                               </span>
-                            </SelectValue>
+                      </SelectValue>
                           </div>
-                        </SelectTrigger>
+                    </SelectTrigger>
                         <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
-                          {product.variants?.map((variant) => (
+                      {product.variants?.map((variant) => (
                             <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
-                              {variant.title}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                          {variant.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                       
                       <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
                         ☕ Tamanho da Caneca
                       </label>
-                    </div>
+                  </div>
                   ) : (
                     // Se há apenas 1 variante, apenas mostrar o tamanho (sem dropdown)
                     <div className="relative p-4 bg-ghibli-cream/30 rounded-xl border border-ghibli-sand/40">
@@ -378,12 +378,12 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                         <span className="text-ghibli-earth font-semibold">
                           💝 Tamanho: {product.variants?.[0]?.title || 'Tamanho único'}
                         </span>
-                      </div>
+                  </div>
                       <p className="text-center text-xs text-ghibli-earth/70 mt-1">
                         Formato especial de coração
                       </p>
-                    </div>
-                  )}
+                </div>
+              )}
 
                   {/* Botão Principal */}
                   <div className="pt-3">
@@ -400,8 +400,8 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                         <div className="mt-2 text-xs text-ghibli-earth/70">✨ Aplicando transformação AI</div>
                       </div>
                     ) : (
-                    <Button
-                      onClick={handleAddToCart}
+                <Button
+                  onClick={handleAddToCart}
                       disabled={!canPurchase || loading}
                         className={`group relative w-full py-5 sm:py-6 text-base sm:text-lg font-bold rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl hover:shadow-xl sm:hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
                         canPurchase
@@ -415,16 +415,16 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                         )}
                         
                         <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
-                      {loading ? (
-                        <>
+                  {loading ? (
+                    <>
                               <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                               <span>A adicionar...</span>
-                        </>
+                    </>
                       ) : !userInfo ? (
                             <span className="text-center">Faça Login para Continuar</span>
-                      ) : !selectedImageUrl ? (
+                  ) : !selectedImageUrl ? (
                             <span className="text-center">Escolha uma Arte Primeiro</span>
-                      ) : !selectedPrintifyVariantId ? (
+                  ) : !selectedPrintifyVariantId ? (
                             <span className="text-center">Selecione o Tamanho</span>
                       ) : (
                         <>
@@ -437,8 +437,8 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                         </>
                       )}
                         </span>
-                          </Button>
-                    )}
+                  </Button>
+                )}
                   </div>
 
                   {/* Grid de Garantias */}
@@ -462,15 +462,15 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                         <Truck className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
                       <span className="text-xs font-bold text-ghibli-earth">~1 semana</span>
-                    </div>
-                    
+              </div>
+
                     <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
                       <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Award className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
                       <span className="text-xs font-bold text-ghibli-earth">Garantia Total</span>
                     </div>
-                  </div>
+              </div>
                 </CardContent>
               </Card>
             </motion.div>
