@@ -31,11 +31,11 @@ interface ImageAdjustments {
   };
 }
 
-interface CanvasDetailPageProps {
+interface EscritorioDetailPageProps {
   product: PrintifyProductMapping;
 }
 
-const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialProduct }) => {
+const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: initialProduct }) => {
   const router = useRouter();
   const { productId } = router.query;
   const { userInfo } = useAuth();
@@ -53,16 +53,12 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   const [printifyProductId, setPrintifyProductId] = useState<string>('');
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
 
-  // Estados específicos para Canvas com Moldura
-  const [selectedFrameColor, setSelectedFrameColor] = useState<string | null>(null);
-  const [selectedSizeLabel, setSelectedSizeLabel] = useState<string | null>(null);
-
   // Função utilitária: Validação consolidada
   const validatePurchase = () => {
-    if (!selectedImageUrl) return 'Escolha uma arte primeiro para personalizar o seu canvas!';
+    if (!selectedImageUrl) return 'Escolha uma arte primeiro para personalizar o seu produto de escritório!';
     if (!selectedImageId) return 'ID da transformação não encontrado. Selecione a imagem novamente.';
     if (!userInfo) return 'Faça login para adicionar ao carrinho';
-    if (selectedPrintifyVariantId === null) return 'Por favor, selecione as opções do produto.';
+    if (selectedPrintifyVariantId === null) return 'Por favor, selecione o tipo de produto.';
     if (!printifyProductId || !printifyImageId) return 'Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.';
     return null;
   };
@@ -71,7 +67,8 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   useEffect(() => {
     if (!initialProduct && typeof productId === 'string') {
       const foundProduct = getPrintifyProduct(productId);
-      if (foundProduct?.category === 'canvas') {
+      // Aceita tanto 'stationery' como 'office' (ambos são considerados escritório)
+      if (foundProduct && (foundProduct.category === 'stationery' || foundProduct.category === 'office')) {
         setProduct(foundProduct);
         if (foundProduct.variants?.length) {
           setSelectedPrintifyVariantId(foundProduct.variants[0].id);
@@ -84,61 +81,6 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
       setSelectedPrintifyVariantId(initialProduct.variants[0].id);
     }
   }, [productId, initialProduct, router]);
-
-  // Setup para Canvas com Moldura - popular dropdowns
-  useEffect(() => {
-    if (product?.id === 'framed_canvas' && product.variants?.length) {
-      const uniqueColors = new Set<string>();
-      const uniqueSizes = new Set<string>();
-
-      product.variants.forEach(variant => {
-        const sizeMatch = variant.title.match(/(\d+" x \d+″|\d+" x \d+")/);
-        if (sizeMatch?.[1]) uniqueSizes.add(sizeMatch[1]);
-
-        const colorMatch = variant.title.match(/(Black|Espresso|White)/);
-        if (colorMatch?.[1]) uniqueColors.add(colorMatch[1]);
-      });
-
-      const sortedColors = Array.from(uniqueColors).sort();
-      const sortedSizes = Array.from(uniqueSizes).sort((a, b) => {
-        const extractNum = (s: string) => parseInt(s.split('"')[0]);
-        return extractNum(a) - extractNum(b);
-      });
-
-      if (sortedColors.length && !selectedFrameColor) {
-        setSelectedFrameColor(sortedColors[0]);
-      }
-      if (sortedSizes.length && !selectedSizeLabel) {
-        setSelectedSizeLabel(sortedSizes[0]);
-      }
-    }
-  }, [product, selectedFrameColor, selectedSizeLabel]);
-
-  // Encontrar variante com base na cor e tamanho (Canvas com Moldura)
-  useEffect(() => {
-    if (product?.id === 'framed_canvas' && selectedFrameColor && selectedSizeLabel) {
-      const foundVariant = product.variants?.find(variant => {
-        const variantSizeMatch = variant.title.match(/(\d+" x \d+″|\d+" x \d+")/);
-        const variantColorMatch = variant.title.match(/(Black|Espresso|White)/);
-
-        const extractedSize = variantSizeMatch?.[1] || '';
-        const extractedColor = variantColorMatch?.[1] || '';
-
-        const matchesSize = extractedSize === selectedSizeLabel;
-        const matchesColor = selectedFrameColor === 'Castanho' 
-          ? extractedColor === 'Espresso' 
-          : extractedColor === selectedFrameColor;
-
-        return matchesSize && matchesColor;
-      });
-
-      if (foundVariant && foundVariant.id !== selectedPrintifyVariantId) {
-        setSelectedPrintifyVariantId(foundVariant.id);
-      }
-    } else if (product?.id === 'custom_canvas' && !selectedPrintifyVariantId && product.variants?.length) {
-      setSelectedPrintifyVariantId(product.variants[0].id);
-    }
-  }, [product, selectedFrameColor, selectedSizeLabel, selectedPrintifyVariantId]);
 
   // Calcular imageAdjustments apenas na primeira seleção
   useEffect(() => {
@@ -176,23 +118,18 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
 
     setLoading(true);
     try {
-      const customizations: Record<string, string> = {};
-      
-      if (product!.id === 'framed_canvas') {
-        customizations.frameColor = selectedFrameColor;
-        customizations.size = selectedSizeLabel;
-      } else {
-        const variant = product!.variants?.find(v => v.id === selectedPrintifyVariantId);
-        customizations.size = variant?.title;
-      }
+      const variant = product!.variants?.find(v => v.id === selectedPrintifyVariantId);
+      const customizations: Record<string, string> = {
+        type: variant?.title || 'Tipo não encontrado'
+      };
 
       CartService.addToCart({
         productId: productId as string,
         productName: product!.name,
-        productCategory: product!.category || 'canvas',
+        productCategory: 'escritorio', // Categoria unificada
         userImageUrl: selectedImageUrl,
         userImageId: selectedImageId!,
-        price: (product!.basePrice || product!.price || 0) + (product!.variants?.find(v => v.id === selectedPrintifyVariantId)?.priceAdjustment || 0),
+        price: product!.basePrice || product!.price || 0,
         quantity: 1,
         customizations,
         imageAdjustments,
@@ -201,7 +138,8 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         printifyVariantId: selectedPrintifyVariantId!,
       });
 
-      toast.success('Canvas adicionado ao carrinho!', {
+      const productType = product!.category === 'stationery' ? 'Caderno' : 'Mousepad';
+      toast.success(`${productType} adicionado ao carrinho!`, {
         description: 'Continue as compras ou vá para o checkout',
         action: {
           label: 'Ver Carrinho',
@@ -246,30 +184,6 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   const isProcessingMockup = (!printifyProductId || !printifyImageId) && selectedImageUrl;
   const canPurchase = selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo;
 
-  // Função para obter opções disponíveis (Canvas com Moldura)
-  const getAvailableColors = () => {
-    if (product?.id !== 'framed_canvas' || !product.variants) return [];
-    const colors = new Set<string>();
-    product.variants.forEach(variant => {
-      const colorMatch = variant.title.match(/(Black|Espresso|White)/);
-      if (colorMatch?.[1]) colors.add(colorMatch[1]);
-    });
-    return Array.from(colors).sort();
-  };
-
-  const getAvailableSizes = () => {
-    if (product?.id !== 'framed_canvas' || !product.variants) return [];
-    const sizes = new Set<string>();
-    product.variants.forEach(variant => {
-      const sizeMatch = variant.title.match(/(\d+" x \d+″|\d+" x \d+")/);
-      if (sizeMatch?.[1]) sizes.add(sizeMatch[1]);
-    });
-    return Array.from(sizes).sort((a, b) => {
-      const extractNum = (s: string) => parseInt(s.split('"')[0]);
-      return extractNum(a) - extractNum(b);
-    });
-  };
-
   if (!product) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand flex items-center justify-center">
@@ -281,13 +195,16 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
     );
   }
 
-  const currentPrice = (product.basePrice || product.price || 0) + (product.variants?.find(v => v.id === selectedPrintifyVariantId)?.priceAdjustment || 0);
+  const currentPrice = product.basePrice || product.price || 0;
+  const isNotebook = product.category === 'stationery';
+  const productEmoji = isNotebook ? '📝' : '🖱️';
+  const productType = isNotebook ? 'Caderno' : 'Mousepad';
 
   return (
     <>
       <Head>
         <title>{product.name} - Loja PicTuz</title>
-        <meta name="description" content={`Personalize o seu ${product.name} com as suas criações AI. Arte de alta qualidade em canvas premium.`} />
+        <meta name="description" content={`Personalize o seu ${product.name} com as suas criações AI. Produtos de escritório únicos para um ambiente criativo.`} />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
@@ -299,7 +216,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
             <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
               <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
               <li className="text-ghibli-earth/50">/</li>
-              <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
+              <li><Link href="/shop/escritorio" className="hover:text-ghibli-moss transition-colors">Escritório</Link></li>
               <li className="text-ghibli-earth/50">/</li>
               <li className="text-ghibli-moss font-medium">{product.name}</li>
             </ol>
@@ -359,7 +276,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                   <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm w-full sm:max-w-md">
                     <CardContent className="p-4 text-center">
                       <p className="text-blue-800 text-sm sm:text-base mb-3">
-                        Faça login para personalizar este canvas com as suas criações AI
+                        Faça login para personalizar este {productType.toLowerCase()} com as suas criações AI
                       </p>
                       <Button
                         onClick={() => router.push('/')}
@@ -438,112 +355,45 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                   {/* Descrição */}
                   <div className="px-1">
                     <p className="text-sm leading-relaxed font-medium text-ghibli-earth/80">
-                      {product.id === 'framed_canvas' ? (
-                        <>Canvas premium com <span className="font-bold text-ghibli-moss">moldura elegante</span>! 
-                        Arte de alta qualidade para decorar o seu espaço.</>
+                      {isNotebook ? (
+                        <>Caderno de <span className="font-bold text-ghibli-moss">alta qualidade</span>! 
+                        Páginas lisas e <span className="font-bold">capa durável</span> para as suas ideias criativas.</>
                       ) : (
-                        <>Canvas esticado <span className="font-bold text-ghibli-moss">sem moldura</span>! 
-                        Arte moderna e minimalista em <span className="font-bold">alta qualidade</span>.</>
+                        <>Mousepad <span className="font-bold text-ghibli-moss">premium</span>! 
+                        Base antiderrapante e <span className="font-bold">superfície lisa</span> para máxima precisão.</>
                       )}
                     </p>
                   </div>
 
-                  {/* Seletores específicos para Canvas com Moldura */}
-                  {product.id === 'framed_canvas' && (
-                    <>
-                      {/* Seletor de Cor da Moldura */}
-                      <div className="relative">
-                        <Select
-                          onValueChange={setSelectedFrameColor}
-                          value={selectedFrameColor || ''}
-                        >
-                          <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                              <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
-                              <SelectValue placeholder="Escolha a cor da moldura">
-                                <span className="truncate">
-                                  {selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor || 'Escolha a cor da moldura'}
-                                </span>
-                              </SelectValue>
-                            </div>
-                          </SelectTrigger>
-                          <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
-                            {getAvailableColors().map((color) => (
-                              <SelectItem key={color} value={color} className="hover:bg-ghibli-cream/50">
-                                {color === 'Espresso' ? 'Castanho' : color === 'Black' ? 'Preto' : color === 'White' ? 'Branco' : color}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        
-                        <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
-                          🎨 Cor da Moldura
-                        </label>
-                      </div>
-
-                      {/* Seletor de Tamanho */}
-                      <div className="relative">
-                        <Select
-                          onValueChange={setSelectedSizeLabel}
-                          value={selectedSizeLabel || ''}
-                        >
-                          <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                              <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
-                              <SelectValue placeholder="Escolha o tamanho">
-                                <span className="truncate">
-                                  {selectedSizeLabel || 'Escolha o tamanho'}
-                                </span>
-                              </SelectValue>
-                            </div>
-                          </SelectTrigger>
-                          <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
-                            {getAvailableSizes().map((size) => (
-                              <SelectItem key={size} value={size} className="hover:bg-ghibli-cream/50">
-                                {size}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        
-                        <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
-                          📏 Tamanho
-                        </label>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Seletor para Canvas Sem Moldura */}
-                  {product.id === 'custom_canvas' && (
-                    <div className="relative">
-                      <Select
-                        onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
-                        value={selectedPrintifyVariantId?.toString() || ''}
-                      >
-                        <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
-                          <div className="flex items-center gap-2 sm:gap-3">
-                            <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
-                            <SelectValue placeholder="Escolha o tamanho">
-                              <span className="truncate">
-                                {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o tamanho'}
-                              </span>
-                            </SelectValue>
-                          </div>
-                        </SelectTrigger>
-                        <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
-                          {product.variants?.map((variant) => (
-                            <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
-                              {variant.title}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      
-                      <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
-                        📏 Tamanho
-                      </label>
-                    </div>
-                  )}
+                  {/* Seletor de Tipo */}
+                  <div className="relative">
+                    <Select
+                      onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
+                      value={selectedPrintifyVariantId?.toString() || ''}
+                    >
+                      <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
+                          <SelectValue placeholder={`Escolha o ${isNotebook ? 'tamanho' : 'tipo'}`}>
+                            <span className="truncate">
+                              {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || `Escolha o ${isNotebook ? 'tamanho' : 'tipo'}`}
+                            </span>
+                          </SelectValue>
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
+                        {product.variants?.map((variant) => (
+                          <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
+                            {variant.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
+                      {productEmoji} {isNotebook ? 'Tamanho do Caderno' : 'Tipo de Mousepad'}
+                    </label>
+                  </div>
 
                   {/* Botão Principal */}
                   <div className="pt-3">
@@ -555,7 +405,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                             <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                             <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                           </div>
-                          <span className="text-ghibli-moss font-medium text-sm sm:text-base">Criando o seu canvas mágico...</span>
+                          <span className="text-ghibli-moss font-medium text-sm sm:text-base">Criando o seu {productType.toLowerCase()} mágico...</span>
                         </div>
                         <div className="mt-2 text-xs text-ghibli-earth/70">✨ Aplicando transformação AI</div>
                       </div>
@@ -585,7 +435,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                       ) : !selectedImageUrl ? (
                             <span className="text-center">Escolha uma Arte Primeiro</span>
                       ) : !selectedPrintifyVariantId ? (
-                            <span className="text-center">Selecione as Opções</span>
+                            <span className="text-center">Selecione o {isNotebook ? 'Tamanho' : 'Tipo'}</span>
                       ) : (
                         <>
                               <span className="text-lg sm:text-xl">🛒</span>
@@ -607,14 +457,18 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                       <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
-                      <span className="text-xs font-bold text-ghibli-earth">Canvas Premium</span>
+                      <span className="text-xs font-bold text-ghibli-earth">
+                        {isNotebook ? 'Papel Premium' : 'Base Antiderrapante'}
+                      </span>
                     </div>
                     
                     <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
                       <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
-                      <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
+                      <span className="text-xs font-bold text-ghibli-earth">
+                        {isNotebook ? 'Capa Durável' : 'Superfície Lisa'}
+                      </span>
                     </div>
                     
                     <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
@@ -649,10 +503,13 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   );
 };
 
-// Geração estática dos paths para produtos de canvas
+// Geração estática dos paths para produtos de escritório (stationery + office)
 export const getStaticPaths: GetStaticPaths = async () => {
-  const canvasProducts = getPrintifyProductsByCategory('canvas');
-  const paths = Object.keys(canvasProducts).map((productId) => ({
+  const notebookProducts = getPrintifyProductsByCategory('stationery');
+  const mousepadProducts = getPrintifyProductsByCategory('office');
+  
+  const allProducts = { ...notebookProducts, ...mousepadProducts };
+  const paths = Object.keys(allProducts).map((productId) => ({
     params: { productId }
   }));
 
@@ -667,7 +524,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const productId = params?.productId as string;
   const product = getPrintifyProduct(productId);
 
-  if (!product || product.category !== 'canvas') {
+  if (!product || (product.category !== 'stationery' && product.category !== 'office')) {
     return {
       notFound: true
     };
@@ -678,4 +535,4 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   };
 };
 
-export default CanvasDetailPage; 
+export default EscritorioDetailPage;
