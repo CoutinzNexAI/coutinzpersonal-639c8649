@@ -180,6 +180,9 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         selectedImageId
       });
 
+      // Obter variante selecionada
+      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+
       // Adicionar item ao carrinho usando o CartService - SIMPLIFICADO
       const cartItem = CartService.addToCart({
         productId: productId as string,
@@ -187,7 +190,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         productCategory: product!.category || 'tecnologia',
         userImageUrl: selectedImageUrl,
         userImageId: selectedImageId!,
-        price: calculatePrice(),
+        price: product!.basePrice || product!.price || 0,
         quantity: 1,
         customizations: {
           variantId: selectedPrintifyVariantId!,

@@ -245,7 +245,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         quantity: 1,
         customizations: {
           variantId: selectedPrintifyVariantId!, // Obrigatório agora
-          size: variant?.title || 'Tamanho não encontrado',
+          size: selectedVariant?.title || 'Tamanho não encontrado',
           // ✅ OS CAMPOS CRÍTICOS: Usar defaultDesign do produto
           scale: getPrintifyProduct(productId as string)?.defaultDesign.scale || 1.05,
           x: getPrintifyProduct(productId as string)?.defaultDesign.x || 0.5,

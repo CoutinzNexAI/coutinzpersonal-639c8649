@@ -13,13 +13,11 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
-import { ChevronLeft } from 'lucide-react';
-import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping, PIC_TUZ_PRINTIFY_PRODUCT_MAP } from '@/lib/printify/printifyProducts';
+import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
-import { useAuthContext } from '@/contexts/AuthContext';
 
 interface BagDetailPageProps {
   product: PrintifyProductMapping;
