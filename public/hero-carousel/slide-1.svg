@@ -1,0 +1,52 @@
+<svg width="1200" height="600" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Gradient -->
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="canvas" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f9fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e9ecef;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="600" fill="url(#bg1)"/>
+  
+  <!-- Left side - Person silhouette -->
+  <g transform="translate(100, 100)">
+    <!-- Person -->
+    <ellipse cx="150" cy="80" rx="40" ry="50" fill="#ffffff" opacity="0.9"/>
+    <rect x="110" y="130" width="80" height="120" rx="10" fill="#ffffff" opacity="0.9"/>
+    <rect x="95" y="150" width="30" height="80" rx="15" fill="#ffffff" opacity="0.9"/>
+    <rect x="165" y="150" width="30" height="80" rx="15" fill="#ffffff" opacity="0.9"/>
+    <rect x="125" y="250" width="20" height="100" rx="10" fill="#ffffff" opacity="0.9"/>
+    <rect x="155" y="250" width="20" height="100" rx="10" fill="#ffffff" opacity="0.9"/>
+  </g>
+  
+  <!-- Right side - Canvas showcase -->
+  <g transform="translate(500, 120)">
+    <!-- Canvas frame -->
+    <rect x="0" y="0" width="300" height="200" rx="8" fill="#2c3e50"/>
+    <rect x="20" y="20" width="260" height="160" fill="url(#canvas)"/>
+    
+    <!-- Artwork preview -->
+    <circle cx="150" cy="100" r="40" fill="#e74c3c" opacity="0.8"/>
+    <rect x="110" y="80" width="80" height="40" rx="5" fill="#3498db" opacity="0.7"/>
+    <polygon points="100,60 200,60 150,140" fill="#f39c12" opacity="0.6"/>
+  </g>
+  
+  <!-- Text overlay -->
+  <text x="600" y="420" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="48" font-weight="bold">
+    Transforme Memórias em Arte
+  </text>
+  <text x="600" y="460" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="24" opacity="0.9">
+    Canvas personalizados com suas fotos favoritas
+  </text>
+  
+  <!-- Decorative elements -->
+  <circle cx="1000" cy="150" r="30" fill="#ffffff" opacity="0.1"/>
+  <circle cx="1050" cy="200" r="20" fill="#ffffff" opacity="0.15"/>
+  <circle cx="950" cy="250" r="25" fill="#ffffff" opacity="0.1"/>
+</svg> 

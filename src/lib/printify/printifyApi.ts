@@ -5,7 +5,8 @@ if (!PRINTIFY_API_TOKEN) {
   throw new Error('PRINTIFY_API_TOKEN is not defined in environment variables. Please set this in Vercel or your .env.local file.');
 }
 
-export async function printifyFetch(endpoint: string, options: RequestInit = {}) {
+export async function printifyFetch(endpoint: string, options: RequestInit = {}, retryCount = 0) {
+  const maxRetries = 3; // Máximo de 3 tentativas
   const url = endpoint.startsWith('http') ? endpoint : PRINTIFY_BASE_URL + endpoint.replace(/^\//, '');
 
   const headersToSend: Record<string, string> = {
@@ -29,7 +30,7 @@ export async function printifyFetch(endpoint: string, options: RequestInit = {})
   }
 
   try {
-    console.log(`[printifyFetch] Calling URL: ${url}`);
+    console.log(`[printifyFetch] Calling URL: ${url} (attempt ${retryCount + 1}/${maxRetries + 1})`);
     console.log(`[printifyFetch] Headers:`, headersToSend);
     console.log(`[printifyFetch] Method:`, options.method || 'GET');
 
@@ -53,8 +54,28 @@ export async function printifyFetch(endpoint: string, options: RequestInit = {})
     console.log('[DEBUG] Raw Response Body from Printify:', rawText);
     console.log('[DEBUG] ===== END PRINTIFY RESPONSE =====');
 
+    // 🚀 TRATAR ERRO 429 (RATE LIMIT) COM RETRY AUTOMÁTICO
+    if (response.status === 429 && retryCount < maxRetries) {
+      const retryAfter = response.headers.get('retry-after');
+      const delayMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : 5000; // Converte para ms, ou 5s por defeito
+      
+      console.warn(`⏳ Rate limit atingido (429). A tentar de novo em ${delayMs}ms... (tentativa ${retryCount + 1}/${maxRetries})`);
+      
+      // Espera o tempo especificado
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      
+      // Tenta a chamada outra vez (recursivamente)
+      return printifyFetch(endpoint, options, retryCount + 1);
+    }
+
     if (!response.ok) {
       console.error(`❌ Printify API Error (${response.status} ${response.statusText}) for ${url}:`, rawText);
+      
+      // Se for 429 e já esgotamos as tentativas, dar uma mensagem mais clara
+      if (response.status === 429) {
+        throw new Error(`Rate limit excedido após ${maxRetries + 1} tentativas. Tenta novamente mais tarde.`);
+      }
+      
       throw new Error(`Printify API error: ${response.status} ${response.statusText} - ${rawText}`);
     }
 

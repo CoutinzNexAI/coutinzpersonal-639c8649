@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { CartItem } from '@/lib/cart/cartTypes';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -20,6 +20,7 @@ interface UseShippingCalculationResult {
   isLoadingShipping: boolean;
   shippingError: string | null;
   calculateShipping: (cartItems: CartItem[], address: ShippingAddress) => Promise<void>;
+  calculateShippingDebounced: (cartItems: CartItem[], address: ShippingAddress) => void;
 }
 
 export const useShippingCalculation = (): UseShippingCalculationResult => {
@@ -27,8 +28,9 @@ export const useShippingCalculation = (): UseShippingCalculationResult => {
   const [isLoadingShipping, setIsLoadingShipping] = useState(false);
   const [shippingError, setShippingError] = useState<string | null>(null);
   const { session } = useAuth();
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const calculateShipping = async (cartItems: CartItem[], address: ShippingAddress) => {
+  const calculateShipping = useCallback(async (cartItems: CartItem[], address: ShippingAddress) => {
     if (cartItems.length === 0 || !address) {
       setShippingCost(null);
       return;
@@ -80,12 +82,41 @@ export const useShippingCalculation = (): UseShippingCalculationResult => {
     } finally {
       setIsLoadingShipping(false);
     }
-  };
+  }, [session?.access_token]);
+
+  // Função com debouncing para evitar múltiplas chamadas rápidas
+  const calculateShippingDebounced = useCallback((cartItems: CartItem[], address: ShippingAddress) => {
+    // Limpa o timer anterior se existir
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    // Se não houver itens ou morada, não faz nada
+    if (cartItems.length === 0 || !address) {
+      setShippingCost(null);
+      return;
+    }
+
+    // Cria um novo timer que será executado após 500ms
+    debounceTimer.current = setTimeout(() => {
+      calculateShipping(cartItems, address);
+    }, 500); // Atraso de 500ms para debouncing
+  }, [calculateShipping]);
+
+  // Limpa o timer quando o componente é desmontado
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
 
   return {
     shippingCost,
     isLoadingShipping,
     shippingError,
     calculateShipping,
+    calculateShippingDebounced,
   };
 }; 

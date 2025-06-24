@@ -35,7 +35,7 @@ const DEFAULT_SHIPPING_ADDRESS = {
 const CheckoutPage: React.FC = () => {
   const router = useRouter();
   const { userInfo } = useAuth();
-  const { shippingCost, isLoadingShipping, shippingError, calculateShipping } = useShippingCalculation();
+  const { shippingCost, isLoadingShipping, shippingError, calculateShipping, calculateShippingDebounced } = useShippingCalculation();
   
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -90,9 +90,9 @@ const CheckoutPage: React.FC = () => {
 
     // Calcular shipping automaticamente usando endereço padrão
     if (summary.items.length > 0) {
-      calculateShipping(summary.items, DEFAULT_SHIPPING_ADDRESS);
+      calculateShippingDebounced(summary.items, DEFAULT_SHIPPING_ADDRESS);
     }
-  }, [router, calculateShipping]);
+  }, [router, calculateShippingDebounced]);
 
   const calculateTotal = () => {
     if (!cartSummary) return 0;
@@ -189,7 +189,7 @@ const CheckoutPage: React.FC = () => {
       toast.success('Produto removido do carrinho');
       // Recalcular shipping com novos itens
       if (newSummary.items.length > 0) {
-        calculateShipping(newSummary.items, DEFAULT_SHIPPING_ADDRESS);
+        calculateShippingDebounced(newSummary.items, DEFAULT_SHIPPING_ADDRESS);
       }
     }
   };
