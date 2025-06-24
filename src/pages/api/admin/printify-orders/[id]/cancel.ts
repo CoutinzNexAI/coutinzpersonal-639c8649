@@ -66,7 +66,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
     let printifyOrder;
     try {
       const shopId = process.env.PRINTIFY_SHOP_ID;
-      printifyOrder = await printifyFetch(`/v1/shops/${shopId}/orders/${order.printify_order_id}.json`);
+      printifyOrder = await printifyFetch(`shops/${shopId}/orders/${order.printify_order_id}.json`);
     } catch (error) {
       console.error('Erro ao buscar pedido na Printify:', error);
       res.status(500).json({ 
@@ -93,7 +93,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse, user: Authenti
     let cancelResponse;
     try {
       const shopId = process.env.PRINTIFY_SHOP_ID;
-      cancelResponse = await printifyFetch(`/v1/shops/${shopId}/orders/${order.printify_order_id}/cancel.json`, {
+      cancelResponse = await printifyFetch(`shops/${shopId}/orders/${order.printify_order_id}/cancel.json`, {
         method: 'POST',
         body: JSON.stringify({
           reason: `Cancelado pelo admin: ${user.email} (${user.id})`

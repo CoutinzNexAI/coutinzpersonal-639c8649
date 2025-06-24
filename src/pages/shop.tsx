@@ -140,7 +140,7 @@ const ShopPage: React.FC = () => {
         
         <main className="container mx-auto px-4 py-12 md:py-16 relative z-10">
           {/* Hero Section */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-22">
             <motion.h1 
               className="text-4xl md:text-6xl font-bold text-[#2D5A27] mb-6"
               initial={{ opacity: 0, y: 30 }}

@@ -338,7 +338,7 @@ export default async function handler(
         } else {
           console.warn('⚠️ Print file processing failed, using direct upload fallback');
           // Fallback para upload direto
-          const customerUploadResponse = await printifyFetch('/uploads/images.json', {
+          const customerUploadResponse = await printifyFetch('uploads/images.json', {
             method: 'POST',
             body: JSON.stringify({
               file_name: `customer-art-${Date.now()}.png`,
@@ -355,7 +355,7 @@ export default async function handler(
       } else {
         // Fallback se não encontrar placeholder
         console.warn('⚠️ Back placeholder not found, using direct upload');
-      const customerUploadResponse = await printifyFetch('/uploads/images.json', {
+                const customerUploadResponse = await printifyFetch('uploads/images.json', {
       method: 'POST',
       body: JSON.stringify({
           file_name: `customer-art-${Date.now()}.png`,
@@ -476,7 +476,7 @@ export default async function handler(
 
       console.log('📤 Creating youth hoodie product:', JSON.stringify(printifyProductPayload, null, 2));
 
-      const printifyProductResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
+      const printifyProductResponse = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
         method: 'POST',
         body: JSON.stringify(printifyProductPayload)
       });
@@ -497,7 +497,7 @@ export default async function handler(
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         console.log(`🔄 Attempt ${attempt}/${maxAttempts}: Checking mockup status...`);
         
-        const productDetails = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
+        const productDetails = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
         
         if (productDetails && productDetails.images && productDetails.images.length > 0) {
           console.log('--- DEBUG: Resposta COMPLETA de productDetails.images da Printify ---');
@@ -566,7 +566,7 @@ export default async function handler(
             contents: imageBase64
           };
           
-          const printifyUploadResponse = await printifyFetch(`/uploads/images.json`, {
+          const printifyUploadResponse = await printifyFetch(`uploads/images.json`, {
             method: 'POST',
             body: JSON.stringify(uploadPayload)
           });
@@ -625,7 +625,7 @@ export default async function handler(
 
       console.log(`📤 ${productId} payload:`, JSON.stringify(printifyProductPayload, null, 2));
 
-      const printifyProductResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
+      const printifyProductResponse = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
         method: 'POST',
         body: JSON.stringify(printifyProductPayload)
       });
@@ -646,7 +646,7 @@ export default async function handler(
         console.log(`--> 🔍 Canvas polling attempt ${attempt}/${maxAttempts}...`);
         
         try {
-          const getProductResponse: PrintifyProduct = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdProductId}.json`);
+          const getProductResponse: PrintifyProduct = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdProductId}.json`);
 
           if (getProductResponse.images && getProductResponse.images.length > 0) {
             console.log(`✅ Canvas mockups ready! Found ${getProductResponse.images.length} preview(s) - ALL mockup views included`);
@@ -793,7 +793,7 @@ export default async function handler(
 
     console.log('📤 Payload for Printify product creation:', JSON.stringify(printifyProductPayload, null, 2));
 
-    const printifyProductResponse = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
+    const printifyProductResponse = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
       method: 'POST',
       body: JSON.stringify(printifyProductPayload)
     });
@@ -814,7 +814,7 @@ export default async function handler(
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       console.log(`--> 🔍 Attempt ${attempt}/${maxAttempts}: Fetching Printify product ${createdPrintifyProductId} details...`);
       try {
-        const getProductResponse: PrintifyProduct = await printifyFetch(`/shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
+        const getProductResponse: PrintifyProduct = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
 
         if (getProductResponse.images && getProductResponse.images.length > 0) {
           console.log(`✅ SUCCESS in Printify product polling! Mockups found on attempt ${attempt}!`);

@@ -149,7 +149,7 @@ export default async function handler(
     console.log('📦 Calculando custos de envio na Printify...');
     console.log('Payload:', JSON.stringify(shippingPayload, null, 2));
 
-    const response = await printifyFetch(`/v1/shops/${shopId}/orders/shipping.json`, {
+    const response = await printifyFetch(`shops/${shopId}/orders/shipping.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

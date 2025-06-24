@@ -373,7 +373,8 @@ class Media {
       geometry: this.geometry,
       program: this.program
     });
-    this.plane.scale.set(this.scale, this.scale, 1);
+    const baseScale = 10.0; // Usar a mesma escala base grande desde o início
+    this.plane.scale.set(baseScale, baseScale, 1);
     this.scene.addChild(this.plane);
 
     if (this.onItemClick) {
@@ -404,9 +405,9 @@ class Media {
 
     // Calculate distance from center for spotlight effect
     this.distanceFromCenter = Math.abs(x);
-    const maxDistance = this.width * 1.5;
+    const maxDistance = this.width * 2.0; // Aumentar área de detecção para imagens grandes
     const proximityToCenter = Math.max(0, 1 - (this.distanceFromCenter / maxDistance));
-    this.isSpotlight = proximityToCenter > 0.6;
+    this.isSpotlight = proximityToCenter > 0.2; // Tornar mais fácil ativar spotlight
 
     // Enhanced curved positioning
     if (this.bend === 0) {
@@ -427,8 +428,9 @@ class Media {
       }
     }
 
-    // Spotlight scaling effect
-    const targetScale = this.isSpotlight ? 1.3 : 1.0;
+    // MANTÉM TODAS AS IMAGENS SEMPRE GRANDES - spotlight só adiciona brilho
+    const baseScale = 10.0; // 10x maior que antes!
+    const targetScale = this.isSpotlight ? baseScale * 1.2 : baseScale; // Spotlight só 20% maior
     this.plane.scale.x = lerp(this.plane.scale.x, targetScale, 0.1);
     this.plane.scale.y = lerp(this.plane.scale.y, targetScale, 0.1);
 
@@ -465,18 +467,18 @@ class Media {
       return;
     }
     
-    // Better mobile scaling
+    // Better mobile scaling - MASSIVELY INCREASED SIZES
     const isMobile = this.screen.width < 768;
-    this.scale = isMobile ? this.screen.height / 1200 : this.screen.height / 1500;
+    this.scale = isMobile ? this.screen.height / 200 : this.screen.height / 250; // MUITO mais alto!
     
-    this.plane.scale.y = (this.viewport.height * (isMobile ? 1100 : 900) * this.scale) / this.screen.height;
-    this.plane.scale.x = (this.viewport.width * (isMobile ? 800 : 700) * this.scale) / this.screen.width;
+    this.plane.scale.y = (this.viewport.height * (isMobile ? 8000 : 7000) * this.scale) / this.screen.height; // 5x maior!
+    this.plane.scale.x = (this.viewport.width * (isMobile ? 6000 : 5500) * this.scale) / this.screen.width; // 5x maior!
     
     if (this.plane?.program?.uniforms?.uPlaneSizes) {
       this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
     }
     
-    this.padding = isMobile ? 3 : 2.5;
+    this.padding = isMobile ? 20 : 18; // Aumentar muito o padding para imagens grandes
     this.width = this.plane.scale.x + this.padding;
     this.widthTotal = this.width * this.length;
     this.x = this.width * this.index;
@@ -509,8 +511,8 @@ class App {
   private hasMoved = false;
   private momentum = 0;
   
-  // Enhanced auto-rotation
-  private autoRotationSpeed = 0.015; // 5x faster
+  // Enhanced auto-rotation - FASTER for bigger images
+  private autoRotationSpeed = 0.08; // 5x mais rápido que antes!
   private isHovered = false;
   private autoRotationEnabled = true;
 

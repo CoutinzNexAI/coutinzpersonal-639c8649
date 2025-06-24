@@ -603,7 +603,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       console.log('🚀 Chamando API Printify para criar pedido...');
-      const printifyOrderResult = await printifyFetch(`/shops/${shopId}/orders.json`, {
+      const printifyOrderResult = await printifyFetch(`shops/${shopId}/orders.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

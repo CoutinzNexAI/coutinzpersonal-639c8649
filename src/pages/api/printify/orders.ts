@@ -102,7 +102,7 @@ export default async function handler(
         });
       }
 
-      let url = `/v1/shops/${shopId}/orders.json?`;
+      let url = `shops/${shopId}/orders.json?`;
       const params = new URLSearchParams();
 
       if (status && typeof status === 'string') {
@@ -252,7 +252,7 @@ export default async function handler(
         });
       }
 
-      const response = await printifyFetch(`/v1/shops/${shopId}/orders.json`, {
+      const response = await printifyFetch(`shops/${shopId}/orders.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
