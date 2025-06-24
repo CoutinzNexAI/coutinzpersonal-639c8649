@@ -46,22 +46,29 @@ function autoBind(instance: object) {
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function createTextTexture(gl: any, text: string, font = "bold 30px monospace", color = "black") {
+function createTextTexture(gl: any, text: string, font = "bold 32px Inter", color = "#2D5A27") {
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d")!;
   context.font = font;
   const metrics = context.measureText(text);
   const textWidth = Math.ceil(metrics.width);
-  const textHeight = Math.ceil(parseInt(font, 10) * 1.2);
-  canvas.width = textWidth + 20;
-  canvas.height = textHeight + 20;
+  const textHeight = Math.ceil(parseInt(font, 10) * 1.4);
+  canvas.width = textWidth + 40;
+  canvas.height = textHeight + 40;
+  
   context.font = font;
   context.fillStyle = color;
   context.textBaseline = "middle";
   context.textAlign = "center";
   context.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Add subtle shadow for better readability
+  context.shadowColor = 'rgba(0,0,0,0.3)';
+  context.shadowBlur = 4;
+  context.shadowOffsetY = 2;
+  
   context.fillText(text, canvas.width / 2, canvas.height / 2);
+  
   const texture = new Texture(gl, { generateMipmaps: false });
   texture.image = canvas;
   return { texture, width: canvas.width, height: canvas.height };
@@ -72,7 +79,7 @@ function createWhitePlaceholder(gl: any) {
   canvas.width = 800;
   canvas.height = 600;
   const context = canvas.getContext("2d")!;
-  context.fillStyle = "#ffffff";
+  context.fillStyle = "#f3f4f6";
   context.fillRect(0, 0, canvas.width, canvas.height);
   const texture = new Texture(gl, { generateMipmaps: false });
   texture.image = canvas;
@@ -88,7 +95,7 @@ class Title {
   private font: string;
   public mesh: any;
 
-  constructor({ gl, plane, renderer, text, textColor = "#545050", font = "30px sans-serif" }: {
+  constructor({ gl, plane, renderer, text, textColor = "#2D5A27", font = "bold 32px Inter" }: {
     gl: any;
     plane: any;
     renderer: any;
@@ -120,9 +127,12 @@ class Title {
         attribute vec2 uv;
         uniform mat4 modelViewMatrix;
         uniform mat4 projectionMatrix;
+        uniform float uAlpha;
         varying vec2 vUv;
+        varying float vAlpha;
         void main() {
           vUv = uv;
+          vAlpha = uAlpha;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
@@ -130,27 +140,31 @@ class Title {
         precision highp float;
         uniform sampler2D tMap;
         varying vec2 vUv;
+        varying float vAlpha;
         void main() {
           vec4 color = texture2D(tMap, vUv);
           if (color.a < 0.1) discard;
-          gl_FragColor = color;
+          gl_FragColor = vec4(color.rgb, color.a * vAlpha);
         }
       `,
-      uniforms: { tMap: { value: texture } },
+      uniforms: { 
+        tMap: { value: texture },
+        uAlpha: { value: 0.0 }
+      },
       transparent: true
     });
     this.mesh = new Mesh(this.gl, { geometry, program });
     const aspect = width / height;
-    const textHeight = this.plane.scale.y * 0.15;
+    const textHeight = this.plane.scale.y * 0.2;
     const textWidth = textHeight * aspect;
     this.mesh.scale.set(textWidth, textHeight, 1);
-    this.mesh.position.y = -this.plane.scale.y * 0.5 - textHeight * 0.5 - 0.05;
+    this.mesh.position.y = -this.plane.scale.y * 0.6 - textHeight * 0.3;
     this.mesh.setParent(this.plane);
   }
 
-  setVisibility(visible: boolean) {
-    if (this.mesh) {
-      this.mesh.visible = visible;
+  setVisibility(visible: boolean, opacity: number = 1.0) {
+    if (this.mesh && this.mesh.program) {
+      this.mesh.program.uniforms.uAlpha.value = visible ? opacity : 0.0;
     }
   }
 }
@@ -176,13 +190,13 @@ class Media {
   private title: Title;
   private speed: number = 0;
   private scale: number = 1;
-  private padding: number = 2;
+  private padding: number = 2.5;
   public width: number = 0;
   private widthTotal: number = 0;
   private x: number = 0;
-  private isBefore: boolean = false;
-  private isAfter: boolean = false;
   private onItemClick?: (item: GalleryItem, index: number) => void;
+  private distanceFromCenter: number = 0;
+  private isSpotlight: boolean = false;
 
   constructor({
     geometry,
@@ -197,7 +211,7 @@ class Media {
     viewport,
     bend,
     textColor,
-    borderRadius = 0,
+    borderRadius = 0.1,
     font,
     onItemClick
   }: {
@@ -217,7 +231,6 @@ class Media {
     font: string;
     onItemClick?: (item: GalleryItem, index: number) => void;
   }) {
-    // Defensive initialization with fallbacks
     this.extra = 0;
     this.geometry = geometry;
     this.gl = gl;
@@ -230,9 +243,9 @@ class Media {
     this.text = text || 'Item';
     this.viewport = viewport || { width: 800, height: 600 };
     this.bend = bend || 1;
-    this.textColor = textColor || '#ffffff';
-    this.borderRadius = borderRadius || 0;
-    this.font = font || 'bold 30px Figtree';
+    this.textColor = textColor || '#2D5A27';
+    this.borderRadius = borderRadius || 0.1;
+    this.font = font || 'bold 32px Inter';
     this.onItemClick = onItemClick;
     
     try {
@@ -258,11 +271,18 @@ class Media {
         uniform mat4 projectionMatrix;
         uniform float uTime;
         uniform float uSpeed;
+        uniform float uSpotlight;
         varying vec2 vUv;
+        varying float vSpotlight;
         void main() {
           vUv = uv;
+          vSpotlight = uSpotlight;
           vec3 p = position;
-          p.z = (sin(p.x * 4.0 + uTime) * 1.5 + cos(p.y * 2.0 + uTime) * 1.5) * (0.1 + uSpeed * 0.5);
+          
+          // Subtle wave effect on non-spotlight items
+          float waveIntensity = (1.0 - uSpotlight) * 0.05;
+          p.z = (sin(p.x * 3.0 + uTime) * 0.8 + cos(p.y * 2.0 + uTime) * 0.8) * waveIntensity;
+          
           gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
         }
       `,
@@ -272,7 +292,9 @@ class Media {
         uniform vec2 uPlaneSizes;
         uniform sampler2D tMap;
         uniform float uBorderRadius;
+        uniform float uSpotlight;
         varying vec2 vUv;
+        varying float vSpotlight;
         
         float roundedBoxSDF(vec2 p, vec2 b, float r) {
           vec2 d = abs(p) - b;
@@ -295,7 +317,11 @@ class Media {
             discard;
           }
           
-          gl_FragColor = vec4(color.rgb, 1.0);
+          // Add glow effect for spotlight
+          float glow = vSpotlight * 0.3;
+          vec3 finalColor = color.rgb + vec3(glow);
+          
+          gl_FragColor = vec4(finalColor, 1.0);
         }
       `,
       uniforms: {
@@ -304,12 +330,12 @@ class Media {
         uImageSizes: { value: [0, 0] },
         uSpeed: { value: 0 },
         uTime: { value: 100 * Math.random() },
-        uBorderRadius: { value: this.borderRadius }
+        uBorderRadius: { value: this.borderRadius },
+        uSpotlight: { value: 0.0 }
       },
       transparent: true
     });
 
-    // Try to load the PNG image with fallback to white placeholder
     const img = new Image();
     img.crossOrigin = "anonymous";
     
@@ -329,16 +355,17 @@ class Media {
       loadFallback();
     };
 
-    // Convert to PNG extension if needed
-    const imageUrl = this.image.includes('.png') ? this.image : `${this.image.replace(/\.[^/.]+$/, "")}.png`;
+    // Try SVG first, then PNG fallback
+    const imageUrl = this.image.includes('.svg') ? this.image : 
+                    this.image.includes('.png') ? this.image : 
+                    `${this.image.replace(/\.[^/.]+$/, "")}.svg`;
     img.src = imageUrl;
     
-    // Set initial fallback
     setTimeout(() => {
       if (!img.complete) {
         loadFallback();
       }
-    }, 5000); // 5 second timeout
+    }, 3000);
   }
 
   createMesh() {
@@ -348,14 +375,7 @@ class Media {
     });
     this.plane.scale.set(this.scale, this.scale, 1);
     this.scene.addChild(this.plane);
-    
-    // Add hover event listeners for category text display
-    if (this.gl.canvas) {
-      this.gl.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
-      this.gl.canvas.addEventListener('mouseout', this.onMouseOut.bind(this));
-    }
 
-    // Add click detection
     if (this.onItemClick) {
       this.plane.userData = {
         item: { image: this.image, text: this.text },
@@ -363,30 +383,6 @@ class Media {
         onClick: this.onItemClick
       };
     }
-  }
-
-  onMouseMove(e: MouseEvent) {
-    // Simple hover detection - show text when hovering over the item
-    const rect = this.gl.canvas.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-    
-    // Check if mouse is over this media item (simplified hit detection)
-    const itemX = this.x / this.screen.width * 2;
-    const itemWidth = this.width / this.screen.width * 2;
-    
-    if (Math.abs(x - itemX) < itemWidth / 2) {
-      // Mouse is over this item - show text
-      this.title.setVisibility(true);
-    } else {
-      // Mouse is not over this item - hide text
-      this.title.setVisibility(false);
-    }
-  }
-
-  onMouseOut() {
-    // Hide text when mouse leaves canvas
-    this.title.setVisibility(false);
   }
 
   createTitle() {
@@ -400,12 +396,19 @@ class Media {
     });
   }
 
-  update(scroll: any, direction: string) {
+  update(scroll: any) {
     this.plane.position.x = this.x - scroll.current - this.extra;
 
     const x = this.plane.position.x;
     const H = this.viewport.width / 2;
 
+    // Calculate distance from center for spotlight effect
+    this.distanceFromCenter = Math.abs(x);
+    const maxDistance = this.width * 1.5;
+    const proximityToCenter = Math.max(0, 1 - (this.distanceFromCenter / maxDistance));
+    this.isSpotlight = proximityToCenter > 0.6;
+
+    // Enhanced curved positioning
     if (this.bend === 0) {
       this.plane.position.y = 0;
       this.plane.rotation.z = 0;
@@ -424,21 +427,27 @@ class Media {
       }
     }
 
-    this.speed = scroll.current - scroll.last;
-    this.program.uniforms.uTime.value += 0.04;
-    this.program.uniforms.uSpeed.value = this.speed;
+    // Spotlight scaling effect
+    const targetScale = this.isSpotlight ? 1.3 : 1.0;
+    this.plane.scale.x = lerp(this.plane.scale.x, targetScale, 0.1);
+    this.plane.scale.y = lerp(this.plane.scale.y, targetScale, 0.1);
 
+    // Update shader uniforms
+    this.speed = scroll.current - scroll.last;
+    this.program.uniforms.uTime.value += 0.02;
+    this.program.uniforms.uSpeed.value = this.speed;
+    this.program.uniforms.uSpotlight.value = this.isSpotlight ? 1.0 : 0.0;
+
+    // Show title for spotlight item
+    this.title.setVisibility(this.isSpotlight, proximityToCenter);
+
+    // Infinite loop logic - only to the right
     const planeOffset = this.plane.scale.x / 2;
     const viewportOffset = this.viewport.width / 2;
-    this.isBefore = this.plane.position.x + planeOffset < -viewportOffset;
-    this.isAfter = this.plane.position.x - planeOffset > viewportOffset;
-    if (direction === 'right' && this.isBefore) {
+    const isBefore = this.plane.position.x + planeOffset < -viewportOffset;
+    
+    if (isBefore) {
       this.extra -= this.widthTotal;
-      this.isBefore = this.isAfter = false;
-    }
-    if (direction === 'left' && this.isAfter) {
-      this.extra += this.widthTotal;
-      this.isBefore = this.isAfter = false;
     }
   }
 
@@ -451,21 +460,23 @@ class Media {
       }
     }
     
-    // Defensive checks to prevent TypeError
     if (!this.screen?.height || !this.viewport?.height || !this.viewport?.width) {
       console.warn('CircularGallery: Missing screen or viewport dimensions');
       return;
     }
     
-    this.scale = this.screen.height / 1500;
-    this.plane.scale.y = (this.viewport.height * (900 * this.scale)) / this.screen.height;
-    this.plane.scale.x = (this.viewport.width * (700 * this.scale)) / this.screen.width;
+    // Better mobile scaling
+    const isMobile = this.screen.width < 768;
+    this.scale = isMobile ? this.screen.height / 1200 : this.screen.height / 1500;
+    
+    this.plane.scale.y = (this.viewport.height * (isMobile ? 1100 : 900) * this.scale) / this.screen.height;
+    this.plane.scale.x = (this.viewport.width * (isMobile ? 800 : 700) * this.scale) / this.screen.width;
     
     if (this.plane?.program?.uniforms?.uPlaneSizes) {
       this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
     }
     
-    this.padding = 2;
+    this.padding = isMobile ? 3 : 2.5;
     this.width = this.plane.scale.x + this.padding;
     this.widthTotal = this.width * this.length;
     this.x = this.width * this.index;
@@ -474,7 +485,7 @@ class Media {
 
 class App {
   private container: HTMLElement;
-  private scroll = { ease: 0.05, current: 0, target: 0, last: 0, position: 0 };
+  private scroll = { ease: 0.08, current: 0, target: 0, last: 0, position: 0 };
   private onCheckDebounce: (...args: any[]) => void;
   private renderer: any;
   private gl: any;
@@ -493,18 +504,17 @@ class App {
   private boundOnTouchDown: (e: any) => void;
   private boundOnTouchMove: (e: any) => void;
   private boundOnTouchUp: () => void;
-  private boundOnMouseEnter: () => void;
-  private boundOnMouseLeave: () => void;
   private onItemClick?: (item: GalleryItem, index: number) => void;
   private startTime: number | null = null;
   private hasMoved = false;
+  private momentum = 0;
   
-  // Auto-rotation properties
-  private autoRotationSpeed = 0.003; // Very slow continuous rotation
-  private isHovered = false; // Track if mouse is over gallery
-  private autoRotationEnabled = true; // Can be disabled during interactions
+  // Enhanced auto-rotation
+  private autoRotationSpeed = 0.015; // 5x faster
+  private isHovered = false;
+  private autoRotationEnabled = true;
 
-  constructor(container: HTMLElement, { items, bend, textColor = "#ffffff", borderRadius = 0, font = "bold 30px Figtree", onItemClick }: {
+  constructor(container: HTMLElement, { items, bend, textColor = "#2D5A27", borderRadius = 0.1, font = "bold 32px Inter", onItemClick }: {
     items?: GalleryItem[];
     bend?: number;
     textColor?: string;
@@ -515,7 +525,7 @@ class App {
     autoBind(this);
     this.container = container;
     this.onItemClick = onItemClick;
-    this.onCheckDebounce = debounce(this.onCheck, 300);
+    this.onCheckDebounce = debounce(this.onCheck, 200);
     
     this.createRenderer();
     this.createCamera();
@@ -528,7 +538,7 @@ class App {
   }
 
   createRenderer() {
-    this.renderer = new Renderer({ alpha: true });
+    this.renderer = new Renderer({ alpha: true, antialias: true });
     this.gl = this.renderer.gl;
     this.gl.clearColor(0, 0, 0, 0);
     this.container.appendChild(this.gl.canvas);
@@ -546,20 +556,19 @@ class App {
 
   createGeometry() {
     this.planeGeometry = new Plane(this.gl, {
-      heightSegments: 50,
-      widthSegments: 100
+      heightSegments: 30,
+      widthSegments: 60
     });
   }
 
-  createMedias(items?: GalleryItem[], bend = 1, textColor?: string, borderRadius?: number, font?: string) {
-    // Only use items passed via props - no fallback to default placeholder images
+  createMedias(items?: GalleryItem[], bend = 3, textColor?: string, borderRadius?: number, font?: string) {
     if (!items || items.length === 0) {
       console.warn('No gallery items provided to CircularGallery');
       return;
     }
     
     const galleryItems = items;
-    this.mediasImages = galleryItems.concat(galleryItems); // Duplicate for seamless loop
+    this.mediasImages = galleryItems.concat(galleryItems).concat(galleryItems); // Triple for smoother infinite loop
     this.medias = this.mediasImages.map((data, index) => {
       return new Media({
         geometry: this.planeGeometry,
@@ -572,10 +581,10 @@ class App {
         screen: this.screen,
         text: data.text,
         viewport: this.viewport,
-        bend: bend || 1,
-        textColor: textColor || "#ffffff",
-        borderRadius: borderRadius || 0,
-        font: font || "bold 30px Figtree",
+        bend: bend || 3,
+        textColor: textColor || "#2D5A27",
+        borderRadius: borderRadius || 0.1,
+        font: font || "bold 32px Inter",
         onItemClick: this.onItemClick
       })
     })
@@ -586,36 +595,43 @@ class App {
     this.scroll.position = this.scroll.current;
     this.start = e.touches ? e.touches[0].clientX : e.clientX;
     this.startTime = Date.now();
-    this.hasMoved = false; // Reset hasMoved for each new touch/click
-    this.autoRotationEnabled = false; // Disable auto-rotation during interaction
+    this.hasMoved = false;
+    this.autoRotationEnabled = false;
+    this.momentum = 0;
   }
 
   onTouchMove(e: any) {
-    if (!this.isDown) return
-    const x = e.touches ? e.touches[0].clientX : e.clientX
-    const distance = (this.start - x) * 0.03 // Reduced sensitivity for smoother movement
-    this.scroll.target = this.scroll.position + distance
-    this.hasMoved = Math.abs(this.start - x) > 3 // Reduced threshold from 5 to 3 pixels for more precise click detection
+    if (!this.isDown) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const distance = (this.start - x) * 0.04; // Slightly increased sensitivity
+    this.scroll.target = this.scroll.position + distance;
+    this.hasMoved = Math.abs(this.start - x) > 2;
+    
+    // Calculate momentum
+    this.momentum = distance * 0.1;
   }
 
   onTouchUp() {
-    this.isDown = false
-    this.autoRotationEnabled = true; // Re-enable auto-rotation after interaction
-    const endTime = Date.now()
-    const clickDuration = endTime - (this.startTime || 0)
+    this.isDown = false;
+    const endTime = Date.now();
+    const clickDuration = endTime - (this.startTime || 0);
     
-    // Only trigger click if it was quick and minimal movement
+    // Apply momentum effect
+    if (this.hasMoved && Math.abs(this.momentum) > 0.01) {
+      this.scroll.target += this.momentum * 8; // Momentum boost
+    }
+    
+    this.autoRotationEnabled = true;
+    
+    // Enhanced click detection
     if (!this.hasMoved && clickDuration < 250) {
-      // Improved click detection - find the closest item to center
       if (this.medias && this.medias[0]) {
         const containerCenter = this.container.clientWidth / 2;
         let closestIndex = 0;
         let closestDistance = Infinity;
         
-        // Find the media closest to the center of the screen
         this.medias.forEach((media, index) => {
-          if (index < this.mediasImages.length / 2) { // Only check original items, not duplicates
-            // Calculate the distance from media center to screen center
+          if (index < this.mediasImages.length / 3) { // Only check original items
             const mediaScreenPosition = (media.plane.position.x / this.viewport.width) * this.screen.width + this.screen.width / 2;
             const distance = Math.abs(mediaScreenPosition - containerCenter);
             
@@ -634,8 +650,9 @@ class App {
       }
     }
     
-    this.onCheck()
-    this.hasMoved = false
+    this.onCheck();
+    this.hasMoved = false;
+    this.momentum = 0;
   }
 
   onMouseEnter() {
@@ -646,8 +663,8 @@ class App {
     this.isHovered = false;
   }
 
-  onWheel() {
-    this.scroll.target += 0.2;
+  onWheel(e: WheelEvent) {
+    this.scroll.target += e.deltaY * 0.002;
     this.onCheckDebounce();
   }
 
@@ -656,11 +673,10 @@ class App {
     const width = this.medias[0].width;
     const itemIndex = Math.round(Math.abs(this.scroll.target) / width);
     const item = width * itemIndex;
-    this.scroll.target = this.scroll.target < 0 ? -item : item;
+    this.scroll.target = Math.max(0, item); // Only allow positive scroll
   }
 
   onResize() {
-    // Defensive checks to prevent errors
     if (!this.container) {
       console.warn('CircularGallery: Container not available for resize');
       return;
@@ -671,17 +687,11 @@ class App {
       height: this.container.clientHeight || 600
     };
     
-    if (!this.renderer) {
-      console.warn('CircularGallery: Renderer not available for resize');
-      return;
-    }
+    if (!this.renderer) return;
     
     this.renderer.setSize(this.screen.width, this.screen.height);
     
-    if (!this.camera) {
-      console.warn('CircularGallery: Camera not available for resize');
-      return;
-    }
+    if (!this.camera) return;
     
     this.camera.perspective({
       aspect: this.screen.width / this.screen.height
@@ -692,7 +702,6 @@ class App {
     const width = height * this.camera.aspect;
     this.viewport = { width, height };
     
-    // Only call media resize if medias exist and are properly initialized
     if (this.medias && Array.isArray(this.medias) && this.medias.length > 0) {
       this.medias.forEach((media) => {
         if (media && typeof media.onResize === 'function') {
@@ -703,7 +712,7 @@ class App {
   }
 
   update() {
-    // Auto-rotation: only when not hovered, not interacting, and enabled
+    // Enhanced auto-rotation - only to the right
     if (this.autoRotationEnabled && !this.isHovered && !this.isDown) {
       this.scroll.target += this.autoRotationSpeed;
     }
@@ -713,9 +722,9 @@ class App {
       this.scroll.target,
       this.scroll.ease
     );
-    const direction = this.scroll.current > this.scroll.last ? 'right' : 'left';
+    
     if (this.medias) {
-      this.medias.forEach((media) => media.update(this.scroll, direction));
+      this.medias.forEach((media) => media.update(this.scroll));
     }
     this.renderer.render({ scene: this.scene, camera: this.camera });
     this.scroll.last = this.scroll.current;
@@ -728,37 +737,29 @@ class App {
     this.boundOnTouchDown = this.onTouchDown.bind(this);
     this.boundOnTouchMove = this.onTouchMove.bind(this);
     this.boundOnTouchUp = this.onTouchUp.bind(this);
-    this.boundOnMouseEnter = this.onMouseEnter.bind(this);
-    this.boundOnMouseLeave = this.onMouseLeave.bind(this);
     
-    // Only resize needs to be on window
     window.addEventListener('resize', this.boundOnResize);
     
-    // All interactive events should be on canvas only to prevent global interference
-    this.gl.canvas.addEventListener('wheel', this.boundOnWheel);
+    this.gl.canvas.addEventListener('wheel', this.boundOnWheel, { passive: false });
     this.gl.canvas.addEventListener('mousedown', this.boundOnTouchDown);
     this.gl.canvas.addEventListener('mousemove', this.boundOnTouchMove);
     this.gl.canvas.addEventListener('mouseup', this.boundOnTouchUp);
-    this.gl.canvas.addEventListener('mouseenter', this.boundOnMouseEnter);
-    this.gl.canvas.addEventListener('mouseleave', this.boundOnMouseLeave);
-    this.gl.canvas.addEventListener('touchstart', this.boundOnTouchDown);
-    this.gl.canvas.addEventListener('touchmove', this.boundOnTouchMove);
+    this.gl.canvas.addEventListener('mouseenter', () => this.isHovered = true);
+    this.gl.canvas.addEventListener('mouseleave', () => this.isHovered = false);
+    this.gl.canvas.addEventListener('touchstart', this.boundOnTouchDown, { passive: false });
+    this.gl.canvas.addEventListener('touchmove', this.boundOnTouchMove, { passive: false });
     this.gl.canvas.addEventListener('touchend', this.boundOnTouchUp);
   }
 
   destroy() {
     window.cancelAnimationFrame(this.raf);
     
-    // Remove window listeners
     window.removeEventListener('resize', this.boundOnResize);
     
-    // Remove canvas listeners
     this.gl.canvas.removeEventListener('wheel', this.boundOnWheel);
     this.gl.canvas.removeEventListener('mousedown', this.boundOnTouchDown);
     this.gl.canvas.removeEventListener('mousemove', this.boundOnTouchMove);
     this.gl.canvas.removeEventListener('mouseup', this.boundOnTouchUp);
-    this.gl.canvas.removeEventListener('mouseenter', this.boundOnMouseEnter);
-    this.gl.canvas.removeEventListener('mouseleave', this.boundOnMouseLeave);
     this.gl.canvas.removeEventListener('touchstart', this.boundOnTouchDown);
     this.gl.canvas.removeEventListener('touchmove', this.boundOnTouchMove);
     this.gl.canvas.removeEventListener('touchend', this.boundOnTouchUp);
@@ -772,9 +773,9 @@ class App {
 export default function CircularGallery({
   items,
   bend = 3,
-  textColor = "#ffffff",
-  borderRadius = 0.05,
-  font = "bold 30px Figtree",
+  textColor = "#2D5A27",
+  borderRadius = 0.1,
+  font = "bold 32px Inter",
   onItemClick
 }: CircularGalleryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -798,7 +799,7 @@ export default function CircularGallery({
   
   return (
     <div 
-      className='w-full h-full overflow-hidden cursor-grab active:cursor-grabbing' 
+      className='w-full h-full overflow-hidden cursor-grab active:cursor-grabbing select-none' 
       ref={containerRef} 
     />
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -21,7 +21,7 @@ const categories: Category[] = [
   {
     name: 'Quadros',
     href: '/shop/canvas',
-    galleryImage: '/assets/gallery-images/person_with_canvas.png',
+    galleryImage: '/circular-gallery/canvas.svg',
     gradient: 'from-emerald-400 to-teal-500',
       icon: '🖼️',
     items: ['Canvas Premium', 'Molduras Elegantes', 'Impressão HD']
@@ -29,7 +29,7 @@ const categories: Category[] = [
   {
     name: 'Posters',
     href: '/shop/poster',
-    galleryImage: '/assets/mockups/poster/poster_horizontal_blank.png',
+    galleryImage: '/circular-gallery/poster.svg',
     gradient: 'from-orange-400 to-red-500',
     icon: '📋',
     items: ['Horizontal', 'Vertical']
@@ -38,7 +38,7 @@ const categories: Category[] = [
   {
     name: 'Canecas',
     href: '/shop/mug',
-    galleryImage: '/fotousar/raparigascafe.png',
+    galleryImage: '/circular-gallery/mug.svg',
     gradient: 'from-yellow-400 to-orange-500',
     icon: '☕',
     items: ['Cerâmica Premium', 'Impressão Durável', 'Várias Cores']
@@ -46,7 +46,7 @@ const categories: Category[] = [
   {
     name: 'Tecnologia',
     href: '/shop/tecnologia',
-    galleryImage: '/assets/gallery-images/person_with_phone_case.png',
+    galleryImage: '/circular-gallery/tecnologia.svg',
     gradient: 'from-purple-400 to-pink-500',
     icon: '📱',
     items: ['Capas Telemóvel', 'Mousepads', 'Acessórios']
@@ -54,7 +54,7 @@ const categories: Category[] = [
   {
     name: 'Sacos',
     href: '/shop/bag',
-    galleryImage: '/fotousar/mae2filhos.png',
+    galleryImage: '/circular-gallery/bag.svg',
     gradient: 'from-green-400 to-emerald-500',
     icon: '🎒',
     items: ['Tote Bags', 'Impressão Durável', 'Eco-Friendly']
@@ -62,7 +62,7 @@ const categories: Category[] = [
   {
     name: 'Escritório',
     href: '/shop/escritorio',
-    galleryImage: '/fotousar/passeioporto.png',
+    galleryImage: '/circular-gallery/escritorio.svg',
     gradient: 'from-gray-400 to-slate-500',
     icon: '🏢',
     items: ['Cadernos', 'Mousepads', 'Personalizado']
@@ -71,11 +71,6 @@ const categories: Category[] = [
 
 const ShopPage: React.FC = () => {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   // Prepare gallery items from categories with validation
   const galleryItems = categories.map(category => ({
@@ -105,10 +100,10 @@ const ShopPage: React.FC = () => {
       return (
         <CircularGallery
           items={galleryItems}
-          bend={3}
+          bend={4}
           textColor="#2D5A27"
-          borderRadius={0.1}
-          font="bold 28px Inter"
+          borderRadius={0.12}
+          font="bold 32px Inter"
           onItemClick={handleGalleryItemClick}
         />
       );
@@ -164,41 +159,19 @@ const ShopPage: React.FC = () => {
             </motion.p>
           </div>
 
-          {/* Search Bar */}
-          <div className="max-w-md mx-auto mb-12">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Procurar produtos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-6 py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 
-                          text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-[#B8E6B8] 
-                          focus:border-transparent transition-all duration-300"
-              />
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                <span className="text-white/70 text-xl">🔍</span>
-              </div>
-            </div>
-                      </div>
-                      
           {/* Interactive 3D Gallery */}
           <div className="mb-16">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-[#2D5A27] mb-2">Galeria Interativa</h2>
-              <p className="text-[#4A6B5B]">Arrastar para navegar • Clicar para explorar</p>
-                      </div>
                       
-            <div className="h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-[#F5F1E8] via-[#E8E0D0] to-[#D4C4A8] backdrop-blur-sm border border-white/20 shadow-2xl">
+            <div className="h-[500px] md:h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-[#F5F1E8] via-[#E8E0D0] to-[#D4C4A8] backdrop-blur-sm border border-white/20 shadow-2xl">
               <SafeGallery />
             </div>
-                      </div>
+          </div>
                       
           {/* Traditional Category Grid */}
           <div className="mb-12">
             <h2 className="text-3xl font-bold text-white text-center mb-8">Todas as Categorias</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCategories.map((category) => (
+              {categories.map((category) => (
                 <div
                   key={category.name}
                   onClick={() => router.push(category.href)}
