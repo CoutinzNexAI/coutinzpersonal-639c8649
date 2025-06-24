@@ -21,7 +21,7 @@ const categories: Category[] = [
   {
     name: 'Quadros',
     href: '/shop/canvas',
-    galleryImage: '/circular-gallery/canvas.svg',
+    galleryImage: '/circular-gallery/canvas.png',
     gradient: 'from-emerald-400 to-teal-500',
       icon: '🖼️',
     items: ['Canvas Premium', 'Molduras Elegantes', 'Impressão HD']
@@ -29,7 +29,7 @@ const categories: Category[] = [
   {
     name: 'Posters',
     href: '/shop/poster',
-    galleryImage: '/circular-gallery/poster.svg',
+    galleryImage: '/circular-gallery/poster.png',
     gradient: 'from-orange-400 to-red-500',
     icon: '📋',
     items: ['Horizontal', 'Vertical']
@@ -38,7 +38,7 @@ const categories: Category[] = [
   {
     name: 'Canecas',
     href: '/shop/mug',
-    galleryImage: '/circular-gallery/mug.svg',
+    galleryImage: '/circular-gallery/mug.png',
     gradient: 'from-yellow-400 to-orange-500',
     icon: '☕',
     items: ['Cerâmica Premium', 'Impressão Durável', 'Várias Cores']
@@ -46,7 +46,7 @@ const categories: Category[] = [
   {
     name: 'Tecnologia',
     href: '/shop/tecnologia',
-    galleryImage: '/circular-gallery/tecnologia.svg',
+    galleryImage: '/circular-gallery/tecnologia.png',
     gradient: 'from-purple-400 to-pink-500',
     icon: '📱',
     items: ['Capas Telemóvel', 'Mousepads', 'Acessórios']
@@ -54,7 +54,7 @@ const categories: Category[] = [
   {
     name: 'Sacos',
     href: '/shop/bag',
-    galleryImage: '/circular-gallery/bag.svg',
+    galleryImage: '/circular-gallery/bag.png',
     gradient: 'from-green-400 to-emerald-500',
     icon: '🎒',
     items: ['Tote Bags', 'Impressão Durável', 'Eco-Friendly']
@@ -62,7 +62,7 @@ const categories: Category[] = [
   {
     name: 'Escritório',
     href: '/shop/escritorio',
-    galleryImage: '/circular-gallery/escritorio.svg',
+    galleryImage: '/circular-gallery/escritorio.png',
     gradient: 'from-gray-400 to-slate-500',
     icon: '🏢',
     items: ['Cadernos', 'Mousepads', 'Personalizado']

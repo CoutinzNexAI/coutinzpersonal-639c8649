@@ -1,0 +1,6 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="400" fill="#f5f5f5"/>
+  <rect x="60" y="140" width="280" height="120" rx="10" fill="white" stroke="#ddd" stroke-width="2"/>
+  <text x="200" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#666">Mouse Pad</text>
+  <text x="200" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#999">9" × 7.5"</text>
+</svg> 
