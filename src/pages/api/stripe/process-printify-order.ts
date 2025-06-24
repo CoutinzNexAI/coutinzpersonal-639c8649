@@ -64,6 +64,13 @@ interface CartItem {
     canvasEdgeType?: 'regular' | 'mirror' | 'off'; // Para Canvas Sem Borda
     frameColor?: string; // Para Canvas com Moldura
   };
+  printDetails?: {
+    print_on_side?: 'mirror' | 'regular' | 'off'; // Para produtos com bordas especiais
+    position?: string; // Posição da área de impressão (ex: 'front', 'back')
+    defaultScale?: number; // Escala padrão para este produto específico
+    defaultX?: number; // Posição X padrão
+    defaultY?: number; // Posição Y padrão
+  };
   imageAdjustments?: {
     x: number;
     y: number;
@@ -513,7 +520,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Construir line item "on-the-fly" com estrutura correta para API de encomendas
-        const lineItem = {
+        const lineItem: {
+          blueprint_id: number;
+          print_provider_id: number;
+          variant_id: number;
+          quantity: number;
+          print_areas: Record<string, Array<{
+            src: string;
+            x: number;
+            y: number;
+            scale: number;
+            angle: number;
+          }>>;
+          print_details?: {
+            print_on_side: string;
+          };
+        } = {
           blueprint_id: productMapping.printifyBlueprintId,
           print_provider_id: productMapping.printifyPrintProviderId,
           variant_id: variantId,
@@ -534,6 +556,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // adicionar aqui: "back": [{ src: "...", x: ..., y: ..., etc }]
           }
         };
+
+        // ✅ SINCRONIZAÇÃO: Adicionar print_details se o produto suportar (Canvas)
+        if (productMapping.allowsPrintDetails && cartItem.printDetails?.print_on_side) {
+          lineItem.print_details = {
+            print_on_side: cartItem.printDetails.print_on_side
+          };
+          console.log(`✅ Print details adicionados para ${cartItem.productId}:`, lineItem.print_details);
+        }
+
+        // ✅ FALLBACK: Para Canvas sem printDetails explícitos, usar configuração do produto
+        if (cartItem.productId === 'custom_canvas' && cartItem.customizations.canvasEdgeType) {
+          lineItem.print_details = {
+            print_on_side: cartItem.customizations.canvasEdgeType
+          };
+          console.log(`✅ Canvas edge type aplicado: ${cartItem.customizations.canvasEdgeType}`);
+        }
 
         printifyLineItems.push(lineItem);
         console.log('✅ On-the-fly line item added:', lineItem);

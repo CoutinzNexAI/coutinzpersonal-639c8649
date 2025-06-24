@@ -18,6 +18,13 @@ export interface CartItem {
     canvasEdgeType?: 'regular' | 'mirror' | 'off'; // Para Canvas Sem Borda
     frameColor?: string; // Para Canvas com Moldura
   };
+  printDetails?: {
+    print_on_side?: 'mirror' | 'regular' | 'off'; // Para produtos com bordas especiais
+    position?: string; // Posição da área de impressão (ex: 'front', 'back')
+    defaultScale?: number; // Escala padrão para este produto específico
+    defaultX?: number; // Posição X padrão
+    defaultY?: number; // Posição Y padrão
+  };
   imageAdjustments?: {
     x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
     y: number;          // Posição Y da imagem dentro da área de impressão (0-1, percentagem)
