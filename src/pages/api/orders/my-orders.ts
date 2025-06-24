@@ -25,6 +25,22 @@ interface UserOrder {
   customizations: Record<string, string | number | boolean>;
   order_reference?: string;
   customer_name?: string;
+  items?: Array<{
+    id: string;
+    productId: string;
+    productName: string;
+    productCategory: string;
+    userImageUrl: string;
+    price: number;
+    quantity: number;
+    customizations: Record<string, string | number | boolean>;
+    imageAdjustments?: {
+      x: number;
+      y: number;
+      scale: number;
+      rotation?: number;
+    };
+  }>;
 }
 
 interface MyOrdersResponse {
@@ -99,7 +115,8 @@ export default async function handler(
         updated_at,
         customizations,
         order_reference,
-        customer_name
+        customer_name,
+        items
       `, { count: 'exact' })
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
@@ -123,6 +140,15 @@ export default async function handler(
     }
 
     console.log(`✅ Found ${orders?.length || 0} orders (total: ${count}) for user ${user.id}`);
+    
+    // ✅ DEBUG: Log para verificar se campo items está sendo retornado
+    if (orders && orders.length > 0) {
+      console.log('🛍️ DEBUG - Primeira encomenda completa:', JSON.stringify(orders[0], null, 2));
+      orders.forEach((order, index) => {
+        const itemsCount = order.items ? order.items.length : 0;
+        console.log(`📦 Encomenda ${index + 1}: ${order.order_reference} - ${itemsCount} itens no campo 'items'`);
+      });
+    }
 
     return res.status(200).json({
       success: true,

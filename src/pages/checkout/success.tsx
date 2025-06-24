@@ -7,6 +7,7 @@ import { toast } from '@/components/ui/sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import { CartService } from '@/lib/cart/cartService';
 
 interface OrderResult {
   success: boolean;
@@ -60,15 +61,25 @@ const CheckoutSuccessPage: React.FC = () => {
         const result = await response.json();
         
         if (response.ok && result.success) {
-          // ✅ SUCESSO TOTAL - Pedido processado e enviado para Gelato
+          // ✅ SUCESSO TOTAL - Pedido processado e enviado para Printify
           console.log('✅ Pedido processado com sucesso:', result);
           setOrderResult(result);
+          
+          // ✅ LIMPAR CARRINHO APÓS SUCESSO
+          CartService.clearCart();
+          console.log('🛒 Carrinho limpo após sucesso da compra');
+          
           toast.success('Pedido finalizado com sucesso!');
           
         } else if (!response.ok && result.supportNeeded) {
-          // ⚠️ PAGAMENTO OK, MAS GELATO FALHOU - Precisa suporte
-          console.error('⚠️ Pagamento processado mas erro na Gelato:', result);
+          // ⚠️ PAGAMENTO OK, MAS PRINTIFY FALHOU - Precisa suporte
+          console.error('⚠️ Pagamento processado mas erro na Printify:', result);
           setOrderResult(result);
+          
+          // ✅ LIMPAR CARRINHO MESMO COM ERRO PRINTIFY (pagamento foi processado)
+          CartService.clearCart();
+          console.log('🛒 Carrinho limpo (pagamento processado, erro Printify)');
+          
           toast.error('Pedido parcialmente processado. Contacte o suporte.');
           
         } else {

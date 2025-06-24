@@ -33,6 +33,22 @@ interface UserOrder {
   customizations: Record<string, string | number | boolean>;
   order_reference?: string;
   customer_name?: string;
+  items?: Array<{
+    id: string;
+    productId: string;
+    productName: string;
+    productCategory: string;
+    userImageUrl: string;
+    price: number;
+    quantity: number;
+    customizations: Record<string, string | number | boolean>;
+    imageAdjustments?: {
+      x: number;
+      y: number;
+      scale: number;
+      rotation?: number;
+    };
+  }>;
 }
 
 interface OrderDetailsViewProps {
@@ -220,10 +236,82 @@ Tenho uma pergunta sobre a minha encomenda:
   );
 };
 
+// ProductList Component - Mostra todos os produtos da encomenda
+const ProductList: React.FC<{ items: UserOrder['items']; fallbackOrder?: UserOrder }> = ({ items, fallbackOrder }) => {
+  // Se não houver items array, usar os dados do fallbackOrder (compatibilidade)
+  const productsToShow = items && items.length > 0 ? items : (fallbackOrder ? [{
+    id: fallbackOrder.id,
+    productId: fallbackOrder.id, // Usando id como fallback
+    productName: fallbackOrder.product_name,
+    productCategory: fallbackOrder.product_category,
+    userImageUrl: fallbackOrder.user_image_url,
+    price: fallbackOrder.price,
+    quantity: fallbackOrder.quantity,
+    customizations: fallbackOrder.customizations,
+  }] : []);
+
+  console.log('🛍️ ProductList - produtos a mostrar:', productsToShow); // DEBUG LOG
+
+  return (
+    <div className="bg-white rounded-lg border border-ghibli-stone/20 p-6 mb-6">
+      <h2 className="text-lg font-semibold text-ghibli-earth mb-4 flex items-center gap-2">
+        <Package className="w-5 h-5" />
+        {productsToShow.length === 1 ? 'Detalhes do Produto' : `Produtos da Encomenda (${productsToShow.length})`}
+      </h2>
+      
+      <div className="space-y-4">
+        {productsToShow.map((item, index) => {
+          const customizations = parseCustomizations(item.customizations);
+          
+          return (
+            <div key={item.id || index} className="flex gap-4 p-4 bg-ghibli-stone/5 rounded-lg">
+              <div className="w-24 h-24 rounded-lg overflow-hidden bg-ghibli-stone/10 flex-shrink-0">
+                <img
+                  src={item.userImageUrl}
+                  alt={item.productName}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              <div className="flex-1">
+                <h3 className="font-semibold text-ghibli-earth mb-1">{item.productName}</h3>
+                <p className="text-sm text-ghibli-earth/60 mb-2">Categoria: {item.productCategory}</p>
+                
+                {customizations.length > 0 && (
+                  <div className="mb-2">
+                    <h4 className="text-sm font-medium text-ghibli-earth mb-1">Personalizações:</h4>
+                    <div className="space-y-1">
+                      {customizations.map((custom, customIndex) => (
+                        <p key={customIndex} className="text-xs text-ghibli-earth/80">
+                          • {custom}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-ghibli-earth/60">Quantidade: {item.quantity}</span>
+                  <span className="font-semibold text-ghibli-moss">€{item.price.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBack }) => {
   const statusInfo = getStatusInfo(order.status, order.printify_status);
   const StatusIcon = statusInfo.icon;
   const customizations = parseCustomizations(order.customizations);
+
+  // ✅ DEBUG: Log da encomenda completa recebida
+  console.log('📋 OrderDetailsView - Encomenda recebida:', order);
+  console.log('🛍️ OrderDetailsView - Campo items:', order.items);
+  console.log('📊 OrderDetailsView - Número de itens:', order.items ? order.items.length : 'Campo items não existe');
 
   return (
     <div className="flex h-full gap-8">
@@ -284,45 +372,8 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
           </div>
         </div>
 
-        {/* Product Details */}
-        <div className="bg-white rounded-lg border border-ghibli-stone/20 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-ghibli-earth mb-4 flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Detalhes do Produto
-          </h2>
-          
-          <div className="flex gap-4">
-            <div className="w-32 h-32 rounded-lg overflow-hidden bg-ghibli-stone/10">
-              <img
-                src={order.user_image_url}
-                alt={order.product_name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            <div className="flex-1">
-              <h3 className="font-semibold text-ghibli-earth mb-2">{order.product_name}</h3>
-              <p className="text-sm text-ghibli-earth/60 mb-3">Categoria: {order.product_category}</p>
-              
-              {customizations.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-ghibli-earth mb-2">Personalizações:</h4>
-                  <div className="space-y-1">
-                    {customizations.map((custom, index) => (
-                      <p key={index} className="text-sm text-ghibli-earth/80">
-                        • {custom}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <div className="mt-4 flex items-center gap-4 text-sm text-ghibli-earth/60">
-                <span>Quantidade: {order.quantity}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Product List */}
+        <ProductList items={order.items} fallbackOrder={order} />
 
         {/* Tracking Information */}
         {order.tracking_number && (
