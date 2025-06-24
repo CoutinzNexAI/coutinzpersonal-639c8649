@@ -46,6 +46,18 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
   const [selectedFrameColor, setSelectedFrameColor] = useState<string | null>(null);
   const [selectedSizeLabel, setSelectedSizeLabel] = useState<string | null>(null);
 
+  // ✅ EXEMPLO: Como carregar e usar as configurações de design centralizadas
+  const productConfig = getPrintifyProduct(productId as string);
+
+  // 2. ✅ INICIALIZAR ESTADOS COM OS VALORES DA "RECEITA" OFICIAL (se produto existe)
+  const [scale, setScale] = useState(productConfig?.defaultDesign.scale || 1.05); // Ex: 1.05 para canvas
+  const [position, setPosition] = useState({ 
+    x: productConfig?.defaultDesign.x || 0.5,    // Ex: 0.5 (centro)
+    y: productConfig?.defaultDesign.y || 0.5     // Ex: 0.5 (centro)
+  });
+  const [rotation, setRotation] = useState(productConfig?.defaultDesign.angle || 0); // Ex: 0
+  const [edgeType, setEdgeType] = useState(productConfig?.defaultDesign.print_on_side || 'mirror'); // Ex: 'mirror' para canvas
+
   // Função utilitária: Validação consolidada
   const validatePurchase = () => {
     if (!selectedImageUrl) return 'Escolha uma arte primeiro para personalizar o seu canvas!';
@@ -175,6 +187,9 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         customizations.size = variant?.title;
       }
 
+      // ✅ OS CAMPOS CRÍTICOS: A "receita" atual do produto (como números)
+      // Removido pois agora vão diretamente para o objeto customizations
+
       CartService.addToCart({
         productId: productId as string,
         productName: product!.name,
@@ -186,6 +201,12 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         customizations: {
           ...customizations,
           variantId: selectedPrintifyVariantId!, // Obrigatório agora
+          // ✅ OS CAMPOS CRÍTICOS: A "receita" atual do produto (como números)
+          scale: scale,                    // O valor atual do estado
+          x: position.x,                   // A posição atual
+          y: position.y,                   // A posição atual  
+          angle: rotation,                 // A rotação atual
+          print_on_side: edgeType,         // A configuração especial (canvas)
         },
         imageAdjustments,
       });
@@ -196,6 +217,13 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
           label: 'Ver Carrinho',
           onClick: () => router.push('/checkout'),
         },
+      });
+
+      // 4. ✅ LOGS PARA DEBUG
+      console.log('🎨 Configuração de design carregada para', productId, productConfig?.defaultDesign);
+      console.log('📊 Estados atuais:', { scale, position, rotation, edgeType });
+      console.log('🛒 Item adicionado ao carrinho com configurações:', {
+        scale, x: position.x, y: position.y, angle: rotation, print_on_side: edgeType
       });
     } catch (error) {
       console.error('Erro ao adicionar ao carrinho:', error);

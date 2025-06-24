@@ -9,13 +9,22 @@ export interface CartItem {
   quantity: number;
   customizations: { // Guarda as escolhas do user
     variantId: number; // ID da variante (cor/tamanho) da Printify
+    
+    // ✅ NOVOS CAMPOS: A "receita" de design viaja com o item
+    scale: number; // O scale correto para este produto específico
+    x: number; // Posição X da imagem (0.5 = centro)
+    y: number; // Posição Y da imagem (0.5 = centro)
+    angle: number; // Rotação da imagem (0 = sem rotação)
+    print_on_side?: 'mirror' | 'regular' | 'off'; // Para produtos que suportam print details (canvas)
+    
+    // Campos específicos de cada produto (mantidos para compatibilidade)
     size?: string;
     color?: string;
     variant?: string;
     phoneModel?: string; // Para capas de telemóvel
     paperType?: string; // Para cadernos
     selectedPhraseText?: string; // Para sweat de criança
-    canvasEdgeType?: 'regular' | 'mirror' | 'off'; // Para Canvas Sem Borda
+    canvasEdgeType?: 'regular' | 'mirror' | 'off'; // Para Canvas Sem Borda (LEGACY - agora usa print_on_side)
     frameColor?: string; // Para Canvas com Moldura
   };
   printDetails?: {

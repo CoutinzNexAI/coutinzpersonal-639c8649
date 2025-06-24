@@ -1,5 +1,13 @@
 // src/lib/printify/printifyProducts.ts - FLUXO PRINTIFY DEFINITIVO
 
+export interface DefaultDesignConfig {
+  scale: number; // O scale correto para este produto específico (ex: 1.05 para canvas com fill)
+  x: number; // Posição X padrão (0.5 = centro)
+  y: number; // Posição Y padrão (0.5 = centro) 
+  angle: number; // Rotação padrão (0 = sem rotação)
+  print_on_side?: 'mirror' | 'regular' | 'off'; // Para produtos que suportam print details (canvas)
+}
+
 export interface PrintifyProductMapping {
   id: string; // O slug/ID interno do PicTuz (ex: 'canvas_200x200_square_slim_unframed')
   name: string; // Nome amigável do produto
@@ -7,6 +15,9 @@ export interface PrintifyProductMapping {
   price?: number; // Preço base do produto (opcional para produtos com variantes)
   basePrice?: number; // Preço base em euros (para produtos com variantes)
   category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia' | 'bags' | 'stationery' | 'office';
+
+  // ✅ NOVA PROPRIEDADE: A "receita" de design para este produto
+  defaultDesign: DefaultDesignConfig;
 
   // PROPRIEDADES NECESSÁRIAS PARA A API PRINTIFY
   printifyBlueprintId?: number; // ID do blueprint Printify
@@ -74,6 +85,14 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/canvas/canvas_unframed_blank.png',
     basePrice: 20.00,
     category: 'canvas',
+    // ✅ CONFIGURAÇÃO DE DESIGN: Canvas com fill e borda espelhada por padrão
+    defaultDesign: {
+      scale: 1.05, // Um pouco de zoom para garantir que cobre tudo (efeito fill)
+      x: 0.5, // Centro
+      y: 0.5, // Centro
+      angle: 0, // Sem rotação
+      print_on_side: 'mirror' // A regra especial para canvas - borda espelhada
+    },
     printifyBlueprintId: 1159, // Canvas Stretched 0.75"
     printifyPrintProviderId: 105, // Jondo
     variants: [
@@ -114,6 +133,14 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/canvas/canvas_framed_blank.png',
     basePrice: 40.00,
     category: 'canvas',
+    // ✅ CONFIGURAÇÃO DE DESIGN: Canvas com moldura também usa fill e borda espelhada
+    defaultDesign: {
+      scale: 1.05, // Um pouco de zoom para garantir que cobre tudo (efeito fill)
+      x: 0.5, // Centro
+      y: 0.5, // Centro
+      angle: 0, // Sem rotação
+      print_on_side: 'mirror' // A regra especial para canvas - borda espelhada
+    },
     printifyBlueprintId: 944, // Framed Canvas
     printifyPrintProviderId: 105, // Jondo
     variants: [
@@ -178,6 +205,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/tshirt/tshirt_s_white_blank_front.png', // Adapta ao teu mockup
     price: 28.00,
     category: 'apparel',
+    // ✅ CONFIGURAÇÃO DE DESIGN: T-shirt com imagem menor no peito
+    defaultDesign: {
+      scale: 0.4, // Numa t-shirt, a imagem é mais pequena
+      x: 0.5, // Centro
+      y: 0.4, // Um pouco mais para cima no peito
+      angle: 0, // Sem rotação
+    },
     gelatoTemplateId: '65304b9f-3bbe-4e47-ba23-e5ed267a18f5', // Template ID da t-shirt
     templateVariantId: '2878ef11-ecc6-4e9f-9e68-b8b17c1b3727', // <--- ATUALIZA ESTE ID!
     printArea: 'front', // <--- ATUALIZADO para Printify
@@ -188,10 +222,6 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     supportsManualAdjustment: false,
   },
 
-
-
-
-
   // CAPA DE TELEMÓVEL PERSONALIZADA (COM AJUSTE MANUAL E MÚLTIPLAS VARIANTES)
   'custom_phone_case': {
     id: 'custom_phone_case',
@@ -199,6 +229,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/phone-case/capa.png', // Imagem base no frontend
     basePrice: 25.00, // Preço de venda em euros
     category: 'tecnologia',
+    // ✅ CONFIGURAÇÃO DE DESIGN: Capa com ajuste manual, scale dinâmico
+    defaultDesign: {
+      scale: 1.0, // Scale será calculado dinamicamente
+      x: 0.5, // Centro
+      y: 0.5, // Centro
+      angle: 0, // Sem rotação inicial
+    },
     printifyBlueprintId: 370,
     printifyPrintProviderId: 23,
     variants: [
@@ -262,6 +299,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/mug/caneca.svg',
     basePrice: 25.00, // Euros
     category: 'mug',
+    // ✅ CONFIGURAÇÃO DE DESIGN: Caneca com fill
+    defaultDesign: {
+      scale: 1.1, // Um pouco mais para preencher bem a área
+      x: 0.5, // Centro
+      y: 0.5, // Centro
+      angle: 0, // Sem rotação
+    },
     printifyBlueprintId: 441,
     printifyPrintProviderId: 30, // OPT OnDemand
     variants: [
@@ -291,6 +335,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/mug/canecacoracao.svg',
     basePrice: 30.00, // Euros
     category: 'mug',
+    // ✅ CONFIGURAÇÃO DE DESIGN: Caneca coração com fill
+    defaultDesign: {
+      scale: 1.1, // Um pouco mais para preencher bem a área
+      x: 0.5, // Centro
+      y: 0.5, // Centro
+      angle: 0, // Sem rotação
+    },
     printifyBlueprintId: 896,
     printifyPrintProviderId: 30, // OPT OnDemand
     variants: [
@@ -319,6 +370,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/bag/saco.svg',
     basePrice: 25.00, // Euros
     category: 'bags', // Nova categoria
+    // ✅ CONFIGURAÇÃO DE DESIGN: Saco tote com imagem centrada
+    defaultDesign: {
+      scale: 0.8, // Imagem média no saco
+      x: 0.5, // Centro
+      y: 0.45, // Um pouco acima do centro
+      angle: 0, // Sem rotação
+    },
     printifyBlueprintId: 467,
     printifyPrintProviderId: 30, // OPT OnDemand
     variants: [
@@ -348,6 +406,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/journal/spiral_journal_blank.svg',
     basePrice: 20.00, // Euros
     category: 'stationery', // Nova categoria
+    // ✅ CONFIGURAÇÃO DE DESIGN: Caderno com fill para cobertura completa
+    defaultDesign: {
+      scale: 1.1, // O scale necessário para fazer "fill" (efeito cobrir tudo)
+      x: 0.5, // Centro
+      y: 0.5, // Centro
+      angle: 0, // Sem rotação
+    },
     printifyBlueprintId: 475,
     printifyPrintProviderId: 30, // OPT OnDemand
     variants: [
@@ -377,6 +442,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/mousepad/mouse_pad_blank.svg',
     basePrice: 30.00, // Euros
     category: 'office', // Nova categoria
+    // ✅ CONFIGURAÇÃO DE DESIGN: Mouse pad com fill
+    defaultDesign: {
+      scale: 1.1, // Fill para cobrir toda a área
+      x: 0.5, // Centro
+      y: 0.5, // Centro
+      angle: 0, // Sem rotação
+    },
     printifyBlueprintId: 442,
     printifyPrintProviderId: 30, // OPT OnDemand
     variants: [
@@ -398,8 +470,6 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
-
-
   // POSTER HORIZONTAL (SEMI BRILHO)
   'poster_horizontal_semi_glossy': {
     id: 'poster_horizontal_semi_glossy',
@@ -407,6 +477,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/poster/poster_horizontal_blank.png',
     basePrice: 15.00,
     category: 'poster',
+    // ✅ CONFIGURAÇÃO DE DESIGN: Poster com fill para cobertura completa
+    defaultDesign: {
+      scale: 1.05, // Fill para cobrir toda a área do poster
+      x: 0.5, // Centro
+      y: 0.5, // Centro
+      angle: 0, // Sem rotação
+    },
     printifyBlueprintId: 1220,
     printifyPrintProviderId: 105,
     variants: [
@@ -450,6 +527,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/poster/poster_vertical_blank.png',
     basePrice: 15.00,
     category: 'poster',
+    // ✅ CONFIGURAÇÃO DE DESIGN: Poster vertical com fill para cobertura completa
+    defaultDesign: {
+      scale: 1.05, // Fill para cobrir toda a área do poster
+      x: 0.5, // Centro
+      y: 0.5, // Centro
+      angle: 0, // Sem rotação
+    },
     printifyBlueprintId: 1220,
     printifyPrintProviderId: 105,
     variants: [

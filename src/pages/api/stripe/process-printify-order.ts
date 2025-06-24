@@ -63,6 +63,11 @@ interface CartItem {
     selectedPhraseText?: string; // Para sweat de criança
     canvasEdgeType?: 'regular' | 'mirror' | 'off'; // Para Canvas Sem Borda
     frameColor?: string; // Para Canvas com Moldura
+    x?: number;
+    y?: number;
+    scale?: number;
+    angle?: number;
+    print_on_side?: 'mirror' | 'regular' | 'off'; // Para produtos que suportam print details (canvas)
   };
   printDetails?: {
     print_on_side?: 'mirror' | 'regular' | 'off'; // Para produtos com bordas especiais
@@ -546,10 +551,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             [printAreaConfig.position]: [
               {
                 src: userImageUrl, // ✅ URL da imagem do cliente
-                x: cartItem.imageAdjustments?.x || printAreaConfig.defaultX,
-                y: cartItem.imageAdjustments?.y || printAreaConfig.defaultY,
-                scale: cartItem.imageAdjustments?.scale || printAreaConfig.defaultScale,
-                angle: cartItem.imageAdjustments?.rotation || printAreaConfig.defaultAngle
+                // ✅ NOVA PRIORIDADE: Usar customizations primeiro (a "receita" definida)
+                // Se customizations tiver os campos, usar eles, senão usar imageAdjustments como fallback
+                x: cartItem.customizations.x ?? cartItem.imageAdjustments?.x ?? printAreaConfig.defaultX,
+                y: cartItem.customizations.y ?? cartItem.imageAdjustments?.y ?? printAreaConfig.defaultY,
+                scale: cartItem.customizations.scale ?? cartItem.imageAdjustments?.scale ?? printAreaConfig.defaultScale,
+                angle: cartItem.customizations.angle ?? cartItem.imageAdjustments?.rotation ?? printAreaConfig.defaultAngle
               }
             ]
             // Se no futuro houver produtos com várias áreas (frente + costas),
@@ -557,20 +564,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         };
 
-        // ✅ SINCRONIZAÇÃO: Adicionar print_details se o produto suportar (Canvas)
-        if (productMapping.allowsPrintDetails && cartItem.printDetails?.print_on_side) {
+        // ✅ NOVA LÓGICA: Usar customizations.print_on_side como prioridade
+        // Primeiro verifica se há print_on_side em customizations (nova "receita")
+        if (productMapping.allowsPrintDetails && cartItem.customizations.print_on_side) {
+          lineItem.print_details = {
+            print_on_side: cartItem.customizations.print_on_side
+          };
+          console.log(`✅ Print details adicionados para ${cartItem.productId} (customizations):`, lineItem.print_details);
+        }
+        // FALLBACK: Se não houver customizations.print_on_side, usar printDetails (legacy)
+        else if (productMapping.allowsPrintDetails && cartItem.printDetails?.print_on_side) {
           lineItem.print_details = {
             print_on_side: cartItem.printDetails.print_on_side
           };
-          console.log(`✅ Print details adicionados para ${cartItem.productId}:`, lineItem.print_details);
+          console.log(`✅ Print details adicionados para ${cartItem.productId} (legacy printDetails):`, lineItem.print_details);
         }
-
-        // ✅ FALLBACK: Para Canvas sem printDetails explícitos, usar configuração do produto
-        if (cartItem.productId === 'custom_canvas' && cartItem.customizations.canvasEdgeType) {
+        // FALLBACK FINAL: Para Canvas sem customizations, usar canvasEdgeType (legacy)
+        else if (cartItem.productId === 'custom_canvas' && cartItem.customizations.canvasEdgeType) {
           lineItem.print_details = {
             print_on_side: cartItem.customizations.canvasEdgeType
           };
-          console.log(`✅ Canvas edge type aplicado: ${cartItem.customizations.canvasEdgeType}`);
+          console.log(`✅ Canvas edge type aplicado (legacy): ${cartItem.customizations.canvasEdgeType}`);
         }
 
         printifyLineItems.push(lineItem);

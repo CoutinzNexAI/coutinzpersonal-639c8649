@@ -34,6 +34,20 @@ export class CartService {
   static addToCart(newItem: Omit<CartItem, 'id' | 'addedAt'>): CartItem {
     const cart = this.getCart();
     
+    // ✅ VALIDAÇÃO: Verificar se os novos campos obrigatórios estão presentes
+    if (typeof newItem.customizations.scale !== 'number') {
+      throw new Error('Campo obrigatório missing: customizations.scale');
+    }
+    if (typeof newItem.customizations.x !== 'number') {
+      throw new Error('Campo obrigatório missing: customizations.x');
+    }
+    if (typeof newItem.customizations.y !== 'number') {
+      throw new Error('Campo obrigatório missing: customizations.y');
+    }
+    if (typeof newItem.customizations.angle !== 'number') {
+      throw new Error('Campo obrigatório missing: customizations.angle');
+    }
+    
     // Check if item already exists (same product + user image + variant)
     const existingItem = cart.find(
       item => item.productId === newItem.productId && 
