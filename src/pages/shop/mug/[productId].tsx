@@ -106,6 +106,12 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
 
     setLoading(true);
     try {
+      // ✅ CARREGAR CONFIGURAÇÃO CENTRAL DO PRODUTO
+      const productConfig = getPrintifyProduct(productId as string);
+      if (!productConfig) {
+        throw new Error('Configuração do produto não encontrada');
+      }
+
       const variant = product!.variants?.find(v => v.id === selectedPrintifyVariantId);
 
       CartService.addToCart({
@@ -118,10 +124,18 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         quantity: 1,
         customizations: {
           variantId: selectedPrintifyVariantId!, // Obrigatório agora
-          size: variant?.title || 'Tamanho não encontrado'
+          size: variant?.title || 'Tamanho não encontrado',
+          // ✅ OS CAMPOS CRÍTICOS: Usar defaultDesign do produto
+          scale: productConfig.defaultDesign.scale,     // Ex: 1.1 para caneca (fill)
+          x: productConfig.defaultDesign.x,             // Ex: 0.5 (centro)
+          y: productConfig.defaultDesign.y,             // Ex: 0.5 (centro)
+          angle: productConfig.defaultDesign.angle,     // Ex: 0 (sem rotação)
+          print_on_side: productConfig.defaultDesign.print_on_side, // Undefined para caneca (não usa)
         },
         imageAdjustments,
       });
+
+      console.log('🛒 Caneca adicionada ao carrinho com configurações:', productConfig.defaultDesign);
       
       toast.success('Caneca adicionada ao carrinho!', {
         description: 'Continue as compras ou vá para o checkout',

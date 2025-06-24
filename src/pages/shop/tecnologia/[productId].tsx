@@ -183,17 +183,23 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       // Adicionar item ao carrinho usando o CartService - SIMPLIFICADO
       const cartItem = CartService.addToCart({
         productId: productId as string,
-        productName: product.name,
-        productCategory: product.category || 'tecnologia',
+        productName: product!.name,
+        productCategory: product!.category || 'tecnologia',
         userImageUrl: selectedImageUrl,
-        userImageId: selectedImageId,
-        price: product.basePrice || product.price || 0,
+        userImageId: selectedImageId!,
+        price: calculatePrice(),
         quantity: 1,
         customizations: {
-          variantId: variantIdToSend, // Obrigatório agora
-          phoneModel: product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Modelo não encontrado'
+          variantId: selectedPrintifyVariantId!,
+          phoneModel: selectedVariant?.title || 'Modelo não encontrado',
+          // ✅ OS CAMPOS CRÍTICOS: Usar defaultDesign do produto
+          scale: getPrintifyProduct(productId as string)?.defaultDesign.scale || 1.0,
+          x: getPrintifyProduct(productId as string)?.defaultDesign.x || 0.5,
+          y: getPrintifyProduct(productId as string)?.defaultDesign.y || 0.5,
+          angle: getPrintifyProduct(productId as string)?.defaultDesign.angle || 0,
+          print_on_side: getPrintifyProduct(productId as string)?.defaultDesign.print_on_side,
         },
-        imageAdjustments: imageAdjustments,
+        imageAdjustments,
       });
 
       console.log('✅ Item adicionado ao carrinho:', cartItem);

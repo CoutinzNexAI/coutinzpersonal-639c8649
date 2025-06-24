@@ -14,11 +14,12 @@ import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
 import { ChevronLeft } from 'lucide-react';
-import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
+import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping, PIC_TUZ_PRINTIFY_PRODUCT_MAP } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 interface BagDetailPageProps {
   product: PrintifyProductMapping;
@@ -106,7 +107,14 @@ const BagDetailPage: React.FC<BagDetailPageProps> = ({ product: initialProduct }
 
     setLoading(true);
     try {
+      // ✅ CARREGAR CONFIGURAÇÃO CENTRAL DO PRODUTO
+      const productConfig = getPrintifyProduct(productId as string);
+      if (!productConfig) {
+        throw new Error('Configuração do produto não encontrada');
+      }
+
       const variant = product!.variants?.find(v => v.id === selectedPrintifyVariantId);
+
       CartService.addToCart({
         productId: productId as string,
         productName: product!.name,
@@ -117,10 +125,18 @@ const BagDetailPage: React.FC<BagDetailPageProps> = ({ product: initialProduct }
         quantity: 1,
         customizations: {
           variantId: selectedPrintifyVariantId!, // Obrigatório agora
-          variant: variant?.title || 'Tipo não encontrado'
+          variant: variant?.title || 'Tipo não encontrado',
+          // ✅ OS CAMPOS CRÍTICOS: Usar defaultDesign do produto
+          scale: productConfig.defaultDesign.scale,     // Ex: 0.8 para saco
+          x: productConfig.defaultDesign.x,             // Ex: 0.5 (centro)
+          y: productConfig.defaultDesign.y,             // Ex: 0.45 (um pouco acima)
+          angle: productConfig.defaultDesign.angle,     // Ex: 0 (sem rotação)
+          print_on_side: productConfig.defaultDesign.print_on_side, // Undefined para saco (não usa)
         },
         imageAdjustments,
       });
+
+      console.log('🛒 Saco adicionado ao carrinho com configurações:', productConfig.defaultDesign);
 
       toast.success('Saco adicionado ao carrinho!', {
         description: 'Continue as compras ou vá para o checkout',

@@ -119,7 +119,12 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
         quantity: 1,
         customizations: {
           variantId: selectedPrintifyVariantId!, // Obrigatório agora
-          variant: variant?.title || 'Tipo não encontrado'
+          variant: variant?.title || 'Tipo não encontrado',
+          scale: getPrintifyProduct(productId as string)?.defaultDesign.scale || 1.1,
+          x: getPrintifyProduct(productId as string)?.defaultDesign.x || 0.5,
+          y: getPrintifyProduct(productId as string)?.defaultDesign.y || 0.5,
+          angle: getPrintifyProduct(productId as string)?.defaultDesign.angle || 0,
+          print_on_side: getPrintifyProduct(productId as string)?.defaultDesign.print_on_side,
         },
         imageAdjustments,
       });

@@ -244,10 +244,14 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         price: product.basePrice || product.price || 0,
         quantity: 1,
         customizations: {
-          variantId: variantIdToSend, // Obrigatório agora
-          variant: selectedVariant?.title || 'Opção não encontrada',
-          // Para Posters:
-          ...(product.id.includes('poster_') ? { paperType: 'Semi Glossy' } : {}),
+          variantId: selectedPrintifyVariantId!, // Obrigatório agora
+          size: variant?.title || 'Tamanho não encontrado',
+          // ✅ OS CAMPOS CRÍTICOS: Usar defaultDesign do produto
+          scale: getPrintifyProduct(productId as string)?.defaultDesign.scale || 1.05,
+          x: getPrintifyProduct(productId as string)?.defaultDesign.x || 0.5,
+          y: getPrintifyProduct(productId as string)?.defaultDesign.y || 0.5,
+          angle: getPrintifyProduct(productId as string)?.defaultDesign.angle || 0,
+          print_on_side: getPrintifyProduct(productId as string)?.defaultDesign.print_on_side,
         },
         imageAdjustments: imageAdjustments,
       });
