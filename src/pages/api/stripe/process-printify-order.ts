@@ -512,31 +512,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           throw new Error(`Missing userImageUrl for product: ${cartItem.productId}`);
         }
 
-        // Construir line item "on-the-fly" com campo 'src' correto
+        // Construir line item "on-the-fly" com estrutura correta para API de encomendas
         const lineItem = {
           blueprint_id: productMapping.printifyBlueprintId,
           print_provider_id: productMapping.printifyPrintProviderId,
           variant_id: variantId,
           quantity: cartItem.quantity,
-          print_areas: [
-            {
-              variant_ids: [variantId],
-              placeholders: [
-                {
-                  position: printAreaConfig.position,
-                  images: [
-                    {
-                      src: userImageUrl, // ✅ CORREÇÃO: usar 'src' em vez de 'id'
-                      x: cartItem.imageAdjustments?.x || printAreaConfig.defaultX,
-                      y: cartItem.imageAdjustments?.y || printAreaConfig.defaultY,
-                      scale: cartItem.imageAdjustments?.scale || printAreaConfig.defaultScale,
-                      angle: cartItem.imageAdjustments?.rotation || printAreaConfig.defaultAngle
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          print_areas: {
+            // ✅ CORREÇÃO CRÍTICA: print_areas deve ser OBJETO {}, não ARRAY []
+            // A chave é o nome da posição (ex: "front", "back")
+            [printAreaConfig.position]: [
+              {
+                src: userImageUrl, // ✅ URL da imagem do cliente
+                x: cartItem.imageAdjustments?.x || printAreaConfig.defaultX,
+                y: cartItem.imageAdjustments?.y || printAreaConfig.defaultY,
+                scale: cartItem.imageAdjustments?.scale || printAreaConfig.defaultScale,
+                angle: cartItem.imageAdjustments?.rotation || printAreaConfig.defaultAngle
+              }
+            ]
+            // Se no futuro houver produtos com várias áreas (frente + costas),
+            // adicionar aqui: "back": [{ src: "...", x: ..., y: ..., etc }]
+          }
         };
 
         printifyLineItems.push(lineItem);
