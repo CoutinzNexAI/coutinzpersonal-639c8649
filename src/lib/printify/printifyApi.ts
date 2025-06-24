@@ -43,13 +43,32 @@ export async function printifyFetch(endpoint: string, options: RequestInit = {})
       headers: headersToSend,
     });
 
+    // 🔍 DEBUGGING: LER RESPOSTA COMO TEXTO PRIMEIRO
+    const rawText = await response.text();
+    
+    // 🔍 DEBUGGING: IMPRIMIR TUDO PARA VER O QUE A PRINTIFY REALMENTE RESPONDEU
+    console.log('[DEBUG] ===== PRINTIFY RESPONSE DEBUG =====');
+    console.log('[DEBUG] Status:', response.status, response.statusText);
+    console.log('[DEBUG] Headers:', Object.fromEntries(response.headers.entries()));
+    console.log('[DEBUG] Raw Response Body from Printify:', rawText);
+    console.log('[DEBUG] ===== END PRINTIFY RESPONSE =====');
+
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => response.text());
-      console.error(`❌ Printify API Error (${response.status} ${response.statusText}) for ${url}:`, errorBody);
-      throw new Error(`Printify API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorBody)}`);
+      console.error(`❌ Printify API Error (${response.status} ${response.statusText}) for ${url}:`, rawText);
+      throw new Error(`Printify API error: ${response.status} ${response.statusText} - ${rawText}`);
     }
 
-    return response.json();
+    try {
+      // 🔍 DEBUGGING: TENTAR PARSE JSON COM TRATAMENTO DE ERRO
+      const jsonData = JSON.parse(rawText);
+      console.log('[DEBUG] Parsed JSON successfully:', jsonData);
+      return jsonData;
+    } catch (parseError) {
+      console.error("❌ DEBUGGING: Falha ao interpretar resposta da Printify como JSON:", parseError);
+      console.error("❌ DEBUGGING: Raw text que causou o erro:", rawText);
+      throw new Error(`Recebida resposta inválida (não-JSON) da Printify: ${rawText}`);
+    }
+
   } catch (error) {
     console.error(`❌ printifyFetch error:`, error);
     throw error;

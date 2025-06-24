@@ -147,40 +147,63 @@ export default async function handler(
     }
 
     console.log('📦 Calculando custos de envio na Printify...');
-    console.log('Payload:', JSON.stringify(shippingPayload, null, 2));
+    console.log('🔍 [DEBUG] Payload que será enviado:', JSON.stringify(shippingPayload, null, 2));
 
-    const response = await printifyFetch(`shops/${shopId}/orders/shipping.json`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(shippingPayload)
-    });
+    let response;
+    try {
+      console.log('🔍 [DEBUG] Iniciando chamada à printifyFetch...');
+      response = await printifyFetch(`shops/${shopId}/orders/shipping.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(shippingPayload)
+      });
+      console.log('🔍 [DEBUG] printifyFetch retornou com sucesso:', response);
+    } catch (printifyError) {
+      console.error('❌ [DEBUG] Erro na chamada printifyFetch:', printifyError);
+      return res.status(500).json({
+        success: false,
+        error: `Printify API error: ${printifyError instanceof Error ? printifyError.message : String(printifyError)}`
+      });
+    }
 
-    if (!response.success) {
+    console.log('🔍 [DEBUG] Verificando formato da resposta...');
+    console.log('🔍 [DEBUG] response.success:', response.success);
+    console.log('🔍 [DEBUG] response type:', typeof response);
+    console.log('🔍 [DEBUG] response keys:', Object.keys(response || {}));
+
+    // A resposta da Printify pode vir diretamente como dados ou com wrapper
+    let shippingCosts;
+    if (response.success === false) {
+      console.error('❌ [DEBUG] Printify retornou success: false');
       return res.status(500).json({
         success: false,
         error: response.error || 'Failed to calculate shipping costs from Printify'
       });
+    } else {
+      // A Printify pode responder diretamente com os custos ou com { data: custos }
+      shippingCosts = response.data || response;
+      console.log('🔍 [DEBUG] Custos extraídos:', shippingCosts);
     }
-
-    // Faz a chamada à API da Printify (o teu código para isto)
-    const shippingCosts = response.data || response; // A Printify responde com { standard: 539, express: 1200, priority: null, ... }
 
     console.log('📦 Resposta de custos de envio da Printify:', shippingCosts);
 
     // Filtra os custos válidos e encontra o mais barato
+    console.log('🔍 [DEBUG] Verificando validação dos custos...');
     const validCosts = Object.values(shippingCosts).filter(cost => typeof cost === 'number');
+    console.log('🔍 [DEBUG] Custos válidos encontrados:', validCosts);
+    
     if (validCosts.length === 0) {
-      // Tratar erro - nenhum método de envio disponível
+      console.error('❌ [DEBUG] Nenhum custo válido encontrado');
       return res.status(400).json({ 
         success: false,
         error: "No shipping options available for this address." 
       });
     }
+    
     const cheapestCost = Math.min(...validCosts);
-
-    console.log('✅ Custo de envio mais barato calculado:', cheapestCost);
+    console.log('✅ [DEBUG] Custo de envio mais barato calculado:', cheapestCost);
 
     // Devolve apenas o custo mais barato
     return res.status(200).json({ 
