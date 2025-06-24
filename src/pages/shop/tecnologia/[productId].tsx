@@ -180,7 +180,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         selectedImageId
       });
 
-      // Adicionar item ao carrinho usando o CartService - COM PRINTIFY IDs
+      // Adicionar item ao carrinho usando o CartService - SIMPLIFICADO
       const cartItem = CartService.addToCart({
         productId: productId as string,
         productName: product.name,
@@ -190,12 +190,10 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         price: product.basePrice || product.price || 0,
         quantity: 1,
         customizations: {
+          variantId: variantIdToSend, // Obrigatório agora
           phoneModel: product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Modelo não encontrado'
         },
         imageAdjustments: imageAdjustments,
-        printifyProductId: printifyProductId,
-        printifyImageId: printifyImageId,
-        printifyVariantId: variantIdToSend,
       });
 
       console.log('✅ Item adicionado ao carrinho:', cartItem);

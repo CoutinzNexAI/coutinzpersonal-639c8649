@@ -107,10 +107,6 @@ const BagDetailPage: React.FC<BagDetailPageProps> = ({ product: initialProduct }
     setLoading(true);
     try {
       const variant = product!.variants?.find(v => v.id === selectedPrintifyVariantId);
-      const customizations: Record<string, string> = {
-        type: variant?.title || 'Tipo não encontrado'
-      };
-
       CartService.addToCart({
         productId: productId as string,
         productName: product!.name,
@@ -119,11 +115,11 @@ const BagDetailPage: React.FC<BagDetailPageProps> = ({ product: initialProduct }
         userImageId: selectedImageId!,
         price: product!.basePrice || product!.price || 0,
         quantity: 1,
-        customizations,
+        customizations: {
+          variantId: selectedPrintifyVariantId!, // Obrigatório agora
+          variant: variant?.title || 'Tipo não encontrado'
+        },
         imageAdjustments,
-        printifyProductId,
-        printifyImageId,
-        printifyVariantId: selectedPrintifyVariantId!,
       });
 
       toast.success('Saco adicionado ao carrinho!', {

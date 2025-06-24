@@ -108,9 +108,6 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
     setLoading(true);
     try {
       const variant = product!.variants?.find(v => v.id === selectedPrintifyVariantId);
-      const customizations: Record<string, string> = {
-        type: variant?.title || 'Tipo não encontrado'
-      };
 
       CartService.addToCart({
         productId: productId as string,
@@ -120,11 +117,11 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
         userImageId: selectedImageId!,
         price: product!.basePrice || product!.price || 0,
         quantity: 1,
-        customizations,
+        customizations: {
+          variantId: selectedPrintifyVariantId!, // Obrigatório agora
+          variant: variant?.title || 'Tipo não encontrado'
+        },
         imageAdjustments,
-        printifyProductId,
-        printifyImageId,
-        printifyVariantId: selectedPrintifyVariantId!,
       });
 
       const productType = product!.category === 'stationery' ? 'Caderno' : 'Mousepad';

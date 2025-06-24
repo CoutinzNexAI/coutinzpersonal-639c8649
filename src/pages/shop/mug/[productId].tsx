@@ -107,9 +107,6 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     setLoading(true);
     try {
       const variant = product!.variants?.find(v => v.id === selectedPrintifyVariantId);
-      const customizations: Record<string, string> = {
-        size: variant?.title || 'Tamanho não encontrado'
-      };
 
       CartService.addToCart({
         productId: productId as string,
@@ -119,11 +116,11 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         userImageId: selectedImageId!,
         price: product!.basePrice || product!.price || 0,
         quantity: 1,
-        customizations,
+        customizations: {
+          variantId: selectedPrintifyVariantId!, // Obrigatório agora
+          size: variant?.title || 'Tamanho não encontrado'
+        },
         imageAdjustments,
-        printifyProductId,
-        printifyImageId,
-        printifyVariantId: selectedPrintifyVariantId!,
       });
       
       toast.success('Caneca adicionada ao carrinho!', {

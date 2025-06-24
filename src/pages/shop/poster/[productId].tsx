@@ -234,7 +234,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       // Obter variante selecionada
       const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
 
-      // Adicionar item ao carrinho usando o CartService - COM PRINTIFY IDs
+      // Adicionar item ao carrinho usando o CartService - SIMPLIFICADO
       const cartItem = CartService.addToCart({
         productId: productId as string,
         productName: product.name,
@@ -244,18 +244,12 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         price: product.basePrice || product.price || 0,
         quantity: 1,
         customizations: {
+          variantId: variantIdToSend, // Obrigatório agora
           variant: selectedVariant?.title || 'Opção não encontrada',
-          // 'mirror' apenas para Canvas, REMOVER para Posters
-          ...(product.id === 'custom_canvas' || product.id === 'framed_canvas' ? { canvasEdgeType: 'mirror' } : {}),
-          // Para Canvas com moldura
-          ...(product.id === 'framed_canvas' && { frameColor: 'N/A' }),
           // Para Posters:
           ...(product.id.includes('poster_') ? { paperType: 'Semi Glossy' } : {}),
         },
         imageAdjustments: imageAdjustments,
-        printifyProductId: printifyProductId,
-        printifyImageId: printifyImageId,
-        printifyVariantId: variantIdToSend,
       });
 
       console.log('✅ Item adicionado ao carrinho:', cartItem);
