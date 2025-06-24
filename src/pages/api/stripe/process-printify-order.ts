@@ -505,12 +505,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           throw new Error(`Print area configuration not found for product: ${cartItem.productId}`);
         }
 
-        // TODO: Upload da imagem para Printify deve acontecer aqui
-        // Por enquanto, assumimos que a imagem já foi carregada na Printify
-        // e temos o ID na userImageUrl (temporário para demonstração)
-        const printifyImageId = 'temp_image_id'; // PLACEHOLDER - deve ser substituído por upload real
+        // ✅ CORREÇÃO: Usar URL da imagem do usuário diretamente (campo 'src')
+        // A Printify aceita URLs públicas diretamente no campo 'src'
+        const userImageUrl = cartItem.userImageUrl;
+        if (!userImageUrl) {
+          throw new Error(`Missing userImageUrl for product: ${cartItem.productId}`);
+        }
 
-        // Construir line item "on-the-fly"
+        // Construir line item "on-the-fly" com campo 'src' correto
         const lineItem = {
           blueprint_id: productMapping.printifyBlueprintId,
           print_provider_id: productMapping.printifyPrintProviderId,
@@ -524,7 +526,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   position: printAreaConfig.position,
                   images: [
                     {
-                      id: printifyImageId, // USAR O ID DA IMAGEM CARREGADA
+                      src: userImageUrl, // ✅ CORREÇÃO: usar 'src' em vez de 'id'
                       x: cartItem.imageAdjustments?.x || printAreaConfig.defaultX,
                       y: cartItem.imageAdjustments?.y || printAreaConfig.defaultY,
                       scale: cartItem.imageAdjustments?.scale || printAreaConfig.defaultScale,
