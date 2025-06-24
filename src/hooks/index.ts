@@ -6,4 +6,7 @@ export type { TransformationsModalContextType } from './transformationsModalType
 // Account Settings Modal
 export { AccountSettingsModalProvider } from './accountSettingsModalContext';
 export { useAccountSettingsModal } from './useAccountSettingsModal';
-export type { AccountSettingsModalContextType } from './accountSettingsModalTypes'; 
+export type { AccountSettingsModalContextType } from './accountSettingsModalTypes';
+
+// Orders Modal
+export { OrdersModalProvider, useOrdersModal } from './ordersModalContext'; 

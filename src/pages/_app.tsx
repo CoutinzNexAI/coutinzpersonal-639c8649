@@ -9,8 +9,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { TransformationsModalProvider } from '@/hooks/transformationsModalContext';
 import { AccountSettingsModalProvider } from '@/hooks/accountSettingsModalContext';
+import { OrdersModalProvider } from '@/hooks/ordersModalContext';
 import TransformationsModal from '@/components/TransformationsModal';
 import AccountSettingsModal from '@/components/AccountSettingsModal';
+import { OrdersModal } from '@/components/OrdersModal';
 import FallingElements from '@/components/effects/FallingElements';
 import Script from 'next/script';
 import { useRouter } from 'next/router';
@@ -97,17 +99,20 @@ function MyApp({ Component, pageProps }: AppProps) {
           <PostHogProvider>
             <TransformationsModalProvider>
               <AccountSettingsModalProvider>
-                
-                <FallingElements />
-                
-                <Component {...pageProps} />
+                <OrdersModalProvider>
+                  
+                  <FallingElements />
+                  
+                  <Component {...pageProps} />
 
-                <Sonner richColors position="top-right" />
+                  <Sonner richColors position="top-right" />
 
-                <TransformationsModal />
-                <AccountSettingsModal />
-                <Analytics /> {/* Adiciona o componente Analytics aqui */}
+                  <TransformationsModal />
+                  <AccountSettingsModal />
+                  <OrdersModal />
+                  <Analytics /> {/* Adiciona o componente Analytics aqui */}
 
+                </OrdersModalProvider>
               </AccountSettingsModalProvider>
             </TransformationsModalProvider>
           </PostHogProvider>

@@ -10,9 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Images, Settings, Loader2 } from "lucide-react";
+import { User, LogOut, Images, Settings, Loader2, Package2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useTransformationsModal, useAccountSettingsModal } from '@/hooks'; // Importação agrupada
+import { useTransformationsModal, useAccountSettingsModal, useOrdersModal } from '@/hooks'; // Importação agrupada
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner"; // Para notificações
 
@@ -20,6 +20,7 @@ const UserMenu: React.FC = () => {
   const { userInfo, isLoading: isAuthLoading, signInWithGoogle, signOut } = useAuth();
   const { openTransformationsModal } = useTransformationsModal();
   const { openAccountSettingsModal } = useAccountSettingsModal();
+  const { openOrdersModal } = useOrdersModal();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -67,7 +68,7 @@ const UserMenu: React.FC = () => {
     }
   };
 
-  const handleMenuItemClick = (action: 'account' | 'transformations' | 'logout') => {
+  const handleMenuItemClick = (action: 'account' | 'transformations' | 'orders' | 'logout') => {
     setIsMenuOpen(false); // Fecha o menu em qualquer clique de item
     switch (action) {
       case 'account':
@@ -75,6 +76,9 @@ const UserMenu: React.FC = () => {
         break;
       case 'transformations':
         openTransformationsModal();
+        break;
+      case 'orders':
+        openOrdersModal();
         break;
       case 'logout':
         handleLogout();
@@ -180,6 +184,14 @@ const UserMenu: React.FC = () => {
                 >
                   <Images className="h-4 w-4 text-ghibli-moss" />
                   <span>Fotos Transformadas</span>
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem 
+                  onClick={() => handleMenuItemClick('orders')}
+                  className="flex items-center gap-2 px-2.5 py-2 text-sm cursor-pointer rounded-md text-ghibli-wood hover:bg-ghibli-moss/10 focus:bg-ghibli-moss/10 transition-colors"
+                >
+                  <Package2 className="h-4 w-4 text-ghibli-moss" />
+                  <span>As Minhas Encomendas</span>
                 </DropdownMenuItem>
               </div>
               
