@@ -4,12 +4,14 @@ import { printifyFetch } from '@/lib/printify/printifyApi';
 import { PrintifyShippingAddress } from '@/lib/printify/printifyTypes';
 import { getPrintifyProduct } from '@/lib/printify/printifyProducts';
 
-// Interface para o request de cálculo de envio
+// Interface para o request de cálculo de envio (SIMPLIFICADO)
 interface ShippingCalculationRequest {
   line_items: Array<{
     productId: string; // ID interno do produto
     quantity: number;
-    printifyImageId?: string; // ID da imagem na Printify (se aplicável)
+    customizations: {
+      variantId: number; // ID da variante da Printify
+    };
   }>;
   address_to: {
     first_name: string;
@@ -25,21 +27,10 @@ interface ShippingCalculationRequest {
   };
 }
 
-// Interface para resposta de cálculo de envio
+// Interface para resposta de cálculo de envio (SIMPLIFICADO)
 interface ShippingCalculationResponse {
   success: boolean;
-  data?: {
-    shipping_methods: Array<{
-      id: number;
-      name: string;
-      price: number;
-      currency: string;
-      estimated_delivery_days?: {
-        min: number;
-        max: number;
-      };
-    }>;
-  };
+  cheapestCost?: number; // Apenas o custo mais barato em centavos
   error?: string;
 }
 
@@ -97,7 +88,7 @@ export default async function handler(
       });
     }
 
-    // Construir line_items para Printify
+    // Mapeia os itens do carrinho para o formato que a API da Printify precisa
     const printifyLineItems = [];
 
     for (const item of shippingRequest.line_items) {
@@ -109,43 +100,19 @@ export default async function handler(
         });
       }
 
-      if (!productMapping.printifyBlueprintId || !productMapping.printifyPrintProviderId || !productMapping.printifyVariantIds) {
+      if (!productMapping.printifyBlueprintId || !productMapping.printifyPrintProviderId) {
         return res.status(400).json({
           success: false,
           error: `Product ${item.productId} missing Printify configuration`
         });
       }
 
-      // Para cálculo de envio, construir line item com tipo flexível
-      const lineItem: Record<string, unknown> = {
-        product_id: productMapping.printifyBlueprintId,
-        variant_id: productMapping.printifyVariantIds[0], // Usar primeira variante
+      const lineItem = {
         print_provider_id: productMapping.printifyPrintProviderId,
-        quantity: item.quantity
+        blueprint_id: productMapping.printifyBlueprintId,
+        variant_id: item.customizations.variantId,
+        quantity: item.quantity,
       };
-
-      // Se tem imagem customizada, adicionar print_areas (pode afetar o cálculo)
-      if (item.printifyImageId) {
-        lineItem.print_areas = [
-          {
-            variant_ids: productMapping.printifyVariantIds,
-            placeholders: [
-              {
-                position: productMapping.printArea || 'front',
-                images: [
-                  {
-                    id: item.printifyImageId,
-                    x: 0.5,
-                    y: 0.5,
-                    scale: 1,
-                    angle: 0
-                  }
-                ]
-              }
-            ]
-          }
-        ];
-      }
 
       printifyLineItems.push(lineItem);
     }
@@ -155,9 +122,9 @@ export default async function handler(
       first_name: shippingRequest.address_to.first_name,
       last_name: shippingRequest.address_to.last_name,
       email: shippingRequest.address_to.email,
-      phone: shippingRequest.address_to.phone,
+      phone: shippingRequest.address_to.phone || '+351912345678',
       country: shippingRequest.address_to.country,
-      region: shippingRequest.address_to.region,
+      region: shippingRequest.address_to.region || '',
       address1: shippingRequest.address_to.address1,
       address2: shippingRequest.address_to.address2,
       city: shippingRequest.address_to.city,
@@ -197,28 +164,28 @@ export default async function handler(
       });
     }
 
-    // Processar resposta da Printify
-    const shippingMethods = response.data?.shipping_methods || [];
-    
-    // Mapear para formato mais amigável
-    const formattedMethods = shippingMethods.map((method: Record<string, unknown>) => ({
-      id: method.id as number,
-      name: (method.name as string) || `Shipping Method ${method.id}`,
-      price: (method.price as number) || 0,
-      currency: (method.currency as string) || 'USD',
-      estimated_delivery_days: (method.estimated_delivery_days as { min: number; max: number }) || {
-        min: 7,
-        max: 14
-      }
-    }));
+    // Faz a chamada à API da Printify (o teu código para isto)
+    const shippingCosts = response.data || response; // A Printify responde com { standard: 539, express: 1200, priority: null, ... }
 
-    console.log('✅ Custos de envio calculados:', formattedMethods);
+    console.log('📦 Resposta de custos de envio da Printify:', shippingCosts);
 
-    return res.status(200).json({
+    // Filtra os custos válidos e encontra o mais barato
+    const validCosts = Object.values(shippingCosts).filter(cost => typeof cost === 'number');
+    if (validCosts.length === 0) {
+      // Tratar erro - nenhum método de envio disponível
+      return res.status(400).json({ 
+        success: false,
+        error: "No shipping options available for this address." 
+      });
+    }
+    const cheapestCost = Math.min(...validCosts);
+
+    console.log('✅ Custo de envio mais barato calculado:', cheapestCost);
+
+    // Devolve apenas o custo mais barato
+    return res.status(200).json({ 
       success: true,
-      data: {
-        shipping_methods: formattedMethods
-      }
+      cheapestCost: cheapestCost 
     });
 
   } catch (error) {

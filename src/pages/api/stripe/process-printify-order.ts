@@ -43,21 +43,18 @@ interface ShippingDetails {
   };
 }
 
-// Interface para cart item (compatível com cartTypes.ts)
+// Interface para cart item (SIMPLIFICADO - compatível com cartTypes.ts)
 interface CartItem {
   id: string;
   productId: string;
-  productUid: string;
   productName: string;
   productCategory: string;
-  userImageUrl: string;
-  userImageId?: string;
-  printifyImageId?: string; // ID da imagem na Printify
-  printifyProductId?: string; // ID do produto temporário criado na Printify
-  printifyVariantId?: number; // ID da variante do produto na Printify (number conforme API)
+  userImageUrl: string; // A URL da imagem do cliente. Essencial!
+  userImageId?: string; // ID da transformação para tracking
   price: number;
   quantity: number;
-  customizations?: {
+  customizations: { // Guarda as escolhas do user
+    variantId: number; // ID da variante (cor/tamanho) da Printify
     size?: string;
     color?: string;
     variant?: string;
@@ -79,10 +76,6 @@ interface CartItem {
       height: number;
     };
   };
-  // Campos específicos para sweat de criança
-  selectedPhraseText?: string; // Texto da frase selecionada
-  customerPrintifyImageId?: string; // ID da imagem do cliente na Printify (para sweat de criança)
-  dynamicPhrasePrintifyImageId?: string; // ID da imagem da frase gerada dinamicamente na Printify
   addedAt: Date;
 }
 
@@ -479,22 +472,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         note: 'FORÇADO PARA STANDARD (1) para teste final'
       });
       
-      // Construir line_items para Printify baseado nos cart items completos
-      // NOTA: Esta lógica foi atualizada para usar produtos já criados na loja Printify
-      // em vez de criar produtos on-the-fly com blueprint_id + print_areas
-      // 
-      // IMPORTANTE: Para produtos já existentes na loja Printify, usar APENAS:
-      // - product_id: ID do produto criado
-      // - variant_id: ID da variante do produto  
-      // - quantity: Quantidade do pedido
-      //
-      // NÃO incluir print_provider_id, blueprint_id ou print_areas pois isso
-      // faz a API pensar que queremos criar um produto "on-the-fly"
+      // Construir line_items para Printify usando método "on-the-fly" SEMPRE
+      // Agora todos os produtos são criados dinamicamente usando apenas:
+      // - blueprint_id + print_provider_id + variant_id + print_areas
+      // Não mais produtos pré-criados ou IDs específicos
       const printifyLineItems = [];
 
       for (const cartItem of cartItems) {
-        // CONSTRUIR PAYLOAD PARA CADA ITEM DO CARRINHO
-        console.log(`📦 Building line item for product: ${cartItem.productId}`);
+        console.log(`📦 Building on-the-fly line item for product: ${cartItem.productId}`);
         
         // Mapear ProductId para configuração Printify
         const productMapping = getPrintifyProduct(cartItem.productId);
@@ -504,173 +489,56 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         console.log(`✅ Product mapping found: ${productMapping.name}`);
 
-        // LÓGICA ESPECÍFICA PARA SWEAT DE CRIANÇA
-        if (cartItem.productId === 'custom_youth_hoodie') {
-          console.log('🔄 Processing youth hoodie order...');
+        if (!productMapping.printifyBlueprintId || !productMapping.printifyPrintProviderId) {
+          throw new Error(`Product ${cartItem.productId} missing Printify blueprint/provider configuration`);
+        }
 
-          // Validar campos obrigatórios para sweat
-          if (!cartItem.printifyProductId || !cartItem.customerPrintifyImageId || !cartItem.dynamicPhrasePrintifyImageId || !cartItem.printifyVariantId) {
-            throw new Error('Youth hoodie missing required Printify IDs');
-          }
+        // Usar variantId do carrinho (obrigatório agora)
+        const variantId = cartItem.customizations.variantId;
+        if (!variantId) {
+          throw new Error(`Missing variantId in customizations for product: ${cartItem.productId}`);
+        }
 
-          // Para sweat de criança, usar produto temporário criado no mockup
-          const lineItem = {
-            product_id: cartItem.printifyProductId, // Produto temporário já criado
-            variant_id: cartItem.printifyVariantId,
-            quantity: cartItem.quantity,
-            // Não precisamos definir print_areas aqui porque o produto já foi criado com as áreas corretas
-          };
+        // Obter configuração da área de impressão
+        const printAreaConfig = productMapping.printAreasConfig?.[0];
+        if (!printAreaConfig) {
+          throw new Error(`Print area configuration not found for product: ${cartItem.productId}`);
+        }
 
-          printifyLineItems.push(lineItem);
-          console.log('✅ Youth hoodie line item added:', lineItem);
+        // TODO: Upload da imagem para Printify deve acontecer aqui
+        // Por enquanto, assumimos que a imagem já foi carregada na Printify
+        // e temos o ID na userImageUrl (temporário para demonstração)
+        const printifyImageId = 'temp_image_id'; // PLACEHOLDER - deve ser substituído por upload real
 
-        } else if (cartItem.productId === 'custom_canvas' || cartItem.productId === 'framed_canvas') {
-          // LÓGICA ESPECÍFICA PARA CANVAS
-          console.log('🔄 Processing Canvas order:', cartItem.productId);
-
-          if (!cartItem.printifyImageId || !cartItem.printifyVariantId) {
-            throw new Error(`Canvas missing required fields: printifyImageId or printifyVariantId`);
-          }
-
-          const printAreaConfig = productMapping.printAreasConfig?.[0];
-          if (!printAreaConfig) {
-            throw new Error('Print area configuration not found for Canvas product');
-          }
-
-          let printDetailsForCanvas: { print_on_side: string } | undefined = undefined;
-          
-          // Verificar se há opções de borda para custom_canvas ou framed_canvas
-          if (cartItem.productId === 'custom_canvas' || cartItem.productId === 'framed_canvas') {
-            printDetailsForCanvas = { print_on_side: 'mirror' };
-          }
-
-          const lineItem = {
-            blueprint_id: productMapping.printifyBlueprintId,
-            print_provider_id: productMapping.printifyPrintProviderId,
-            variant_id: cartItem.printifyVariantId,
-            quantity: cartItem.quantity,
-            print_areas: [{
-              variant_ids: [cartItem.printifyVariantId],
-              placeholders: [{
-                position: printAreaConfig.position,
-                images: [{
-                  id: cartItem.printifyImageId,
-                  x: cartItem.imageAdjustments?.x || printAreaConfig.defaultX,
-                  y: cartItem.imageAdjustments?.y || printAreaConfig.defaultY,
-                  scale: cartItem.imageAdjustments?.scale || printAreaConfig.defaultScale,
-                  angle: cartItem.imageAdjustments?.rotation || printAreaConfig.defaultAngle
-                }]
-              }],
-              // Adicionar print_details apenas se existir
-              ...(printDetailsForCanvas && { print_details: printDetailsForCanvas })
-            }]
-          };
-
-          printifyLineItems.push(lineItem);
-          console.log('✅ Canvas line item added:', lineItem);
-
-        } else if (cartItem.productId.includes('poster_')) {
-          // Lógica para Posters (sem print_details)
-          console.log('🔄 Processing Poster order:', cartItem.productId);
-          
-          if (!cartItem.printifyImageId || !cartItem.printifyVariantId) {
-            throw new Error(`Poster missing required fields: printifyImageId or printifyVariantId`);
-          }
-          
-          const printAreaConfig = productMapping.printAreasConfig?.[0];
-          if (!printAreaConfig) {
-            throw new Error('Print area configuration not found for Poster product');
-          }
-          
-          // Construir lineItem SEM print_details para posters
-          const lineItem = {
-            blueprint_id: productMapping.printifyBlueprintId,
-            print_provider_id: productMapping.printifyPrintProviderId,
-            variant_id: cartItem.printifyVariantId,
-            quantity: cartItem.quantity,
-            print_areas: [{
-              variant_ids: [cartItem.printifyVariantId],
-              placeholders: [{
-                position: printAreaConfig.position,
-                images: [{
-                  id: cartItem.printifyImageId,
-                  x: cartItem.imageAdjustments?.x || printAreaConfig.defaultX,
-                  y: cartItem.imageAdjustments?.y || printAreaConfig.defaultY,
-                  scale: cartItem.imageAdjustments?.scale || printAreaConfig.defaultScale,
-                  angle: cartItem.imageAdjustments?.rotation || printAreaConfig.defaultAngle
-                }]
-              }]
-            }]
-          };
-          
-          printifyLineItems.push(lineItem);
-          console.log('✅ Poster line item added:', lineItem);
-
-        } else {
-          // LÓGICA PARA OUTROS PRODUTOS (código existente)
-          if (!productMapping.printifyBlueprintId || !productMapping.printifyPrintProviderId) {
-            throw new Error(`Product ${cartItem.productId} missing Printify blueprint/provider configuration`);
-          }
-
-          // Determinar variant ID
-          let variantId: number;
-          if (cartItem.printifyVariantId) {
-            variantId = cartItem.printifyVariantId;
-          } else if (productMapping.printifyVariantIds && productMapping.printifyVariantIds.length > 0) {
-            variantId = productMapping.printifyVariantIds[0];
-          } else {
-            throw new Error(`No variant ID available for product: ${cartItem.productId}`);
-          }
-
-          // Para produtos que usam images pré-criadas (como capas)
-          if (cartItem.printifyProductId && cartItem.printifyImageId) {
-            console.log('📱 Using pre-created product method for:', cartItem.productId);
-            
-            const lineItem = {
-              product_id: cartItem.printifyProductId, // Produto pré-criado no mockup
-              variant_id: variantId,
-              quantity: cartItem.quantity,
-            };
-            printifyLineItems.push(lineItem);
-
-          } else {
-            // Para produtos "on-the-fly" (método antigo)
-            console.log('🔄 Using on-the-fly creation method for:', cartItem.productId);
-            
-            if (!cartItem.printifyImageId) {
-              throw new Error(`Missing printifyImageId for product: ${cartItem.productId}`);
-            }
-
-            const printArea = productMapping.printAreasConfig?.[0]?.position || productMapping.printArea || 'front';
-            
-            const lineItem = {
-              blueprint_id: productMapping.printifyBlueprintId,
-              print_provider_id: productMapping.printifyPrintProviderId,
-              variant_id: variantId,
-              quantity: cartItem.quantity,
-              print_areas: [
+        // Construir line item "on-the-fly"
+        const lineItem = {
+          blueprint_id: productMapping.printifyBlueprintId,
+          print_provider_id: productMapping.printifyPrintProviderId,
+          variant_id: variantId,
+          quantity: cartItem.quantity,
+          print_areas: [
+            {
+              variant_ids: [variantId],
+              placeholders: [
                 {
-                  variant_ids: [variantId],
-                  placeholders: [
+                  position: printAreaConfig.position,
+                  images: [
                     {
-                      position: printArea,
-                      images: [
-                        {
-                          id: cartItem.printifyImageId,
-                          x: cartItem.imageAdjustments?.x || 0.5,
-                          y: cartItem.imageAdjustments?.y || 0.5,
-                          scale: cartItem.imageAdjustments?.scale || 1,
-                          angle: cartItem.imageAdjustments?.rotation || 0
-                        }
-                      ]
+                      id: printifyImageId, // USAR O ID DA IMAGEM CARREGADA
+                      x: cartItem.imageAdjustments?.x || printAreaConfig.defaultX,
+                      y: cartItem.imageAdjustments?.y || printAreaConfig.defaultY,
+                      scale: cartItem.imageAdjustments?.scale || printAreaConfig.defaultScale,
+                      angle: cartItem.imageAdjustments?.rotation || printAreaConfig.defaultAngle
                     }
                   ]
                 }
               ]
-            };
-            printifyLineItems.push(lineItem);
-          }
-        }
+            }
+          ]
+        };
+
+        printifyLineItems.push(lineItem);
+        console.log('✅ On-the-fly line item added:', lineItem);
       }
 
       // Construir payload para Printify

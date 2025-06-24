@@ -70,7 +70,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         toast.error('Produto não encontrado');
       }
     } else if (initialProduct?.variants?.length) {
-      setSelectedPrintifyVariantId(initialProduct.variants[0].id);
+        setSelectedPrintifyVariantId(initialProduct.variants[0].id);
     }
   }, [productId, initialProduct, router]);
 
@@ -114,7 +114,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         const extractedColor = variantColorMatch?.[1] || '';
 
         const matchesSize = extractedSize === selectedSizeLabel;
-        const matchesColor = selectedFrameColor === 'Castanho' 
+        const matchesColor = selectedFrameColor === 'Castanho'
           ? extractedColor === 'Espresso' 
           : extractedColor === selectedFrameColor;
 
@@ -183,11 +183,11 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         userImageId: selectedImageId!,
         price: (product!.basePrice || product!.price || 0) + (product!.variants?.find(v => v.id === selectedPrintifyVariantId)?.priceAdjustment || 0),
         quantity: 1,
-        customizations,
+        customizations: {
+          ...customizations,
+          variantId: selectedPrintifyVariantId!, // Obrigatório agora
+        },
         imageAdjustments,
-        printifyProductId,
-        printifyImageId,
-        printifyVariantId: selectedPrintifyVariantId!,
       });
 
       toast.success('Canvas adicionado ao carrinho!', {
@@ -292,7 +292,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
               <li className="text-ghibli-earth/50">/</li>
               <li className="text-ghibli-moss font-medium">{product.name}</li>
             </ol>
-          </nav>
+            </nav>
 
           <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
             {/* Área de Visualização */}
@@ -382,7 +382,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                     <div className="inline-block">
                       <div className="text-3xl sm:text-4xl font-black text-ghibli-moss drop-shadow-sm">
                         €{currentPrice.toFixed(2)}
-                      </div>
+                  </div>
                       <div className="text-center text-xs text-ghibli-earth/60 font-medium -mt-1">
                         IVA incluído
                       </div>
@@ -449,7 +449,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                                 <span className="truncate">
                                   {selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor || 'Escolha a cor da moldura'}
                                 </span>
-                              </SelectValue>
+                            </SelectValue>
                             </div>
                           </SelectTrigger>
                           <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
@@ -479,7 +479,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                                 <span className="truncate">
                                   {selectedSizeLabel || 'Escolha o tamanho'}
                                 </span>
-                              </SelectValue>
+                            </SelectValue>
                             </div>
                           </SelectTrigger>
                           <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
@@ -651,7 +651,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const productId = params?.productId as string;
   const product = getPrintifyProduct(productId);
-
+  
   if (!product || product.category !== 'canvas') {
     return {
       notFound: true

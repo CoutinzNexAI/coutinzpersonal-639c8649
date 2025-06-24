@@ -154,9 +154,9 @@ export default function ProductCanvas({
           // Para Canvas, não passar printifyImageId - deixar a API carregar a imagem
           // O backend irá primeiro fazer upload da imagem para Printify e depois usar o ID
           requestBody.forceImageUpload = true; // Flag para forçar re-upload
-          
+
           // *** ADICIONAR PRINTDETAILS PARA CANVAS (CUSTOM E FRAMED) ***
-          requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
+            requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
         }
 
         // Para Poster products, adicionar printifyImageId se disponível

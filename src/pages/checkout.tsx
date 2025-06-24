@@ -10,41 +10,37 @@ import Footer from '@/components/Footer';
 import { CartService } from '@/lib/cart/cartService';
 import { CartSummary } from '@/lib/cart/cartTypes';
 import { useAuth } from '@/hooks/useAuth';
+import { useShippingCalculation } from '@/hooks/useShippingCalculation';
 import { supabase } from '@/lib/supabase/client';
 import Image from 'next/image';
-
-interface ShippingMethod {
-  uid: string;
-  name: string;
-  price: number;
-  deliveryDaysMin: number;
-  deliveryDaysMax: number;
-  description?: string;
-}
 
 interface UserData {
   full_name: string;
   email: string;
 }
 
+// Endereço padrão para Portugal (para calcular shipping)
+const DEFAULT_SHIPPING_ADDRESS = {
+  first_name: 'João',
+  last_name: 'Silva',
+  email: 'joao@example.com',
+  phone: '+351912345678',
+  country: 'PT',
+  region: 'Lisboa',
+  address1: 'Rua das Flores, 123',
+  city: 'Lisboa',
+  zip: '1000-100'
+};
+
 const CheckoutPage: React.FC = () => {
   const router = useRouter();
   const { userInfo } = useAuth();
+  const { shippingCost, isLoadingShipping, shippingError, calculateShipping } = useShippingCalculation();
   
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loadingUserData, setLoadingUserData] = useState(true);
   const [loadingPayment, setLoadingPayment] = useState(false);
-
-  // Método de envio fixo - só um
-  const shippingMethod: ShippingMethod = {
-    uid: 'express',
-    name: 'Envio Expresso',
-    price: 5.39,
-    deliveryDaysMin: 4,
-    deliveryDaysMax: 5,
-    description: 'Entrega rápida em 4-5 dias úteis'
-  };
 
   // Carregar dados do utilizador do Supabase
   useEffect(() => {
@@ -80,7 +76,7 @@ const CheckoutPage: React.FC = () => {
     fetchUserData();
   }, [userInfo?.id]);
 
-  // Carregar resumo do carrinho
+  // Carregar resumo do carrinho e calcular shipping
   useEffect(() => {
     const summary = CartService.getCartSummary();
     
@@ -91,16 +87,27 @@ const CheckoutPage: React.FC = () => {
     }
     
     setCartSummary(summary);
-  }, [router]);
+
+    // Calcular shipping automaticamente usando endereço padrão
+    if (summary.items.length > 0) {
+      calculateShipping(summary.items, DEFAULT_SHIPPING_ADDRESS);
+    }
+  }, [router, calculateShipping]);
 
   const calculateTotal = () => {
     if (!cartSummary) return 0;
-    return cartSummary.subtotal + shippingMethod.price + cartSummary.tax;
+    const shipping = shippingCost ? shippingCost / 100 : 0; // Converter de centavos para euros
+    return cartSummary.subtotal + shipping + cartSummary.tax;
   };
 
   const handleCheckout = async () => {
     if (!cartSummary || !userInfo || !userData) {
       toast.error('Dados incompletos para finalizar compra');
+      return;
+    }
+
+    if (shippingCost === null) {
+      toast.error('Custo de envio não calculado. Tente novamente.');
       return;
     }
 
@@ -115,6 +122,7 @@ const CheckoutPage: React.FC = () => {
       }
 
       // 2. Calcular total final
+      const shippingPrice = shippingCost / 100; // Converter de centavos para euros
       const finalTotal = calculateTotal();
 
       toast.info('A preparar sessão de pagamento...', { duration: 2000 });
@@ -127,12 +135,19 @@ const CheckoutPage: React.FC = () => {
         },
         body: JSON.stringify({
           items: cartSummary.items,
-          shippingMethod: shippingMethod,
+          shippingMethod: {
+            uid: 'cheapest_printify',
+            name: 'Envio Mais Barato',
+            price: shippingPrice,
+            deliveryDaysMin: 7,
+            deliveryDaysMax: 14,
+            description: 'Método de envio mais económico da Printify'
+          },
           userId: userInfo.id,
           userName: userData.full_name,
           userEmail: userData.email,
           subtotal: cartSummary.subtotal,
-          shipping: shippingMethod.price,
+          shipping: shippingPrice,
           tax: cartSummary.tax,
           total: finalTotal
         })
@@ -172,6 +187,10 @@ const CheckoutPage: React.FC = () => {
       toast.info('Carrinho vazio. Redirecionando para a loja...');
     } else {
       toast.success('Produto removido do carrinho');
+      // Recalcular shipping com novos itens
+      if (newSummary.items.length > 0) {
+        calculateShipping(newSummary.items, DEFAULT_SHIPPING_ADDRESS);
+      }
     }
   };
 
@@ -394,14 +413,27 @@ const CheckoutPage: React.FC = () => {
                   <div className="border border-ghibli-moss/30 rounded-xl p-4 bg-ghibli-moss/10">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-semibold text-ghibli-wood">{shippingMethod.name}</h3>
-                        <p className="text-sm text-ghibli-earth">{shippingMethod.description}</p>
-                        <p className="text-sm text-ghibli-earth mt-1">
-                          Entrega em {shippingMethod.deliveryDaysMin}-{shippingMethod.deliveryDaysMax} dias úteis
+                        <h3 className="font-semibold text-ghibli-wood">
+                          {isLoadingShipping ? 'A calcular...' : 'Envio Mais Barato'}
+                        </h3>
+                        <p className="text-sm text-ghibli-earth">
+                          {isLoadingShipping ? 'A determinar o método mais económico' : 'Método de envio mais económico da Printify'}
                         </p>
+                        <p className="text-sm text-ghibli-earth mt-1">
+                          Entrega em ~1 semana
+                        </p>
+                        {shippingError && (
+                          <p className="text-sm text-red-500 mt-1">Erro: {shippingError}</p>
+                        )}
                       </div>
                       <span className="text-lg font-bold text-ghibli-moss">
-                        €{shippingMethod.price.toFixed(2)}
+                        {isLoadingShipping ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-ghibli-moss/30 border-t-ghibli-moss"></div>
+                        ) : shippingCost !== null ? (
+                          `€${(shippingCost / 100).toFixed(2)}`
+                        ) : (
+                          'N/A'
+                        )}
                       </span>
                     </div>
                   </div>
@@ -427,7 +459,9 @@ const CheckoutPage: React.FC = () => {
                     
                     <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
                       <span className="text-ghibli-earth">Envio</span>
-                      <span className="text-ghibli-wood font-semibold">€{shippingMethod.price.toFixed(2)}</span>
+                      <span className="text-ghibli-wood font-semibold">
+                        {isLoadingShipping ? 'A calcular...' : shippingCost !== null ? `€${(shippingCost / 100).toFixed(2)}` : 'N/A'}
+                      </span>
                     </div>
                     
                     <div className="flex justify-between py-2 border-b border-ghibli-moss/20">

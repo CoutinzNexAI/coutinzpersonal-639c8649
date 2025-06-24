@@ -1,14 +1,14 @@
 export interface CartItem {
   id: string;
-  productId: string; // PicTuz product slug
-  productUid?: string; // Gelato productUid (opcional para compatibilidade)
+  productId: string; // O ID interno do produto (ex: 'custom_phone_case')
   productName: string;
   productCategory: string;
-  userImageUrl: string;
-  userImageId?: string;
+  userImageUrl: string; // A URL da imagem do cliente. Essencial!
+  userImageId?: string; // ID da transformação para tracking
   price: number;
   quantity: number;
-  customizations?: {
+  customizations: { // Guarda as escolhas do user
+    variantId: number; // ID da variante (cor/tamanho) da Printify
     size?: string;
     color?: string;
     variant?: string;
@@ -30,16 +30,6 @@ export interface CartItem {
       height: number;   // Altura do crop em percentagem da imagem original
     };
   };
-  // Campos Gelato (para compatibilidade)
-  draftOrderId?: string; // ID do Draft Order criado na Gelato (para fluxo automático)
-  // Novos campos Printify
-  printifyImageId?: string; // ID da imagem na Printify Media Library
-  printifyProductId?: string; // ID do produto temporário criado na Printify
-  printifyVariantId?: number; // ID da variante do produto na Printify (number conforme API)
-  // Campos específicos para sweat de criança
-  selectedPhraseText?: string; // Texto da frase selecionada
-  customerPrintifyImageId?: string; // ID da imagem do cliente na Printify (para sweat de criança)
-  dynamicPhrasePrintifyImageId?: string; // ID da imagem da frase gerada dinamicamente na Printify
   addedAt: Date;
 }
 

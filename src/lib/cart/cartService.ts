@@ -1,7 +1,6 @@
 import { CartItem, CartSummary } from './cartTypes';
 
 const CART_STORAGE_KEY = 'pictuz_cart';
-const SHIPPING_RATE = 0.1; // 10% shipping rate (to be replaced with real Gelato quotes)
 const TAX_RATE = 0.23; // 23% IVA Portugal
 
 export class CartService {
@@ -35,10 +34,11 @@ export class CartService {
   static addToCart(newItem: Omit<CartItem, 'id' | 'addedAt'>): CartItem {
     const cart = this.getCart();
     
-    // Check if item already exists (same product + user image)
+    // Check if item already exists (same product + user image + variant)
     const existingItem = cart.find(
       item => item.productId === newItem.productId && 
-               item.userImageUrl === newItem.userImageUrl
+               item.userImageUrl === newItem.userImageUrl &&
+               item.customizations.variantId === newItem.customizations.variantId
     );
 
     if (existingItem) {
@@ -87,13 +87,13 @@ export class CartService {
     this.saveCart([]);
   }
 
-  // Calculate cart summary
+  // Calculate cart summary (WITHOUT shipping - será calculado dinamicamente)
   static getCartSummary(): CartSummary {
     const items = this.getCart();
     const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = subtotal > 50 ? 0 : subtotal * SHIPPING_RATE; // Free shipping over €50
+    const shipping = 0; // Será calculado dinamicamente pelo hook useShippingCalculation
     const tax = subtotal * TAX_RATE;
-    const total = subtotal + shipping + tax;
+    const total = subtotal + shipping + tax; // O shipping será adicionado no checkout
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
     return {
@@ -122,13 +122,16 @@ export class CartService {
       return { valid: false, issues: ['Carrinho vazio'] };
     }
 
-    // Check for invalid quantities
+    // Check for invalid quantities and required fields
     cart.forEach(item => {
       if (item.quantity <= 0) {
         issues.push(`Quantidade inválida para ${item.productName}`);
       }
       if (!item.userImageUrl) {
         issues.push(`Imagem em falta para ${item.productName}`);
+      }
+      if (!item.customizations.variantId) {
+        issues.push(`Variante não selecionada para ${item.productName}`);
       }
     });
 
@@ -138,18 +141,16 @@ export class CartService {
     };
   }
 
-  // Convert cart to Gelato order format
-  static cartToGelatoProducts(cart: CartItem[]) {
-    return cart.map((item, index) => ({
-      itemReferenceId: `item_${index + 1}`,
-      productUid: item.productId, // Assuming productId is the Gelato productUid
+  // Convert cart to simplified format for APIs
+  static cartToApiFormat(cart: CartItem[]) {
+    return cart.map((item) => ({
+      productId: item.productId,
+      productName: item.productName,
+      userImageUrl: item.userImageUrl,
       quantity: item.quantity,
-      files: [
-        {
-          url: item.userImageUrl,
-          type: 'default'
-        }
-      ]
+      customizations: item.customizations,
+      imageAdjustments: item.imageAdjustments,
+      price: item.price
     }));
   }
 } 
