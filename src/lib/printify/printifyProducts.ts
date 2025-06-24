@@ -6,7 +6,7 @@ export interface PrintifyProductMapping {
   mockupInitialPath: string; // O teu mockup base para mostrar antes da Printify gerar
   price?: number; // Preço base do produto (opcional para produtos com variantes)
   basePrice?: number; // Preço base em euros (para produtos com variantes)
-  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia' | 'bags' | 'stationery' | 'office' | 'roupa';
+  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia' | 'bags' | 'stationery' | 'office';
 
   // PROPRIEDADES NECESSÁRIAS PARA A API PRINTIFY
   printifyBlueprintId?: number; // ID do blueprint Printify
@@ -398,123 +398,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
-  // 6. SWEAT DE CRIANÇA PERSONALIZADA (COM LOGO NA FRENTE E ARTE+FRASE NAS COSTAS)
-  'custom_youth_hoodie': {
-    id: 'custom_youth_hoodie',
-    name: 'Sweat de Criança Personalizada',
-    mockupInitialPath: 'https://i.imgur.com/3lGKmJy.png', // Mockup base temporário (PNG)
-    basePrice: 40.00, // Euros
-    category: 'roupa',
-    printifyBlueprintId: 314, // Youth Heavy Blend Hooded Sweatshirt
-    printifyPrintProviderId: 87, // Print provider específico
-    variants: [
-      // White - Todos os tamanhos (IDs corrigidos baseados no log da Printify)
-      { id: 43879, title: 'White / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43880, title: 'White / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43881, title: 'White / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43882, title: 'White / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      
-      // Red - Todos os tamanhos
-      { id: 43930, title: 'Red / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43933, title: 'Red / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43934, title: 'Red / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43935, title: 'Red / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      
-      // Royal - Todos os tamanhos
-      { id: 94233, title: 'Royal / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 94234, title: 'Royal / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 94235, title: 'Royal / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 94236, title: 'Royal / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 94237, title: 'Royal / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      
-      // Sport Grey - Todos os tamanhos
-      { id: 43895, title: 'Sport Grey / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43896, title: 'Sport Grey / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43897, title: 'Sport Grey / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43898, title: 'Sport Grey / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      
-      // White - Todos os tamanhos (removido duplicação)
-      
-      // Black - Todos os tamanhos
-      { id: 43911, title: 'Black / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43914, title: 'Black / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43915, title: 'Black / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 43916, title: 'Black / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      
-      // Forest Green - Todos os tamanhos
-      { id: 64296, title: 'Forest Green / XS', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 64299, title: 'Forest Green / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 64300, title: 'Forest Green / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 64301, title: 'Forest Green / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 64302, title: 'Forest Green / XL', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      
-      // Kelly Green - Todos os tamanhos
-      { id: 64304, title: 'Kelly Green / S', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 64305, title: 'Kelly Green / M', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-      { id: 64306, title: 'Kelly Green / L', placeholderWidth: 2550, placeholderHeight: 3300, isGiftPackaging: false },
-    ],
-    printFileBleed: 2,
-    printFileResolution: 300,
-    gelatoPrintDimensionsMm: { width: 250, height: 300 }, // Valores de referência
-    gelatoPrintOffsetsMm: { x: 0, y: 0 },
-    supportsManualAdjustment: false, // Posicionamento fixo
-    adjustmentLimits: { minZoom: 1.0, maxZoom: 1.0, allowRotation: false },
-    printAreasConfig: [
-      // Área 1: LOGO (Frente)
-      {
-        position: 'front',
-        allowsUserImage: false,
-        staticImageId: '684d920a45ec86ab347594c5', // ID Printify do logo
-        defaultX: 0.5,
-        defaultY: 0.25,
-        defaultScale: 0.6,
-        defaultAngle: 0,
-      },
-      // Área 2: IMAGEM DO CLIENTE E FRASE (Costas)
-      {
-        position: 'back',
-        allowsUserImage: true,
-        defaultX: 0.5, // Para imagem do cliente
-        defaultY: 0.5, // Para imagem do cliente
-        defaultScale: 1.0, // Para imagem do cliente
-        defaultAngle: 0,
-        fitMethod: 'slice', // Preenchimento total
-        allowsDynamicText: true, // Suporte para texto dinâmico
-        dynamicTextOptions: [
-          {
-            text: 'Sem frase',
-            id: '68548b05a7a3520a5d3534c0', // ID da imagem transparente
-            positionX: 0.5,
-            positionY: 0.85,
-          },
-          {
-            text: 'PicTuz - since 2025',
-            id: '68548af2cc947707f0ee650f', // ID da imagem desta frase
-            positionX: 0.5,
-            positionY: 0.85,
-          },
-          {
-            text: 'Criado com IA',
-            id: '68548af3cc947707f0ee651a', // ID da imagem desta frase
-            positionX: 0.5,
-            positionY: 0.85,
-          },
-          {
-            text: 'Arte Personalizada',
-            id: '68548af4cc947707f0ee652b', // ID da imagem desta frase
-            positionX: 0.5,
-            positionY: 0.85,
-          },
-          {
-            text: 'Feito em Portugal',
-            id: '68548af5cc947707f0ee653c', // ID da imagem desta frase
-            positionX: 0.5,
-            positionY: 0.85,
-          },
-        ],
-      },
-    ],
-  },
+
 
   // POSTER HORIZONTAL (SEMI BRILHO)
   'poster_horizontal_semi_glossy': {

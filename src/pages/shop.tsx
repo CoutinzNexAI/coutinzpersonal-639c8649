@@ -34,14 +34,7 @@ const categories: Category[] = [
     icon: '📋',
     items: ['Horizontal', 'Vertical']
   },
-  {
-    name: 'Roupa',
-    href: '/shop/apparel',
-    galleryImage: '/assets/gallery-images/person_wearing_tshirt.png',
-    gradient: 'from-blue-400 to-indigo-500',
-      icon: '👕',
-    items: ['T-shirts', 'Hoodies', 'Tank Tops']
-  },
+  
   {
     name: 'Canecas',
     href: '/shop/mug',
@@ -137,7 +130,7 @@ const ShopPage: React.FC = () => {
     <>
       <Head>
         <title>PicTuz - Produtos Personalizados com Arte AI</title>
-        <meta name="description" content="Descobre a nossa coleção completa de produtos personalizados. Desde quadros a roupa, transforma as tuas fotos em arte única." />
+        <meta name="description" content="Descobre a nossa coleção completa de produtos personalizados. Desde quadros a acessórios, transforma as tuas fotos em arte única." />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-[#FAF8F0] via-[#F5F1E8] to-[#E8E0D0] relative overflow-hidden">
@@ -204,7 +197,7 @@ const ShopPage: React.FC = () => {
           {/* Traditional Category Grid */}
           <div className="mb-12">
             <h2 className="text-3xl font-bold text-white text-center mb-8">Todas as Categorias</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCategories.map((category) => (
                 <div
                   key={category.name}
