@@ -48,8 +48,8 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
   // ✅ POSIÇÕES DEFINIDAS: Estado para a posição da imagem (3 opções)
-  // Para canecas: top/center/bottom (similar ao poster horizontal)
-  const [imagePosition, setImagePosition] = useState<'top' | 'center' | 'bottom'>('center');
+  // Para canecas: left/center/right (movimento horizontal)
+  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
 
   // ✅ GALERIA DE MOCKUPS: Guarda o array de URLs das mockups atuais
   const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
@@ -190,8 +190,8 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     console.log('✅ Printify mockups received:', data);
   }, [currentMockupUrls]);
 
-  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida (top/center/bottom para canecas)
-  const calculatePrintifyCoords = (position: 'top' | 'center' | 'bottom', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
+  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida (left/center/right para canecas)
+  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
     if (!product) {
       console.log('❌ Produto não encontrado');
       return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
@@ -206,35 +206,31 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     const { placeholderWidth, placeholderHeight } = selectedVariant;
     const { width: userImageWidth, height: userImageHeight } = imageDimensions;
 
-    // PASSO A: Calcular escala para cobrir completamente
-    const scaleToCover = Math.max(
-      placeholderWidth / userImageWidth,
-      placeholderHeight / userImageHeight
-    );
-    const finalImageWidth = userImageWidth * scaleToCover;
-    const printifyScale = finalImageWidth / placeholderWidth;
+    // ✅ LÓGICA ESPECIAL PARA CANECAS: Escalar pela ALTURA para evitar corte vertical
+    const scaleToFitHeight = placeholderHeight / userImageHeight;
+    const scaledImageWidth = userImageWidth * scaleToFitHeight;
+    const printifyScale = scaledImageWidth / placeholderWidth;
 
-    // ✅ CANECA: Ajustar coordenada Y baseada na posição (similar aos posters)
-    const scaledImageHeight = userImageHeight * scaleToCover;
-    const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
+    // ✅ CANECA: Movimento HORIZONTAL (eixo X), Y sempre centrado
+    const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
     
-    const printifyX = 0.5; // X sempre centrado para canecas
-    let printifyY = 0.5; // Centro padrão
+    let printifyX = 0.5; // Centro padrão
+    const printifyY = 0.5; // Y sempre centrado para canecas
 
-    // ✅ USAR MOVIMENTO MAIS AGRESSIVO como nos posters (80% em vez de 70%)
-    if (maxMovementY > 0) {
-      if (position === 'top') {
-        const movementY = -maxMovementY * 0.8; // 80% para cima
-        printifyY = 0.5 + (movementY / placeholderHeight);
-      } else if (position === 'bottom') {
-        const movementY = maxMovementY * 0.8; // 80% para baixo
-        printifyY = 0.5 + (movementY / placeholderHeight);
+    // ✅ MOVIMENTO HORIZONTAL baseado na posição
+    if (maxMovementX > 0) {
+      if (position === 'left') {
+        const movementX = -maxMovementX * 0.7; // 70% para a esquerda
+        printifyX = 0.5 + (movementX / placeholderWidth);
+      } else if (position === 'right') {
+        const movementX = maxMovementX * 0.7; // 70% para a direita
+        printifyX = 0.5 + (movementX / placeholderWidth);
       }
-      // 'center' mantém printifyY = 0.5
+      // 'center' mantém printifyX = 0.5
     }
 
     // ✅ LIMITE DAS COORDENADAS para evitar overflow
-    printifyY = Math.max(0.1, Math.min(0.9, printifyY));
+    printifyX = Math.max(0.1, Math.min(0.9, printifyX));
 
     const finalAdjustments = {
       x: printifyX,
@@ -243,15 +239,15 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
       rotation: 0
     };
 
-    console.log('🎯 [CANECA] Coordenadas calculadas:', {
+    console.log('🎯 [CANECA] Coordenadas calculadas (NOVA LÓGICA):', {
       position,
       variantId,
       placeholderDimensions: { placeholderWidth, placeholderHeight },
       userImageDimensions: { userImageWidth, userImageHeight },
-      scaleToCover,
+      scaleToFitHeight,
       printifyScale,
-      scaledImageHeight,
-      maxMovementY,
+      scaledImageWidth,
+      maxMovementX,
       finalAdjustments
     });
 
@@ -385,7 +381,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     let newVariantId = selectedPrintifyVariantId;
 
     if (type === 'position') {
-      newPosition = value as 'top' | 'center' | 'bottom';
+      newPosition = value as 'left' | 'center' | 'right';
       setImagePosition(newPosition);
       console.log(`📍 [CANECA] Posição alterada de "${imagePosition}" para "${newPosition}"`);
     } else if (type === 'size') {
@@ -404,7 +400,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
   };
 
   // ✅ FUNÇÃO QUE CHAMA O BACKEND: Gera nova mockup com a posição e variante
-  const generateNewMockup = async (currentPosition: 'top' | 'center' | 'bottom', currentVariantId: number) => {
+  const generateNewMockup = async (currentPosition: 'left' | 'center' | 'right', currentVariantId: number) => {
     if (!userImageDimensions || !selectedImageUrl || !selectedImageId) {
       console.log('❌ Dados insuficientes para gerar mockup:', { 
         userImageDimensions, 
@@ -456,7 +452,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         // ✅ ATUALIZAR imageAdjustments para refletir as novas coordenadas
         setImageAdjustments(adjustments);
         
-        toast.success(`Posição alterada para: ${currentPosition === 'top' ? 'Cima' : currentPosition === 'bottom' ? 'Baixo' : 'Centro'}!`);
+        toast.success(`Posição alterada para: ${currentPosition === 'left' ? 'Esquerda' : currentPosition === 'right' ? 'Direita' : 'Centro'}!`);
       } else {
         console.error('❌ [CANECA] Erro ao gerar nova mockup:', data.error || 'Resposta inválida');
         toast.error('Erro ao gerar nova preview. Tente novamente.');
@@ -588,7 +584,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                     <CardContent className="p-4">
                       <div className="text-center mb-3">
                         <h3 className="text-base font-bold text-[#2D5A27] mb-1">
-                          Ajustar Posição
+                          Ajustar Posição Horizontal
                         </h3>
                         <p className="text-xs text-[#4A6B5B]/80">
                           Escolha como posicionar a sua arte na caneca
@@ -597,16 +593,16 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       
                       <div className="flex gap-2 mb-3">
                         <Button 
-                          onClick={() => handleAdjustment('position', 'top')} 
-                          variant={imagePosition === 'top' ? 'default' : 'outline'}
+                          onClick={() => handleAdjustment('position', 'left')} 
+                          variant={imagePosition === 'left' ? 'default' : 'outline'}
                           size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'top' 
+                          className={`flex-1 text-xs ${imagePosition === 'left' 
                             ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
                             : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
                           }`}
                           disabled={isGeneratingMockup}
                         >
-                          Cima
+                          Esquerda
                         </Button>
                         <Button 
                           onClick={() => handleAdjustment('position', 'center')} 
@@ -621,23 +617,23 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                           Centro
                         </Button>
                         <Button 
-                          onClick={() => handleAdjustment('position', 'bottom')} 
-                          variant={imagePosition === 'bottom' ? 'default' : 'outline'}
+                          onClick={() => handleAdjustment('position', 'right')} 
+                          variant={imagePosition === 'right' ? 'default' : 'outline'}
                           size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'bottom' 
+                          className={`flex-1 text-xs ${imagePosition === 'right' 
                             ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
                             : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
                           }`}
                           disabled={isGeneratingMockup}
                         >
-                          Baixo
+                          Direita
                         </Button>
                       </div>
                       
                       <div className="text-center">
                         <span className="inline-flex items-center gap-1.5 text-xs text-[#2D5A27] bg-[#2D5A27]/10 px-2 py-1 rounded-md font-medium">
                           <span className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full"></span>
-                          Posição: {imagePosition === 'top' ? 'Cima' : imagePosition === 'bottom' ? 'Baixo' : 'Centro'}
+                          Posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
                         </span>
                       </div>
 
