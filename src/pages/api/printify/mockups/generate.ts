@@ -7,6 +7,76 @@ import { printifyFetch } from '@/lib/printify/printifyApi';
 import { PrintifyProduct, PrintifyImagePlaceholder } from '@/lib/printify/printifyTypes';
 import generatePrintFileHandler from '@/pages/api/printify/generate-print-file';
 import { generatePhraseImage } from '@/utils/imageUtils';
+import https from 'https';
+import http from 'http';
+
+// ✅ FUNÇÃO PARA OBTER DIMENSÕES DA IMAGEM
+async function getImageDimensions(imageUrl: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    if (typeof window !== 'undefined') {
+      // Código do browser
+      const img = new Image();
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = reject;
+      img.src = imageUrl;
+    } else {
+      // Código do servidor Node.js
+      const client = imageUrl.startsWith('https://') ? https : http;
+      
+      client.get(imageUrl, (response) => {
+        const chunks: Buffer[] = [];
+        response.on('data', (chunk: Buffer) => chunks.push(chunk));
+        response.on('end', () => {
+          const buffer = Buffer.concat(chunks);
+          
+          // Detectar tipo de imagem e extrair dimensões
+          if (buffer.length >= 4) {
+            // PNG
+            if (buffer.toString('hex', 0, 8) === '89504e470d0a1a0a') {
+              const width = buffer.readUInt32BE(16);
+              const height = buffer.readUInt32BE(20);
+              resolve({ width, height });
+            }
+            // JPEG
+            else if (buffer.toString('hex', 0, 4) === 'ffd8ffe0' || buffer.toString('hex', 0, 4) === 'ffd8ffe1') {
+              let offset = 2;
+              while (offset < buffer.length) {
+                const marker = buffer.readUInt16BE(offset);
+                if (marker === 0xffc0 || marker === 0xffc2) {
+                  const height = buffer.readUInt16BE(offset + 5);
+                  const width = buffer.readUInt16BE(offset + 7);
+                  resolve({ width, height });
+                  return;
+                }
+                offset += 2 + buffer.readUInt16BE(offset + 2);
+              }
+            }
+            // WebP
+            else if (buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
+              // WebP simples (VP8)
+              if (buffer.toString('ascii', 12, 16) === 'VP8 ') {
+                const width = buffer.readUInt16LE(26) & 0x3fff;
+                const height = buffer.readUInt16LE(28) & 0x3fff;
+                resolve({ width, height });
+              }
+              // WebP lossless (VP8L)
+              else if (buffer.toString('ascii', 12, 16) === 'VP8L') {
+                const bits = buffer.readUInt32LE(21);
+                const width = (bits & 0x3fff) + 1;
+                const height = ((bits >> 14) & 0x3fff) + 1;
+                resolve({ width, height });
+              }
+            }
+          }
+          
+          // Fallback: assumir dimensões padrão se não conseguir detectar
+          console.warn('⚠️ Could not detect image dimensions, using fallback 1024x1024');
+          resolve({ width: 1024, height: 1024 });
+        });
+      }).on('error', reject);
+    }
+  });
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -787,25 +857,57 @@ export default async function handler(
     console.log('🔄 STEP 3: Creating temporary Printify product for mockup generation...');
     const printifyProductTitle = `PicTuz Custom ${product.name} (${user.id}-${Date.now()})`;
 
-    // Lógica para calcular x, y, scale para Printify (baseado em gelatoPrintOffsetsMm e dimensões Printify)
-    // Estes são cálculos complexos e precisarão de ser afinados
-    const printAreaX = 0.5; // Placeholder temporário
-    const printAreaY = 0.5; // Placeholder temporário
-    const printAreaScale = 1.0; // Placeholder temporário
-    const printAreaAngle = 0; // Placeholder temporário
+    // ✅ CALCULAR ESCALA CORRETA (igual aos posters)
+    let finalX = 0.5;
+    let finalY = 0.5;
+    let finalScale = 1.0;
+    let finalAngle = 0;
 
-    // Calcular coordenadas baseadas nos imageAdjustments (se disponível)
-    let finalX = printAreaX;
-    let finalY = printAreaY;
-    let finalScale = printAreaScale;
-    let finalAngle = printAreaAngle;
-
+    // Para produtos que suportam ajuste manual (como canecas)
     if (imageAdjustments && product.supportsManualAdjustment) {
-      finalX = imageAdjustments.x;
-      finalY = imageAdjustments.y;
-      finalScale = imageAdjustments.scale;
-      finalAngle = imageAdjustments.rotation || 0;
+      console.log('🔍 [ESCALA] Calculando escala para produto com ajuste manual...');
+      
+      try {
+        // Obter dimensões da imagem do utilizador
+        const userImageDimensions = await getImageDimensions(imageUrl);
+        console.log('📐 [ESCALA] Dimensões da imagem do utilizador:', userImageDimensions);
+        
+        // Dimensões do placeholder Printify
+        const placeholderWidth = printifyPlaceholder.width;
+        const placeholderHeight = printifyPlaceholder.height;
+        console.log('📐 [ESCALA] Dimensões do placeholder Printify:', { placeholderWidth, placeholderHeight });
+        
+        // PASSO A: Calcula o fator de zoom para cobrir tudo (igual aos posters)
+        const scaleToCover = Math.max(
+          placeholderWidth / userImageDimensions.width,
+          placeholderHeight / userImageDimensions.height
+        );
+        console.log('🔍 [ESCALA] Scale to cover calculado:', scaleToCover);
+        
+        // PASSO B: Calcula a largura final da imagem com esse zoom
+        const finalImageWidth = userImageDimensions.width * scaleToCover;
+        console.log('🔍 [ESCALA] Largura final da imagem:', finalImageWidth);
+        
+        // PASSO C: Traduz para o 'scale' que a Printify entende
+        const printifyScale = finalImageWidth / placeholderWidth;
+        console.log('🔍 [ESCALA] Scale final para Printify:', printifyScale);
+        
+        // Aplicar coordenadas calculadas no frontend
+        finalX = imageAdjustments.x;
+        finalY = imageAdjustments.y;
+        finalScale = printifyScale; // ✅ USA A ESCALA CORRETA!
+        finalAngle = imageAdjustments.rotation || 0;
+        
+        console.log('✅ [ESCALA] Coordenadas finais calculadas:', { finalX, finalY, finalScale, finalAngle });
+        
+      } catch (error) {
+        console.error('❌ [ESCALA] Erro ao calcular escala:', error);
+        // Fallback para configuração padrão
+        finalScale = 1.0;
+      }
+      
     } else if (product.printAreasConfig && product.printAreasConfig.length > 0) {
+      // Usar configuração padrão para produtos sem ajuste manual
       const printAreaConfig = product.printAreasConfig[0];
       finalX = printAreaConfig.defaultX;
       finalY = printAreaConfig.defaultY;
