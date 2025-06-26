@@ -156,68 +156,44 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     return finalAdjustments;
   }, [product]);
 
-  // ✅ INICIALIZAÇÃO DA ESCALA: Calcular defaultScale dinâmico assim que a imagem é selecionada (copiado do poster)
+  // ✅ CONTROLADOR DE TRÁFEGO MESTRE: Único useEffect responsável por gerar mockups
+  // Só executa quando TODOS os dados necessários estão prontos (evita a "corrida")
   useEffect(() => {
-    if (selectedImageUrl && product && selectedPrintifyVariantId) {
-      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-      if (!selectedVariant) return;
-
-      const { placeholderWidth, placeholderHeight } = selectedVariant;
-      const userImageWidth = 1024; // Imagem AI é sempre quadrada 1024x1024
-      const userImageHeight = 1024;
-
-      // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
-      const scaleToCover = Math.max(
-        placeholderWidth / userImageWidth,
-        placeholderHeight / userImageHeight
-      );
-
-      // PASSO B: Calcula qual será a LARGURA da imagem depois de aplicar este zoom
-      const finalImageWidth = userImageWidth * scaleToCover;
-
-      // PASSO C (A TRADUÇÃO): Converte a nossa largura final para o valor de 'scale' que a Printify entende
-      const printifyScale = finalImageWidth / placeholderWidth;
-      
-      console.log('🎯 [CAPA INIT] Cálculo de escala inicial:', {
-        placeholderWidth,
-        placeholderHeight,
-        userImageWidth,
-        userImageHeight,
-        scaleToCover,
-        finalImageWidth,
-        printifyScale
-      });
-      
-      setImageAdjustments({
-        x: 0.5, // Mantém centrado
-        y: 0.5, // Mantém centrado
-        scale: printifyScale, // USA O VALOR TRADUZIDO!
-        rotation: 0
-      });
-    }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId]);
-
-  // ✅ GATILHO ÚNICO: Este useEffect é o único responsável por decidir quando gerar mockups
-  useEffect(() => {
-    // Só gera se tivermos todos os dados necessários
-    if (selectedImageUrl && selectedPrintifyVariantId && userImageDimensions && userInfo?.id) {
-      
-      console.log('🔄 [UNIFIED] Detectada mudança de estado que requer nova mockup:', {
+    // ✅ CONDIÇÃO DE GUARDA: SÓ avança se tivermos TODOS os dados
+    if (!selectedImageUrl || !selectedPrintifyVariantId || !userImageDimensions || !userInfo?.id) {
+      console.log("⏳ [TRAFFIC-CONTROLLER] A aguardar todos os dados para gerar mockup...", {
         selectedImageUrl: !!selectedImageUrl,
-        selectedPrintifyVariantId,
-        imagePosition,
-        userImageDimensions: !!userImageDimensions
+        selectedPrintifyVariantId: !!selectedPrintifyVariantId,
+        userImageDimensions: !!userImageDimensions,
+        userId: !!userInfo?.id
       });
-
-      // Usa debounce para não fazer chamadas excessivas
-      const handler = setTimeout(() => {
-        console.log('🚀 [UNIFIED] Disparando geração de mockup após debounce...');
-        generateNewMockup(imagePosition, selectedPrintifyVariantId);
-      }, 300); // Pequeno atraso de 300ms
-
-      return () => clearTimeout(handler);
+      return; // Se alguma informação crucial falta, não faz nada
     }
-  }, [selectedImageUrl, selectedPrintifyVariantId, imagePosition, userImageDimensions, userInfo?.id]); // Depende de TUDO o que pode mudar o design
+
+    console.log('🚀 [TRAFFIC-CONTROLLER] TODOS os dados prontos! Iniciando geração...', {
+      selectedImageUrl: !!selectedImageUrl,
+      selectedPrintifyVariantId,
+      imagePosition,
+      userImageDimensions: !!userImageDimensions,
+      userId: !!userInfo?.id
+    });
+
+    // ✅ DEBOUNCE: Técnica para evitar chamadas múltiplas rápidas
+    const handler = setTimeout(() => {
+      console.log('🎯 [TRAFFIC-CONTROLLER] Disparando geração após debounce de 300ms...');
+      
+      // ✅ A posição vem do estado controlado pelos botões
+      const currentPosition = imagePosition;
+      
+      // ✅ Chama a função que faz todo o trabalho
+      generateNewMockup(currentPosition, selectedPrintifyVariantId);
+
+    }, 300); // Pequeno atraso de 300ms para evitar spam
+
+    return () => clearTimeout(handler);
+
+  // ✅ DEPENDÊNCIAS CRUCIAIS: Qualquer mudança nestes valores dispara nova geração
+  }, [selectedImageUrl, selectedPrintifyVariantId, imagePosition, userImageDimensions, userInfo?.id]);
 
   // Função para lidar com os mockups gerados pelo ProductCanvas
   const handlePreviewReady = useCallback((data: {
