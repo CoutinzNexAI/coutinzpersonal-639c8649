@@ -58,6 +58,11 @@ interface CreateDraftResponse {
   printifyProductId?: string;
   customerPrintifyImageId?: string; // Para sweat de criança
   dynamicPhrasePrintifyImageId?: string; // Para sweat de criança
+  data?: {
+    mockupUrls: string[];
+    printifyImageId: string;
+    printifyProductId: string;
+  };
   error?: string;
   details?: string;
   debug?: Record<string, unknown>; // Para depuração temporária
@@ -725,6 +730,11 @@ export default async function handler(
         previewUrls: finalPreviewUrls.length > 0 ? finalPreviewUrls : [product.mockupInitialPath],
         printifyImageId: finalPrintifyImageId,
         printifyProductId: createdProductId,
+        data: {
+          mockupUrls: finalPreviewUrls.length > 0 ? finalPreviewUrls : [product.mockupInitialPath],
+          printifyImageId: finalPrintifyImageId,
+          printifyProductId: createdProductId
+        }
       });
 
     } else {
@@ -898,12 +908,15 @@ export default async function handler(
 
       return res.status(200).json({
         success: true,
-        previewUrls: finalPreviewUrls,
-      printifyImageId: printifyImageId, // Retornar o ID da imagem na Printify Media Library
-      printifyProductId: createdPrintifyProductId, // Retornar o ID do produto Printify criado
-      customerPrintifyImageId: logoImageId, // Retornar o ID da imagem do logo
-      dynamicPhrasePrintifyImageId: selectedPhraseText, // Retornar o texto da frase
-    });
+        previewUrls: finalPreviewUrls.length > 0 ? finalPreviewUrls : [product.mockupInitialPath],
+        printifyImageId: printifyImageId, // Retornar o ID da imagem na Printify Media Library
+        printifyProductId: createdPrintifyProductId, // Retornar o ID do produto Printify criado
+        data: {
+          mockupUrls: finalPreviewUrls.length > 0 ? finalPreviewUrls : [product.mockupInitialPath],
+          printifyImageId: printifyImageId,
+          printifyProductId: createdPrintifyProductId
+        }
+      });
     }
 
   } catch (error) {

@@ -423,7 +423,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printFileResolution: 300,
     gelatoPrintDimensionsMm: { width: 150, height: 240 }, // Valores de referência
     gelatoPrintOffsetsMm: { x: 0, y: 0 },
-    supportsManualAdjustment: false, // Sem ajustes manuais
+    supportsManualAdjustment: true, // Ajustes horizontais (esquerda/centro/direita)
     printAreasConfig: [{
       position: 'front',
       allowsUserImage: true,
