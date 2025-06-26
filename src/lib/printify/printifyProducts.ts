@@ -512,7 +512,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       allowsUserImage: true,
       defaultX: 0.5,
       defaultY: 0.5,
-      defaultScale: 2.0, // Aumentado para garantir cobertura completa
+      defaultScale: 1.0,
       defaultAngle: 0,
       fitMethod: 'slice',
     }],
@@ -562,7 +562,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       allowsUserImage: true,
       defaultX: 0.5,
       defaultY: 0.5,
-      defaultScale: 2.0, // Aumentado para garantir cobertura completa
+      defaultScale: 1.0, // Mantenha como 1.0; o cálculo real será no frontend
       defaultAngle: 0,
       fitMethod: 'slice', // Alterado para 'slice' para Posters Verticais
     }],
