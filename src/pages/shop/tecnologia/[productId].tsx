@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, Check, Upload, RotateCw, ChevronDown, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, Upload, Truck, RotateCw, ChevronDown, ArrowRight, Shield, Sparkles, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import ProductCanvas from '@/components/printify/ProductCanvas';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
+import { RateLimiter } from '@/lib/utils/rateLimiter';
 
 interface ImageAdjustments {
   x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
@@ -125,39 +126,27 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
     console.log('🔍 [CAPA] Escala calculada:', { scaleToCover, finalImageWidth, printifyScale });
 
-    // PASSO C: Calcular movimento horizontal (50% do máximo para ser mais subtil)
-    let printifyX = 0.5; // Centro padrão
-    const printifyY = 0.5; // Centro padrão (não se move verticalmente)
-
-    // Calcular overflow horizontal após aplicar a escala
+    // PASSO C: Calcular movimento horizontal
     const scaledImageWidth = userImageWidth * scaleToCover;
     const overflowX = Math.max(0, scaledImageWidth - placeholderWidth);
-    
+    const maxOffsetX = (overflowX / 2) / placeholderWidth;
+
+    let printifyX = 0.5; // Centro padrão
+
     if (overflowX > 0) {
-      // Calcular movimento máximo possível
-      const maxOffsetX = (overflowX / 2) / placeholderWidth;
-      
-      // ✅ MOVIMENTO MAIS SUBTIL: Usar apenas 50% do movimento máximo
-      const shiftAmount = 0.5;
-      
       if (position === 'left') {
-        printifyX = 0.5 - (maxOffsetX * shiftAmount); // 50% para a esquerda
+        const movementX = -maxOffsetX * 0.7; // ✅ CORREÇÃO: 70% como o poster (era 50%)
+        printifyX = 0.5 + movementX;
       } else if (position === 'right') {
-        printifyX = 0.5 + (maxOffsetX * shiftAmount); // 50% para a direita
+        const movementX = maxOffsetX * 0.7; // ✅ CORREÇÃO: 70% como o poster (era 50%)
+        printifyX = 0.5 + movementX;
       }
       // 'center' fica com printifyX = 0.5
-      
-      console.log('📍 [CAPA] Movimento calculado:', { 
-        overflowX, 
-        maxOffsetX, 
-        shiftAmount, 
-        finalX: printifyX 
-      });
     }
 
     const finalAdjustments = {
       x: printifyX,
-      y: printifyY,
+      y: 0.5,
       scale: printifyScale,
       rotation: 0
     };
@@ -166,6 +155,47 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
     return finalAdjustments;
   }, [product]);
+
+  // ✅ INICIALIZAÇÃO DA ESCALA: Calcular defaultScale dinâmico assim que a imagem é selecionada (copiado do poster)
+  useEffect(() => {
+    if (selectedImageUrl && product && selectedPrintifyVariantId) {
+      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+      if (!selectedVariant) return;
+
+      const { placeholderWidth, placeholderHeight } = selectedVariant;
+      const userImageWidth = 1024; // Imagem AI é sempre quadrada 1024x1024
+      const userImageHeight = 1024;
+
+      // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
+      const scaleToCover = Math.max(
+        placeholderWidth / userImageWidth,
+        placeholderHeight / userImageHeight
+      );
+
+      // PASSO B: Calcula qual será a LARGURA da imagem depois de aplicar este zoom
+      const finalImageWidth = userImageWidth * scaleToCover;
+
+      // PASSO C (A TRADUÇÃO): Converte a nossa largura final para o valor de 'scale' que a Printify entende
+      const printifyScale = finalImageWidth / placeholderWidth;
+      
+      console.log('🎯 [CAPA INIT] Cálculo de escala inicial:', {
+        placeholderWidth,
+        placeholderHeight,
+        userImageWidth,
+        userImageHeight,
+        scaleToCover,
+        finalImageWidth,
+        printifyScale
+      });
+      
+      setImageAdjustments({
+        x: 0.5, // Mantém centrado
+        y: 0.5, // Mantém centrado
+        scale: printifyScale, // USA O VALOR TRADUZIDO!
+        rotation: 0
+      });
+    }
+  }, [selectedImageUrl, product, selectedPrintifyVariantId]);
 
   // ✅ GATILHO ÚNICO: Este useEffect é o único responsável por decidir quando gerar mockups
   useEffect(() => {
@@ -203,6 +233,13 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
   // ✅ FUNÇÃO SIMPLIFICADA: Só muda o estado, o useEffect faz o resto
   const handleAdjustment = async (type: 'position', value: string) => {
+    // ✅ RATE LIMITING: Verificar se pode fazer o pedido (copiado do poster)
+    const { allowed, message } = RateLimiter.checkRequestLimit();
+    if (!allowed) {
+      toast.error(message);
+      return;
+    }
+
     if (!userImageDimensions) {
       toast.error('Aguarde o carregamento da imagem');
       return;
@@ -219,6 +256,9 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       const newPosition = value as 'left' | 'center' | 'right';
       setImagePosition(newPosition); // ✅ Só muda o estado - o useEffect vai disparar automaticamente
       console.log(`📍 [CAPA] Posição alterada de "${imagePosition}" para "${newPosition}"`);
+      
+      // ✅ REGISTAR PEDIDO: Após mudança bem-sucedida (copiado do poster)
+      RateLimiter.recordRequest();
     }
   };
 
@@ -576,41 +616,59 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                 >
                   <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
                     <CardContent className="p-4">
-                      <div className="text-center mb-4">
-                        <h3 className="text-lg font-bold text-[#2D5A27] flex items-center justify-center gap-2">
-                          <RotateCw className="w-5 h-5" />
+                      <div className="text-center mb-3">
+                        <h3 className="text-base font-bold text-[#2D5A27] mb-1">
                           Ajustar Posição Horizontal
                         </h3>
-                        <p className="text-sm text-gray-600 mt-2">Desloque a sua arte para a posição ideal na capa.</p>
+                        <p className="text-xs text-[#4A6B5B]/80">
+                          Desloque a sua arte para a posição ideal na capa
+                        </p>
                       </div>
-                      <div className="grid grid-cols-3 gap-3">
-                        <Button
-                          onClick={() => handleAdjustment('position', 'left')}
+                      
+                      <div className="flex gap-2 mb-3">
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'left')} 
                           variant={imagePosition === 'left' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'left' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
                           disabled={isGeneratingMockup}
-                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all"
                         >
-                          <ChevronLeft className="w-6 h-6" />
-                          <span className="text-sm mt-1 font-medium">Esquerda</span>
+                          Esquerda
                         </Button>
-                        <Button
-                          onClick={() => handleAdjustment('position', 'center')}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
                           variant={imagePosition === 'center' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'center' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
                           disabled={isGeneratingMockup}
-                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all"
                         >
-                          <span className="font-bold text-lg">●</span>
-                          <span className="text-sm mt-1 font-medium">Centro</span>
+                          Centro
                         </Button>
-                        <Button
-                          onClick={() => handleAdjustment('position', 'right')}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'right')} 
                           variant={imagePosition === 'right' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'right' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
                           disabled={isGeneratingMockup}
-                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all"
                         >
-                          <ChevronRight className="w-6 h-6" />
-                          <span className="text-sm mt-1 font-medium">Direita</span>
+                          Direita
                         </Button>
+                      </div>
+                      
+                      <div className="text-center">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-[#2D5A27] bg-[#2D5A27]/10 px-2 py-1 rounded-md font-medium">
+                          <span className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full"></span>
+                          Posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
