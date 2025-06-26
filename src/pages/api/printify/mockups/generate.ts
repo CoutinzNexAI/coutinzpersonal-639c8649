@@ -609,113 +609,64 @@ export default async function handler(
     } else if (productId === 'custom_canvas' || productId === 'framed_canvas' ||
                productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy' ||
                productId === 'ceramic_mug' || productId === 'heart_mug') {
-      // LÓGICA ESPECÍFICA PARA CANVAS/POSTER/CANECAS (SEM GENERATE-PRINT-FILE)
-      console.log(`🔄 Processing Canvas/Poster/Mug product: ${productId}`);
+      // LÓGICA SIMPLIFICADA PARA CANVAS/POSTER/CANECAS (USA SRC, NÃO ID)
+      console.log(`🔄 Processing ${productId} with simplified robust logic (src + calculated scale)`);
 
-      // Para Canvas/Canecas, sempre fazer upload da imagem primeiro se não temos printifyImageId
-      let finalPrintifyImageId = printifyImageId;
-      
-      if (!finalPrintifyImageId && userImageUrl) {
-        console.log(`🔄 ${productId}: Fazendo upload da imagem para Printify primeiro...`);
-        
-        try {
-          // Upload direto para Printify sem chamada HTTP interna
-          const fileName = `${productId}_image_${Date.now()}.jpg`;
-          
-          // Fazer download da imagem
-          const imageResponse = await fetch(userImageUrl);
-          if (!imageResponse.ok) {
-            throw new Error(`Failed to fetch image: ${imageResponse.status}`);
-          }
-          
-          const imageBuffer = await imageResponse.arrayBuffer();
-          const imageBase64 = Buffer.from(imageBuffer).toString('base64');
-          
-          // Upload para Printify
-          const uploadPayload = {
-            file_name: fileName,
-            contents: imageBase64
-          };
-          
-          const printifyUploadResponse = await printifyFetch(`uploads/images.json`, {
-            method: 'POST',
-            body: JSON.stringify(uploadPayload)
-          });
-          
-          if (printifyUploadResponse && printifyUploadResponse.id) {
-            finalPrintifyImageId = printifyUploadResponse.id;
-            console.log(`✅ ${productId}: Imagem carregada para Printify com ID:`, finalPrintifyImageId);
-          } else {
-            throw new Error('Printify upload response invalid or missing ID');
-          }
-        } catch (uploadError) {
-          console.error('❌ Erro no upload da imagem para Printify:', uploadError);
-          throw new Error(`Failed to upload image: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
-        }
-      }
-
-      // Agora validar que temos printifyImageId
-      if (!finalPrintifyImageId) {
-        console.log(`❌ [ERROR] printifyImageId é obrigatório para ${productId} products`);
-        throw new Error(`printifyImageId is required for ${productId} products`);
+      // Validar que temos a imagem URL
+      if (!userImageUrl) {
+        throw new Error(`userImageUrl is required for ${productId} products`);
       }
 
       const printAreaConfig = product.printAreasConfig?.[0];
       if (!printAreaConfig) {
-        throw new Error('Print area configuration not found for Canvas product');
+        throw new Error(`Print area configuration not found for ${productId} product`);
       }
 
       // ✅ DEBUG: Log dos imageAdjustments recebidos do frontend
       console.log('🎯 [BACKEND] imageAdjustments recebidos do frontend:', imageAdjustments);
-      console.log('🎯 [BACKEND] printAreaConfig defaults:', {
-        defaultX: printAreaConfig.defaultX,
-        defaultY: printAreaConfig.defaultY,
-        defaultScale: printAreaConfig.defaultScale,
-        defaultAngle: printAreaConfig.defaultAngle
+
+      // ✅ CALCULAR ESCALA SEMPRE (usando a lógica robusta do Math.max)
+      console.log(`🧠 [BACKEND] Calculando escala robusta para ${productId}...`);
+      
+      // Obter dimensões do placeholder da variante selecionada
+      const selectedVariant = product.variants?.find(v => v.id === targetVariantId);
+      if (!selectedVariant) {
+        throw new Error(`Variant ${targetVariantId} not found for ${productId}`);
+      }
+      
+      const { placeholderWidth, placeholderHeight } = selectedVariant;
+      
+      // Obter dimensões da imagem do utilizador (do frontend ou fallback)
+      const userImageWidth = 1024; // Imagens AI quadradas padrão
+      const userImageHeight = 1024;
+
+      // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
+      const scaleToCover = Math.max(
+        placeholderWidth / userImageWidth,
+        placeholderHeight / userImageHeight
+      );
+
+      // PASSO B: Calcula qual será a LARGURA da imagem depois de aplicar este zoom
+      const finalImageWidth = userImageWidth * scaleToCover;
+
+      // PASSO C (A TRADUÇÃO): Converte para o valor de 'scale' que a Printify entende
+      const calculatedScale = finalImageWidth / placeholderWidth;
+      
+      console.log(`🧠 [BACKEND] Cálculo de escala robusta para ${productId}:`, {
+        placeholderWidth,
+        placeholderHeight,
+        userImageWidth,
+        userImageHeight,
+        scaleToCover,
+        finalImageWidth,
+        calculatedScale
       });
 
-      // ✅ LÓGICA INTELIGENTE DE FALLBACK: Calcular escala correta se não receber do frontend
-      let smartScale = printAreaConfig.defaultScale;
-      
-      if (!imageAdjustments?.scale && (productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy' || productId === 'ceramic_mug' || productId === 'heart_mug')) {
-        console.log(`🧠 [BACKEND] Calculando escala inteligente para ${productId}...`);
-        
-                 // Obter dimensões do placeholder da variante selecionada
-         const selectedVariant = product.variants?.find(v => v.id === targetVariantId);
-         if (selectedVariant) {
-           const { placeholderWidth, placeholderHeight } = selectedVariant;
-           const userImageWidth = 1016; // Imagens AI quadradas
-           const userImageHeight = 1016;
-
-           // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
-           const scaleToCover = Math.max(
-             placeholderWidth / userImageWidth,
-             placeholderHeight / userImageHeight
-           );
-
-           // PASSO B: Calcula qual será a LARGURA da imagem depois de aplicar este zoom
-           const finalImageWidth = userImageWidth * scaleToCover;
-
-           // PASSO C (A TRADUÇÃO): Converte para o valor de 'scale' que a Printify entende
-           smartScale = finalImageWidth / placeholderWidth;
-           
-           console.log(`🧠 [BACKEND] Cálculo de escala inteligente para ${productId} (TRADUZIDO):`, {
-             placeholderWidth,
-             placeholderHeight,
-             userImageWidth,
-             userImageHeight,
-             scaleToCover,
-             finalImageWidth,
-             smartScale
-           });
-         }
-      }
-
-      // Calcular valores finais que serão usados
+      // Calcular valores finais que serão usados (priorizar frontend, fallback para cálculo robusto)
       const finalValues = {
         x: imageAdjustments?.x || printAreaConfig.defaultX,
         y: imageAdjustments?.y || printAreaConfig.defaultY,
-        scale: imageAdjustments?.scale || smartScale,
+        scale: imageAdjustments?.scale || calculatedScale, // ✅ USA A ESCALA CALCULADA!
         angle: imageAdjustments?.rotation || printAreaConfig.defaultAngle
       };
       console.log('🎯 [BACKEND] Valores finais para Printify:', finalValues);
@@ -738,7 +689,7 @@ export default async function handler(
           placeholders: [{
             position: printAreaConfig.position,
             images: [{
-              id: finalPrintifyImageId,
+              src: userImageUrl, // ✅ USA SRC EM VEZ DE ID!
               x: finalValues.x,
               y: finalValues.y,
               scale: finalValues.scale,
@@ -756,7 +707,7 @@ export default async function handler(
         body: JSON.stringify(printifyProductPayload)
       });
 
-      if (!printifyProductResponse?.id) {
+      if (!printifyProductResponse || !printifyProductResponse.id) {
         throw new Error(`Failed to create ${productId} product on Printify`);
       }
 
@@ -794,7 +745,7 @@ export default async function handler(
       return res.status(200).json({
         success: true,
         previewUrls: finalPreviewUrls.length > 0 ? finalPreviewUrls : [product.mockupInitialPath],
-        printifyImageId: finalPrintifyImageId,
+        printifyImageId: null, // ✅ Não fazemos upload, usamos SRC diretamente
         printifyProductId: createdProductId,
       });
 
@@ -1002,7 +953,7 @@ export default async function handler(
       return res.status(200).json({
         success: true,
         previewUrls: finalPreviewUrls,
-      printifyImageId: printifyImageId, // Retornar o ID da imagem na Printify Media Library
+      printifyImageId: null, // ✅ Não fazemos upload, usamos SRC diretamente
       printifyProductId: createdPrintifyProductId, // Retornar o ID do produto Printify criado
       customerPrintifyImageId: logoImageId, // Retornar o ID da imagem do logo
       dynamicPhrasePrintifyImageId: selectedPhraseText, // Retornar o texto da frase
