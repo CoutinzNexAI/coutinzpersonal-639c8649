@@ -50,8 +50,7 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
   const [isGeneratingMockup, setIsGeneratingMockup] = useState(false);
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
-  // Rate limiter para ajustes de posição
-  const positionRateLimiter = new RateLimiter(3, 60000); // 3 ajustes por minuto
+  // Rate limiter para ajustes de posição (3 ajustes por minuto)
 
   // Função para calcular coordenadas Printify baseadas na posição selecionada
   const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', userImageWidth: number, userImageHeight: number) => {
@@ -120,8 +119,9 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
       return;
     }
 
-    if (!positionRateLimiter.tryRequest()) {
-      toast.error('Muitos ajustes. Aguarde um momento antes de tentar novamente.');
+    const rateLimitCheck = RateLimiter.checkRequestLimit();
+    if (!rateLimitCheck.allowed) {
+      toast.error(rateLimitCheck.message);
       return;
     }
 
@@ -139,6 +139,9 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
 
       setImageAdjustments(updatedAdjustments);
       await generateNewMockup(updatedAdjustments);
+      
+      // Record the request for rate limiting
+      RateLimiter.recordRequest();
     } catch (error) {
       console.error('Erro no ajuste:', error);
       toast.error('Erro ao ajustar posição. Tente novamente.');
@@ -398,7 +401,6 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
                   imageAdjustments={imageAdjustments}
                   onImageAdjust={setImageAdjustments}
                   selectedPrintifyVariantId={selectedPrintifyVariantId}
-                  isLoading={isGeneratingMockup}
                 />
               </div>
 
