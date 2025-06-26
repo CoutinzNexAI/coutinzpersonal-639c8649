@@ -261,8 +261,6 @@ const ProductList: React.FC<{ items: UserOrder['items']; fallbackOrder?: UserOrd
       
       <div className="space-y-4">
         {productsToShow.map((item, index) => {
-          const customizations = parseCustomizations(item.customizations);
-          
           return (
             <div key={item.id || index} className="flex gap-4 p-4 bg-ghibli-stone/5 rounded-lg">
               <div className="w-24 h-24 rounded-lg overflow-hidden bg-ghibli-stone/10 flex-shrink-0">
@@ -275,20 +273,7 @@ const ProductList: React.FC<{ items: UserOrder['items']; fallbackOrder?: UserOrd
               
               <div className="flex-1">
                 <h3 className="font-semibold text-ghibli-earth mb-1">{item.productName}</h3>
-                <p className="text-sm text-ghibli-earth/60 mb-2">Categoria: {item.productCategory}</p>
-                
-                {customizations.length > 0 && (
-                  <div className="mb-2">
-                    <h4 className="text-sm font-medium text-ghibli-earth mb-1">Personalizações:</h4>
-                    <div className="space-y-1">
-                      {customizations.map((custom, customIndex) => (
-                        <p key={customIndex} className="text-xs text-ghibli-earth/80">
-                          • {custom}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <p className="text-sm text-ghibli-earth/60 mb-4">Categoria: {item.productCategory}</p>
                 
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-ghibli-earth/60">Quantidade: {item.quantity}</span>
@@ -306,7 +291,6 @@ const ProductList: React.FC<{ items: UserOrder['items']; fallbackOrder?: UserOrd
 export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBack }) => {
   const statusInfo = getStatusInfo(order.status, order.printify_status);
   const StatusIcon = statusInfo.icon;
-  const customizations = parseCustomizations(order.customizations);
 
   // ✅ DEBUG: Log da encomenda completa recebida
   console.log('📋 OrderDetailsView - Encomenda recebida:', order);

@@ -549,7 +549,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // ✅ CORREÇÃO CRÍTICA: print_areas deve ser OBJETO {}, não ARRAY []
             // A chave é o nome da posição (ex: "front", "back")
             [printAreaConfig.position]: [
-              {
+                    {
                 src: userImageUrl, // ✅ URL da imagem do cliente
                 // ✅ NOVA PRIORIDADE: Usar customizations primeiro (a "receita" definida)
                 // Se customizations tiver os campos, usar eles, senão usar imageAdjustments como fallback
@@ -557,11 +557,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 y: cartItem.customizations.y ?? cartItem.imageAdjustments?.y ?? printAreaConfig.defaultY,
                 scale: cartItem.customizations.scale ?? cartItem.imageAdjustments?.scale ?? printAreaConfig.defaultScale,
                 angle: cartItem.customizations.angle ?? cartItem.imageAdjustments?.rotation ?? printAreaConfig.defaultAngle
-              }
-            ]
+                    }
+                  ]
             // Se no futuro houver produtos com várias áreas (frente + costas),
             // adicionar aqui: "back": [{ src: "...", x: ..., y: ..., etc }]
-          }
+            }
         };
 
         // ✅ NOVA LÓGICA: Usar customizations.print_on_side como prioridade

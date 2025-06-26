@@ -130,43 +130,26 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   useEffect(() => {
     if (selectedImageUrl && product && selectedPrintifyVariantId) {
       const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-      if (selectedVariant && product.printAreasConfig && product.printAreasConfig.length > 0) {
-        const printAreaConfig = product.printAreasConfig[0]; // Assumindo apenas uma área de impressão para poster
+      if (!selectedVariant) return;
 
-        // Dimensões da sua arte em pixels (usando valores fixos como 1016x1016, ou de userImageNaturalWidth/Height se disponíveis)
-        // Para Posters, userImageWidth/Height deveriam vir da imagem selecionada da galeria.
-        // Se a imagem da galeria sempre tiver a mesma dimensão (ex: quadrada), use isso.
-        // Caso contrário, precisaria de obter essas dimensões da imagem real.
-        // Por agora, manter os valores fixos de exemplo, se não houver acesso às dimensões reais da imagem
-        const userImageWidth = 1016; // Asumindo que as suas imagens AI têm esta largura
-        const userImageHeight = 1016; // Asumindo que as suas imagens AI têm esta altura
+      const placeholderWidth = selectedVariant.placeholderWidth;
+      const placeholderHeight = selectedVariant.placeholderHeight;
+      const userImageWidth = 1016; // Assumindo que a imagem AI é sempre quadrada
+      const userImageHeight = 1016;
 
-        const placeholderWidth = selectedVariant.placeholderWidth;
-        const placeholderHeight = selectedVariant.placeholderHeight;
+      // Calcula a escala necessária para cada dimensão
+      const scaleToFitWidth = placeholderWidth / userImageWidth;
+      const scaleToFitHeight = placeholderHeight / userImageHeight;
 
-        let initialScale = 1.0;
-
-        // --- LÓGICA DE ESCALA ESPECÍFICA PARA POSTERS ---
-        if (product.id === 'poster_vertical_semi_glossy') {
-          // Para posters verticais (imagem quadrada em placeholder alto/estreito),
-          // queremos que a imagem preencha a LARGURA do placeholder, cortando a altura.
-          initialScale = placeholderWidth / userImageWidth;
-        } else if (product.id === 'poster_horizontal_semi_glossy') {
-          // Para posters horizontais (imagem quadrada em placeholder largo/baixo),
-          // queremos que a imagem preencha a ALTURA do placeholder, cortando a largura.
-          initialScale = placeholderHeight / userImageHeight;
-        } else {
-          // Para Canvas (que queremos que cubra tudo, indiferente da orientação)
-          initialScale = Math.max(placeholderWidth / userImageWidth, placeholderHeight / userImageHeight);
-        }
-
-        setImageAdjustments({
-          x: 0.5,
-          y: 0.5,
-          scale: initialScale,
-          rotation: 0,
-        });
-      }
+      // Usa a MAIOR das duas escalas para garantir que a imagem cobre tudo
+      const scaleToCover = Math.max(scaleToFitWidth, scaleToFitHeight);
+      
+      setImageAdjustments({
+        x: 0.5, // Mantém centrado
+        y: 0.5, // Mantém centrado
+        scale: scaleToCover, // Usa a nova escala calculada
+        rotation: 0
+      });
     }
   }, [selectedImageUrl, product, selectedPrintifyVariantId]);
 

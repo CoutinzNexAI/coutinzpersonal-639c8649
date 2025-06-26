@@ -147,69 +147,69 @@ export const OrdersModal: React.FC = () => {
         ) : (
           // Vista de Lista das Encomendas
           <>
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-semibold text-ghibli-earth flex items-center gap-2">
-                <Package2 className="w-6 h-6 text-ghibli-moss" />
-                As Minhas Encomendas
-              </DialogTitle>
-            </DialogHeader>
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-semibold text-ghibli-earth flex items-center gap-2">
+            <Package2 className="w-6 h-6 text-ghibli-moss" />
+            As Minhas Encomendas
+          </DialogTitle>
+        </DialogHeader>
 
-            {/* Search bar */}
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ghibli-earth/60 w-4 h-4" />
-              <Input
-                placeholder="Pesquisar por produto ou referência..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-ghibli-stone/30 focus:border-ghibli-moss"
-              />
+        {/* Search bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ghibli-earth/60 w-4 h-4" />
+          <Input
+            placeholder="Pesquisar por produto ou referência..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 border-ghibli-stone/30 focus:border-ghibli-moss"
+          />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto max-h-[60vh]">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-ghibli-moss animate-spin mb-4" />
+              <p className="text-ghibli-earth/70">A carregar as suas encomendas...</p>
             </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto max-h-[60vh]">
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 text-ghibli-moss animate-spin mb-4" />
-                  <p className="text-ghibli-earth/70">A carregar as suas encomendas...</p>
-                </div>
-              ) : filteredOrders.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Package className="w-12 h-12 text-ghibli-earth/40 mb-4" />
-                  <h3 className="text-lg font-medium text-ghibli-earth mb-2">
-                    {searchTerm ? 'Nenhuma encomenda encontrada' : 'Ainda não tem encomendas'}
-                  </h3>
-                  <p className="text-ghibli-earth/70 text-center max-w-md">
-                    {searchTerm 
-                      ? 'Tente pesquisar por outro termo ou limpe o filtro.'
-                      : 'Comece a personalizar produtos na nossa loja!'
-                    }
-                  </p>
-                  {!searchTerm && (
-                    <Button
-                      onClick={handleClose}
-                      className="mt-4"
-                      variant="outline"
-                    >
-                      Explorar Loja
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <OrderListView orders={filteredOrders} onOrderSelect={handleOrderClick} />
+          ) : filteredOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Package className="w-12 h-12 text-ghibli-earth/40 mb-4" />
+              <h3 className="text-lg font-medium text-ghibli-earth mb-2">
+                {searchTerm ? 'Nenhuma encomenda encontrada' : 'Ainda não tem encomendas'}
+              </h3>
+              <p className="text-ghibli-earth/70 text-center max-w-md">
+                {searchTerm 
+                  ? 'Tente pesquisar por outro termo ou limpe o filtro.'
+                  : 'Comece a personalizar produtos na nossa loja!'
+                }
+              </p>
+              {!searchTerm && (
+                <Button
+                  onClick={handleClose}
+                  className="mt-4"
+                  variant="outline"
+                >
+                  Explorar Loja
+                </Button>
               )}
             </div>
+          ) : (
+                <OrderListView orders={filteredOrders} onOrderSelect={handleOrderClick} />
+          )}
+        </div>
 
-            {/* Footer with count */}
-            <div className="border-t border-ghibli-stone/20 pt-4 flex justify-between items-center">
-              <p className="text-sm text-ghibli-earth/70">
-                {filteredOrders.length} encomenda{filteredOrders.length === 1 ? '' : 's'} 
-                {searchTerm && ` encontrada${filteredOrders.length === 1 ? '' : 's'}`}
-              </p>
-              
-              <Button variant="outline" onClick={handleClose}>
-                Fechar
-              </Button>
-            </div>
+        {/* Footer with count */}
+        <div className="border-t border-ghibli-stone/20 pt-4 flex justify-between items-center">
+          <p className="text-sm text-ghibli-earth/70">
+            {filteredOrders.length} encomenda{filteredOrders.length === 1 ? '' : 's'} 
+            {searchTerm && ` encontrada${filteredOrders.length === 1 ? '' : 's'}`}
+          </p>
+          
+          <Button variant="outline" onClick={handleClose}>
+            Fechar
+          </Button>
+        </div>
           </>
         )}
       </DialogContent>

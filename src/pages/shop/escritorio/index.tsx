@@ -31,7 +31,7 @@ const EscritorioShopPage: React.FC = () => {
             <nav className="text-sm text-[#4A6B5B]">
               <Link href="/shop" className="hover:text-[#2D5A27] transition-colors">
                 ← Voltar à Loja
-              </Link>
+            </Link>
             </nav>
           </div>
 
@@ -62,12 +62,12 @@ const EscritorioShopPage: React.FC = () => {
               const isNotebook = product.category === 'stationery';
               
               return (
-                <motion.div
+              <motion.div
                   key={productId}
                   initial={{ opacity: 0, y: 50 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                >
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
                   <Link href={`/shop/escritorio/${productId}`}>
                     <div className="group bg-white rounded-2xl shadow-lg border border-[#E8E0D0] overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
                       {/* Product Image */}
@@ -88,18 +88,18 @@ const EscritorioShopPage: React.FC = () => {
                               <div className="text-xs text-white/80">Arte</div>
                             </div>
                           </div>
-                        )}
+                      )}
                         {/* Preview Badge */}
                         <div className="absolute top-4 right-4 bg-[#2D5A27] text-white text-xs px-2 py-1 rounded-full">
                           Preview
-                        </div>
                       </div>
-                      
+                    </div>
+                    
                       {/* Product Info */}
                       <div className="p-6">
                         <h3 className="text-lg font-semibold text-[#2D5A27] mb-2 group-hover:text-[#4A6B5B] transition-colors">
-                          {product.name}
-                        </h3>
+                        {product.name}
+                      </h3>
                         
                         {/* Specifications */}
                         <div className="text-sm text-[#4A6B5B] space-y-1 mb-4">
@@ -114,7 +114,7 @@ const EscritorioShopPage: React.FC = () => {
                         </div>
                         
                         {/* Price */}
-                        <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between">
                           <div className="text-lg font-bold text-[#2D5A27]">
                             {product.basePrice ? `€${product.basePrice}` : `€${product.price || 20.00}`}
                           </div>
@@ -124,14 +124,14 @@ const EscritorioShopPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </Link>
-                </motion.div>
+                </Link>
+              </motion.div>
               );
             })}
           </div>
 
           {/* Info Section */}
-          <motion.div 
+          <motion.div
             className="mt-16 bg-white/80 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto border border-[#E8E0D0]"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -159,7 +159,7 @@ const EscritorioShopPage: React.FC = () => {
             </div>
           </motion.div>
         </main>
-        
+
         <Footer />
       </div>
     </>
