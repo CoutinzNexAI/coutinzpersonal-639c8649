@@ -167,24 +167,27 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     return finalAdjustments;
   }, [product]);
 
-  // ✅ INICIALIZAÇÃO CORRETA: Calcular estado inicial assim que todos os dados estão disponíveis
+  // ✅ GATILHO ÚNICO: Este useEffect é o único responsável por decidir quando gerar mockups
   useEffect(() => {
-    if (product && selectedPrintifyVariantId && userImageDimensions && selectedImageUrl && !imageAdjustments) {
-      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+    // Só gera se tivermos todos os dados necessários
+    if (selectedImageUrl && selectedPrintifyVariantId && userImageDimensions && userInfo?.id) {
       
-      if (selectedVariant) {
-        console.log('🎯 [INIT] Calculando estado inicial com escala FILL correta...');
-        
-        // Calcular ajustes iniciais com posição central e escala fill
-        const initialAdjustments = calculatePrintifyCoords('center', selectedPrintifyVariantId, userImageDimensions);
-        
-        console.log('✅ [INIT] Estado inicial definido:', initialAdjustments);
-        
-        // Aplicar imediatamente para eliminar bordas brancas
-        setImageAdjustments(initialAdjustments);
-      }
+      console.log('🔄 [UNIFIED] Detectada mudança de estado que requer nova mockup:', {
+        selectedImageUrl: !!selectedImageUrl,
+        selectedPrintifyVariantId,
+        imagePosition,
+        userImageDimensions: !!userImageDimensions
+      });
+
+      // Usa debounce para não fazer chamadas excessivas
+      const handler = setTimeout(() => {
+        console.log('🚀 [UNIFIED] Disparando geração de mockup após debounce...');
+        generateNewMockup(imagePosition, selectedPrintifyVariantId);
+      }, 300); // Pequeno atraso de 300ms
+
+      return () => clearTimeout(handler);
     }
-  }, [product, selectedPrintifyVariantId, userImageDimensions, selectedImageUrl, imageAdjustments, calculatePrintifyCoords]);
+  }, [selectedImageUrl, selectedPrintifyVariantId, imagePosition, userImageDimensions, userInfo?.id]); // Depende de TUDO o que pode mudar o design
 
   // Função para lidar com os mockups gerados pelo ProductCanvas
   const handlePreviewReady = useCallback((data: {
@@ -198,7 +201,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     console.log('✅ Printify mockups received:', data);
   }, []);
 
-  // Função para controlar ajustes de posição
+  // ✅ FUNÇÃO SIMPLIFICADA: Só muda o estado, o useEffect faz o resto
   const handleAdjustment = async (type: 'position', value: string) => {
     if (!userImageDimensions) {
       toast.error('Aguarde o carregamento da imagem');
@@ -212,16 +215,11 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
     console.log('🎮 [CAPA] handleAdjustment chamado:', { type, value, currentPosition: imagePosition });
 
-    let newPosition = imagePosition;
-
     if (type === 'position') {
-      newPosition = value as 'left' | 'center' | 'right';
-      setImagePosition(newPosition);
+      const newPosition = value as 'left' | 'center' | 'right';
+      setImagePosition(newPosition); // ✅ Só muda o estado - o useEffect vai disparar automaticamente
       console.log(`📍 [CAPA] Posição alterada de "${imagePosition}" para "${newPosition}"`);
     }
-
-    // Gerar nova mockup com a posição atualizada
-    await generateNewMockup(newPosition, selectedPrintifyVariantId);
   };
 
   // Função para gerar nova mockup
@@ -234,8 +232,11 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     console.log('🔄 [CAPA] Iniciando geração de nova mockup...', { currentPosition, currentVariantId });
     setIsGeneratingMockup(true);
 
-    // Calcula as coordenadas baseadas na posição e variante
+    // ✅ CALCULAR AJUSTES AUTOMATICAMENTE baseados na posição e variante
     const adjustments = calculatePrintifyCoords(currentPosition, currentVariantId, userImageDimensions);
+    
+    // ✅ APLICAR AJUSTES IMEDIATAMENTE para evitar bordas brancas
+    setImageAdjustments(adjustments);
 
     const requestBody = {
       productId: product?.id,
@@ -259,9 +260,6 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         setPrintifyPreviewUrls(data.previewUrls);
         setPrintifyImageId(data.printifyImageId);
         setPrintifyProductId(data.printifyProductId);
-        
-        // Atualizar os ajustes para refletir a nova posição
-        setImageAdjustments(adjustments);
         
         toast.success(`Posição alterada para: ${currentPosition === 'left' ? 'Esquerda' : currentPosition === 'right' ? 'Direita' : 'Centro'}`);
       } else {
@@ -486,17 +484,40 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
             >
               {/* Área Principal de Visualização OTIMIZADA para MOBILE */}
               <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[700px] bg-white rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl overflow-hidden mb-4 lg:mb-6 border border-ghibli-sand/20">
-                <ProductCanvas
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={imageAdjustments}
-                  onImageAdjust={setImageAdjustments}
-                  selectedPrintifyVariantId={selectedPrintifyVariantId}
-                />
+                {/* ✅ PRODUTO CANVAS COM ESTADO CONTROLADO */}
+                <div className={`transition-opacity duration-300 ${isGeneratingMockup ? 'opacity-50' : 'opacity-100'}`}>
+                  <ProductCanvas
+                    selectedProduct={product}
+                    userImageUrl={selectedImageUrl}
+                    userId={userInfo?.id}
+                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                    onPreviewReady={handlePreviewReady}
+                    onSelectImage={handleOpenGallery}
+                    imageAdjustments={imageAdjustments}
+                    onImageAdjust={setImageAdjustments}
+                    selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  />
+                </div>
+
+                {/* ✅ OVERLAY DE LOADING que aparece POR CIMA da imagem atual */}
+                {isGeneratingMockup && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl p-6 text-center max-w-xs mx-4">
+                      <div className="w-12 h-12 border-3 border-ghibli-moss border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <h3 className="font-bold text-ghibli-moss text-lg mb-2">
+                        Gerando Nova Posição
+                      </h3>
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        Aplicando: <span className="font-semibold text-ghibli-earth">
+                          {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
+                        </span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Aguarde alguns segundos...
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Botão "Escolher Arte" OTIMIZADO para MOBILE */}
@@ -591,17 +612,6 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                           <span className="text-sm mt-1 font-medium">Direita</span>
                         </Button>
                       </div>
-                      {isGeneratingMockup && (
-                        <div className="mt-4 text-center">
-                          <div className="flex items-center justify-center gap-3 text-[#2D5A27]">
-                            <div className="w-5 h-5 border-2 border-[#2D5A27] border-t-transparent rounded-full animate-spin"></div>
-                            <span className="font-medium">
-                              Nova posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'} 
-                              <span className="block text-sm text-gray-600">Aguarde alguns segundos...</span>
-                            </span>
-                          </div>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -708,8 +718,6 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                       📱 Modelo do Telemóvel
                     </label>
                   </div>
-
-
 
                   {/* 🛒 7. BOTÃO PRINCIPAL MOBILE-FIRST */}
                   <div className="pt-3">
