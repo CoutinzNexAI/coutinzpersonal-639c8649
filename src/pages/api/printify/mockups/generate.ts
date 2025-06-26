@@ -603,11 +603,40 @@ export default async function handler(
         defaultAngle: printAreaConfig.defaultAngle
       });
 
+      // ✅ LÓGICA INTELIGENTE DE FALLBACK: Calcular escala correta se não receber do frontend
+      let smartScale = printAreaConfig.defaultScale;
+      
+      if (!imageAdjustments?.scale && (productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy')) {
+        console.log('🧠 [BACKEND] Calculando escala inteligente para poster...');
+        
+        // Obter dimensões do placeholder da variante selecionada
+        const selectedVariant = product.variants?.find(v => v.id === targetVariantId);
+        if (selectedVariant) {
+          const placeholderWidth = selectedVariant.placeholderWidth;
+          const placeholderHeight = selectedVariant.placeholderHeight;
+          const userImageWidth = 1016; // Imagens AI quadradas
+          const userImageHeight = 1016;
+
+          // Usar Math.max() para garantir cobertura completa (sem bordas brancas)
+          const scaleToFitWidth = placeholderWidth / userImageWidth;
+          const scaleToFitHeight = placeholderHeight / userImageHeight;
+          smartScale = Math.max(scaleToFitWidth, scaleToFitHeight);
+          
+          console.log('🧠 [BACKEND] Cálculo de escala inteligente:', {
+            placeholderWidth,
+            placeholderHeight,
+            scaleToFitWidth,
+            scaleToFitHeight,
+            smartScale
+          });
+        }
+      }
+
       // Calcular valores finais que serão usados
       const finalValues = {
         x: imageAdjustments?.x || printAreaConfig.defaultX,
         y: imageAdjustments?.y || printAreaConfig.defaultY,
-        scale: imageAdjustments?.scale || printAreaConfig.defaultScale,
+        scale: imageAdjustments?.scale || smartScale,
         angle: imageAdjustments?.rotation || printAreaConfig.defaultAngle
       };
       console.log('🎯 [BACKEND] Valores finais para Printify:', finalValues);
