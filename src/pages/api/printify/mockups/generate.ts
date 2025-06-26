@@ -609,8 +609,8 @@ export default async function handler(
     } else if (productId === 'custom_canvas' || productId === 'framed_canvas' ||
                productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy' ||
                productId === 'ceramic_mug' || productId === 'heart_mug') {
-      // LÓGICA SIMPLIFICADA PARA CANVAS/POSTER/CANECAS (USA SRC, NÃO ID)
-      console.log(`🔄 Processing ${productId} with simplified robust logic (src + calculated scale)`);
+      // LÓGICA UNIFICADA PARA CANVAS/POSTER/CANECAS (USA SRC, NÃO ID)
+      console.log(`🔄 Processing ${productId} with unified robust logic (src + calculated scale)`);
 
       // Validar que temos a imagem URL
       if (!userImageUrl) {
@@ -625,8 +625,20 @@ export default async function handler(
       // ✅ DEBUG: Log dos imageAdjustments recebidos do frontend
       console.log('🎯 [BACKEND] imageAdjustments recebidos do frontend:', imageAdjustments);
 
-      // ✅ CALCULAR ESCALA SEMPRE (usando a lógica robusta do Math.max)
-      console.log(`🧠 [BACKEND] Calculando escala robusta para ${productId}...`);
+      // ✅ OBTER DIMENSÕES REAIS DA IMAGEM PARA CÁLCULO PRECISO
+      console.log(`🧠 [BACKEND] Obtendo dimensões reais da imagem para ${productId}...`);
+      
+      let userImageWidth = 1024; // Fallback
+      let userImageHeight = 1024; // Fallback
+      
+      try {
+        const imageDimensions = await getImageDimensions(userImageUrl);
+        userImageWidth = imageDimensions.width;
+        userImageHeight = imageDimensions.height;
+        console.log(`✅ Dimensões reais da imagem obtidas: ${userImageWidth}x${userImageHeight}`);
+      } catch (error) {
+        console.warn('⚠️ Erro ao obter dimensões da imagem, usando fallback 1024x1024:', error);
+      }
       
       // Obter dimensões do placeholder da variante selecionada
       const selectedVariant = product.variants?.find(v => v.id === targetVariantId);
@@ -635,10 +647,9 @@ export default async function handler(
       }
       
       const { placeholderWidth, placeholderHeight } = selectedVariant;
-      
-      // Obter dimensões da imagem do utilizador (do frontend ou fallback)
-      const userImageWidth = 1024; // Imagens AI quadradas padrão
-      const userImageHeight = 1024;
+
+      // ✅ CALCULAR ESCALA SEMPRE (usando a lógica robusta do Math.max)
+      console.log(`🧠 [BACKEND] Calculando escala robusta para ${productId}...`);
 
       // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
       const scaleToCover = Math.max(
