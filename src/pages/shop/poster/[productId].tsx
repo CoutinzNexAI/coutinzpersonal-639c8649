@@ -8,6 +8,7 @@ import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw } from 'lucide-re
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
 import { toast } from 'react-hot-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -52,6 +53,12 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
 
   // Estado para seleção de tamanho (para posters)
   const [selectedSizeLabel, setSelectedSizeLabel] = useState<string | null>(null);
+
+  // ✅ NOVO: Estado para dimensões da imagem do utilizador
+  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
+
+  // ✅ NOVO: Estado para posição manual (x, y em percentagem 0-100)
+  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
 
   // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
@@ -285,7 +292,15 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       return;
     }
 
-    // --- PASSO 1: Carregar a imagem transformada para a Printify Media Library ---
+    // ✅ PASSO 1 - Obtém as dimensões da imagem antes de fazer upload
+    const img = new Image();
+    img.onload = function(this: HTMLImageElement) {
+      setUserImageDimensions({ width: this.width, height: this.height });
+      console.log(`📐 Dimensões da Imagem Carregadas: ${this.width}x${this.height}`);
+    };
+    img.src = imageUrl;
+
+    // --- PASSO 2: Carregar a imagem transformada para a Printify Media Library ---
     toast.loading('A carregar arte para Printify...');
     setLoading(true);
 
@@ -302,7 +317,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       const uploadData = await printifyUploadResponse.json();
 
       if (printifyUploadResponse.ok && uploadData.success && uploadData.imageId) {
-        // --- PASSO 2: Atualizar estados com o ID e URL da Printify ---
+        // --- PASSO 3: Atualizar estados com o ID e URL da Printify ---
         setSelectedImageId(uploadData.imageId); // ESTE É O ID VÁLIDO DA PRINTIFY!
         setSelectedImageUrl(uploadData.previewUrl || imageUrl); // Usa o URL Printify retornado
         
@@ -311,6 +326,9 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         setPrintifyImageId('');
         setPrintifyProductId('');
         
+        // ✅ Reset posição para centro quando nova imagem é selecionada
+        setPosition({ x: 50, y: 50 });
+        
         toast.dismiss();
         toast.success('Arte carregada para Printify com sucesso!');
       } else {
@@ -318,6 +336,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         toast.error(uploadData.error || 'Erro ao carregar arte para Printify. Tente novamente.');
         setSelectedImageId(null);
         setSelectedImageUrl('');
+        // Reset dimensões se erro
+        setUserImageDimensions(null);
       }
     } catch (error) {
       console.error('❌ Erro no upload da arte para Printify:', error);
@@ -325,6 +345,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       toast.error('Erro na comunicação ao carregar arte para Printify.');
       setSelectedImageId(null);
       setSelectedImageUrl('');
+      // Reset dimensões se erro
+      setUserImageDimensions(null);
     } finally {
       setLoading(false);
     }
@@ -336,6 +358,93 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
+    // Reset dimensões e posição
+    setUserImageDimensions(null);
+    setPosition({ x: 50, y: 50 });
+  };
+
+  // ✅ FUNÇÃO PRINCIPAL: Lógica de Cálculo do Slider
+  const handlePositionChange = (value: number, axis: 'x' | 'y') => {
+    if (!userImageDimensions || !product || !selectedPrintifyVariantId) {
+      console.log('❌ Dados insuficientes para calcular posição');
+      return;
+    }
+
+    const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+    if (!selectedVariant) {
+      console.log('❌ Variante não encontrada');
+      return;
+    }
+
+    const { placeholderWidth, placeholderHeight } = selectedVariant;
+    const { width: userImageWidth, height: userImageHeight } = userImageDimensions;
+
+    // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área
+    const scaleToCover = Math.max(
+      placeholderWidth / userImageWidth,
+      placeholderHeight / userImageHeight
+    );
+
+    // PASSO B: Dimensões da imagem depois do zoom
+    const scaledImageWidth = userImageWidth * scaleToCover;
+    const scaledImageHeight = userImageHeight * scaleToCover;
+
+    // PASSO C: Calcular limites de movimento (áreas que "sobram")
+    const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
+    const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
+
+    console.log('🎯 Cálculos de movimento:', {
+      placeholderWidth,
+      placeholderHeight,
+      userImageWidth,
+      userImageHeight,
+      scaleToCover,
+      scaledImageWidth,
+      scaledImageHeight,
+      maxMovementX,
+      maxMovementY
+    });
+
+    // PASSO D: Atualizar estado da posição
+    const newPosition = { ...position };
+    newPosition[axis] = value;
+    setPosition(newPosition);
+
+    // PASSO E: Converter de percentagem (0-100) para coordenadas Printify (0.0-1.0)
+    let printifyX, printifyY;
+
+    if (maxMovementX > 0) {
+      // Imagem é mais larga que o placeholder - pode mover horizontalmente
+      const movementX = (newPosition.x - 50) / 50 * maxMovementX; // -maxMovementX a +maxMovementX
+      printifyX = 0.5 + (movementX / placeholderWidth);
+    } else {
+      // Imagem cabe horizontalmente - sempre centrada
+      printifyX = 0.5;
+    }
+
+    if (maxMovementY > 0) {
+      // Imagem é mais alta que o placeholder - pode mover verticalmente
+      const movementY = (newPosition.y - 50) / 50 * maxMovementY; // -maxMovementY a +maxMovementY
+      printifyY = 0.5 + (movementY / placeholderHeight);
+    } else {
+      // Imagem cabe verticalmente - sempre centrada
+      printifyY = 0.5;
+    }
+
+    console.log('📍 Posição final calculada:', {
+      sliderValue: value,
+      axis,
+      newPosition,
+      printifyX,
+      printifyY
+    });
+
+    // PASSO F: Atualizar imageAdjustments com a nova posição
+    setImageAdjustments(prev => ({
+      ...prev,
+      x: printifyX,
+      y: printifyY
+    }));
   };
 
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
@@ -547,6 +656,41 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* ✅ 5.5. CONTROLES DE POSIÇÃO - NOVO SLIDER */}
+                  {selectedImageUrl && userImageDimensions && product && product.id === 'poster_vertical_semi_glossy' && (
+                    <div className="bg-gradient-to-br from-blue-50/80 to-blue-100/50 rounded-xl p-6 border border-blue-200/50">
+                      <div className="flex items-center gap-2 mb-4">
+                        <ChevronDown className="w-4 h-4 text-blue-700" />
+                        <label className="text-sm font-bold text-blue-700">
+                          Ajustar Posição Horizontal
+                        </label>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <Slider
+                          defaultValue={[50]}
+                          max={100}
+                          step={1}
+                          value={[position.x]}
+                          onValueChange={(value) => handlePositionChange(value[0], 'x')}
+                          className="w-full"
+                        />
+                        
+                        <div className="flex justify-between text-xs text-blue-600 font-medium">
+                          <span>← Esquerda</span>
+                          <span className="bg-blue-100 px-2 py-1 rounded">
+                            Posição: {position.x}%
+                          </span>
+                          <span>Direita →</span>
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-blue-600 mt-3 leading-relaxed">
+                        💡 Arraste para ajustar a posição da sua arte dentro do poster
+                      </p>
+                    </div>
+                  )}
 
                   {/* 6. BLOCO DE AÇÕES - LÓGICA CONDICIONAL */}
                   <div className="pt-4">
