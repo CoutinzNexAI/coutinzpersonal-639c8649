@@ -523,8 +523,9 @@ export default async function handler(
       });
     } else if (productId === 'custom_canvas' || productId === 'framed_canvas' ||
                productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy' ||
-               productId === 'ceramic_mug' || productId === 'heart_mug') {
-      // LÓGICA UNIFICADA PARA CANVAS/POSTER/CANECAS (USA SRC, NÃO ID)
+               productId === 'ceramic_mug' || productId === 'heart_mug' ||
+               productId === 'custom_phone_case') {
+      // LÓGICA UNIFICADA PARA CANVAS/POSTER/CANECAS/CAPAS (USA SRC, NÃO ID)
       console.log(`🔄 Processing ${productId} with unified robust logic (src + calculated scale)`);
 
       // Validar que temos a imagem URL

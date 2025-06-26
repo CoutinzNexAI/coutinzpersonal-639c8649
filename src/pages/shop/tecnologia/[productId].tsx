@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, Check, Upload, RotateCw, ChevronDown, ArrowRight } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, Check, Upload, RotateCw, ChevronDown, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,7 +14,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
-import { ChevronLeft } from 'lucide-react';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
@@ -47,6 +46,11 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  
+  // Estados para posicionamento horizontal
+  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
+  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState(false);
   
   // Estados para Printify
   const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
@@ -87,37 +91,85 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     }
   }, [selectedPrintifyVariantId]); // Só depende da variante
 
-  // Calcular defaultScale dinâmico e atualizar imageAdjustments (PRIMEIRA seleção de imagem)
+  // Função para calcular coordenadas Printify baseadas na posição horizontal
+  const calculatePrintifyCoords = useCallback((position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
+    if (!product) {
+      console.log('❌ Produto não encontrado');
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    }
+
+    const selectedVariant = product.variants?.find(v => v.id === variantId);
+    if (!selectedVariant) {
+      console.log('❌ Variante não encontrada');
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    }
+
+    const { placeholderWidth, placeholderHeight } = selectedVariant;
+    const { width: userImageWidth, height: userImageHeight } = imageDimensions;
+
+    // PASSO A: Calcular escala para cobrir completamente (lógica Math.max)
+    const scaleToCover = Math.max(
+      placeholderWidth / userImageWidth,
+      placeholderHeight / userImageHeight
+    );
+    const finalImageWidth = userImageWidth * scaleToCover;
+    const printifyScale = finalImageWidth / placeholderWidth;
+
+    // PASSO B: Calcular movimento horizontal
+    let printifyX = 0.5; // Centro padrão
+    const printifyY = 0.5; // Centro padrão (não se move verticalmente)
+
+    // Para capas (formato vertical): Ajustar coordenada X baseada na posição (left/center/right)
+    const scaledImageWidth = userImageWidth * scaleToCover;
+    const overflowX = Math.max(0, scaledImageWidth - placeholderWidth);
+    const maxOffsetX = (overflowX / 2) / placeholderWidth;
+
+    if (maxOffsetX > 0) {
+      if (position === 'left') {
+        printifyX = 0.5 - (maxOffsetX * 0.7); // 70% para a esquerda
+      } else if (position === 'right') {
+        printifyX = 0.5 + (maxOffsetX * 0.7); // 70% para a direita
+      }
+      // 'center' fica com printifyX = 0.5
+    }
+
+    const finalAdjustments = {
+      x: printifyX,
+      y: printifyY,
+      scale: printifyScale,
+      rotation: 0
+    };
+
+    console.log('🎯 [CAPA] Coordenadas calculadas:', {
+      position,
+      variantId,
+      scaleToCover,
+      printifyScale,
+      overflowX,
+      maxOffsetX,
+      printifyX,
+      finalAdjustments
+    });
+
+    return finalAdjustments;
+  }, [product]);
+
+  // Calcular ajustes iniciais com a nova lógica de posicionamento
   useEffect(() => {
     // 🎯 APENAS para primeira seleção - se não há imageAdjustments definido
-    if (selectedImageUrl && product && selectedPrintifyVariantId && !imageAdjustments) {
+    if (selectedImageUrl && product && selectedPrintifyVariantId && !imageAdjustments && userImageDimensions) {
       const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
       if (selectedVariant && product.printAreasConfig && product.printAreasConfig.length > 0) {
-        const printAreaConfig = product.printAreasConfig[0]; // Assumindo apenas uma área de impressão para capas
+        // Usar a nova lógica calculatePrintifyCoords com posição central
+        const initialAdjustments = calculatePrintifyCoords('center', selectedPrintifyVariantId, userImageDimensions);
+        
+        console.log(`🎯 PRIMEIRA SELEÇÃO - Usando nova lógica de posicionamento:`, initialAdjustments);
 
-        // Dimensões da imagem AI (padrão 1024x1024 para transformações PicTuz)
-        const userImageWidth = 1024;
-        const userImageHeight = 1024;
-
-        // Dimensões do placeholder da variante selecionada
-        const placeholderWidth = selectedVariant.placeholderWidth;
-        const placeholderHeight = selectedVariant.placeholderHeight;
-
-        // 🎯 MODO "Fill to placeholder" - scale 1.0 com X e Y centrados
-        const fillScale = 1.0;
-
-        console.log(`🎯 PRIMEIRA SELEÇÃO - Modo Fill to Placeholder: scale=${fillScale}, centrado (placeholder: ${placeholderWidth}x${placeholderHeight}, image: ${userImageWidth}x${userImageHeight})`);
-
-        // Define os ajustes iniciais - modo "Fill to placeholder" centrado
-        setImageAdjustments({
-          x: 0.5, // SEMPRE centrado horizontalmente
-          y: 0.5, // SEMPRE centrado verticalmente
-          scale: fillScale, // Scale 1.0 = Fill to placeholder
-          rotation: printAreaConfig.defaultAngle || 0
-        });
+        // Define os ajustes iniciais usando a função de cálculo
+        setImageAdjustments(initialAdjustments);
       }
     }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId, imageAdjustments]); // Dependências corretas
+  }, [selectedImageUrl, product, selectedPrintifyVariantId, imageAdjustments, userImageDimensions, calculatePrintifyCoords]); // Dependências corretas
 
   // Função para lidar com os mockups gerados pelo ProductCanvas
   const handlePreviewReady = useCallback((data: {
@@ -130,6 +182,84 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setPrintifyProductId(data.printifyProductId);
     console.log('✅ Printify mockups received:', data);
   }, []);
+
+  // Função para controlar ajustes de posição
+  const handleAdjustment = async (type: 'position', value: string) => {
+    if (!userImageDimensions) {
+      toast.error('Aguarde o carregamento da imagem');
+      return;
+    }
+
+    if (!selectedPrintifyVariantId) {
+      toast.error('Selecione um modelo de telemóvel primeiro');
+      return;
+    }
+
+    console.log('🎮 [CAPA] handleAdjustment chamado:', { type, value, currentPosition: imagePosition });
+
+    let newPosition = imagePosition;
+
+    if (type === 'position') {
+      newPosition = value as 'left' | 'center' | 'right';
+      setImagePosition(newPosition);
+      console.log(`📍 [CAPA] Posição alterada de "${imagePosition}" para "${newPosition}"`);
+    }
+
+    // Gerar nova mockup com a posição atualizada
+    await generateNewMockup(newPosition, selectedPrintifyVariantId);
+  };
+
+  // Função para gerar nova mockup
+  const generateNewMockup = async (currentPosition: 'left' | 'center' | 'right', currentVariantId: number) => {
+    if (!userImageDimensions || !selectedImageUrl || !selectedImageId) {
+      console.log('❌ Dados insuficientes para gerar mockup');
+      return;
+    }
+
+    console.log('🔄 [CAPA] Iniciando geração de nova mockup...', { currentPosition, currentVariantId });
+    setIsGeneratingMockup(true);
+
+    // Calcula as coordenadas baseadas na posição e variante
+    const adjustments = calculatePrintifyCoords(currentPosition, currentVariantId, userImageDimensions);
+
+    const requestBody = {
+      productId: product?.id,
+      userImageUrl: selectedImageUrl,
+      userId: userInfo?.id,
+      imageAdjustments: adjustments,
+      selectedPrintifyVariantId: currentVariantId,
+    };
+
+    try {
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success && data.previewUrls && data.previewUrls.length > 0) {
+        console.log('✅ [CAPA] Nova mockup gerada com sucesso!', data.previewUrls.length, 'imagens');
+        setPrintifyPreviewUrls(data.previewUrls);
+        setPrintifyImageId(data.printifyImageId);
+        setPrintifyProductId(data.printifyProductId);
+        
+        // Atualizar os ajustes para refletir a nova posição
+        setImageAdjustments(adjustments);
+        
+        toast.success(`Posição alterada para: ${currentPosition === 'left' ? 'Esquerda' : currentPosition === 'right' ? 'Direita' : 'Centro'}`);
+      } else {
+        console.error('❌ [CAPA] Erro ao gerar nova mockup:', data.error || 'Resposta inválida');
+        toast.error('Erro ao gerar nova preview. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('❌ [CAPA] Falha na chamada à API:', error);
+      toast.error('Erro de conexão. Tente novamente.');
+    } finally {
+      setIsGeneratingMockup(false);
+    }
+  };
 
   const handleAddToCart = async () => {
     // Mostrar toast se não há arte selecionada
@@ -195,12 +325,11 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         customizations: {
           variantId: selectedPrintifyVariantId!,
           phoneModel: selectedVariant?.title || 'Modelo não encontrado',
-          // ✅ OS CAMPOS CRÍTICOS: Usar defaultDesign do produto
-          scale: getPrintifyProduct(productId as string)?.defaultDesign.scale || 1.0,
-          x: getPrintifyProduct(productId as string)?.defaultDesign.x || 0.5,
-          y: getPrintifyProduct(productId as string)?.defaultDesign.y || 0.5,
-          angle: getPrintifyProduct(productId as string)?.defaultDesign.angle || 0,
-          print_on_side: getPrintifyProduct(productId as string)?.defaultDesign.print_on_side,
+          // ✅ OS CAMPOS CRÍTICOS: Usar ajustes calculados ou valores padrão
+          scale: imageAdjustments?.scale || 1.0,
+          x: imageAdjustments?.x || 0.5,
+          y: imageAdjustments?.y || 0.5,
+          angle: imageAdjustments?.rotation || 0,
         },
         imageAdjustments,
       });
@@ -230,10 +359,16 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
     
+    // Reset posição para centro
+    setImagePosition('center');
+    
     // Reset mockups para gerar novos
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
+    
+    // Definir dimensões da imagem (padrão AI: 1024x1024)
+    setUserImageDimensions({ width: 1024, height: 1024 });
     
     // *** CORREÇÃO CRÍTICA: Reset imageAdjustments para valores padrão do produto ***
     // Isso força um novo cálculo de scale baseado na nova imagem e variante selecionada
@@ -497,7 +632,64 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     </label>
                   </div>
 
-
+                  {/* 🎮 6. CONTROLOS DE AJUSTE HORIZONTAL */}
+                  {selectedImageUrl && product?.supportsManualAdjustment && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.4 }}
+                      className="mt-6"
+                    >
+                      <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
+                        <CardContent className="p-4">
+                          <div className="text-center mb-3">
+                            <h3 className="text-base font-bold text-[#2D5A27] flex items-center justify-center gap-2">
+                              <RotateCw className="w-4 h-4" />
+                              Ajustar Posição Horizontal
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-1">Desloque a sua arte para a posição ideal.</p>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <Button
+                              onClick={() => handleAdjustment('position', 'left')}
+                              variant={imagePosition === 'left' ? 'default' : 'outline'}
+                              disabled={isGeneratingMockup}
+                              className="flex flex-col h-auto py-3"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                              <span className="text-xs mt-1">Esquerda</span>
+                            </Button>
+                            <Button
+                              onClick={() => handleAdjustment('position', 'center')}
+                              variant={imagePosition === 'center' ? 'default' : 'outline'}
+                              disabled={isGeneratingMockup}
+                              className="flex flex-col h-auto py-3"
+                            >
+                              <span className="font-bold">Centro</span>
+                              <span className="text-xs mt-1">{isGeneratingMockup ? 'A gerar...' : 'Posição 0%'}</span>
+                            </Button>
+                            <Button
+                              onClick={() => handleAdjustment('position', 'right')}
+                              variant={imagePosition === 'right' ? 'default' : 'outline'}
+                              disabled={isGeneratingMockup}
+                              className="flex flex-col h-auto py-3"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                              <span className="text-xs mt-1">Direita</span>
+                            </Button>
+                          </div>
+                          {isGeneratingMockup && (
+                            <div className="mt-3 text-center">
+                              <div className="flex items-center justify-center gap-2 text-sm text-[#2D5A27]">
+                                <div className="w-4 h-4 border-2 border-[#2D5A27] border-t-transparent rounded-full animate-spin"></div>
+                                <span>Nova posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'} - Aguarde alguns segundos</span>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
 
                   {/* 🛒 7. BOTÃO PRINCIPAL MOBILE-FIRST */}
                   <div className="pt-3">
