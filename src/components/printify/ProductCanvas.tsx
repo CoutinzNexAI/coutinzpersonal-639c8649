@@ -464,10 +464,7 @@ export default function ProductCanvas({
             ))}
           </div>
 
-          {/* Badge de contagem */}
-          <Badge className="absolute top-4 right-4 bg-ghibli-moss text-white">
-            {currentPreviewIndex + 1} / {printifyGeneratedPreviewUrls.length}
-          </Badge>
+
         </>
       )}
     </div>

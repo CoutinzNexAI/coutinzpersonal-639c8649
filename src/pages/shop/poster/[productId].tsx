@@ -571,7 +571,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       <div className="min-h-screen bg-gradient-to-br from-[#FAF8F0] via-[#F5F1E8] to-[#E8E0D0]">
         <Header />
         
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-6">
           {/* Breadcrumb */}
           <div className="mb-6">
             <nav className="text-sm text-[#4A6B5B] space-x-2">
@@ -583,7 +583,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Coluna da Esquerda - Área Maximizada de Visualização (2 colunas) */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -591,8 +591,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
               transition={{ duration: 0.6 }}
               className="lg:col-span-2"
             >
-              {/* Área Principal de Visualização OTIMIZADA - Mais Alta */}
-              <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-[#E8E0D0]">
+              {/* Área Principal de Visualização OTIMIZADA - Ajustada para caber tudo */}
+              <div className="relative w-full h-[500px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-[#E8E0D0]">
                 {/* ✅ OVERLAY DE LOADING quando nova mockup está a ser gerada */}
                 {isGeneratingMockup && (
                   <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-20 rounded-2xl">
@@ -675,12 +675,12 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.4 }}
-                  className="mt-6"
+                  className="mt-4"
                 >
                   <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
-                    <CardContent className="p-6">
-                      <div className="text-center mb-4">
-                        <h3 className="text-lg font-bold text-[#2D5A27] mb-2">
+                    <CardContent className="p-4">
+                      <div className="text-center mb-3">
+                        <h3 className="text-lg font-bold text-[#2D5A27] mb-1">
                           Ajustar Posição
                         </h3>
                         <p className="text-sm text-[#4A6B5B]/80">
@@ -688,7 +688,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         </p>
                       </div>
                       
-                      <div className="flex gap-3 mb-4">
+                      <div className="flex gap-3 mb-3">
                         <Button 
                           onClick={() => handleAdjustment('position', 'left')} 
                           variant={imagePosition === 'left' ? 'default' : 'outline'}
@@ -771,17 +771,17 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
             >
               {/* CARTÃO PRINCIPAL - Painel de Controlo Único */}
               <Card className="bg-gradient-to-br from-white to-[#F5F1E8]/30 backdrop-blur-sm border-[#E8E0D0]/30 shadow-xl hover:shadow-2xl transition-shadow duration-300">
-                <CardContent className="p-8 space-y-6">
+                <CardContent className="p-6 space-y-4">
                   {/* 1. TÍTULO MELHORADO */}
                   <div className="text-center">
-                    <h1 className="text-4xl font-black text-[#2D5A27] mb-4 leading-tight">
+                    <h1 className="text-4xl font-black text-[#2D5A27] mb-3 leading-tight">
                       Poster Vertical
                     </h1>
                     <div className="w-16 h-1 bg-gradient-to-r from-[#2D5A27] to-[#4A6B5B] mx-auto rounded-full"></div>
                   </div>
 
                   {/* 2. PREÇO CENTRADO */}
-                  <div className="bg-gradient-to-r from-[#2D5A27]/10 to-[#2D5A27]/5 rounded-xl p-6 text-center">
+                  <div className="bg-gradient-to-r from-[#2D5A27]/10 to-[#2D5A27]/5 rounded-xl p-4 text-center">
                     <div className="space-y-1">
                       <span className="block text-5xl font-black text-[#2D5A27] drop-shadow-sm">
                         €{finalPrice.toFixed(2)}
