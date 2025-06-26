@@ -159,7 +159,7 @@ export default function ProductCanvas({
             requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
         }
 
-        // Para Poster products, adicionar printifyImageId se disponível
+        // Para Poster products, adicionar printifyImageId e imageAdjustments
         if (selectedProduct.id.includes('poster_')) {
           if (selectedImageId) {
             // Usar selectedImageId diretamente se disponível
@@ -170,6 +170,12 @@ export default function ProductCanvas({
             if (printifyImageIdMatch) {
               requestBody.printifyImageId = printifyImageIdMatch[1];
             }
+          }
+          
+          // ✅ CORREÇÃO: Enviar imageAdjustments calculados (Math.max) para o backend
+          if (imageAdjustments) {
+            requestBody.imageAdjustments = imageAdjustments;
+            console.log('🎯 [POSTER] Enviando imageAdjustments para backend:', imageAdjustments);
           }
         }
       }

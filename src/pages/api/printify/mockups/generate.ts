@@ -594,6 +594,24 @@ export default async function handler(
         throw new Error('Print area configuration not found for Canvas product');
       }
 
+      // ✅ DEBUG: Log dos imageAdjustments recebidos do frontend
+      console.log('🎯 [BACKEND] imageAdjustments recebidos do frontend:', imageAdjustments);
+      console.log('🎯 [BACKEND] printAreaConfig defaults:', {
+        defaultX: printAreaConfig.defaultX,
+        defaultY: printAreaConfig.defaultY,
+        defaultScale: printAreaConfig.defaultScale,
+        defaultAngle: printAreaConfig.defaultAngle
+      });
+
+      // Calcular valores finais que serão usados
+      const finalValues = {
+        x: imageAdjustments?.x || printAreaConfig.defaultX,
+        y: imageAdjustments?.y || printAreaConfig.defaultY,
+        scale: imageAdjustments?.scale || printAreaConfig.defaultScale,
+        angle: imageAdjustments?.rotation || printAreaConfig.defaultAngle
+      };
+      console.log('🎯 [BACKEND] Valores finais para Printify:', finalValues);
+
       // Criar produto temporário na Printify para gerar mockup
       const printifyProductPayload = {
         title: `PicTuz Canvas Mockup (${user.id}-${Date.now()})`,
@@ -613,10 +631,10 @@ export default async function handler(
             position: printAreaConfig.position,
             images: [{
               id: finalPrintifyImageId,
-              x: imageAdjustments?.x || printAreaConfig.defaultX,
-              y: imageAdjustments?.y || printAreaConfig.defaultY,
-              scale: imageAdjustments?.scale || printAreaConfig.defaultScale,
-              angle: imageAdjustments?.rotation || printAreaConfig.defaultAngle
+              x: finalValues.x,
+              y: finalValues.y,
+              scale: finalValues.scale,
+              angle: finalValues.angle
             }]
           }]
           // *** REMOVIDO print_details DAQUI - agora está no nível superior ***
