@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, Upload, ArrowRight } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, Upload, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,10 +13,10 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
-import { ChevronLeft } from 'lucide-react';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
+import { RateLimiter } from '@/lib/utils/rateLimiter';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
 
@@ -41,6 +41,69 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
   const [printifyImageId, setPrintifyImageId] = useState<string>('');
   const [printifyProductId, setPrintifyProductId] = useState<string>('');
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
+
+  // ✅ ESTADOS DO SISTEMA DE POSICIONAMENTO HORIZONTAL (copiado das capas)
+  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
+  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState(false);
+
+  // ✅ FUNÇÃO DE CÁLCULO DE COORDENADAS (copiada das capas e adaptada para caderno)
+  const calculatePrintifyCoords = useCallback((
+    position: 'left' | 'center' | 'right',
+    variantId: number,
+    userImageDimensions: { width: number; height: number }
+  ) => {
+    const selectedVariant = product?.variants?.find(v => v.id === variantId);
+    if (!selectedVariant) {
+      throw new Error('Variante não encontrada');
+    }
+
+    const { placeholderWidth, placeholderHeight } = selectedVariant;
+    const { width: userImageWidth, height: userImageHeight } = userImageDimensions;
+
+    console.log('🔍 [CADERNO] Calculando coordenadas:', { position, placeholderWidth, placeholderHeight, userImageWidth, userImageHeight });
+
+    // PASSO A: Escala Math.max para cobrir toda a área
+    const scaleToCover = Math.max(
+      placeholderWidth / userImageWidth,
+      placeholderHeight / userImageHeight
+    );
+
+    // PASSO B: Traduzir para escala Printify
+    const finalImageWidth = userImageWidth * scaleToCover;
+    const printifyScale = finalImageWidth / placeholderWidth;
+
+    console.log('🔍 [CADERNO] Escala calculada:', { scaleToCover, finalImageWidth, printifyScale });
+
+    // PASSO C: Calcular movimento horizontal
+    const scaledImageWidth = userImageWidth * scaleToCover;
+    const overflowX = Math.max(0, scaledImageWidth - placeholderWidth);
+    const maxOffsetX = (overflowX / 2) / placeholderWidth;
+
+    let printifyX = 0.5; // Centro padrão
+
+    if (overflowX > 0) {
+      if (position === 'left') {
+        const movementX = -maxOffsetX * 0.35; // ✅ MOVIMENTO SUBTIL: 35% (mesma lógica das capas)
+        printifyX = 0.5 + movementX;
+      } else if (position === 'right') {
+        const movementX = maxOffsetX * 0.35; // ✅ MOVIMENTO SUBTIL: 35% (mesma lógica das capas)
+        printifyX = 0.5 + movementX;
+      }
+      // 'center' fica com printifyX = 0.5
+    }
+
+    const finalAdjustments = {
+      x: printifyX,
+      y: 0.5,
+      scale: printifyScale,
+      rotation: 0
+    };
+
+    console.log('✅ [CADERNO] Coordenadas finais:', finalAdjustments);
+
+    return finalAdjustments;
+  }, [product]);
 
   // Função utilitária: Validação consolidada
   const validatePurchase = () => {
@@ -71,21 +134,127 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
     }
   }, [productId, initialProduct, router]);
 
-  // Calcular imageAdjustments apenas na primeira seleção
+  // ✅ CONTROLADOR DE TRÁFEGO MESTRE: Único useEffect responsável por gerar mockups
+  // Só executa quando TODOS os dados necessários estão prontos (evita a "corrida")
   useEffect(() => {
-    if (selectedImageUrl && product && selectedPrintifyVariantId && !imageAdjustments) {
-      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-      if (selectedVariant && product.printAreasConfig?.length) {
-        const printAreaConfig = product.printAreasConfig[0];
-        setImageAdjustments({
-          x: 0.5,
-          y: 0.5,
-          scale: 1.0,
-          rotation: printAreaConfig.defaultAngle || 0
-        });
-      }
+    // ✅ CONDIÇÃO DE GUARDA: SÓ avança se tivermos TODOS os dados necessários
+    if (!selectedImageUrl || !selectedPrintifyVariantId || !userImageDimensions || !userInfo?.id) {
+      console.log("⏳ [CADERNO-CONTROLLER] A aguardar todos os dados para gerar mockup...", {
+        selectedImageUrl: !!selectedImageUrl,
+        selectedPrintifyVariantId: !!selectedPrintifyVariantId,
+        userImageDimensions: !!userImageDimensions,
+        userId: !!userInfo?.id
+      });
+      return; // Se alguma informação crucial falta, não faz nada
     }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId, imageAdjustments]);
+
+    console.log('🚀 [CADERNO-CONTROLLER] TODOS os dados prontos! Iniciando geração...', {
+      selectedImageUrl: !!selectedImageUrl,
+      selectedPrintifyVariantId,
+      imagePosition,
+      userImageDimensions,
+      userId: !!userInfo?.id
+    });
+
+    // ✅ DEBOUNCE MÍNIMO: Apenas para garantir que o estado React estabiliza
+    const handler = setTimeout(() => {
+      console.log('🎯 [CADERNO-CONTROLLER] Disparando geração com dimensões reais confirmadas...');
+      
+      // ✅ A posição vem do estado controlado pelos botões
+      const currentPosition = imagePosition;
+      
+      // ✅ Chama a função que faz todo o trabalho COM as dimensões reais
+      generateNewMockup(currentPosition, selectedPrintifyVariantId);
+
+    }, 100); // Debounce mínimo apenas para estabilizar o React state
+
+    return () => clearTimeout(handler);
+
+  // ✅ DEPENDÊNCIAS CRUCIAIS: Qualquer mudança nestes valores dispara nova geração
+  }, [selectedImageUrl, selectedPrintifyVariantId, imagePosition, userImageDimensions, userInfo?.id]);
+
+  // ✅ FUNÇÃO PARA AJUSTAR POSIÇÃO (copiada das capas)
+  const handleAdjustment = async (type: 'position', value: string) => {
+    // ✅ RATE LIMITING: Verificar se pode fazer o pedido
+    const { allowed, message } = RateLimiter.checkRequestLimit();
+    if (!allowed) {
+      toast.error(message);
+      return;
+    }
+
+    if (!userImageDimensions) {
+      toast.error('Aguarde o carregamento da imagem');
+      return;
+    }
+
+    if (!selectedPrintifyVariantId) {
+      toast.error('Selecione o tipo de produto primeiro');
+      return;
+    }
+
+    console.log('🎮 [CADERNO] handleAdjustment chamado:', { type, value, currentPosition: imagePosition });
+
+    if (type === 'position') {
+      const newPosition = value as 'left' | 'center' | 'right';
+      setImagePosition(newPosition); // ✅ Só muda o estado - o useEffect vai disparar automaticamente
+      console.log(`📍 [CADERNO] Posição alterada de "${imagePosition}" para "${newPosition}"`);
+      
+      // ✅ REGISTAR PEDIDO: Após mudança bem-sucedida
+      RateLimiter.recordRequest();
+    }
+  };
+
+  // ✅ FUNÇÃO PARA GERAR NOVA MOCKUP (copiada das capas)
+  const generateNewMockup = async (currentPosition: 'left' | 'center' | 'right', currentVariantId: number) => {
+    if (!userImageDimensions || !selectedImageUrl || !selectedImageId) {
+      console.log('❌ Dados insuficientes para gerar mockup');
+      return;
+    }
+
+    console.log('🔄 [CADERNO] Iniciando geração de nova mockup...', { currentPosition, currentVariantId });
+    setIsGeneratingMockup(true);
+
+    // ✅ CALCULAR AJUSTES AUTOMATICAMENTE baseados na posição e variante
+    const adjustments = calculatePrintifyCoords(currentPosition, currentVariantId, userImageDimensions);
+    
+    // ✅ APLICAR AJUSTES IMEDIATAMENTE para evitar bordas brancas
+    setImageAdjustments(adjustments);
+
+    const requestBody = {
+      productId: product?.id,
+      userImageUrl: selectedImageUrl,
+      userId: userInfo?.id,
+      imageAdjustments: adjustments,
+      selectedPrintifyVariantId: currentVariantId,
+    };
+
+    try {
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success && data.previewUrls && data.previewUrls.length > 0) {
+        console.log('✅ [CADERNO] Nova mockup gerada com sucesso!', data.previewUrls.length, 'imagens');
+        setPrintifyPreviewUrls(data.previewUrls);
+        setPrintifyImageId(data.printifyImageId);
+        setPrintifyProductId(data.printifyProductId);
+        
+        toast.success(`Posição alterada para: ${currentPosition === 'left' ? 'Esquerda' : currentPosition === 'right' ? 'Direita' : 'Centro'}`);
+      } else {
+        console.error('❌ [CADERNO] Erro ao gerar nova mockup:', data.error || 'Resposta inválida');
+        toast.error('Erro ao gerar nova preview. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('❌ [CADERNO] Falha na chamada à API:', error);
+      toast.error('Erro de conexão. Tente novamente.');
+    } finally {
+      setIsGeneratingMockup(false);
+    }
+  };
 
   // Handlers simplificados
   const handlePreviewReady = useCallback((data: {
@@ -148,17 +317,51 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
   const handleOpenGallery = () => setIsGalleryModalOpen(true);
 
   const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
+    console.log('🎬 [CADERNO-SYNC] Iniciando seleção de imagem...', { imageUrl: !!imageUrl, imageId });
+    
+    setLoading(true); // ✅ Loading geral enquanto carrega dimensões
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
     
-    // Reset estados Printify para nova geração
+    // ✅ Reset estados - preparar para nova imagem
+    setImagePosition('center');
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
-    setImageAdjustments(undefined);
+    setImageAdjustments(undefined); // Limpar ajustes antigos
     
-    toast.success('Arte aplicada com sucesso!');
+    // ✅ CRÍTICO: Reset userImageDimensions para null
+    // Isto impede o useEffect de disparar antes das dimensões estarem prontas
+    setUserImageDimensions(null);
+    
+    console.log('🔄 [CADERNO-SYNC] Estados resetados. Carregando dimensões reais da imagem...');
+    
+    // ✅ AGUARDAR DIMENSÕES REAIS: Só define userImageDimensions quando tiver certeza
+    const img = new Image();
+    img.onload = function(this: HTMLImageElement) {
+      const realWidth = this.naturalWidth;
+      const realHeight = this.naturalHeight;
+      
+      console.log(`✅ [CADERNO-SYNC] Dimensões carregadas: ${realWidth}x${realHeight}`);
+      
+      // ✅ AGORA SIM: Define as dimensões reais
+      // Isto vai disparar o useEffect que vai gerar a mockup
+      setUserImageDimensions({ width: realWidth, height: realHeight });
+      setLoading(false);
+      
+      toast.success('Arte selecionada com sucesso!');
+    };
+    
+    img.onerror = () => {
+      console.error('❌ [CADERNO-SYNC] Erro ao carregar imagem. Usando fallback 1024x1024');
+      setUserImageDimensions({ width: 1024, height: 1024 }); // Fallback seguro
+      setLoading(false);
+      toast.success('Arte selecionada (dimensões estimadas)');
+    };
+    
+    // ✅ INICIAR CARREGAMENTO: Isto dispara o img.onload
+    img.src = imageUrl;
   };
 
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
@@ -222,17 +425,40 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
               className="lg:col-span-2 order-1"
             >
               <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[700px] bg-white rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl overflow-hidden mb-4 lg:mb-6 border border-ghibli-sand/20">
-                <ProductCanvas
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={imageAdjustments}
-                  onImageAdjust={setImageAdjustments}
-                  selectedPrintifyVariantId={selectedPrintifyVariantId}
-                />
+                {/* ✅ PRODUTO CANVAS COM ESTADO CONTROLADO */}
+                <div className={`transition-opacity duration-300 ${isGeneratingMockup ? 'opacity-50' : 'opacity-100'}`}>
+                  <ProductCanvas
+                    selectedProduct={product}
+                    userImageUrl={selectedImageUrl}
+                    userId={userInfo?.id}
+                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                    onPreviewReady={handlePreviewReady}
+                    onSelectImage={handleOpenGallery}
+                    imageAdjustments={imageAdjustments}
+                    onImageAdjust={setImageAdjustments}
+                    selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  />
+                </div>
+
+                {/* ✅ OVERLAY DE LOADING que aparece POR CIMA da imagem atual */}
+                {isGeneratingMockup && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl p-6 text-center max-w-xs mx-4">
+                      <div className="w-12 h-12 border-3 border-ghibli-moss border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <h3 className="font-bold text-ghibli-moss text-lg mb-2">
+                        Ajustando Posição
+                      </h3>
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        Aplicando: <span className="font-semibold text-ghibli-earth">
+                          {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
+                        </span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Aguarde alguns segundos...
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Botão "Escolher Arte" */}
@@ -255,6 +481,63 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
                   {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
                 </Button>
               </motion.div>
+
+              {/* 🎮 CONTROLOS DE AJUSTE HORIZONTAL - ABAIXO DA MOCKUP (copiado das capas) */}
+              {selectedImageUrl && product?.supportsManualAdjustment && userImageDimensions && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.6 }}
+                  className="mt-6 px-4 lg:px-0"
+                >
+                  <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
+                    <CardContent className="p-4">
+                      <div className="text-center mb-3">
+                        <h3 className="text-base font-bold text-[#2D5A27] mb-1">
+                          Ajustar Posição Horizontal
+                        </h3>
+                        <p className="text-xs text-gray-600">
+                          Escolha como centrar a sua arte
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button
+                          onClick={() => handleAdjustment('position', 'left')}
+                          variant={imagePosition === 'left' ? 'default' : 'outline'}
+                          disabled={isGeneratingMockup}
+                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all bg-white hover:bg-gray-50"
+                        >
+                          <ChevronLeft className="w-6 h-6" />
+                          <span className="text-sm mt-1 font-medium">Esquerda</span>
+                        </Button>
+                        
+                        <Button
+                          onClick={() => handleAdjustment('position', 'center')}
+                          variant={imagePosition === 'center' ? 'default' : 'outline'}
+                          disabled={isGeneratingMockup}
+                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all bg-white hover:bg-gray-50"
+                        >
+                          <div className="w-6 h-6 flex items-center justify-center">
+                            <div className="w-2 h-2 bg-current rounded-full"></div>
+                          </div>
+                          <span className="text-sm mt-1 font-medium">Centro</span>
+                        </Button>
+                        
+                        <Button
+                          onClick={() => handleAdjustment('position', 'right')}
+                          variant={imagePosition === 'right' ? 'default' : 'outline'}
+                          disabled={isGeneratingMockup}
+                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all bg-white hover:bg-gray-50"
+                        >
+                          <ChevronRight className="w-6 h-6" />
+                          <span className="text-sm mt-1 font-medium">Direita</span>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
 
               {/* Prompt de Login */}
               {!userInfo && (

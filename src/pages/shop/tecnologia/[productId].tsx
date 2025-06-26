@@ -135,10 +135,10 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
     if (overflowX > 0) {
       if (position === 'left') {
-        const movementX = -maxOffsetX * 0.7; // ✅ CORREÇÃO: 70% como o poster (era 50%)
+        const movementX = -maxOffsetX * 0.35; // ✅ AJUSTE: 35% para movimento mais subtil (era 70%)
         printifyX = 0.5 + movementX;
       } else if (position === 'right') {
-        const movementX = maxOffsetX * 0.7; // ✅ CORREÇÃO: 70% como o poster (era 50%)
+        const movementX = maxOffsetX * 0.35; // ✅ AJUSTE: 35% para movimento mais subtil (era 70%)
         printifyX = 0.5 + movementX;
       }
       // 'center' fica com printifyX = 0.5
