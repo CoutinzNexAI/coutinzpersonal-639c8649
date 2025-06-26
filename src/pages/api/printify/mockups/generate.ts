@@ -611,8 +611,8 @@ export default async function handler(
       // ✅ LÓGICA INTELIGENTE DE FALLBACK: Calcular escala correta se não receber do frontend
       let smartScale = printAreaConfig.defaultScale;
       
-      if (!imageAdjustments?.scale && (productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy')) {
-        console.log('🧠 [BACKEND] Calculando escala inteligente para poster...');
+      if (!imageAdjustments?.scale && (productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy' || productId === 'ceramic_mug' || productId === 'heart_mug')) {
+        console.log('🧠 [BACKEND] Calculando escala inteligente para poster/caneca...');
         
                  // Obter dimensões do placeholder da variante selecionada
          const selectedVariant = product.variants?.find(v => v.id === targetVariantId);

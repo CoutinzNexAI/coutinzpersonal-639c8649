@@ -175,7 +175,7 @@ export default function ProductCanvas({
           userImageUrl: userImageUrl,
           userId: userId,
           // ✅ CORREÇÃO: Enviar imageAdjustments para produtos que suportam ajustes manuais OU posters
-          imageAdjustments: (selectedProduct.supportsManualAdjustment || selectedProduct.id.includes('poster_')) ? imageAdjustments : undefined,
+          imageAdjustments: (selectedProduct.supportsManualAdjustment || selectedProduct.id.includes('poster_') || selectedProduct.id.includes('_mug')) ? imageAdjustments : undefined,
           selectedPrintifyVariantId: selectedPrintifyVariantId,
         };
 
