@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
@@ -21,6 +21,7 @@ import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
 import { validatePurchase } from '@/utils/productValidation';
+import { RateLimiter } from '@/lib/utils/rateLimiter';
 
 interface PosterDetailPageProps {
   product: PrintifyProductMapping;
@@ -57,8 +58,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // ✅ NOVO: Estado para dimensões da imagem do utilizador
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
-  // ✅ SLIDER DE 10 PASSOS: Guarda a posição do slider (1 a 10). Começa em 5 (centro)
-  const [sliderPosition, setSliderPosition] = useState<number>(5);
+  // ✅ POSIÇÕES DEFINIDAS: Estado para a posição da imagem (3 opções)
+  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
 
   // ✅ URL DA MOCKUP ATUAL: Guarda o URL da imagem que está a ser mostrada no ecrã
   const [currentMockupUrl, setCurrentMockupUrl] = useState<string | null>(null);
@@ -338,8 +339,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         setPrintifyImageId('');
         setPrintifyProductId('');
         
-        // ✅ Reset slider para centro quando nova imagem é selecionada
-        setSliderPosition(5);
+        // ✅ Reset posição para centro quando nova imagem é selecionada
+        setImagePosition('center');
         
         toast.dismiss();
         toast.success('Arte carregada para Printify com sucesso!');
@@ -370,28 +371,28 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
-    // Reset dimensões e slider
+    // Reset dimensões e posição
     setUserImageDimensions(null);
-    setSliderPosition(5);
+    setImagePosition('center');
   };
 
-  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição do slider (1-10)
-  const calculateFinalAdjustments = (sliderValue: number): ImageAdjustments => {
-    if (!userImageDimensions || !product || !selectedPrintifyVariantId) {
-      console.log('❌ Dados insuficientes para calcular ajustes');
+  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida (left/center/right)
+  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
+    if (!product) {
+      console.log('❌ Produto não encontrado');
       return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
     }
 
-    const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+    const selectedVariant = product.variants?.find(v => v.id === variantId);
     if (!selectedVariant) {
       console.log('❌ Variante não encontrada');
       return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
     }
 
     const { placeholderWidth, placeholderHeight } = selectedVariant;
-    const { width: userImageWidth, height: userImageHeight } = userImageDimensions;
+    const { width: userImageWidth, height: userImageHeight } = imageDimensions;
 
-    // PASSO A: Calcular escala (igual à lógica anterior)
+    // PASSO A: Calcular escala
     const scaleToCover = Math.max(
       placeholderWidth / userImageWidth,
       placeholderHeight / userImageHeight
@@ -399,19 +400,21 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     const finalImageWidth = userImageWidth * scaleToCover;
     const printifyScale = finalImageWidth / placeholderWidth;
 
-    // PASSO B: Calcular limites de movimento
+    // PASSO B: Calcular coordenada X baseada na posição
     const scaledImageWidth = userImageWidth * scaleToCover;
     const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
 
-    // PASSO C: Converter slider (1-10) para coordenada X
-    // 5 = centro (0.5), 1 = esquerda máxima, 10 = direita máxima
-    let printifyX = 0.5; // Valor padrão (centro)
+    let printifyX = 0.5; // Centro padrão
 
     if (maxMovementX > 0) {
-      // Mapear 1-10 para -1 a +1, depois para movimento pixel e depois para coordenada Printify
-      const sliderPercent = (sliderValue - 5.5) / 4.5; // Converte para aproximadamente -1 a +1
-      const movementX = sliderPercent * maxMovementX; // Movimento em pixels
-      printifyX = 0.5 + (movementX / placeholderWidth); // Coordenada final Printify
+      if (position === 'left') {
+        const movementX = -maxMovementX * 0.7; // 70% para a esquerda
+        printifyX = 0.5 + (movementX / placeholderWidth);
+      } else if (position === 'right') {
+        const movementX = maxMovementX * 0.7; // 70% para a direita
+        printifyX = 0.5 + (movementX / placeholderWidth);
+      }
+      // 'center' fica com printifyX = 0.5
     }
 
     const finalAdjustments = {
@@ -421,8 +424,9 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       rotation: 0
     };
 
-    console.log('🎯 Ajustes finais calculados:', {
-      sliderValue,
+    console.log('🎯 Coordenadas calculadas:', {
+      position,
+      variantId,
       scaleToCover,
       printifyScale,
       maxMovementX,
@@ -431,12 +435,6 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     });
 
     return finalAdjustments;
-  };
-
-  // ✅ FUNÇÃO SIMPLES: Apenas atualiza a posição do slider
-  const handleSliderChange = (newValue: number) => {
-    console.log(`🎚️ Slider movido para posição: ${newValue}`);
-    setSliderPosition(newValue);
   };
 
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
@@ -449,22 +447,60 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     }));
   };
 
-  // ✅ FUNÇÃO QUE CHAMA O BACKEND: Gera nova mockup com as novas coordenadas
-  const generateNewMockup = async (adjustments: ImageAdjustments) => {
-    if (!selectedImageUrl || !selectedImageId) {
-      console.log('❌ Imagem não selecionada para gerar mockup');
+  // ✅ LÓGICA CENTRAL: Controla todos os ajustes que precisam de nova mockup
+  const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
+    // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
+    const { allowed, message } = RateLimiter.checkRequestLimit();
+    if (!allowed) {
+      toast.error(message); // Mostra o erro ao utilizador
+      return; // Para a execução aqui
+    }
+
+    if (!userImageDimensions) {
+      toast.error('Aguarde o carregamento da imagem');
       return;
     }
 
-    console.log('🔄 Iniciando geração de nova mockup...', adjustments);
+    // 2. Se for permitido, atualiza o estado correspondente
+    let newPosition = imagePosition;
+    let newVariantId = selectedPrintifyVariantId;
+
+    if (type === 'position') {
+      newPosition = value as 'left' | 'center' | 'right';
+      setImagePosition(newPosition);
+      console.log(`📍 Posição alterada para: ${newPosition}`);
+    } else if (type === 'size') {
+      newVariantId = value as number;
+      setSelectedPrintifyVariantId(newVariantId);
+      console.log(`📏 Tamanho alterado para variante: ${newVariantId}`);
+    }
+
+    // 3. Regista que um pedido foi feito
+    RateLimiter.recordRequest();
+
+    // 4. E só depois chama a função para gerar a mockup
+    await generateNewMockup(newPosition, newVariantId);
+  };
+
+  // ✅ FUNÇÃO QUE CHAMA O BACKEND: Gera nova mockup com a posição e variante
+  const generateNewMockup = async (currentPosition: 'left' | 'center' | 'right', currentVariantId: number) => {
+    if (!userImageDimensions || !selectedImageUrl || !selectedImageId) {
+      console.log('❌ Dados insuficientes para gerar mockup');
+      return;
+    }
+
+    console.log('🔄 Iniciando geração de nova mockup...', { currentPosition, currentVariantId });
     setIsGeneratingMockup(true);
+
+    // Calcula as coordenadas baseadas na posição e variante
+    const adjustments = calculatePrintifyCoords(currentPosition, currentVariantId, userImageDimensions);
 
     const requestBody = {
       productId: product?.id,
       userImageUrl: selectedImageUrl,
       userId: userInfo?.id,
       imageAdjustments: adjustments,
-      selectedPrintifyVariantId: selectedPrintifyVariantId,
+      selectedPrintifyVariantId: currentVariantId,
       printifyImageId: selectedImageId
     };
 
@@ -480,46 +516,18 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       if (response.ok && data.success && data.previewUrls && data.previewUrls.length > 0) {
         console.log('✅ Nova mockup gerada com sucesso!', data.previewUrls[0]);
         setCurrentMockupUrl(data.previewUrls[0]);
-        // Também atualizar o estado oficial
         setPrintifyPreviewUrls(data.previewUrls);
       } else {
         console.error('❌ Erro ao gerar nova mockup:', data.error || 'Resposta inválida');
+        toast.error('Erro ao gerar nova preview. Tente novamente.');
       }
     } catch (error) {
       console.error('❌ Falha grave na chamada à API:', error);
+      toast.error('Erro de conexão. Tente novamente.');
     } finally {
       setIsGeneratingMockup(false);
     }
   };
-
-  // ✅ USEEFFECT COM DEBOUNCE: Escuta mudanças na posição do slider
-  useEffect(() => {
-    // Não faz nada se for a posição inicial (centro)
-    if (sliderPosition === 5) return;
-
-    // Não faz nada se não temos os dados necessários
-    if (!userImageDimensions || !selectedImageUrl || !selectedImageId) return;
-
-    console.log(`⏰ Slider em posição ${sliderPosition}. A aguardar estabilização...`);
-
-    // Cria um temporizador. Se o utilizador mexer outra vez, o timer antigo é cancelado.
-    const debounceTimer = setTimeout(() => {
-      console.log(`⏰ Utilizador parou em ${sliderPosition}. A pedir nova mockup...`);
-      
-      // Calcula os ajustes finais baseado na posição do slider
-      const newAdjustments = calculateFinalAdjustments(sliderPosition);
-      
-      // Chama a função que vai ao backend
-      generateNewMockup(newAdjustments);
-
-    }, 800); // Espera 800ms
-
-    return () => {
-      console.log('🗑️ Timer cancelado (utilizador moveu slider novamente)');
-      clearTimeout(debounceTimer);
-    };
-
-  }, [sliderPosition, userImageDimensions, selectedImageUrl, selectedImageId]);
 
   if (!product) {
     return (
@@ -574,7 +582,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                       <h3 className="font-semibold text-gray-800 mb-2">A gerar nova posição...</h3>
                       <p className="text-sm text-gray-600">
-                        Posição {sliderPosition}/10 - Aguarde alguns segundos
+                        Nova posição: {imagePosition} - Aguarde alguns segundos
                       </p>
                     </div>
                   </div>
@@ -701,7 +709,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         const selectedVariant = product.variants?.find(v => v.title.includes(value));
                         if (selectedVariant) {
                           setSelectedSizeLabel(value);
-                          setSelectedPrintifyVariantId(selectedVariant.id);
+                          // Usar a nova lógica com rate limiter
+                          handleAdjustment('size', selectedVariant.id);
                         }
                       }}
                       value={selectedSizeLabel || ''}
@@ -734,7 +743,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                     </Select>
                   </div>
 
-                  {/* ✅ 5.5. CONTROLES DE POSIÇÃO - NOVO SLIDER */}
+                  {/* ✅ 5.5. CONTROLES DE POSIÇÃO - BOTÕES DEFINIDOS */}
                   {selectedImageUrl && userImageDimensions && product && product.id === 'poster_vertical_semi_glossy' && (
                     <div className="bg-gradient-to-br from-blue-50/80 to-blue-100/50 rounded-xl p-6 border border-blue-200/50">
                       <div className="flex items-center gap-2 mb-4">
@@ -744,28 +753,41 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         </label>
                       </div>
                       
-                      <div className="space-y-3">
-                        <Slider
-                          defaultValue={[5]}
-                          min={1}
-                          max={10}
-                          step={1}
-                          value={[sliderPosition]}
-                          onValueChange={(value) => handleSliderChange(value[0])}
-                          className="w-full"
-                        />
-                        
-                        <div className="flex justify-between text-xs text-blue-600 font-medium">
-                          <span>← Esquerda (1)</span>
-                          <span className="bg-blue-100 px-2 py-1 rounded">
-                            Posição: {sliderPosition}/10
-                          </span>
-                          <span>Direita (10) →</span>
-                        </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'left')} 
+                          variant={imagePosition === 'left' ? 'default' : 'outline'}
+                          className="flex-1 text-sm"
+                          disabled={isGeneratingMockup}
+                        >
+                          Esquerda
+                        </Button>
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
+                          variant={imagePosition === 'center' ? 'default' : 'outline'}
+                          className="flex-1 text-sm"
+                          disabled={isGeneratingMockup}
+                        >
+                          Centro
+                        </Button>
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'right')} 
+                          variant={imagePosition === 'right' ? 'default' : 'outline'}
+                          className="flex-1 text-sm"
+                          disabled={isGeneratingMockup}
+                        >
+                          Direita
+                        </Button>
+                      </div>
+                      
+                      <div className="mt-3 text-center">
+                        <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded font-medium">
+                          Posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
+                        </span>
                       </div>
                       
                       <p className="text-xs text-blue-600 mt-3 leading-relaxed">
-                        💡 Arraste para ajustar a posição da sua arte dentro do poster
+                        💡 Clique nos botões para ajustar a posição da sua arte dentro do poster
                       </p>
                     </div>
                   )}
