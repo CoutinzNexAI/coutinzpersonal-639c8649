@@ -93,44 +93,66 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
   // Função para calcular coordenadas Printify baseadas na posição horizontal
   const calculatePrintifyCoords = useCallback((position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
-    if (!product) {
-      console.log('❌ Produto não encontrado');
-      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    console.log('🧮 [CAPA] Calculando coordenadas:', { position, variantId, imageDimensions });
+
+    if (!product || !product.variants) {
+      throw new Error('Produto ou variantes não encontrados');
     }
 
-    const selectedVariant = product.variants?.find(v => v.id === variantId);
+    // Encontrar a variante selecionada
+    const selectedVariant = product.variants.find(v => v.id === variantId);
     if (!selectedVariant) {
-      console.log('❌ Variante não encontrada');
-      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+      throw new Error(`Variante ${variantId} não encontrada`);
     }
 
     const { placeholderWidth, placeholderHeight } = selectedVariant;
     const { width: userImageWidth, height: userImageHeight } = imageDimensions;
 
-    // PASSO A: Calcular escala para cobrir completamente (lógica Math.max)
+    console.log('📐 [CAPA] Dimensões:', { 
+      placeholder: { placeholderWidth, placeholderHeight }, 
+      userImage: { userImageWidth, userImageHeight } 
+    });
+
+    // PASSO A: Calcular escala "FILL" para cobertura completa (Math.max)
     const scaleToCover = Math.max(
       placeholderWidth / userImageWidth,
       placeholderHeight / userImageHeight
     );
+
+    // PASSO B: Traduzir para escala Printify
     const finalImageWidth = userImageWidth * scaleToCover;
     const printifyScale = finalImageWidth / placeholderWidth;
 
-    // PASSO B: Calcular movimento horizontal
+    console.log('🔍 [CAPA] Escala calculada:', { scaleToCover, finalImageWidth, printifyScale });
+
+    // PASSO C: Calcular movimento horizontal (50% do máximo para ser mais subtil)
     let printifyX = 0.5; // Centro padrão
     const printifyY = 0.5; // Centro padrão (não se move verticalmente)
 
-    // Para capas (formato vertical): Ajustar coordenada X baseada na posição (left/center/right)
+    // Calcular overflow horizontal após aplicar a escala
     const scaledImageWidth = userImageWidth * scaleToCover;
     const overflowX = Math.max(0, scaledImageWidth - placeholderWidth);
-    const maxOffsetX = (overflowX / 2) / placeholderWidth;
-
-    if (maxOffsetX > 0) {
+    
+    if (overflowX > 0) {
+      // Calcular movimento máximo possível
+      const maxOffsetX = (overflowX / 2) / placeholderWidth;
+      
+      // ✅ MOVIMENTO MAIS SUBTIL: Usar apenas 50% do movimento máximo
+      const shiftAmount = 0.5;
+      
       if (position === 'left') {
-        printifyX = 0.5 - (maxOffsetX * 0.7); // 70% para a esquerda
+        printifyX = 0.5 - (maxOffsetX * shiftAmount); // 50% para a esquerda
       } else if (position === 'right') {
-        printifyX = 0.5 + (maxOffsetX * 0.7); // 70% para a direita
+        printifyX = 0.5 + (maxOffsetX * shiftAmount); // 50% para a direita
       }
       // 'center' fica com printifyX = 0.5
+      
+      console.log('📍 [CAPA] Movimento calculado:', { 
+        overflowX, 
+        maxOffsetX, 
+        shiftAmount, 
+        finalX: printifyX 
+      });
     }
 
     const finalAdjustments = {
@@ -140,36 +162,29 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       rotation: 0
     };
 
-    console.log('🎯 [CAPA] Coordenadas calculadas:', {
-      position,
-      variantId,
-      scaleToCover,
-      printifyScale,
-      overflowX,
-      maxOffsetX,
-      printifyX,
-      finalAdjustments
-    });
+    console.log('✅ [CAPA] Coordenadas finais:', finalAdjustments);
 
     return finalAdjustments;
   }, [product]);
 
-  // Calcular ajustes iniciais com a nova lógica de posicionamento
+  // ✅ INICIALIZAÇÃO CORRETA: Calcular estado inicial assim que todos os dados estão disponíveis
   useEffect(() => {
-    // 🎯 APENAS para primeira seleção - se não há imageAdjustments definido
-    if (selectedImageUrl && product && selectedPrintifyVariantId && !imageAdjustments && userImageDimensions) {
+    if (product && selectedPrintifyVariantId && userImageDimensions && selectedImageUrl && !imageAdjustments) {
       const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-      if (selectedVariant && product.printAreasConfig && product.printAreasConfig.length > 0) {
-        // Usar a nova lógica calculatePrintifyCoords com posição central
+      
+      if (selectedVariant) {
+        console.log('🎯 [INIT] Calculando estado inicial com escala FILL correta...');
+        
+        // Calcular ajustes iniciais com posição central e escala fill
         const initialAdjustments = calculatePrintifyCoords('center', selectedPrintifyVariantId, userImageDimensions);
         
-        console.log(`🎯 PRIMEIRA SELEÇÃO - Usando nova lógica de posicionamento:`, initialAdjustments);
-
-        // Define os ajustes iniciais usando a função de cálculo
+        console.log('✅ [INIT] Estado inicial definido:', initialAdjustments);
+        
+        // Aplicar imediatamente para eliminar bordas brancas
         setImageAdjustments(initialAdjustments);
       }
     }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId, imageAdjustments, userImageDimensions, calculatePrintifyCoords]); // Dependências corretas
+  }, [product, selectedPrintifyVariantId, userImageDimensions, selectedImageUrl, imageAdjustments, calculatePrintifyCoords]);
 
   // Função para lidar com os mockups gerados pelo ProductCanvas
   const handlePreviewReady = useCallback((data: {
@@ -529,6 +544,68 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                   </Card>
                 </motion.div>
               )}
+
+              {/* 🎮 CONTROLOS DE AJUSTE HORIZONTAL - ABAIXO DA MOCKUP */}
+              {selectedImageUrl && product?.supportsManualAdjustment && userImageDimensions && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.6 }}
+                  className="mt-6 px-4 lg:px-0"
+                >
+                  <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
+                    <CardContent className="p-4">
+                      <div className="text-center mb-4">
+                        <h3 className="text-lg font-bold text-[#2D5A27] flex items-center justify-center gap-2">
+                          <RotateCw className="w-5 h-5" />
+                          Ajustar Posição Horizontal
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-2">Desloque a sua arte para a posição ideal na capa.</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <Button
+                          onClick={() => handleAdjustment('position', 'left')}
+                          variant={imagePosition === 'left' ? 'default' : 'outline'}
+                          disabled={isGeneratingMockup}
+                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all"
+                        >
+                          <ChevronLeft className="w-6 h-6" />
+                          <span className="text-sm mt-1 font-medium">Esquerda</span>
+                        </Button>
+                        <Button
+                          onClick={() => handleAdjustment('position', 'center')}
+                          variant={imagePosition === 'center' ? 'default' : 'outline'}
+                          disabled={isGeneratingMockup}
+                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all"
+                        >
+                          <span className="font-bold text-lg">●</span>
+                          <span className="text-sm mt-1 font-medium">Centro</span>
+                        </Button>
+                        <Button
+                          onClick={() => handleAdjustment('position', 'right')}
+                          variant={imagePosition === 'right' ? 'default' : 'outline'}
+                          disabled={isGeneratingMockup}
+                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all"
+                        >
+                          <ChevronRight className="w-6 h-6" />
+                          <span className="text-sm mt-1 font-medium">Direita</span>
+                        </Button>
+                      </div>
+                      {isGeneratingMockup && (
+                        <div className="mt-4 text-center">
+                          <div className="flex items-center justify-center gap-3 text-[#2D5A27]">
+                            <div className="w-5 h-5 border-2 border-[#2D5A27] border-t-transparent rounded-full animate-spin"></div>
+                            <span className="font-medium">
+                              Nova posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'} 
+                              <span className="block text-sm text-gray-600">Aguarde alguns segundos...</span>
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
             </motion.div>
 
             {/* 🎨 PAINEL DE CONTROLO - SEGUNDO em mobile, direita em desktop */}
@@ -632,64 +709,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     </label>
                   </div>
 
-                  {/* 🎮 6. CONTROLOS DE AJUSTE HORIZONTAL */}
-                  {selectedImageUrl && product?.supportsManualAdjustment && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.4 }}
-                      className="mt-6"
-                    >
-                      <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
-                        <CardContent className="p-4">
-                          <div className="text-center mb-3">
-                            <h3 className="text-base font-bold text-[#2D5A27] flex items-center justify-center gap-2">
-                              <RotateCw className="w-4 h-4" />
-                              Ajustar Posição Horizontal
-                            </h3>
-                            <p className="text-xs text-gray-500 mt-1">Desloque a sua arte para a posição ideal.</p>
-                          </div>
-                          <div className="grid grid-cols-3 gap-2">
-                            <Button
-                              onClick={() => handleAdjustment('position', 'left')}
-                              variant={imagePosition === 'left' ? 'default' : 'outline'}
-                              disabled={isGeneratingMockup}
-                              className="flex flex-col h-auto py-3"
-                            >
-                              <ChevronLeft className="w-5 h-5" />
-                              <span className="text-xs mt-1">Esquerda</span>
-                            </Button>
-                            <Button
-                              onClick={() => handleAdjustment('position', 'center')}
-                              variant={imagePosition === 'center' ? 'default' : 'outline'}
-                              disabled={isGeneratingMockup}
-                              className="flex flex-col h-auto py-3"
-                            >
-                              <span className="font-bold">Centro</span>
-                              <span className="text-xs mt-1">{isGeneratingMockup ? 'A gerar...' : 'Posição 0%'}</span>
-                            </Button>
-                            <Button
-                              onClick={() => handleAdjustment('position', 'right')}
-                              variant={imagePosition === 'right' ? 'default' : 'outline'}
-                              disabled={isGeneratingMockup}
-                              className="flex flex-col h-auto py-3"
-                            >
-                              <ChevronRight className="w-5 h-5" />
-                              <span className="text-xs mt-1">Direita</span>
-                            </Button>
-                          </div>
-                          {isGeneratingMockup && (
-                            <div className="mt-3 text-center">
-                              <div className="flex items-center justify-center gap-2 text-sm text-[#2D5A27]">
-                                <div className="w-4 h-4 border-2 border-[#2D5A27] border-t-transparent rounded-full animate-spin"></div>
-                                <span>Nova posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'} - Aguarde alguns segundos</span>
-                              </div>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  )}
+
 
                   {/* 🛒 7. BOTÃO PRINCIPAL MOBILE-FIRST */}
                   <div className="pt-3">
