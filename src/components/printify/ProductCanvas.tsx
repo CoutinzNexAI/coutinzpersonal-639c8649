@@ -357,35 +357,63 @@ export default function ProductCanvas({
   );
 
   // Preview inicial simples
-  const renderInitialPreview = () => (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative">
-        <img
-          src={mockupUrl || selectedProduct.mockupInitialPath}
-          alt="Preview inicial"
-          className="max-w-full max-h-full object-contain drop-shadow-xl"
-          style={{ maxHeight: '80%' }}
-        />
-        
-        {/* Overlay com imagem do utilizador (preview temporário) */}
-        {userImageUrl && (
-          <div className="absolute inset-0 flex items-center justify-center">
+  const renderInitialPreview = () => {
+    // ✅ Calcular estilo dinâmico baseado em imageAdjustments
+    const calculateImageStyle = () => {
+      if (!imageAdjustments) {
+        // Valores padrão se não há ajustes
+        return {
+          transform: 'scale(1) translate(-50%, -50%)',
+          transformOrigin: 'center center',
+          left: '50%',
+          top: '50%',
+          position: 'absolute' as const,
+        };
+      }
+
+      // Converter coordenadas Printify (0.0-1.0) para percentagens CSS
+      const xPercent = (imageAdjustments.x - 0.5) * 100; // -50% a +50%
+      const yPercent = (imageAdjustments.y - 0.5) * 100; // -50% a +50%
+      const scale = imageAdjustments.scale || 1;
+
+      return {
+        transform: `scale(${scale}) translate(calc(-50% + ${xPercent}px), calc(-50% + ${yPercent}px))`,
+        transformOrigin: 'center center',
+        left: '50%',
+        top: '50%',
+        position: 'absolute' as const,
+      };
+    };
+
+    return (
+      <div className="relative w-full h-full flex items-center justify-center">
+        <div className="relative">
+          <img
+            src={mockupUrl || selectedProduct.mockupInitialPath}
+            alt="Preview inicial"
+            className="max-w-full max-h-full object-contain drop-shadow-xl"
+            style={{ maxHeight: '80%' }}
+          />
+          
+          {/* ✅ Overlay com imagem do utilizador (preview RESPONSIVO) */}
+          {userImageUrl && (
             <img
               src={userImageUrl}
               alt="Sua arte"
-              className="w-32 h-32 object-cover rounded-lg border-2 border-white shadow-lg opacity-80"
+              className="w-32 h-32 object-cover rounded-lg border-2 border-white shadow-lg opacity-80 transition-transform duration-200"
+              style={calculateImageStyle()}
             />
-          </div>
-        )}
+          )}
+        </div>
+        
+        {/* Loading indicator no canto */}
+        <div className="absolute top-4 right-4 bg-ghibli-moss text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+          <RotateCw className="w-4 h-4 animate-spin" />
+          A gerar...
+        </div>
       </div>
-      
-      {/* Loading indicator no canto */}
-      <div className="absolute top-4 right-4 bg-ghibli-moss text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
-        <RotateCw className="w-4 h-4 animate-spin" />
-        A gerar...
-      </div>
-    </div>
-  );
+    );
+  };
 
   // Previews gerados pela Printify
   const renderGeneratedPreviews = () => (
