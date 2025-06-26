@@ -4,21 +4,22 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, Upload, ArrowRight } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
-import { ChevronLeft } from 'lucide-react';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
+import { validatePurchase } from '@/utils/productValidation';
+import { RateLimiter } from '@/lib/utils/rateLimiter';
 
 interface MugDetailPageProps {
   product: PrintifyProductMapping;
@@ -27,7 +28,7 @@ interface MugDetailPageProps {
 const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }) => {
   const router = useRouter();
   const { productId } = router.query;
-  const { userInfo } = useAuth();
+  const { userInfo, session } = useAuth();
   
   const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
@@ -35,12 +36,29 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  const [mockupImageUrl, setMockupImageUrl] = useState<string | null>(null);
   
   // Estados para Printify
   const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
   const [printifyImageId, setPrintifyImageId] = useState<string>('');
   const [printifyProductId, setPrintifyProductId] = useState<string>('');
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
+
+  // ✅ NOVO: Estado para dimensões da imagem do utilizador
+  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
+
+  // ✅ POSIÇÕES DEFINIDAS: Estado para a posição da imagem (3 opções)
+  // Para canecas: top/center/bottom (similar ao poster horizontal)
+  const [imagePosition, setImagePosition] = useState<'top' | 'center' | 'bottom'>('center');
+
+  // ✅ GALERIA DE MOCKUPS: Guarda o array de URLs das mockups atuais
+  const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
+
+  // ✅ ÍNDICE ATIVO: Para saber qual mockup mostrar na galeria
+  const [activeMockupIndex, setActiveMockupIndex] = useState<number>(0);
+
+  // ✅ LOADING INDICATOR: Para mostrar enquanto a nova mockup é gerada
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
 
   // Função utilitária: Validação consolidada
   const validatePurchase = () => {
@@ -56,37 +74,104 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
   useEffect(() => {
     if (!initialProduct && typeof productId === 'string') {
       const foundProduct = getPrintifyProduct(productId);
-      if (foundProduct?.category === 'mug') {
+      if (foundProduct && foundProduct.category === 'mug') {
         setProduct(foundProduct);
-        if (foundProduct.variants?.length) {
-          setSelectedPrintifyVariantId(foundProduct.variants[0].id);
+        if (foundProduct.variants && foundProduct.variants.length > 0) {
+          console.log('🔍 [MUG DEBUG] Variantes disponíveis:', foundProduct.variants.map(v => ({ id: v.id, title: v.title })));
+          
+          const firstVariant = foundProduct.variants[0];
+          console.log('🔍 [MUG DEBUG] Primeira variante selecionada:', { id: firstVariant.id, title: firstVariant.title });
+          
+          setSelectedPrintifyVariantId(firstVariant.id);
         }
       } else {
         router.push('/shop');
         toast.error('Produto não encontrado');
       }
-    } else if (initialProduct?.variants?.length) {
-        setSelectedPrintifyVariantId(initialProduct.variants[0].id);
+    } else if (initialProduct) {
+      // Set default variant for initial product
+      if (initialProduct.variants && initialProduct.variants.length > 0) {
+        console.log('🔍 [MUG DEBUG] Variantes disponíveis (initial):', initialProduct.variants.map(v => ({ id: v.id, title: v.title })));
+        
+        const firstVariant = initialProduct.variants[0];
+        console.log('🔍 [MUG DEBUG] Primeira variante selecionada (initial):', { id: firstVariant.id, title: firstVariant.title });
+        
+        setSelectedPrintifyVariantId(firstVariant.id);
+      }
     }
   }, [productId, initialProduct, router]);
 
-  // Calcular imageAdjustments apenas na primeira seleção
+  // Reset estados quando a variante muda
   useEffect(() => {
-    if (selectedImageUrl && product && selectedPrintifyVariantId && !imageAdjustments) {
-      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-      if (selectedVariant && product.printAreasConfig?.length) {
-        const printAreaConfig = product.printAreasConfig[0];
-        setImageAdjustments({
-          x: 0.5,
-          y: 0.5,
-          scale: 1.0,
-          rotation: printAreaConfig.defaultAngle || 0
-        });
-      }
+    if (selectedImageUrl && selectedPrintifyVariantId) {
+      // Reset mockups Printify para forçar nova geração quando variante muda
+      setPrintifyPreviewUrls([]);
+      setPrintifyImageId('');
+      setPrintifyProductId('');
     }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId, imageAdjustments]);
+  }, [selectedPrintifyVariantId]);
 
-  // Handlers simplificados
+  // Calcular defaultScale dinâmico e atualizar imageAdjustments - Adaptado para canecas
+  useEffect(() => {
+    if (selectedImageUrl && product && selectedPrintifyVariantId) {
+      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+      if (!selectedVariant) return;
+
+      const { placeholderWidth, placeholderHeight } = selectedVariant;
+      const userImageWidth = 1016; // Assumindo que a imagem AI é sempre quadrada
+      const userImageHeight = 1016;
+
+      // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
+      const scaleToCover = Math.max(
+        placeholderWidth / userImageWidth,
+        placeholderHeight / userImageHeight
+      );
+
+      // PASSO B: Calcula qual será a LARGURA da imagem depois de aplicar este zoom
+      const finalImageWidth = userImageWidth * scaleToCover;
+
+      // PASSO C (A TRADUÇÃO): Converte a nossa largura final para o valor de 'scale' que a Printify entende
+      const printifyScale = finalImageWidth / placeholderWidth;
+      
+      console.log('🎯 [MUG FRONTEND] Cálculo de escala definitivo:', {
+        placeholderWidth,
+        placeholderHeight,
+        userImageWidth,
+        userImageHeight,
+        scaleToCover,
+        finalImageWidth,
+        printifyScale
+      });
+      
+      setImageAdjustments({
+        x: 0.5, // Mantém centrado
+        y: 0.5, // Mantém centrado
+        scale: printifyScale, // USA O VALOR TRADUZIDO!
+        rotation: 0
+      });
+    }
+  }, [selectedImageUrl, product, selectedPrintifyVariantId]);
+
+  // ✅ DETECTAR DIMENSÕES DA IMAGEM: Quando uma imagem é selecionada
+  useEffect(() => {
+    if (selectedImageUrl) {
+      const img = new Image();
+      img.onload = () => {
+        setUserImageDimensions({ width: img.width, height: img.height });
+        console.log('📐 [MUG] Dimensões da imagem detectadas:', { width: img.width, height: img.height });
+      };
+      img.onerror = () => {
+        console.error('❌ [MUG] Erro ao carregar imagem para detectar dimensões');
+        // Default para imagens AI quadradas
+        setUserImageDimensions({ width: 1016, height: 1016 });
+      };
+      img.src = selectedImageUrl;
+    } else {
+      setUserImageDimensions(null);
+    }
+  }, [selectedImageUrl]);
+
+  // Função para lidar com os mockups gerados pelo ProductCanvas
   const handlePreviewReady = useCallback((data: {
     previewUrls: string[];
     printifyImageId: string;
@@ -95,8 +180,80 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     setPrintifyPreviewUrls(data.previewUrls);
     setPrintifyImageId(data.printifyImageId);
     setPrintifyProductId(data.printifyProductId);
-  }, []);
+    
+    // ✅ Inicializar galeria de mockups com todas as mockups geradas
+    if (data.previewUrls.length > 0 && currentMockupUrls.length === 0) {
+      setCurrentMockupUrls(data.previewUrls);
+      setActiveMockupIndex(0);
+    }
+    
+    console.log('✅ Printify mockups received:', data);
+  }, [currentMockupUrls]);
 
+  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida (top/center/bottom para canecas)
+  const calculatePrintifyCoords = (position: 'top' | 'center' | 'bottom', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
+    if (!product) {
+      console.log('❌ Produto não encontrado');
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    }
+
+    const selectedVariant = product.variants?.find(v => v.id === variantId);
+    if (!selectedVariant) {
+      console.log('❌ Variante não encontrada');
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    }
+
+    const { placeholderWidth, placeholderHeight } = selectedVariant;
+    const { width: userImageWidth, height: userImageHeight } = imageDimensions;
+
+    // PASSO A: Calcular escala
+    const scaleToCover = Math.max(
+      placeholderWidth / userImageWidth,
+      placeholderHeight / userImageHeight
+    );
+    const finalImageWidth = userImageWidth * scaleToCover;
+    const printifyScale = finalImageWidth / placeholderWidth;
+
+    // ✅ CANECA: Ajustar coordenada Y baseada na posição (top/center/bottom)
+    const scaledImageHeight = userImageHeight * scaleToCover;
+    const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
+    
+    const printifyX = 0.5; // X sempre centrado para canecas
+    let printifyY = 0.5; // Centro padrão
+
+    if (maxMovementY > 0) {
+      if (position === 'top') {
+        const movementY = -maxMovementY * 0.7; // 70% para cima
+        printifyY = 0.5 + (movementY / placeholderHeight);
+      } else if (position === 'bottom') {
+        const movementY = maxMovementY * 0.7; // 70% para baixo
+        printifyY = 0.5 + (movementY / placeholderHeight);
+      }
+      // 'center' fica com printifyY = 0.5
+    }
+
+    const finalAdjustments = {
+      x: printifyX,
+      y: printifyY,
+      scale: printifyScale,
+      rotation: 0
+    };
+
+    console.log('🎯 Coordenadas calculadas para caneca:', {
+      position,
+      variantId,
+      scaleToCover,
+      printifyScale,
+      maxMovementY,
+      printifyX,
+      printifyY,
+      finalAdjustments
+    });
+
+    return finalAdjustments;
+  };
+
+  // Handlers simplificados
   const handleAddToCart = async () => {
     const validationError = validatePurchase();
     if (validationError) {
@@ -114,6 +271,22 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
 
       const variant = product!.variants?.find(v => v.id === selectedPrintifyVariantId);
 
+      // ✅ USAR COORDENADAS DE POSICIONAMENTO PERSONALIZADO se disponível
+      let finalCoordinates;
+      if (userImageDimensions && selectedPrintifyVariantId) {
+        finalCoordinates = calculatePrintifyCoords(imagePosition, selectedPrintifyVariantId, userImageDimensions);
+        console.log('🎯 [MUG CARRINHO] Usando coordenadas customizadas:', finalCoordinates);
+      } else {
+        // Fallback para coordenadas padrão
+        finalCoordinates = {
+          scale: productConfig.defaultDesign.scale,
+          x: productConfig.defaultDesign.x,
+          y: productConfig.defaultDesign.y,
+          angle: productConfig.defaultDesign.angle
+        };
+        console.log('🎯 [MUG CARRINHO] Usando coordenadas padrão:', finalCoordinates);
+      }
+
       CartService.addToCart({
         productId: productId as string,
         productName: product!.name,
@@ -125,17 +298,21 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         customizations: {
           variantId: selectedPrintifyVariantId!, // Obrigatório agora
           size: variant?.title || 'Tamanho não encontrado',
-          // ✅ OS CAMPOS CRÍTICOS: Usar defaultDesign do produto
-          scale: productConfig.defaultDesign.scale,     // Ex: 1.1 para caneca (fill)
-          x: productConfig.defaultDesign.x,             // Ex: 0.5 (centro)
-          y: productConfig.defaultDesign.y,             // Ex: 0.5 (centro)
-          angle: productConfig.defaultDesign.angle,     // Ex: 0 (sem rotação)
+          // ✅ OS CAMPOS CRÍTICOS: Usar coordenadas calculadas ou padrão
+          scale: finalCoordinates.scale,
+          x: finalCoordinates.x,
+          y: finalCoordinates.y,
+          angle: finalCoordinates.angle || 0,
           print_on_side: productConfig.defaultDesign.print_on_side, // Undefined para caneca (não usa)
         },
         imageAdjustments,
       });
 
-      console.log('🛒 Caneca adicionada ao carrinho com configurações:', productConfig.defaultDesign);
+      console.log('🛒 Caneca adicionada ao carrinho com configurações:', {
+        position: imagePosition,
+        coordinates: finalCoordinates,
+        defaultDesign: productConfig.defaultDesign
+      });
       
       toast.success('Caneca adicionada ao carrinho!', {
         description: 'Continue as compras ou vá para o checkout',
@@ -175,6 +352,89 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         ...adjustments, 
         x: 0.5 // Força X sempre centrado
       });
+    }
+  };
+
+  // ✅ LÓGICA CENTRAL: Controla todos os ajustes que precisam de nova mockup
+  const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
+    // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
+    const { allowed, message } = RateLimiter.checkRequestLimit();
+    if (!allowed) {
+      toast.error(message); // Mostra o erro ao utilizador
+      return; // Para a execução aqui
+    }
+
+    if (!userImageDimensions) {
+      toast.error('Aguarde o carregamento da imagem');
+      return;
+    }
+
+    // 2. Se for permitido, atualiza o estado correspondente
+    let newPosition = imagePosition;
+    let newVariantId = selectedPrintifyVariantId;
+
+    if (type === 'position') {
+      newPosition = value as 'top' | 'center' | 'bottom';
+      setImagePosition(newPosition);
+      console.log(`📍 Posição da caneca alterada para: ${newPosition}`);
+    } else if (type === 'size') {
+      newVariantId = value as number;
+      setSelectedPrintifyVariantId(newVariantId);
+      console.log(`📏 Tamanho da caneca alterado para variante: ${newVariantId}`);
+    }
+
+    // 3. Regista que um pedido foi feito
+    RateLimiter.recordRequest();
+
+    // 4. E só depois chama a função para gerar a mockup
+    await generateNewMockup(newPosition, newVariantId);
+  };
+
+  // ✅ FUNÇÃO QUE CHAMA O BACKEND: Gera nova mockup com a posição e variante
+  const generateNewMockup = async (currentPosition: 'top' | 'center' | 'bottom', currentVariantId: number) => {
+    if (!userImageDimensions || !selectedImageUrl || !selectedImageId) {
+      console.log('❌ Dados insuficientes para gerar mockup');
+      return;
+    }
+
+    console.log('🔄 Iniciando geração de nova mockup da caneca...', { currentPosition, currentVariantId });
+    setIsGeneratingMockup(true);
+
+    // Calcula as coordenadas baseadas na posição e variante
+    const adjustments = calculatePrintifyCoords(currentPosition, currentVariantId, userImageDimensions);
+
+    const requestBody = {
+      productId: product?.id,
+      userImageUrl: selectedImageUrl,
+      userId: userInfo?.id,
+      imageAdjustments: adjustments,
+      selectedPrintifyVariantId: currentVariantId,
+      printifyImageId: selectedImageId
+    };
+
+    try {
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success && data.previewUrls && data.previewUrls.length > 0) {
+        console.log('✅ Nova galeria de mockups da caneca gerada com sucesso!', data.previewUrls.length, 'imagens');
+        setCurrentMockupUrls(data.previewUrls);
+        setActiveMockupIndex(0); // Sempre mostra a primeira imagem do novo set
+        setPrintifyPreviewUrls(data.previewUrls);
+      } else {
+        console.error('❌ Erro ao gerar nova mockup da caneca:', data.error || 'Resposta inválida');
+        toast.error('Erro ao gerar nova preview. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('❌ Falha grave na chamada à API:', error);
+      toast.error('Erro de conexão. Tente novamente.');
+    } finally {
+      setIsGeneratingMockup(false);
     }
   };
 
@@ -255,7 +515,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       : 'bg-gray-400 text-gray-600 cursor-not-allowed'
                   }`}
                 >
-                  <Upload className="w-5 h-5 mr-2 lg:mr-3" />
+                  <Sparkles className="w-5 h-5 mr-2 lg:mr-3" />
                   {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
                 </Button>
               </motion.div>
@@ -396,6 +656,86 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                 </div>
               )}
 
+              {/* ✅ CONTROLES DE POSIÇÃO - Para canecas com top/center/bottom */}
+              {selectedImageUrl && userImageDimensions && product && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.4 }}
+                  className="mt-4"
+                >
+                  <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
+                    <CardContent className="p-4">
+                      <div className="text-center mb-3">
+                        <h3 className="text-base font-bold text-[#2D5A27] flex items-center justify-center gap-2">
+                          <ChevronDown className="w-4 h-4" />
+                          Posição da Arte
+                        </h3>
+                        <p className="text-xs text-[#4A6B5B] mt-1">Escolha onde posicionar a sua criação na caneca</p>
+                      </div>
+
+                      <div className="flex justify-center">
+                        <div className="inline-flex bg-white rounded-lg p-1 shadow-inner border border-[#2D5A27]/20">
+                          {/* Botão TOP */}
+                          <button
+                            onClick={() => handleAdjustment('position', 'top')}
+                            disabled={isGeneratingMockup}
+                            className={`px-3 py-2 rounded text-sm font-medium transition-all duration-200 flex-1 min-w-[70px] flex flex-col items-center gap-1 ${
+                              imagePosition === 'top'
+                                ? 'bg-[#2D5A27] text-white shadow-md'
+                                : 'text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                            } ${isGeneratingMockup ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <ChevronDown className="w-3 h-3 rotate-180" />
+                            <span>Cima</span>
+                          </button>
+
+                          {/* Botão CENTER */}
+                          <button
+                            onClick={() => handleAdjustment('position', 'center')}
+                            disabled={isGeneratingMockup}
+                            className={`px-3 py-2 rounded text-sm font-medium transition-all duration-200 flex-1 min-w-[70px] flex flex-col items-center gap-1 ${
+                              imagePosition === 'center'
+                                ? 'bg-[#2D5A27] text-white shadow-md'
+                                : 'text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                            } ${isGeneratingMockup ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <div className="w-3 h-3 rounded-full bg-current" />
+                            <span>Centro</span>
+                          </button>
+
+                          {/* Botão BOTTOM */}
+                          <button
+                            onClick={() => handleAdjustment('position', 'bottom')}
+                            disabled={isGeneratingMockup}
+                            className={`px-3 py-2 rounded text-sm font-medium transition-all duration-200 flex-1 min-w-[70px] flex flex-col items-center gap-1 ${
+                              imagePosition === 'bottom'
+                                ? 'bg-[#2D5A27] text-white shadow-md'
+                                : 'text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                            } ${isGeneratingMockup ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <ChevronDown className="w-3 h-3" />
+                            <span>Baixo</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Status/Loading da regeneração */}
+                      {isGeneratingMockup && (
+                        <div className="mt-3 flex items-center justify-center gap-2 text-xs text-[#4A6B5B]">
+                          <div className="flex space-x-1">
+                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce"></div>
+                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          </div>
+                          <span>Reposicionando arte...</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
                   {/* Botão Principal */}
                   <div className="pt-3">
                     {isProcessingMockup ? (
@@ -443,7 +783,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                               <span className="hidden sm:inline">Adicionar ao Carrinho</span>
                               <span className="sm:hidden">Adicionar</span>
                               <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center">
-                                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
                               </div>
                         </>
                       )}
