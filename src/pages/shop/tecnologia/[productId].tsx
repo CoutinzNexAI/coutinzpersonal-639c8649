@@ -18,6 +18,7 @@ import { ChevronLeft } from 'lucide-react';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
+import { RateLimiter } from '@/lib/utils/rateLimiter';
 
 interface ImageAdjustments {
   x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
@@ -55,6 +56,13 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
   // Estado específico para seleção de variante da capa
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
+
+  // ✅ NOVOS ESTADOS para ajuste de posição
+  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
+  const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
+  const [activeMockupIndex, setActiveMockupIndex] = useState<number>(0);
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
 
   // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
@@ -128,8 +136,15 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setPrintifyPreviewUrls(data.previewUrls);
     setPrintifyImageId(data.printifyImageId);
     setPrintifyProductId(data.printifyProductId);
+    
+    // ✅ Inicializar galeria de mockups com todas as mockups geradas
+    if (data.previewUrls.length > 0 && currentMockupUrls.length === 0) {
+      setCurrentMockupUrls(data.previewUrls);
+      setActiveMockupIndex(0);
+    }
+    
     console.log('✅ Printify mockups received:', data);
-  }, []);
+  }, [currentMockupUrls]);
 
   const handleAddToCart = async () => {
     // Mostrar toast se não há arte selecionada
@@ -230,10 +245,21 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
     
+    // ✅ PASSO 1 - Obtém as dimensões da imagem antes de fazer upload
+    const img = new Image();
+    img.onload = function(this: HTMLImageElement) {
+      setUserImageDimensions({ width: this.width, height: this.height });
+      console.log(`📐 Dimensões da Imagem Carregadas: ${this.width}x${this.height}`);
+    };
+    img.src = imageUrl;
+    
     // Reset mockups para gerar novos
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
+    
+    // ✅ Reset posição para centro quando nova imagem é selecionada
+    setImagePosition('center');
     
     // *** CORREÇÃO CRÍTICA: Reset imageAdjustments para valores padrão do produto ***
     // Isso força um novo cálculo de scale baseado na nova imagem e variante selecionada
@@ -277,6 +303,73 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setPrintifyImageId('');
     setPrintifyProductId('');
     setImageAdjustments(undefined);
+    // Reset dimensões e posição
+    setUserImageDimensions(null);
+    setImagePosition('center');
+    setCurrentMockupUrls([]);
+    setActiveMockupIndex(0);
+    setIsGeneratingMockup(false);
+  };
+
+  // ✅ FUNÇÃO: Calcular coordenadas finais baseado na posição definida (left/center/right)
+  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
+    if (!product) {
+      console.log('❌ Produto não encontrado');
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    }
+
+    const selectedVariant = product.variants?.find(v => v.id === variantId);
+    if (!selectedVariant) {
+      console.log('❌ Variante não encontrada');
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    }
+
+    const { placeholderWidth, placeholderHeight } = selectedVariant;
+    const { width: userImageWidth, height: userImageHeight } = imageDimensions;
+
+    // PASSO A: Calcular escala
+    const scaleToCover = Math.max(
+      placeholderWidth / userImageWidth,
+      placeholderHeight / userImageHeight
+    );
+    const finalImageWidth = userImageWidth * scaleToCover;
+    const printifyScale = finalImageWidth / placeholderWidth;
+
+    // PASSO B: Calcular coordenada X baseada na posição (Y sempre centrado para ajuste horizontal)
+    const scaledImageWidth = userImageWidth * scaleToCover;
+    const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
+
+    let printifyX = 0.5; // Centro padrão
+
+    if (maxMovementX > 0) {
+      if (position === 'left') {
+        const movementX = -maxMovementX * 0.7; // 70% para a esquerda
+        printifyX = 0.5 + (movementX / placeholderWidth);
+      } else if (position === 'right') {
+        const movementX = maxMovementX * 0.7; // 70% para a direita
+        printifyX = 0.5 + (movementX / placeholderWidth);
+      }
+      // 'center' fica com printifyX = 0.5
+    }
+
+    const finalAdjustments = {
+      x: printifyX,
+      y: 0.5, // Y sempre centrado para ajuste horizontal
+      scale: printifyScale,
+      rotation: 0
+    };
+
+    console.log('🎯 Coordenadas calculadas:', {
+      position,
+      variantId,
+      scaleToCover,
+      printifyScale,
+      maxMovementX,
+      printifyX,
+      finalAdjustments
+    });
+
+    return finalAdjustments;
   };
 
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
@@ -287,6 +380,88 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         ...adjustments, 
         x: 0.5 // Forçar X sempre centrado
       });
+    }
+  };
+
+  // ✅ FUNÇÃO PRINCIPAL: Lidar com ajustes de posição
+  const handleAdjustment = async (type: 'position', newPosition: 'left' | 'center' | 'right') => {
+    if (!selectedImageUrl || !userImageDimensions || !selectedPrintifyVariantId) {
+      toast.error('Selecione uma imagem primeiro');
+      return;
+    }
+
+    // Rate limiting - máximo 3 chamadas por minuto
+    const rateCheck = RateLimiter.checkRequestLimit();
+    if (!rateCheck.allowed) {
+      toast.error(rateCheck.message);
+      return;
+    }
+    RateLimiter.recordRequest();
+    
+    console.log(`🎯 Ajustando posição: ${newPosition}`);
+    setImagePosition(newPosition);
+
+    // Calcular novas coordenadas
+    const newCoordinates = calculatePrintifyCoords(newPosition, selectedPrintifyVariantId, userImageDimensions);
+    setImageAdjustments(newCoordinates);
+
+    // Gerar nova mockup
+    await generateNewMockup(newCoordinates);
+  };
+
+  // ✅ FUNÇÃO: Gerar nova mockup com os ajustes aplicados
+  const generateNewMockup = async (adjustments: ImageAdjustments) => {
+    if (!selectedImageUrl || !selectedPrintifyVariantId || !product) {
+      console.log('❌ Dados necessários em falta para gerar mockup');
+      return;
+    }
+
+    setIsGeneratingMockup(true);
+
+    try {
+      console.log('🔄 Gerando nova mockup com ajustes:', adjustments);
+
+      const requestBody = {
+        productId: product.id,
+        userImageUrl: selectedImageUrl,
+        userId: userInfo?.id,
+        selectedPrintifyVariantId,
+        imageAdjustments: adjustments
+      };
+
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.data?.mockupUrls) {
+        console.log('✅ Nova mockup gerada:', data.data.mockupUrls);
+        
+        // Atualizar galeria de mockups
+        setCurrentMockupUrls(data.data.mockupUrls);
+        setActiveMockupIndex(0);
+        
+        // Atualizar dados Printify para carrinho
+        setPrintifyImageId(data.data.printifyImageId);
+        setPrintifyProductId(data.data.printifyProductId);
+        
+        toast.success('Posição ajustada com sucesso!');
+      } else {
+        console.error('❌ Resposta inválida:', data);
+        toast.error('Erro ao gerar nova mockup');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao gerar mockup:', error);
+      toast.error('Erro ao aplicar ajuste. Tente novamente.');
+    } finally {
+      setIsGeneratingMockup(false);
     }
   };
 
@@ -497,7 +672,71 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     </label>
                   </div>
 
-
+                  {/* ✅ 6. CONTROLES DE POSIÇÃO HORIZONTAL - APENAS se tem imagem e dimensões */}
+                  {selectedImageUrl && userImageDimensions && (
+                    <div className="relative">
+                      <div className="bg-gradient-to-br from-blue-50/80 to-blue-100/50 rounded-xl p-4 sm:p-6 border border-blue-200/50">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          <label className="text-sm font-bold text-blue-800">📐 Ajustar Posição Horizontal</label>
+                          {isGeneratingMockup && (
+                            <div className="flex items-center gap-1 ml-auto">
+                              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                              <span className="text-xs text-blue-600">Gerando...</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-2">
+                          <Button
+                            onClick={() => handleAdjustment('position', 'left')}
+                            variant={imagePosition === 'left' ? 'default' : 'outline'}
+                            disabled={isGeneratingMockup}
+                            className={`relative h-12 text-sm font-medium transition-all duration-200 ${
+                              imagePosition === 'left' 
+                                ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' 
+                                : 'bg-white/80 text-blue-700 border-blue-300 hover:bg-blue-50 hover:border-blue-400'
+                            }`}
+                          >
+                            <span className="text-lg mr-1">⬅️</span>
+                            Esquerda
+                          </Button>
+                          
+                          <Button
+                            onClick={() => handleAdjustment('position', 'center')}
+                            variant={imagePosition === 'center' ? 'default' : 'outline'}
+                            disabled={isGeneratingMockup}
+                            className={`relative h-12 text-sm font-medium transition-all duration-200 ${
+                              imagePosition === 'center' 
+                                ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' 
+                                : 'bg-white/80 text-blue-700 border-blue-300 hover:bg-blue-50 hover:border-blue-400'
+                            }`}
+                          >
+                            <span className="text-lg mr-1">🎯</span>
+                            Centro
+                          </Button>
+                          
+                          <Button
+                            onClick={() => handleAdjustment('position', 'right')}
+                            variant={imagePosition === 'right' ? 'default' : 'outline'}
+                            disabled={isGeneratingMockup}
+                            className={`relative h-12 text-sm font-medium transition-all duration-200 ${
+                              imagePosition === 'right' 
+                                ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700' 
+                                : 'bg-white/80 text-blue-700 border-blue-300 hover:bg-blue-50 hover:border-blue-400'
+                            }`}
+                          >
+                            <span className="text-lg mr-1">➡️</span>
+                            Direita
+                          </Button>
+                        </div>
+                        
+                        <div className="mt-3 text-xs text-blue-600/80 text-center">
+                          Ajuste fino da posição da sua arte na capa
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* 🛒 7. BOTÃO PRINCIPAL MOBILE-FIRST */}
                   <div className="pt-3">

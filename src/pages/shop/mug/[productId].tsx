@@ -17,6 +17,7 @@ import { ChevronLeft } from 'lucide-react';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
+import { RateLimiter } from '@/lib/utils/rateLimiter';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
 
@@ -41,6 +42,13 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
   const [printifyImageId, setPrintifyImageId] = useState<string>('');
   const [printifyProductId, setPrintifyProductId] = useState<string>('');
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
+
+  // ✅ NOVOS ESTADOS para ajuste de posição VERTICAL
+  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [imagePosition, setImagePosition] = useState<'top' | 'center' | 'bottom'>('center');
+  const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
+  const [activeMockupIndex, setActiveMockupIndex] = useState<number>(0);
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
 
   // Função utilitária: Validação consolidada
   const validatePurchase = () => {
@@ -95,7 +103,13 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     setPrintifyPreviewUrls(data.previewUrls);
     setPrintifyImageId(data.printifyImageId);
     setPrintifyProductId(data.printifyProductId);
-  }, []);
+    
+    // ✅ Inicializar galeria de mockups com todas as mockups geradas
+    if (data.previewUrls.length > 0 && currentMockupUrls.length === 0) {
+      setCurrentMockupUrls(data.previewUrls);
+      setActiveMockupIndex(0);
+    }
+  }, [currentMockupUrls]);
 
   const handleAddToCart = async () => {
     const validationError = validatePurchase();
@@ -159,11 +173,25 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
     
+    // ✅ PASSO 1 - Obtém as dimensões da imagem antes de fazer upload
+    const img = new Image();
+    img.onload = function(this: HTMLImageElement) {
+      setUserImageDimensions({ width: this.width, height: this.height });
+      console.log(`📐 Dimensões da Imagem Carregadas: ${this.width}x${this.height}`);
+    };
+    img.src = imageUrl;
+    
     // Reset estados Printify para nova geração
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
     setImageAdjustments(undefined);
+    
+    // ✅ Reset posição para centro quando nova imagem é selecionada
+    setImagePosition('center');
+    setCurrentMockupUrls([]);
+    setActiveMockupIndex(0);
+    setIsGeneratingMockup(false);
     
     toast.success('Arte aplicada com sucesso!');
   };
@@ -175,6 +203,149 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         ...adjustments, 
         x: 0.5 // Força X sempre centrado
       });
+    }
+  };
+
+  // ✅ FUNÇÃO: Calcular coordenadas finais baseado na posição definida (top/center/bottom)
+  const calculatePrintifyCoords = (position: 'top' | 'center' | 'bottom', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
+    if (!product) {
+      console.log('❌ Produto não encontrado');
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    }
+
+    const selectedVariant = product.variants?.find(v => v.id === variantId);
+    if (!selectedVariant) {
+      console.log('❌ Variante não encontrada');
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    }
+
+    const { placeholderWidth, placeholderHeight } = selectedVariant;
+    const { width: userImageWidth, height: userImageHeight } = imageDimensions;
+
+    // PASSO A: Calcular escala
+    const scaleToCover = Math.max(
+      placeholderWidth / userImageWidth,
+      placeholderHeight / userImageHeight
+    );
+    const finalImageWidth = userImageWidth * scaleToCover;
+    const printifyScale = finalImageWidth / placeholderWidth;
+
+    // PASSO B: Calcular coordenada Y baseada na posição (X sempre centrado para ajuste vertical)
+    const scaledImageHeight = userImageHeight * scaleToCover;
+    const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
+
+    let printifyY = 0.5; // Centro padrão
+
+    if (maxMovementY > 0) {
+      if (position === 'top') {
+        const movementY = -maxMovementY * 0.7; // 70% para cima
+        printifyY = 0.5 + (movementY / placeholderHeight);
+      } else if (position === 'bottom') {
+        const movementY = maxMovementY * 0.7; // 70% para baixo
+        printifyY = 0.5 + (movementY / placeholderHeight);
+      }
+      // 'center' fica com printifyY = 0.5
+    }
+
+    const finalAdjustments = {
+      x: 0.5, // X sempre centrado para ajuste vertical
+      y: printifyY,
+      scale: printifyScale,
+      rotation: 0
+    };
+
+    console.log('🎯 Coordenadas calculadas:', {
+      position,
+      variantId,
+      scaleToCover,
+      printifyScale,
+      maxMovementY,
+      printifyY,
+      finalAdjustments
+    });
+
+    return finalAdjustments;
+  };
+
+  // ✅ FUNÇÃO PRINCIPAL: Lidar com ajustes de posição VERTICAL
+  const handleAdjustment = async (type: 'position', newPosition: 'top' | 'center' | 'bottom') => {
+    if (!selectedImageUrl || !userImageDimensions || !selectedPrintifyVariantId) {
+      toast.error('Selecione uma imagem primeiro');
+      return;
+    }
+
+    // Rate limiting - máximo 3 chamadas por minuto
+    const rateCheck = RateLimiter.checkRequestLimit();
+    if (!rateCheck.allowed) {
+      toast.error(rateCheck.message);
+      return;
+    }
+    RateLimiter.recordRequest();
+    
+    console.log(`🎯 Ajustando posição: ${newPosition}`);
+    setImagePosition(newPosition);
+
+    // Calcular novas coordenadas
+    const newCoordinates = calculatePrintifyCoords(newPosition, selectedPrintifyVariantId, userImageDimensions);
+    setImageAdjustments(newCoordinates);
+
+    // Gerar nova mockup
+    await generateNewMockup(newCoordinates);
+  };
+
+  // ✅ FUNÇÃO: Gerar nova mockup com os ajustes aplicados
+  const generateNewMockup = async (adjustments: ImageAdjustments) => {
+    if (!selectedImageUrl || !selectedPrintifyVariantId || !product) {
+      console.log('❌ Dados necessários em falta para gerar mockup');
+      return;
+    }
+
+    setIsGeneratingMockup(true);
+
+    try {
+      console.log('🔄 Gerando nova mockup com ajustes:', adjustments);
+
+      const requestBody = {
+        productId: product.id,
+        userImageUrl: selectedImageUrl,
+        userId: userInfo?.id,
+        selectedPrintifyVariantId,
+        imageAdjustments: adjustments
+      };
+
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.data?.mockupUrls) {
+        console.log('✅ Nova mockup gerada:', data.data.mockupUrls);
+        
+        // Atualizar galeria de mockups
+        setCurrentMockupUrls(data.data.mockupUrls);
+        setActiveMockupIndex(0);
+        
+        // Atualizar dados Printify para carrinho
+        setPrintifyImageId(data.data.printifyImageId);
+        setPrintifyProductId(data.data.printifyProductId);
+        
+        toast.success('Posição ajustada com sucesso!');
+      } else {
+        console.error('❌ Resposta inválida:', data);
+        toast.error('Erro ao gerar nova mockup');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao gerar mockup:', error);
+      toast.error('Erro ao aplicar ajuste. Tente novamente.');
+    } finally {
+      setIsGeneratingMockup(false);
     }
   };
 
@@ -349,6 +520,72 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       Impressão duradoura e <span className="font-bold">resistente à lavagem</span>. Perfeita para o seu café matinal.
                 </p>
               </div>
+
+                  {/* ✅ CONTROLES DE POSIÇÃO VERTICAL - APENAS se tem imagem e dimensões */}
+                  {selectedImageUrl && userImageDimensions && (
+                    <div className="relative">
+                      <div className="bg-gradient-to-br from-orange-50/80 to-orange-100/50 rounded-xl p-4 sm:p-6 border border-orange-200/50">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                          <label className="text-sm font-bold text-orange-800">📐 Ajustar Posição Vertical</label>
+                          {isGeneratingMockup && (
+                            <div className="flex items-center gap-1 ml-auto">
+                              <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                              <span className="text-xs text-orange-600">Gerando...</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-2">
+                          <Button
+                            onClick={() => handleAdjustment('position', 'top')}
+                            variant={imagePosition === 'top' ? 'default' : 'outline'}
+                            disabled={isGeneratingMockup}
+                            className={`relative h-12 text-sm font-medium transition-all duration-200 ${
+                              imagePosition === 'top' 
+                                ? 'bg-orange-600 text-white shadow-md hover:bg-orange-700' 
+                                : 'bg-white/80 text-orange-700 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                            }`}
+                          >
+                            <span className="text-lg mr-1">⬆️</span>
+                            Cima
+                          </Button>
+                          
+                          <Button
+                            onClick={() => handleAdjustment('position', 'center')}
+                            variant={imagePosition === 'center' ? 'default' : 'outline'}
+                            disabled={isGeneratingMockup}
+                            className={`relative h-12 text-sm font-medium transition-all duration-200 ${
+                              imagePosition === 'center' 
+                                ? 'bg-orange-600 text-white shadow-md hover:bg-orange-700' 
+                                : 'bg-white/80 text-orange-700 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                            }`}
+                          >
+                            <span className="text-lg mr-1">🎯</span>
+                            Centro
+                          </Button>
+                          
+                          <Button
+                            onClick={() => handleAdjustment('position', 'bottom')}
+                            variant={imagePosition === 'bottom' ? 'default' : 'outline'}
+                            disabled={isGeneratingMockup}
+                            className={`relative h-12 text-sm font-medium transition-all duration-200 ${
+                              imagePosition === 'bottom' 
+                                ? 'bg-orange-600 text-white shadow-md hover:bg-orange-700' 
+                                : 'bg-white/80 text-orange-700 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                            }`}
+                          >
+                            <span className="text-lg mr-1">⬇️</span>
+                            Baixo
+                          </Button>
+                        </div>
+                        
+                        <div className="mt-3 text-xs text-orange-600/80 text-center">
+                          Ajuste fino da posição da sua arte na caneca
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Seletor/Display de Tamanho */}
                   {product.variants && product.variants.length > 1 ? (
