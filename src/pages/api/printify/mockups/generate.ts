@@ -625,7 +625,26 @@ export default async function handler(
       // ✅ DEBUG: Log dos imageAdjustments recebidos do frontend
       console.log('🎯 [BACKEND] imageAdjustments recebidos do frontend:', imageAdjustments);
 
-      // ✅ OBTER DIMENSÕES REAIS DA IMAGEM PARA CÁLCULO PRECISO
+      // ✅ PASSO 1: FAZER UPLOAD DA IMAGEM PARA PRINTIFY MEDIA LIBRARY (OBRIGATÓRIO PARA PRODUCTS API)
+      console.log('🔄 [BACKEND] Uploading image to Printify Media Library to get ID...');
+      const uploadPayload = {
+        file_name: `mockup-${productId}-${Date.now()}.png`,
+        url: userImageUrl, // Printify vai fazer download do URL
+      };
+      
+      const uploadResponse = await printifyFetch('uploads/images.json', {
+        method: 'POST',
+        body: JSON.stringify(uploadPayload),
+      });
+
+      if (!uploadResponse || !uploadResponse.id) {
+        throw new Error('Failed to upload image to Printify Media Library');
+      }
+      
+      const printifyImageId = uploadResponse.id;
+      console.log(`✅ Image uploaded to Printify Media Library. ID: ${printifyImageId}`);
+
+      // ✅ PASSO 2: OBTER DIMENSÕES REAIS DA IMAGEM PARA CÁLCULO PRECISO
       console.log(`🧠 [BACKEND] Obtendo dimensões reais da imagem para ${productId}...`);
       
       let userImageWidth = 1024; // Fallback
@@ -648,7 +667,7 @@ export default async function handler(
       
       const { placeholderWidth, placeholderHeight } = selectedVariant;
 
-      // ✅ CALCULAR ESCALA SEMPRE (usando a lógica robusta do Math.max)
+      // ✅ PASSO 3: CALCULAR ESCALA CORRETA (usando a lógica robusta do Math.max)
       console.log(`🧠 [BACKEND] Calculando escala robusta para ${productId}...`);
 
       // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
@@ -682,7 +701,7 @@ export default async function handler(
       };
       console.log('🎯 [BACKEND] Valores finais para Printify:', finalValues);
 
-      // Criar produto temporário na Printify para gerar mockup
+      // ✅ PASSO 4: CRIAR PRODUTO TEMPORÁRIO NA PRINTIFY USANDO O ID DA MEDIA LIBRARY
       const printifyProductPayload = {
         title: `PicTuz ${productId} Mockup (${user.id}-${Date.now()})`,
         description: `Temporary ${productId} product for mockup generation`,
@@ -700,7 +719,7 @@ export default async function handler(
           placeholders: [{
             position: printAreaConfig.position,
             images: [{
-              src: userImageUrl, // ✅ USA SRC EM VEZ DE ID!
+              id: printifyImageId, // ✅ USA O ID DA MEDIA LIBRARY (OBRIGATÓRIO PARA PRODUCTS API)
               x: finalValues.x,
               y: finalValues.y,
               scale: finalValues.scale,
@@ -756,7 +775,7 @@ export default async function handler(
       return res.status(200).json({
         success: true,
         previewUrls: finalPreviewUrls.length > 0 ? finalPreviewUrls : [product.mockupInitialPath],
-        printifyImageId: null, // ✅ Não fazemos upload, usamos SRC diretamente
+        printifyImageId: printifyImageId, // ✅ Retorna o ID da imagem na Media Library
         printifyProductId: createdProductId,
       });
 
