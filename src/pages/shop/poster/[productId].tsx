@@ -59,7 +59,9 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
   // ✅ POSIÇÕES DEFINIDAS: Estado para a posição da imagem (3 opções)
-  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
+  // Para poster vertical: left/center/right
+  // Para poster horizontal: top/center/bottom
+  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right' | 'top' | 'bottom'>('center');
 
   // ✅ GALERIA DE MOCKUPS: Guarda o array de URLs das mockups atuais
   const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
@@ -393,8 +395,10 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     return sizeText; // Fallback se não conseguir fazer parse
   };
 
-  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida (left/center/right)
-  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
+  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida
+  // Para poster vertical: left/center/right (ajusta X)
+  // Para poster horizontal: top/center/bottom (ajusta Y)
+  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right' | 'top' | 'bottom', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
     if (!product) {
       console.log('❌ Produto não encontrado');
       return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
@@ -417,26 +421,47 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     const finalImageWidth = userImageWidth * scaleToCover;
     const printifyScale = finalImageWidth / placeholderWidth;
 
-    // PASSO B: Calcular coordenada X baseada na posição
-    const scaledImageWidth = userImageWidth * scaleToCover;
-    const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
-
+    // ✅ NOVO: Determinar se é poster horizontal ou vertical
+    const isHorizontalPoster = product.id === 'poster_horizontal_semi_glossy';
+    
     let printifyX = 0.5; // Centro padrão
+    let printifyY = 0.5; // Centro padrão
 
-    if (maxMovementX > 0) {
-      if (position === 'left') {
-        const movementX = -maxMovementX * 0.7; // 70% para a esquerda
-        printifyX = 0.5 + (movementX / placeholderWidth);
-      } else if (position === 'right') {
-        const movementX = maxMovementX * 0.7; // 70% para a direita
-        printifyX = 0.5 + (movementX / placeholderWidth);
+    if (isHorizontalPoster) {
+      // ✅ POSTER HORIZONTAL: Ajustar coordenada Y baseada na posição (top/center/bottom)
+      const scaledImageHeight = userImageHeight * scaleToCover;
+      const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
+
+      if (maxMovementY > 0) {
+        if (position === 'top') {
+          const movementY = -maxMovementY * 0.7; // 70% para cima
+          printifyY = 0.5 + (movementY / placeholderHeight);
+        } else if (position === 'bottom') {
+          const movementY = maxMovementY * 0.7; // 70% para baixo
+          printifyY = 0.5 + (movementY / placeholderHeight);
+        }
+        // 'center' fica com printifyY = 0.5
       }
-      // 'center' fica com printifyX = 0.5
+    } else {
+      // ✅ POSTER VERTICAL: Ajustar coordenada X baseada na posição (left/center/right)
+      const scaledImageWidth = userImageWidth * scaleToCover;
+      const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
+
+      if (maxMovementX > 0) {
+        if (position === 'left') {
+          const movementX = -maxMovementX * 0.7; // 70% para a esquerda
+          printifyX = 0.5 + (movementX / placeholderWidth);
+        } else if (position === 'right') {
+          const movementX = maxMovementX * 0.7; // 70% para a direita
+          printifyX = 0.5 + (movementX / placeholderWidth);
+        }
+        // 'center' fica com printifyX = 0.5
+      }
     }
 
     const finalAdjustments = {
       x: printifyX,
-      y: 0.5, // Y sempre centrado para poster vertical
+      y: printifyY,
       scale: printifyScale,
       rotation: 0
     };
@@ -444,10 +469,11 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     console.log('🎯 Coordenadas calculadas:', {
       position,
       variantId,
+      isHorizontalPoster,
       scaleToCover,
       printifyScale,
-      maxMovementX,
       printifyX,
+      printifyY,
       finalAdjustments
     });
 
@@ -483,7 +509,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     let newVariantId = selectedPrintifyVariantId;
 
     if (type === 'position') {
-      newPosition = value as 'left' | 'center' | 'right';
+      newPosition = value as 'left' | 'center' | 'right' | 'top' | 'bottom';
       setImagePosition(newPosition);
       console.log(`📍 Posição alterada para: ${newPosition}`);
     } else if (type === 'size') {
@@ -500,7 +526,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   };
 
   // ✅ FUNÇÃO QUE CHAMA O BACKEND: Gera nova mockup com a posição e variante
-  const generateNewMockup = async (currentPosition: 'left' | 'center' | 'right', currentVariantId: number) => {
+  const generateNewMockup = async (currentPosition: 'left' | 'center' | 'right' | 'top' | 'bottom', currentVariantId: number) => {
     if (!userImageDimensions || !selectedImageUrl || !selectedImageId) {
       console.log('❌ Dados insuficientes para gerar mockup');
       return;
@@ -738,6 +764,75 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                 </motion.div>
               )}
 
+              {/* ✅ CONTROLES DE POSIÇÃO PARA POSTER HORIZONTAL - Cima/Centro/Baixo */}
+              {selectedImageUrl && userImageDimensions && product && product.id === 'poster_horizontal_semi_glossy' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.4 }}
+                  className="mt-4"
+                >
+                  <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
+                    <CardContent className="p-4">
+                      <div className="text-center mb-3">
+                        <h3 className="text-base font-bold text-[#2D5A27] mb-1">
+                          Ajustar Posição
+                        </h3>
+                        <p className="text-xs text-[#4A6B5B]/80">
+                          Escolha como posicionar a sua arte no poster horizontal
+                        </p>
+                      </div>
+                      
+                      <div className="flex gap-2 mb-3">
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'top')} 
+                          variant={imagePosition === 'top' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'top' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                        >
+                          Cima
+                        </Button>
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
+                          variant={imagePosition === 'center' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'center' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                        >
+                          Centro
+                        </Button>
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'bottom')} 
+                          variant={imagePosition === 'bottom' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'bottom' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                        >
+                          Baixo
+                        </Button>
+                      </div>
+                      
+                      <div className="text-center">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-[#2D5A27] bg-[#2D5A27]/10 px-2 py-1 rounded-md font-medium">
+                          <span className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full"></span>
+                          Posição: {imagePosition === 'top' ? 'Cima' : imagePosition === 'bottom' ? 'Baixo' : 'Centro'}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
               {/* Prompt de Login (apenas se não autenticado) */}
               {!userInfo && (
                 <motion.div
@@ -778,7 +873,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                   {/* 1. TÍTULO MELHORADO */}
                   <div className="text-center">
                     <h1 className="text-3xl font-black text-[#2D5A27] mb-3 leading-tight">
-                      Poster Vertical
+                      {product.id === 'poster_horizontal_semi_glossy' ? 'Poster Horizontal' : 'Poster Vertical'}
                     </h1>
                     <div className="w-12 h-0.5 bg-gradient-to-r from-[#2D5A27] to-[#4A6B5B] mx-auto rounded-full"></div>
                   </div>
@@ -857,8 +952,6 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       </SelectContent>
                     </Select>
                   </div>
-
-
 
                   {/* 6. BLOCO DE AÇÕES - LÓGICA CONDICIONAL */}
                   <div className="pt-4">
