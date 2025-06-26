@@ -57,8 +57,14 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // ✅ NOVO: Estado para dimensões da imagem do utilizador
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
-  // ✅ NOVO: Estado para posição manual (x, y em percentagem 0-100)
-  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
+  // ✅ SLIDER DE 10 PASSOS: Guarda a posição do slider (1 a 10). Começa em 5 (centro)
+  const [sliderPosition, setSliderPosition] = useState<number>(5);
+
+  // ✅ URL DA MOCKUP ATUAL: Guarda o URL da imagem que está a ser mostrada no ecrã
+  const [currentMockupUrl, setCurrentMockupUrl] = useState<string | null>(null);
+
+  // ✅ LOADING INDICATOR: Para mostrar enquanto a nova mockup é gerada
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
 
   // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
@@ -183,8 +189,14 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     setPrintifyPreviewUrls(data.previewUrls);
     setPrintifyImageId(data.printifyImageId);
     setPrintifyProductId(data.printifyProductId);
+    
+    // ✅ Inicializar currentMockupUrl com a primeira mockup gerada
+    if (data.previewUrls.length > 0 && !currentMockupUrl) {
+      setCurrentMockupUrl(data.previewUrls[0]);
+    }
+    
     console.log('✅ Printify mockups received:', data);
-  }, []);
+  }, [currentMockupUrl]);
 
   const handleAddToCart = async () => {
     // Mostrar toast se não há arte selecionada
@@ -326,8 +338,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         setPrintifyImageId('');
         setPrintifyProductId('');
         
-        // ✅ Reset posição para centro quando nova imagem é selecionada
-        setPosition({ x: 50, y: 50 });
+        // ✅ Reset slider para centro quando nova imagem é selecionada
+        setSliderPosition(5);
         
         toast.dismiss();
         toast.success('Arte carregada para Printify com sucesso!');
@@ -358,93 +370,73 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
-    // Reset dimensões e posição
+    // Reset dimensões e slider
     setUserImageDimensions(null);
-    setPosition({ x: 50, y: 50 });
+    setSliderPosition(5);
   };
 
-  // ✅ FUNÇÃO PRINCIPAL: Lógica de Cálculo do Slider
-  const handlePositionChange = (value: number, axis: 'x' | 'y') => {
+  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição do slider (1-10)
+  const calculateFinalAdjustments = (sliderValue: number): ImageAdjustments => {
     if (!userImageDimensions || !product || !selectedPrintifyVariantId) {
-      console.log('❌ Dados insuficientes para calcular posição');
-      return;
+      console.log('❌ Dados insuficientes para calcular ajustes');
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
     }
 
     const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
     if (!selectedVariant) {
       console.log('❌ Variante não encontrada');
-      return;
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
     }
 
     const { placeholderWidth, placeholderHeight } = selectedVariant;
     const { width: userImageWidth, height: userImageHeight } = userImageDimensions;
 
-    // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área
+    // PASSO A: Calcular escala (igual à lógica anterior)
     const scaleToCover = Math.max(
       placeholderWidth / userImageWidth,
       placeholderHeight / userImageHeight
     );
+    const finalImageWidth = userImageWidth * scaleToCover;
+    const printifyScale = finalImageWidth / placeholderWidth;
 
-    // PASSO B: Dimensões da imagem depois do zoom
+    // PASSO B: Calcular limites de movimento
     const scaledImageWidth = userImageWidth * scaleToCover;
-    const scaledImageHeight = userImageHeight * scaleToCover;
-
-    // PASSO C: Calcular limites de movimento (áreas que "sobram")
     const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
-    const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
 
-    console.log('🎯 Cálculos de movimento:', {
-      placeholderWidth,
-      placeholderHeight,
-      userImageWidth,
-      userImageHeight,
-      scaleToCover,
-      scaledImageWidth,
-      scaledImageHeight,
-      maxMovementX,
-      maxMovementY
-    });
-
-    // PASSO D: Atualizar estado da posição
-    const newPosition = { ...position };
-    newPosition[axis] = value;
-    setPosition(newPosition);
-
-    // PASSO E: Converter de percentagem (0-100) para coordenadas Printify (0.0-1.0)
-    let printifyX, printifyY;
+    // PASSO C: Converter slider (1-10) para coordenada X
+    // 5 = centro (0.5), 1 = esquerda máxima, 10 = direita máxima
+    let printifyX = 0.5; // Valor padrão (centro)
 
     if (maxMovementX > 0) {
-      // Imagem é mais larga que o placeholder - pode mover horizontalmente
-      const movementX = (newPosition.x - 50) / 50 * maxMovementX; // -maxMovementX a +maxMovementX
-      printifyX = 0.5 + (movementX / placeholderWidth);
-    } else {
-      // Imagem cabe horizontalmente - sempre centrada
-      printifyX = 0.5;
+      // Mapear 1-10 para -1 a +1, depois para movimento pixel e depois para coordenada Printify
+      const sliderPercent = (sliderValue - 5.5) / 4.5; // Converte para aproximadamente -1 a +1
+      const movementX = sliderPercent * maxMovementX; // Movimento em pixels
+      printifyX = 0.5 + (movementX / placeholderWidth); // Coordenada final Printify
     }
 
-    if (maxMovementY > 0) {
-      // Imagem é mais alta que o placeholder - pode mover verticalmente
-      const movementY = (newPosition.y - 50) / 50 * maxMovementY; // -maxMovementY a +maxMovementY
-      printifyY = 0.5 + (movementY / placeholderHeight);
-    } else {
-      // Imagem cabe verticalmente - sempre centrada
-      printifyY = 0.5;
-    }
+    const finalAdjustments = {
+      x: printifyX,
+      y: 0.5, // Y sempre centrado para poster vertical
+      scale: printifyScale,
+      rotation: 0
+    };
 
-    console.log('📍 Posição final calculada:', {
-      sliderValue: value,
-      axis,
-      newPosition,
+    console.log('🎯 Ajustes finais calculados:', {
+      sliderValue,
+      scaleToCover,
+      printifyScale,
+      maxMovementX,
       printifyX,
-      printifyY
+      finalAdjustments
     });
 
-    // PASSO F: Atualizar imageAdjustments com a nova posição
-    setImageAdjustments(prev => ({
-      ...prev,
-      x: printifyX,
-      y: printifyY
-    }));
+    return finalAdjustments;
+  };
+
+  // ✅ FUNÇÃO SIMPLES: Apenas atualiza a posição do slider
+  const handleSliderChange = (newValue: number) => {
+    console.log(`🎚️ Slider movido para posição: ${newValue}`);
+    setSliderPosition(newValue);
   };
 
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
@@ -456,6 +448,78 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       ...adjustments
     }));
   };
+
+  // ✅ FUNÇÃO QUE CHAMA O BACKEND: Gera nova mockup com as novas coordenadas
+  const generateNewMockup = async (adjustments: ImageAdjustments) => {
+    if (!selectedImageUrl || !selectedImageId) {
+      console.log('❌ Imagem não selecionada para gerar mockup');
+      return;
+    }
+
+    console.log('🔄 Iniciando geração de nova mockup...', adjustments);
+    setIsGeneratingMockup(true);
+
+    const requestBody = {
+      productId: product?.id,
+      userImageUrl: selectedImageUrl,
+      userId: userInfo?.id,
+      imageAdjustments: adjustments,
+      selectedPrintifyVariantId: selectedPrintifyVariantId,
+      printifyImageId: selectedImageId
+    };
+
+    try {
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success && data.previewUrls && data.previewUrls.length > 0) {
+        console.log('✅ Nova mockup gerada com sucesso!', data.previewUrls[0]);
+        setCurrentMockupUrl(data.previewUrls[0]);
+        // Também atualizar o estado oficial
+        setPrintifyPreviewUrls(data.previewUrls);
+      } else {
+        console.error('❌ Erro ao gerar nova mockup:', data.error || 'Resposta inválida');
+      }
+    } catch (error) {
+      console.error('❌ Falha grave na chamada à API:', error);
+    } finally {
+      setIsGeneratingMockup(false);
+    }
+  };
+
+  // ✅ USEEFFECT COM DEBOUNCE: Escuta mudanças na posição do slider
+  useEffect(() => {
+    // Não faz nada se for a posição inicial (centro)
+    if (sliderPosition === 5) return;
+
+    // Não faz nada se não temos os dados necessários
+    if (!userImageDimensions || !selectedImageUrl || !selectedImageId) return;
+
+    console.log(`⏰ Slider em posição ${sliderPosition}. A aguardar estabilização...`);
+
+    // Cria um temporizador. Se o utilizador mexer outra vez, o timer antigo é cancelado.
+    const debounceTimer = setTimeout(() => {
+      console.log(`⏰ Utilizador parou em ${sliderPosition}. A pedir nova mockup...`);
+      
+      // Calcula os ajustes finais baseado na posição do slider
+      const newAdjustments = calculateFinalAdjustments(sliderPosition);
+      
+      // Chama a função que vai ao backend
+      generateNewMockup(newAdjustments);
+
+    }, 800); // Espera 800ms
+
+    return () => {
+      console.log('🗑️ Timer cancelado (utilizador moveu slider novamente)');
+      clearTimeout(debounceTimer);
+    };
+
+  }, [sliderPosition, userImageDimensions, selectedImageUrl, selectedImageId]);
 
   if (!product) {
     return (
@@ -503,11 +567,24 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
             >
               {/* Área Principal de Visualização OTIMIZADA - Mais Alta */}
               <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-[#E8E0D0]">
+                {/* ✅ OVERLAY DE LOADING quando nova mockup está a ser gerada */}
+                {isGeneratingMockup && (
+                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-20 rounded-2xl">
+                    <div className="bg-white rounded-xl p-6 text-center max-w-sm mx-4 shadow-2xl">
+                      <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <h3 className="font-semibold text-gray-800 mb-2">A gerar nova posição...</h3>
+                      <p className="text-sm text-gray-600">
+                        Posição {sliderPosition}/10 - Aguarde alguns segundos
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <ProductCanvas
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
                   userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  printifyGeneratedPreviewUrls={currentMockupUrl ? [currentMockupUrl] : printifyPreviewUrls}
                   onPreviewReady={handlePreviewReady}
                   onSelectImage={handleOpenGallery}
                   imageAdjustments={imageAdjustments}
@@ -669,20 +746,21 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       
                       <div className="space-y-3">
                         <Slider
-                          defaultValue={[50]}
-                          max={100}
+                          defaultValue={[5]}
+                          min={1}
+                          max={10}
                           step={1}
-                          value={[position.x]}
-                          onValueChange={(value) => handlePositionChange(value[0], 'x')}
+                          value={[sliderPosition]}
+                          onValueChange={(value) => handleSliderChange(value[0])}
                           className="w-full"
                         />
                         
                         <div className="flex justify-between text-xs text-blue-600 font-medium">
-                          <span>← Esquerda</span>
+                          <span>← Esquerda (1)</span>
                           <span className="bg-blue-100 px-2 py-1 rounded">
-                            Posição: {position.x}%
+                            Posição: {sliderPosition}/10
                           </span>
-                          <span>Direita →</span>
+                          <span>Direita (10) →</span>
                         </div>
                       </div>
                       
