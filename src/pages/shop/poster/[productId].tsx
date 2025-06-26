@@ -380,6 +380,19 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     setImagePosition('center');
   };
 
+  // ✅ FUNÇÃO: Converter polegadas para centímetros
+  const convertInchesToCm = (sizeText: string): string => {
+    // Exemplo: "22" x 34" (Vertical)" -> "56 x 86 cm (Vertical)"
+    const inchMatch = sizeText.match(/(\d+(?:\.\d+)?)["″]?\s*x\s*(\d+(?:\.\d+)?)["″]?\s*\(([^)]+)\)/);
+    if (inchMatch) {
+      const width = Math.round(parseFloat(inchMatch[1]) * 2.54);
+      const height = Math.round(parseFloat(inchMatch[2]) * 2.54);
+      const orientation = inchMatch[3];
+      return `${width} x ${height} cm (${orientation})`;
+    }
+    return sizeText; // Fallback se não conseguir fazer parse
+  };
+
   // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida (left/center/right)
   const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
     if (!product) {
@@ -606,10 +619,10 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                   selectedImageId={selectedImageId}
                 />
 
-                {/* ✅ GALERIA DE MOCKUPS - Mostrar se temos várias imagens */}
+                {/* ✅ GALERIA DE MOCKUPS - Apenas setas para navegação */}
                 {currentMockupUrls.length > 1 && (
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <div className="bg-black/70 backdrop-blur-sm rounded-xl p-3 flex items-center gap-3">
+                    <div className="bg-black/70 backdrop-blur-sm rounded-xl p-2 flex items-center gap-2">
                       {/* Botão Anterior */}
                       <Button
                         size="sm"
@@ -619,11 +632,6 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </Button>
-
-                      {/* Contador */}
-                      <span className="text-white text-sm font-medium px-2">
-                        {activeMockupIndex + 1} / {currentMockupUrls.length}
-                      </span>
 
                       {/* Botão Próximo */}
                       <Button
@@ -660,6 +668,72 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                   {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
                 </Button>
               </motion.div>
+
+              {/* ✅ CONTROLES DE POSIÇÃO - Movidos para debaixo do botão "Trocar Arte" */}
+              {selectedImageUrl && userImageDimensions && product && product.id === 'poster_vertical_semi_glossy' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.4 }}
+                  className="mt-6"
+                >
+                  <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
+                    <CardContent className="p-6">
+                      <div className="text-center mb-4">
+                        <h3 className="text-lg font-bold text-[#2D5A27] mb-2">
+                          Ajustar Posição
+                        </h3>
+                        <p className="text-sm text-[#4A6B5B]/80">
+                          Escolha como posicionar a sua arte no poster
+                        </p>
+                      </div>
+                      
+                      <div className="flex gap-3 mb-4">
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'left')} 
+                          variant={imagePosition === 'left' ? 'default' : 'outline'}
+                          className={`flex-1 ${imagePosition === 'left' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                        >
+                          Esquerda
+                        </Button>
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
+                          variant={imagePosition === 'center' ? 'default' : 'outline'}
+                          className={`flex-1 ${imagePosition === 'center' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                        >
+                          Centro
+                        </Button>
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'right')} 
+                          variant={imagePosition === 'right' ? 'default' : 'outline'}
+                          className={`flex-1 ${imagePosition === 'right' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                        >
+                          Direita
+                        </Button>
+                      </div>
+                      
+                      <div className="text-center">
+                        <span className="inline-flex items-center gap-2 text-sm text-[#2D5A27] bg-[#2D5A27]/10 px-3 py-2 rounded-lg font-medium">
+                          <span className="w-2 h-2 bg-[#2D5A27] rounded-full"></span>
+                          Posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
 
               {/* Prompt de Login (apenas se não autenticado) */}
               {!userInfo && (
@@ -698,17 +772,18 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
               {/* CARTÃO PRINCIPAL - Painel de Controlo Único */}
               <Card className="bg-gradient-to-br from-white to-[#F5F1E8]/30 backdrop-blur-sm border-[#E8E0D0]/30 shadow-xl hover:shadow-2xl transition-shadow duration-300">
                 <CardContent className="p-8 space-y-6">
-                  {/* 1. TÍTULO */}
-                  <div>
-                    <h1 className="text-3xl font-bold text-[#2D5A27] mb-2">
-                      {product.name}
+                  {/* 1. TÍTULO MELHORADO */}
+                  <div className="text-center">
+                    <h1 className="text-4xl font-black text-[#2D5A27] mb-4 leading-tight">
+                      Poster Vertical
                     </h1>
+                    <div className="w-16 h-1 bg-gradient-to-r from-[#2D5A27] to-[#4A6B5B] mx-auto rounded-full"></div>
                   </div>
 
-                  {/* 2. PREÇO */}
-                  <div className="bg-gradient-to-r from-[#2D5A27]/10 to-[#2D5A27]/5 rounded-xl p-4 border-l-4 border-[#2D5A27]">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-black text-[#2D5A27] drop-shadow-sm">
+                  {/* 2. PREÇO CENTRADO */}
+                  <div className="bg-gradient-to-r from-[#2D5A27]/10 to-[#2D5A27]/5 rounded-xl p-6 text-center">
+                    <div className="space-y-1">
+                      <span className="block text-5xl font-black text-[#2D5A27] drop-shadow-sm">
                         €{finalPrice.toFixed(2)}
                       </span>
                       <span className="text-sm text-[#4A6B5B]/70 font-medium">
@@ -717,19 +792,19 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                     </div>
                   </div>
 
-                  {/* 3. INCENTIVO DE VENDA - NOVO */}
-                  <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                    <div className="flex items-center gap-2 text-green-700">
-                      <Truck className="w-4 h-4" />
-                      <span className="text-sm font-semibold">
-                        🚚 Entrega gratuita em encomendas &gt; €50
+                  {/* 3. INCENTIVO DE VENDA MELHORADO */}
+                  <div className="bg-gradient-to-r from-green-50 to-green-100/50 rounded-xl p-4 border border-green-200/50 text-center">
+                    <div className="flex items-center justify-center gap-3 text-green-700">
+                      <Truck className="w-5 h-5" />
+                      <span className="font-semibold">
+                        Entrega gratuita em encomendas &gt; €50
                       </span>
                     </div>
                   </div>
 
-                  {/* 4. DESCRIÇÃO */}
-                  <div>
-                    <p className="text-sm text-[#4A6B5B]/80 leading-relaxed">
+                  {/* 4. DESCRIÇÃO MELHORADA */}
+                  <div className="text-center">
+                    <p className="text-[#4A6B5B]/90 leading-relaxed font-medium">
                       Transforme a sua arte AI num poster de alta qualidade! Impressão semi brilho premium com cores vibrantes e duradouras, perfeito para decorar qualquer espaço.
                     </p>
                   </div>
@@ -754,7 +829,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                     >
                       <SelectTrigger className="w-full bg-white border-2 border-[#E8E0D0]/60 text-[#2D5A27] h-14 shadow-sm hover:border-[#2D5A27]/50 focus:border-[#2D5A27] transition-colors duration-200 font-medium">
                         <SelectValue placeholder="Selecione um tamanho">
-                          {selectedSizeLabel || 'Selecione um tamanho'}
+                          {selectedSizeLabel ? convertInchesToCm(selectedSizeLabel) : 'Selecione um tamanho'}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="bg-white text-[#2D5A27] border-[#E8E0D0] max-h-60 shadow-xl">
@@ -773,61 +848,14 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                           return parseSize(a || '') - parseSize(b || '');
                         }).map(size => (
                           <SelectItem key={size} value={size || ''} className="hover:bg-[#F5F1E8]/50">
-                            {size}
+                            {convertInchesToCm(size || '')}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* ✅ 5.5. CONTROLES DE POSIÇÃO - BOTÕES DEFINIDOS */}
-                  {selectedImageUrl && userImageDimensions && product && product.id === 'poster_vertical_semi_glossy' && (
-                    <div className="bg-gradient-to-br from-blue-50/80 to-blue-100/50 rounded-xl p-6 border border-blue-200/50">
-                      <div className="flex items-center gap-2 mb-4">
-                        <ChevronDown className="w-4 h-4 text-blue-700" />
-                        <label className="text-sm font-bold text-blue-700">
-                          Ajustar Posição Horizontal
-                        </label>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'left')} 
-                          variant={imagePosition === 'left' ? 'default' : 'outline'}
-                          className="flex-1 text-sm"
-                          disabled={isGeneratingMockup}
-                        >
-                          Esquerda
-                        </Button>
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'center')} 
-                          variant={imagePosition === 'center' ? 'default' : 'outline'}
-                          className="flex-1 text-sm"
-                          disabled={isGeneratingMockup}
-                        >
-                          Centro
-                        </Button>
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'right')} 
-                          variant={imagePosition === 'right' ? 'default' : 'outline'}
-                          className="flex-1 text-sm"
-                          disabled={isGeneratingMockup}
-                        >
-                          Direita
-                        </Button>
-                      </div>
-                      
-                      <div className="mt-3 text-center">
-                        <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded font-medium">
-                          Posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
-                        </span>
-                      </div>
-                      
-                      <p className="text-xs text-blue-600 mt-3 leading-relaxed">
-                        💡 Clique nos botões para ajustar a posição da sua arte dentro do poster
-                      </p>
-                    </div>
-                  )}
+
 
                   {/* 6. BLOCO DE AÇÕES - LÓGICA CONDICIONAL */}
                   <div className="pt-4">
