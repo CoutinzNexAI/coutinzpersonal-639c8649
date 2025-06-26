@@ -19,7 +19,7 @@ import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
 import { validatePurchase } from '@/utils/productValidation';
-import { RateLimiter } from '@/lib/utils/rateLimiter';
+import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
 
 interface MugDetailPageProps {
   product: PrintifyProductMapping;
@@ -374,7 +374,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     console.log('🎮 [CANECA] handleAdjustment chamado:', { type, value, currentPosition: imagePosition });
     
     // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
-    const { allowed, message } = RateLimiter.checkRequestLimit();
+    const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
     if (!allowed) {
       console.log('🚫 [CANECA] Rate limit bloqueou o pedido:', message);
       toast.error(message); // Mostra o erro ao utilizador
@@ -404,7 +404,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     }
 
     // 3. Regista que um pedido foi feito
-    RateLimiter.recordRequest();
+    GlobalRateLimiter.recordRequest();
     console.log('📝 [CANECA] Pedido registado no rate limiter');
 
     // 4. E só depois chama a função para gerar a mockup

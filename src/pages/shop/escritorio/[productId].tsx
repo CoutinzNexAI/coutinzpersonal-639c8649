@@ -16,7 +16,7 @@ import ProductCanvas from '@/components/printify/ProductCanvas';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
-import { RateLimiter } from '@/lib/utils/rateLimiter';
+import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
 
@@ -47,63 +47,80 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const [isGeneratingMockup, setIsGeneratingMockup] = useState(false);
 
-  // ✅ FUNÇÃO DE CÁLCULO DE COORDENADAS (copiada das capas e adaptada para caderno)
-  const calculatePrintifyCoords = useCallback((
-    position: 'left' | 'center' | 'right',
-    variantId: number,
-    userImageDimensions: { width: number; height: number }
-  ) => {
-    const selectedVariant = product?.variants?.find(v => v.id === variantId);
+  // ✅ FUNÇÃO PARA CALCULAR COORDENADAS ESPECÍFICAS PARA CADERNO/MOUSEPAD
+  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
+    if (!product || !imageDimensions) {
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    }
+
+    const selectedVariant = product.variants?.find(v => v.id === variantId);
     if (!selectedVariant) {
-      throw new Error('Variante não encontrada');
+      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
     }
 
     const { placeholderWidth, placeholderHeight } = selectedVariant;
-    const { width: userImageWidth, height: userImageHeight } = userImageDimensions;
+    const { width: userImageWidth, height: userImageHeight } = imageDimensions;
 
-    console.log('🔍 [CADERNO] Calculando coordenadas:', { position, placeholderWidth, placeholderHeight, userImageWidth, userImageHeight });
-
-    // PASSO A: Escala Math.max para cobrir toda a área
+    // ✅ PASSO 1: CALCULAR A ESCALA "COVER" (Math.max logic)
     const scaleToCover = Math.max(
       placeholderWidth / userImageWidth,
       placeholderHeight / userImageHeight
     );
 
-    // PASSO B: Traduzir para escala Printify
+    // ✅ PASSO 2: CALCULAR A ESCALA PARA A API DA PRINTIFY
     const finalImageWidth = userImageWidth * scaleToCover;
     const printifyScale = finalImageWidth / placeholderWidth;
-
-    console.log('🔍 [CADERNO] Escala calculada:', { scaleToCover, finalImageWidth, printifyScale });
-
-    // PASSO C: Calcular movimento horizontal
+    
+    // ✅ PASSO 3: CALCULAR O MOVIMENTO MÁXIMO PERMITIDO
     const scaledImageWidth = userImageWidth * scaleToCover;
+    const scaledImageHeight = userImageHeight * scaleToCover;
+    
     const overflowX = Math.max(0, scaledImageWidth - placeholderWidth);
+    const overflowY = Math.max(0, scaledImageHeight - placeholderHeight);
+    
     const maxOffsetX = (overflowX / 2) / placeholderWidth;
+    const maxOffsetY = (overflowY / 2) / placeholderHeight;
 
-    let printifyX = 0.5; // Centro padrão
+    // ✅ PASSO 4: DEFINIR A POSIÇÃO FINAL COM BASE NO BOTÃO
+    let finalX = 0.5; // Centro por padrão
+    const finalY = 0.5; // Y sempre centrado para cadernos/mousepads
+    const shiftAmount = 0.7; // 70% do movimento máximo
 
-    if (overflowX > 0) {
-      if (position === 'left') {
-        const movementX = -maxOffsetX * 0.35; // ✅ MOVIMENTO SUBTIL: 35% (mesma lógica das capas)
-        printifyX = 0.5 + movementX;
-      } else if (position === 'right') {
-        const movementX = maxOffsetX * 0.35; // ✅ MOVIMENTO SUBTIL: 35% (mesma lógica das capas)
-        printifyX = 0.5 + movementX;
-      }
-      // 'center' fica com printifyX = 0.5
+    if (position === 'left') {
+      finalX = 0.5 - (maxOffsetX * shiftAmount);
+    } else if (position === 'right') {
+      finalX = 0.5 + (maxOffsetX * shiftAmount);
     }
-
+    
     const finalAdjustments = {
-      x: printifyX,
-      y: 0.5,
+      x: finalX,
+      y: finalY,
       scale: printifyScale,
       rotation: 0
     };
 
-    console.log('✅ [CADERNO] Coordenadas finais:', finalAdjustments);
+    console.log('🎯 [ESCRITORIO] Coordenadas calculadas:', {
+      productType: product?.category === 'stationery' ? 'Caderno' : 'Mousepad',
+      position,
+      variantId,
+      placeholderDimensions: { placeholderWidth, placeholderHeight },
+      userImageDimensions: { userImageWidth, userImageHeight },
+      scaleToCover,
+      scaledImageWidth,
+      scaledImageHeight,
+      overflowX,
+      overflowY,
+      maxOffsetX,
+      maxOffsetY,
+      shiftAmount,
+      finalX,
+      finalY,
+      printifyScale,
+      finalAdjustments
+    });
 
     return finalAdjustments;
-  }, [product]);
+  };
 
   // Função utilitária: Validação consolidada
   const validatePurchase = () => {
@@ -119,8 +136,8 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
   useEffect(() => {
     if (!initialProduct && typeof productId === 'string') {
       const foundProduct = getPrintifyProduct(productId);
-      // Aceita tanto 'stationery' como 'office' (ambos são considerados escritório)
-      if (foundProduct && (foundProduct.category === 'stationery' || foundProduct.category === 'office')) {
+      // ✅ ACEITA NOVA CATEGORIA 'escritorio' + backwards compatibility
+      if (foundProduct && (foundProduct.category === 'escritorio' || foundProduct.category === 'stationery' || foundProduct.category === 'office')) {
         setProduct(foundProduct);
         if (foundProduct.variants?.length) {
           setSelectedPrintifyVariantId(foundProduct.variants[0].id);
@@ -134,49 +151,18 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
     }
   }, [productId, initialProduct, router]);
 
-  // ✅ CONTROLADOR DE TRÁFEGO MESTRE: Único useEffect responsável por gerar mockups
-  // Só executa quando TODOS os dados necessários estão prontos (evita a "corrida")
+  // ✅ USEEFFECT PARA REGENERAR MOCKUP AUTOMATICAMENTE
   useEffect(() => {
-    // ✅ CONDIÇÃO DE GUARDA: SÓ avança se tivermos TODOS os dados necessários
-    if (!selectedImageUrl || !selectedPrintifyVariantId || !userImageDimensions || !userInfo?.id) {
-      console.log("⏳ [CADERNO-CONTROLLER] A aguardar todos os dados para gerar mockup...", {
-        selectedImageUrl: !!selectedImageUrl,
-        selectedPrintifyVariantId: !!selectedPrintifyVariantId,
-        userImageDimensions: !!userImageDimensions,
-        userId: !!userInfo?.id
-      });
-      return; // Se alguma informação crucial falta, não faz nada
+    // Só dispara se TODAS as condições estão prontas e mudou posição/variante
+    if (userImageDimensions && selectedImageUrl && selectedImageId && selectedPrintifyVariantId && userInfo?.id) {
+      console.log('🔄 [ESCRITORIO-AUTO] Regenerar mockup automaticamente...', { imagePosition, selectedPrintifyVariantId });
+      generateNewMockup(imagePosition, selectedPrintifyVariantId);
     }
+  }, [imagePosition, selectedPrintifyVariantId, userImageDimensions]); // Triggers quando muda posição, variante ou dimensões
 
-    console.log('🚀 [CADERNO-CONTROLLER] TODOS os dados prontos! Iniciando geração...', {
-      selectedImageUrl: !!selectedImageUrl,
-      selectedPrintifyVariantId,
-      imagePosition,
-      userImageDimensions,
-      userId: !!userInfo?.id
-    });
-
-    // ✅ DEBOUNCE MÍNIMO: Apenas para garantir que o estado React estabiliza
-    const handler = setTimeout(() => {
-      console.log('🎯 [CADERNO-CONTROLLER] Disparando geração com dimensões reais confirmadas...');
-      
-      // ✅ A posição vem do estado controlado pelos botões
-      const currentPosition = imagePosition;
-      
-      // ✅ Chama a função que faz todo o trabalho COM as dimensões reais
-      generateNewMockup(currentPosition, selectedPrintifyVariantId);
-
-    }, 100); // Debounce mínimo apenas para estabilizar o React state
-
-    return () => clearTimeout(handler);
-
-  // ✅ DEPENDÊNCIAS CRUCIAIS: Qualquer mudança nestes valores dispara nova geração
-  }, [selectedImageUrl, selectedPrintifyVariantId, imagePosition, userImageDimensions, userInfo?.id]);
-
-  // ✅ FUNÇÃO PARA AJUSTAR POSIÇÃO (copiada das capas)
   const handleAdjustment = async (type: 'position', value: string) => {
-    // ✅ RATE LIMITING: Verificar se pode fazer o pedido
-    const { allowed, message } = RateLimiter.checkRequestLimit();
+    // ✅ RATE LIMITING GLOBAL: Verificar se pode fazer o pedido
+    const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
     if (!allowed) {
       toast.error(message);
       return;
@@ -188,19 +174,20 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
     }
 
     if (!selectedPrintifyVariantId) {
-      toast.error('Selecione o tipo de produto primeiro');
+      toast.error('Selecione um tipo de produto primeiro');
       return;
     }
 
-    console.log('🎮 [CADERNO] handleAdjustment chamado:', { type, value, currentPosition: imagePosition });
+    const productType = product?.category === 'stationery' ? 'Caderno' : 'Mousepad';
+    console.log(`🎮 [${productType.toUpperCase()}] handleAdjustment chamado:`, { type, value, currentPosition: imagePosition });
 
     if (type === 'position') {
       const newPosition = value as 'left' | 'center' | 'right';
       setImagePosition(newPosition); // ✅ Só muda o estado - o useEffect vai disparar automaticamente
-      console.log(`📍 [CADERNO] Posição alterada de "${imagePosition}" para "${newPosition}"`);
+      console.log(`📍 [${productType.toUpperCase()}] Posição alterada de "${imagePosition}" para "${newPosition}"`);
       
       // ✅ REGISTAR PEDIDO: Após mudança bem-sucedida
-      RateLimiter.recordRequest();
+      GlobalRateLimiter.recordRequest();
     }
   };
 
@@ -427,17 +414,17 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
               <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[700px] bg-white rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl overflow-hidden mb-4 lg:mb-6 border border-ghibli-sand/20">
                 {/* ✅ PRODUTO CANVAS COM ESTADO CONTROLADO */}
                 <div className={`transition-opacity duration-300 ${isGeneratingMockup ? 'opacity-50' : 'opacity-100'}`}>
-                  <ProductCanvas
-                    selectedProduct={product}
-                    userImageUrl={selectedImageUrl}
-                    userId={userInfo?.id}
-                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                    onPreviewReady={handlePreviewReady}
-                    onSelectImage={handleOpenGallery}
-                    imageAdjustments={imageAdjustments}
-                    onImageAdjust={setImageAdjustments}
-                    selectedPrintifyVariantId={selectedPrintifyVariantId}
-                  />
+                <ProductCanvas
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady}
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                />
                 </div>
 
                 {/* ✅ OVERLAY DE LOADING que aparece POR CIMA da imagem atual */}
@@ -501,37 +488,42 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
                         </p>
                       </div>
                       
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button
-                          onClick={() => handleAdjustment('position', 'left')}
+                      <div className="flex gap-2 mb-3">
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'left')} 
                           variant={imagePosition === 'left' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'left' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
                           disabled={isGeneratingMockup}
-                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all bg-white hover:bg-gray-50"
                         >
-                          <ChevronLeft className="w-6 h-6" />
-                          <span className="text-sm mt-1 font-medium">Esquerda</span>
+                          Esquerda
                         </Button>
-                        
-                        <Button
-                          onClick={() => handleAdjustment('position', 'center')}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
                           variant={imagePosition === 'center' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'center' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
                           disabled={isGeneratingMockup}
-                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all bg-white hover:bg-gray-50"
                         >
-                          <div className="w-6 h-6 flex items-center justify-center">
-                            <div className="w-2 h-2 bg-current rounded-full"></div>
-                          </div>
-                          <span className="text-sm mt-1 font-medium">Centro</span>
+                          Centro
                         </Button>
-                        
-                        <Button
-                          onClick={() => handleAdjustment('position', 'right')}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'right')} 
                           variant={imagePosition === 'right' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'right' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
                           disabled={isGeneratingMockup}
-                          className="flex flex-col h-auto py-4 hover:shadow-md transition-all bg-white hover:bg-gray-50"
                         >
-                          <ChevronRight className="w-6 h-6" />
-                          <span className="text-sm mt-1 font-medium">Direita</span>
+                          Direita
                         </Button>
                       </div>
                     </CardContent>

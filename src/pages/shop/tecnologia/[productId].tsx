@@ -17,7 +17,7 @@ import ProductCanvas from '@/components/printify/ProductCanvas';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
-import { RateLimiter } from '@/lib/utils/rateLimiter';
+import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
 
 interface ImageAdjustments {
   x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
@@ -210,7 +210,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   // ✅ FUNÇÃO SIMPLIFICADA: Só muda o estado, o useEffect faz o resto
   const handleAdjustment = async (type: 'position', value: string) => {
     // ✅ RATE LIMITING: Verificar se pode fazer o pedido (copiado do poster)
-    const { allowed, message } = RateLimiter.checkRequestLimit();
+    const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
     if (!allowed) {
       toast.error(message);
       return;
@@ -234,7 +234,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       console.log(`📍 [CAPA] Posição alterada de "${imagePosition}" para "${newPosition}"`);
       
       // ✅ REGISTAR PEDIDO: Após mudança bem-sucedida (copiado do poster)
-      RateLimiter.recordRequest();
+      GlobalRateLimiter.recordRequest();
     }
   };
 

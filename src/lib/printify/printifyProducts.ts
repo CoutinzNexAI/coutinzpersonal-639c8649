@@ -14,7 +14,7 @@ export interface PrintifyProductMapping {
   mockupInitialPath: string; // O teu mockup base para mostrar antes da Printify gerar
   price?: number; // Preço base do produto (opcional para produtos com variantes)
   basePrice?: number; // Preço base em euros (para produtos com variantes)
-  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia' | 'bags' | 'stationery' | 'office';
+  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia' | 'bags' | 'stationery' | 'office' | 'escritorio';
 
   // ✅ NOVA PROPRIEDADE: A "receita" de design para este produto
   defaultDesign: DefaultDesignConfig;
@@ -405,7 +405,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     name: 'Caderno Personalizado',
     mockupInitialPath: '/assets/mockups/journal/spiral_journal_blank.svg',
     basePrice: 20.00, // Euros
-    category: 'stationery', // Nova categoria
+    category: 'escritorio', // ✅ MUDANÇA: escritorio em vez de stationery
     // ✅ CONFIGURAÇÃO DE DESIGN: Caderno com fill para cobertura completa
     defaultDesign: {
       scale: 1.1, // O scale necessário para fazer "fill" (efeito cobrir tudo)
@@ -441,7 +441,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     name: 'Mouse Pad Personalizado',
     mockupInitialPath: '/assets/mockups/mousepad/mouse_pad_blank.svg',
     basePrice: 30.00, // Euros
-    category: 'office', // Nova categoria
+    category: 'escritorio', // ✅ MUDANÇA: escritorio em vez de office
     // ✅ CONFIGURAÇÃO DE DESIGN: Mouse pad com fill
     defaultDesign: {
       scale: 1.1, // Fill para cobrir toda a área

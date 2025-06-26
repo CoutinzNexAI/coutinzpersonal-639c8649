@@ -1,32 +1,55 @@
-const MOCKUP_REQUEST_LIMIT = 3; // Máximo de 3 pedidos...
-const MOCKUP_REQUEST_WINDOW_MS = 60 * 1000; // ...por minuto (60,000 ms)
-const STORAGE_KEY = 'mockup_request_timestamps';
+// Rate Limiter para Mockups - GLOBAL (canecas, capas, cadernos, posters)
+class GlobalMockupRateLimiter {
+  private requests: number[] = [];
+  private readonly maxRequests: number = 5; // Máximo 5 requests
+  private readonly timeWindow: number = 60000; // Por minuto (60 segundos)
 
-export const RateLimiter = {
-  checkRequestLimit: (): { allowed: boolean; message: string } => {
+  // ✅ VERIFICAR SE PODE FAZER REQUEST
+  checkRequestLimit(): { allowed: boolean; message: string } {
     const now = Date.now();
-    const timestamps: number[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-
-    // Filtra os timestamps que ainda estão dentro da janela de 1 minuto
-    const recentTimestamps = timestamps.filter(ts => now - ts < MOCKUP_REQUEST_WINDOW_MS);
-
-    if (recentTimestamps.length >= MOCKUP_REQUEST_LIMIT) {
-      const oldestRequest = recentTimestamps[0];
-      const secondsToWait = Math.ceil((MOCKUP_REQUEST_WINDOW_MS - (now - oldestRequest)) / 1000);
+    
+    // Limpar requests antigos (fora da janela de tempo)
+    this.requests = this.requests.filter(timestamp => now - timestamp < this.timeWindow);
+    
+    // Verificar se atingiu o limite
+    if (this.requests.length >= this.maxRequests) {
+      const oldestRequest = Math.min(...this.requests);
+      const remainingTime = Math.ceil((this.timeWindow - (now - oldestRequest)) / 1000);
+      
       return {
         allowed: false,
-        message: `Demasiadas tentativas. Por favor, aguarde ${secondsToWait} segundos.`,
+        message: `Muitos ajustes de posição. Aguarde ${remainingTime} segundos.`
       };
     }
+    
+    return { allowed: true, message: '' };
+  }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(recentTimestamps)); // Limpa os antigos
-    return { allowed: true, message: 'OK' };
-  },
+  // ✅ REGISTAR NOVO REQUEST
+  recordRequest(): void {
+    this.requests.push(Date.now());
+  }
 
-  recordRequest: (): void => {
+  // ✅ OBTER INFORMAÇÕES DO RATE LIMITER (para debug)
+  getStatus(): { requestCount: number; maxRequests: number; timeWindow: number } {
     const now = Date.now();
-    const timestamps: number[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    timestamps.push(now);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(timestamps));
-  },
-}; 
+    this.requests = this.requests.filter(timestamp => now - timestamp < this.timeWindow);
+    
+    return {
+      requestCount: this.requests.length,
+      maxRequests: this.maxRequests,
+      timeWindow: this.timeWindow
+    };
+  }
+
+  // ✅ RESET (para testes ou casos especiais)
+  reset(): void {
+    this.requests = [];
+  }
+}
+
+// ✅ INSTÂNCIA SINGLETON GLOBAL
+export const GlobalRateLimiter = new GlobalMockupRateLimiter();
+
+// ✅ MANTER COMPATIBILIDADE COM CÓDIGO EXISTENTE (posters)
+export const RateLimiter = GlobalRateLimiter; 

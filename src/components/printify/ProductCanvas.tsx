@@ -77,6 +77,13 @@ export default function ProductCanvas({
   const [hasGenerated, setHasGenerated] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
 
+  // ✅ OTIMIZAÇÃO: Estado consolidado do Printify
+  const [printifyData, setPrintifyData] = useState({
+    previewUrls: [] as string[],
+    imageId: '',
+    productId: ''
+  });
+
   // ✅ CALCULAÇÃO DE ESTILO NO CORPO PRINCIPAL - SEMPRE RECALCULADO
   // Converte as coordenadas da Printify (centro=0.5) para percentagens de desvio CSS (centro=0%)
   const xPercent = imageAdjustments ? (imageAdjustments.x - 0.5) * 100 : 0;

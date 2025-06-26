@@ -21,7 +21,7 @@ import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
 import { validatePurchase } from '@/utils/productValidation';
-import { RateLimiter } from '@/lib/utils/rateLimiter';
+import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
 
 interface PosterDetailPageProps {
   product: PrintifyProductMapping;
@@ -176,13 +176,13 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         finalImageWidth,
         printifyScale
       });
-      
-      setImageAdjustments({
+
+        setImageAdjustments({
         x: 0.5, // Mantém centrado
         y: 0.5, // Mantém centrado
         scale: printifyScale, // USA O VALOR TRADUZIDO!
         rotation: 0
-      });
+        });
     }
   }, [selectedImageUrl, product, selectedPrintifyVariantId]);
 
@@ -493,7 +493,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // ✅ LÓGICA CENTRAL: Controla todos os ajustes que precisam de nova mockup
   const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
     // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
-    const { allowed, message } = RateLimiter.checkRequestLimit();
+    const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
     if (!allowed) {
       toast.error(message); // Mostra o erro ao utilizador
       return; // Para a execução aqui
@@ -519,7 +519,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     }
 
     // 3. Regista que um pedido foi feito
-    RateLimiter.recordRequest();
+    GlobalRateLimiter.recordRequest();
 
     // 4. E só depois chama a função para gerar a mockup
     await generateNewMockup(newPosition, newVariantId);
