@@ -159,7 +159,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   // ✅ CONTROLADOR DE TRÁFEGO MESTRE: Único useEffect responsável por gerar mockups
   // Só executa quando TODOS os dados necessários estão prontos (evita a "corrida")
   useEffect(() => {
-    // ✅ CONDIÇÃO DE GUARDA: SÓ avança se tivermos TODOS os dados
+    // ✅ CONDIÇÃO DE GUARDA: SÓ avança se tivermos TODOS os dados necessários
     if (!selectedImageUrl || !selectedPrintifyVariantId || !userImageDimensions || !userInfo?.id) {
       console.log("⏳ [TRAFFIC-CONTROLLER] A aguardar todos os dados para gerar mockup...", {
         selectedImageUrl: !!selectedImageUrl,
@@ -174,21 +174,21 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       selectedImageUrl: !!selectedImageUrl,
       selectedPrintifyVariantId,
       imagePosition,
-      userImageDimensions: !!userImageDimensions,
+      userImageDimensions,
       userId: !!userInfo?.id
     });
 
-    // ✅ DEBOUNCE: Técnica para evitar chamadas múltiplas rápidas
+    // ✅ DEBOUNCE MÍNIMO: Apenas para garantir que o estado React estabiliza
     const handler = setTimeout(() => {
-      console.log('🎯 [TRAFFIC-CONTROLLER] Disparando geração após debounce de 300ms...');
+      console.log('🎯 [TRAFFIC-CONTROLLER] Disparando geração com dimensões reais confirmadas...');
       
       // ✅ A posição vem do estado controlado pelos botões
       const currentPosition = imagePosition;
       
-      // ✅ Chama a função que faz todo o trabalho
+      // ✅ Chama a função que faz todo o trabalho COM as dimensões reais
       generateNewMockup(currentPosition, selectedPrintifyVariantId);
 
-    }, 300); // Pequeno atraso de 300ms para evitar spam
+    }, 100); // Debounce mínimo apenas para estabilizar o React state
 
     return () => clearTimeout(handler);
 
@@ -384,54 +384,51 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   };
 
   const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
+    console.log('🎬 [SYNC] Iniciando seleção de imagem...', { imageUrl: !!imageUrl, imageId });
+    
+    setLoading(true); // ✅ Loading geral enquanto carrega dimensões
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
     
-    // Reset posição para centro
+    // ✅ Reset estados - preparar para nova imagem
     setImagePosition('center');
-    
-    // Reset mockups para gerar novos
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
+    setImageAdjustments(undefined); // Limpar ajustes antigos
     
-    // Definir dimensões da imagem (padrão AI: 1024x1024)
-    setUserImageDimensions({ width: 1024, height: 1024 });
+    // ✅ CRÍTICO: Reset userImageDimensions para null
+    // Isto impede o useEffect de disparar antes das dimensões estarem prontas
+    setUserImageDimensions(null);
     
-    // *** CORREÇÃO CRÍTICA: Reset imageAdjustments para valores padrão do produto ***
-    // Isso força um novo cálculo de scale baseado na nova imagem e variante selecionada
-    if (product && selectedPrintifyVariantId) {
-      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-      if (selectedVariant && product.printAreasConfig?.[0]) {
-        const printAreaConfig = product.printAreasConfig[0];
-        
-        // Dimensões da imagem AI (padrão 1024x1024 para transformações PicTuz)
-        const userImageWidth = 1024;
-        const userImageHeight = 1024;
-        
-        // Dimensões do placeholder da variante selecionada
-        const placeholderWidth = selectedVariant.placeholderWidth;
-        const placeholderHeight = selectedVariant.placeholderHeight;
-        
-        // 🎯 MODO "Fill to placeholder" - scale 1.0 com X e Y centrados
-        // Printify vai fazer o cover/fill automaticamente no backend
-        const fillScale = 1.0;
-        
-        console.log(`🔄 RESET COMPLETO - Nova arte selecionada. Modo Fill to Placeholder: scale=${fillScale}, centrado (placeholder: ${placeholderWidth}x${placeholderHeight}, image: ${userImageWidth}x${userImageHeight})`);
-        
-        // Resetar para modo "Fill to placeholder" centrado
-        setImageAdjustments({
-          x: 0.5, // SEMPRE centrado horizontalmente
-          y: 0.5, // SEMPRE centrado verticalmente  
-          scale: fillScale, // Scale 1.0 = Fill to placeholder
-          rotation: printAreaConfig.defaultAngle || 0,
-          cropArea: undefined // Limpar qualquer crop anterior
-        });
-      }
-    }
+    console.log('🔄 [SYNC] Estados resetados. Carregando dimensões reais da imagem...');
     
-    toast.success('Arte selecionada com sucesso!');
+    // ✅ AGUARDAR DIMENSÕES REAIS: Só define userImageDimensions quando tiver certeza
+    const img = new Image();
+    img.onload = function(this: HTMLImageElement) {
+      const realWidth = this.naturalWidth;
+      const realHeight = this.naturalHeight;
+      
+      console.log(`✅ [SYNC] Dimensões carregadas: ${realWidth}x${realHeight}`);
+      
+      // ✅ AGORA SIM: Define as dimensões reais
+      // Isto vai disparar o useEffect que vai gerar a mockup
+      setUserImageDimensions({ width: realWidth, height: realHeight });
+      setLoading(false);
+      
+      toast.success('Arte selecionada com sucesso!');
+    };
+    
+    img.onerror = () => {
+      console.error('❌ [SYNC] Erro ao carregar imagem. Usando fallback 1024x1024');
+      setUserImageDimensions({ width: 1024, height: 1024 }); // Fallback seguro
+      setLoading(false);
+      toast.success('Arte selecionada (dimensões estimadas)');
+    };
+    
+    // ✅ INICIAR CARREGAMENTO: Isto dispara o img.onload
+    img.src = imageUrl;
   };
 
   const handleResetSelection = () => {
