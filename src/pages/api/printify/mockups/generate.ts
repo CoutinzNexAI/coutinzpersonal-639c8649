@@ -609,27 +609,35 @@ export default async function handler(
       if (!imageAdjustments?.scale && (productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy')) {
         console.log('🧠 [BACKEND] Calculando escala inteligente para poster...');
         
-        // Obter dimensões do placeholder da variante selecionada
-        const selectedVariant = product.variants?.find(v => v.id === targetVariantId);
-        if (selectedVariant) {
-          const placeholderWidth = selectedVariant.placeholderWidth;
-          const placeholderHeight = selectedVariant.placeholderHeight;
-          const userImageWidth = 1016; // Imagens AI quadradas
-          const userImageHeight = 1016;
+                 // Obter dimensões do placeholder da variante selecionada
+         const selectedVariant = product.variants?.find(v => v.id === targetVariantId);
+         if (selectedVariant) {
+           const { placeholderWidth, placeholderHeight } = selectedVariant;
+           const userImageWidth = 1016; // Imagens AI quadradas
+           const userImageHeight = 1016;
 
-          // Usar Math.max() para garantir cobertura completa (sem bordas brancas)
-          const scaleToFitWidth = placeholderWidth / userImageWidth;
-          const scaleToFitHeight = placeholderHeight / userImageHeight;
-          smartScale = Math.max(scaleToFitWidth, scaleToFitHeight);
-          
-          console.log('🧠 [BACKEND] Cálculo de escala inteligente:', {
-            placeholderWidth,
-            placeholderHeight,
-            scaleToFitWidth,
-            scaleToFitHeight,
-            smartScale
-          });
-        }
+           // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
+           const scaleToCover = Math.max(
+             placeholderWidth / userImageWidth,
+             placeholderHeight / userImageHeight
+           );
+
+           // PASSO B: Calcula qual será a LARGURA da imagem depois de aplicar este zoom
+           const finalImageWidth = userImageWidth * scaleToCover;
+
+           // PASSO C (A TRADUÇÃO): Converte para o valor de 'scale' que a Printify entende
+           smartScale = finalImageWidth / placeholderWidth;
+           
+           console.log('🧠 [BACKEND] Cálculo de escala inteligente (TRADUZIDO):', {
+             placeholderWidth,
+             placeholderHeight,
+             userImageWidth,
+             userImageHeight,
+             scaleToCover,
+             finalImageWidth,
+             smartScale
+           });
+         }
       }
 
       // Calcular valores finais que serão usados

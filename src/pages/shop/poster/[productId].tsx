@@ -126,28 +126,42 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     }
   }, [selectedPrintifyVariantId, selectedSizeLabel]);
 
-  // Calcular defaultScale dinâmico e atualizar imageAdjustments
+  // Calcular defaultScale dinâmico e atualizar imageAdjustments - CORREÇÃO DEFINITIVA
   useEffect(() => {
     if (selectedImageUrl && product && selectedPrintifyVariantId) {
       const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
       if (!selectedVariant) return;
 
-      const placeholderWidth = selectedVariant.placeholderWidth;
-      const placeholderHeight = selectedVariant.placeholderHeight;
+      const { placeholderWidth, placeholderHeight } = selectedVariant;
       const userImageWidth = 1016; // Assumindo que a imagem AI é sempre quadrada
       const userImageHeight = 1016;
 
-      // Calcula a escala necessária para cada dimensão
-      const scaleToFitWidth = placeholderWidth / userImageWidth;
-      const scaleToFitHeight = placeholderHeight / userImageHeight;
+      // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
+      const scaleToCover = Math.max(
+        placeholderWidth / userImageWidth,
+        placeholderHeight / userImageHeight
+      );
 
-      // Usa a MAIOR das duas escalas para garantir que a imagem cobre tudo
-      const scaleToCover = Math.max(scaleToFitWidth, scaleToFitHeight);
+      // PASSO B: Calcula qual será a LARGURA da imagem depois de aplicar este zoom
+      const finalImageWidth = userImageWidth * scaleToCover;
+
+      // PASSO C (A TRADUÇÃO): Converte a nossa largura final para o valor de 'scale' que a Printify entende
+      const printifyScale = finalImageWidth / placeholderWidth;
+      
+      console.log('🎯 [FRONTEND] Cálculo de escala definitivo:', {
+        placeholderWidth,
+        placeholderHeight,
+        userImageWidth,
+        userImageHeight,
+        scaleToCover,
+        finalImageWidth,
+        printifyScale
+      });
       
       setImageAdjustments({
         x: 0.5, // Mantém centrado
         y: 0.5, // Mantém centrado
-        scale: scaleToCover, // Usa a nova escala calculada
+        scale: printifyScale, // USA O VALOR TRADUZIDO!
         rotation: 0
       });
     }
