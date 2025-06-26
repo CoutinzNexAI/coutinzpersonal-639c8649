@@ -226,7 +226,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     const maxOffsetY = (overflowY / 2) / placeholderHeight; // ✅ CORREÇÃO: usar placeholderHeight para Y
 
     // --- PASSO 4: DEFINIR A POSIÇÃO FINAL COM BASE NO BOTÃO ---
-    let finalX = 0.5;
+    const finalX = 0.5; // Para canecas, X fica sempre centrado
     let finalY = 0.5;
     const shiftAmount = 0.7; // Usar 70% do movimento máximo para um ajuste "ligeiro"
 
