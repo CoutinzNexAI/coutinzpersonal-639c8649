@@ -206,7 +206,18 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     const { placeholderWidth, placeholderHeight } = selectedVariant;
     const { width: userImageWidth, height: userImageHeight } = imageDimensions;
 
-    // ✅ LÓGICA ORIGINAL: Escalar para cobrir TUDO (como estava a funcionar bem)
+    // ✅ PRIMEIRO: Aplicar movimento na imagem original (antes da escala)
+    let adjustedY = 0.5; // Centro padrão
+    
+    // Ajuste ligeiro na posição ANTES de fazer o fill
+    if (position === 'top') {
+      adjustedY = 0.45; // Move ligeiramente para cima (5% do total)
+    } else if (position === 'bottom') {
+      adjustedY = 0.55; // Move ligeiramente para baixo (5% do total)
+    }
+    // 'center' mantém adjustedY = 0.5
+
+    // ✅ SEGUNDO: Escalar para cobrir TUDO (lógica original mantida)
     const scaleToCover = Math.max(
       placeholderWidth / userImageWidth,
       placeholderHeight / userImageHeight
@@ -214,44 +225,28 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     const finalImageWidth = userImageWidth * scaleToCover;
     const printifyScale = finalImageWidth / placeholderWidth;
 
-    // ✅ CANECA: Movimento VERTICAL ligeiro (pequenos ajustes no Y), X sempre centrado
-    const scaledImageHeight = userImageHeight * scaleToCover;
-    const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
-    
+    // ✅ USAR a posição ajustada (já com movimento aplicado)
     const printifyX = 0.5; // X sempre centrado para canecas
-    let printifyY = 0.5; // Centro padrão
-
-    // ✅ MOVIMENTO VERTICAL LIGEIRO baseado na posição (pequenos ajustes)
-    if (maxMovementY > 0) {
-      if (position === 'top') {
-        const movementY = -maxMovementY * 0.3; // 30% para cima (movimento ligeiro)
-        printifyY = 0.5 + (movementY / placeholderHeight);
-      } else if (position === 'bottom') {
-        const movementY = maxMovementY * 0.3; // 30% para baixo (movimento ligeiro)
-        printifyY = 0.5 + (movementY / placeholderHeight);
-      }
-      // 'center' mantém printifyY = 0.5
-    }
+    const printifyY = adjustedY; // Usar a posição já ajustada
 
     // ✅ LIMITE DAS COORDENADAS para evitar overflow
-    printifyY = Math.max(0.1, Math.min(0.9, printifyY));
+    const finalPrintifyY = Math.max(0.1, Math.min(0.9, printifyY));
 
     const finalAdjustments = {
       x: printifyX,
-      y: printifyY,
+      y: finalPrintifyY,
       scale: printifyScale,
       rotation: 0
     };
 
-    console.log('🎯 [CANECA] Coordenadas calculadas (LÓGICA ORIGINAL + AJUSTES LIGEIROS):', {
+    console.log('🎯 [CANECA] Coordenadas calculadas (MOVIMENTO ANTES DA ESCALA):', {
       position,
       variantId,
       placeholderDimensions: { placeholderWidth, placeholderHeight },
       userImageDimensions: { userImageWidth, userImageHeight },
+      adjustedY,
       scaleToCover,
       printifyScale,
-      scaledImageHeight,
-      maxMovementY,
       finalAdjustments
     });
 
