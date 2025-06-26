@@ -222,45 +222,41 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     const { placeholderWidth, placeholderHeight } = selectedVariant;
     const { width: userImageWidth, height: userImageHeight } = imageDimensions;
 
-    // PASSO A: Calcular escala
+    // ✅ ESCALA FIXA: Calculada uma única vez para cobertura completa (não muda com posição)
     const scaleToCover = Math.max(
       placeholderWidth / userImageWidth,
       placeholderHeight / userImageHeight
     );
     const finalImageWidth = userImageWidth * scaleToCover;
-    const printifyScale = finalImageWidth / placeholderWidth;
+    const FIXED_PRINTIFY_SCALE = finalImageWidth / placeholderWidth;
 
-    // PASSO B: Calcular coordenada Y baseada na posição (X sempre centrado para ajuste vertical)
-    const scaledImageHeight = userImageHeight * scaleToCover;
-    const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
-
+    // ✅ APENAS Y MUDA: Calcular posição vertical baseada no movimento desejado
     let printifyY = 0.5; // Centro padrão
 
-    if (maxMovementY > 0) {
-      if (position === 'top') {
-        const movementY = -maxMovementY * 0.7; // 70% para cima
-        printifyY = 0.5 + (movementY / placeholderHeight);
-      } else if (position === 'bottom') {
-        const movementY = maxMovementY * 0.7; // 70% para baixo
-        printifyY = 0.5 + (movementY / placeholderHeight);
-      }
-      // 'center' fica com printifyY = 0.5
+    // Para canecas, usar movimento mais forte para criar efeito visível
+    const MOVEMENT_STRENGTH = 0.3; // 30% de movimento (mais que poster)
+
+    if (position === 'top') {
+      printifyY = 0.5 - MOVEMENT_STRENGTH; // Move para cima
+    } else if (position === 'bottom') {
+      printifyY = 0.5 + MOVEMENT_STRENGTH; // Move para baixo
     }
+    // 'center' mantém printifyY = 0.5
 
     const finalAdjustments = {
       x: 0.5, // X sempre centrado para ajuste vertical
       y: printifyY,
-      scale: printifyScale,
+      scale: FIXED_PRINTIFY_SCALE, // ✅ ESCALA SEMPRE FIXA
       rotation: 0
     };
 
-    console.log('🎯 Coordenadas calculadas:', {
+    console.log('🎯 Coordenadas DESLIZAMENTO VERTICAL (escala fixa):', {
       position,
       variantId,
-      scaleToCover,
-      printifyScale,
-      maxMovementY,
-      printifyY,
+      scaleToCover: scaleToCover.toFixed(3),
+      FIXED_PRINTIFY_SCALE: FIXED_PRINTIFY_SCALE.toFixed(3),
+      MOVEMENT_STRENGTH,
+      printifyY: printifyY.toFixed(3),
       finalAdjustments
     });
 
