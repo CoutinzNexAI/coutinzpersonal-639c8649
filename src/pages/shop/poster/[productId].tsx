@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
-import { ChevronLeft } from 'lucide-react';
+
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
@@ -61,8 +61,11 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // ✅ POSIÇÕES DEFINIDAS: Estado para a posição da imagem (3 opções)
   const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
 
-  // ✅ URL DA MOCKUP ATUAL: Guarda o URL da imagem que está a ser mostrada no ecrã
-  const [currentMockupUrl, setCurrentMockupUrl] = useState<string | null>(null);
+  // ✅ GALERIA DE MOCKUPS: Guarda o array de URLs das mockups atuais
+  const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
+
+  // ✅ ÍNDICE ATIVO: Para saber qual mockup mostrar na galeria
+  const [activeMockupIndex, setActiveMockupIndex] = useState<number>(0);
 
   // ✅ LOADING INDICATOR: Para mostrar enquanto a nova mockup é gerada
   const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
@@ -191,13 +194,14 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     setPrintifyImageId(data.printifyImageId);
     setPrintifyProductId(data.printifyProductId);
     
-    // ✅ Inicializar currentMockupUrl com a primeira mockup gerada
-    if (data.previewUrls.length > 0 && !currentMockupUrl) {
-      setCurrentMockupUrl(data.previewUrls[0]);
+    // ✅ Inicializar galeria de mockups com todas as mockups geradas
+    if (data.previewUrls.length > 0 && currentMockupUrls.length === 0) {
+      setCurrentMockupUrls(data.previewUrls);
+      setActiveMockupIndex(0);
     }
     
     console.log('✅ Printify mockups received:', data);
-  }, [currentMockupUrl]);
+  }, [currentMockupUrls]);
 
   const handleAddToCart = async () => {
     // Mostrar toast se não há arte selecionada
@@ -514,8 +518,9 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       const data = await response.json();
 
       if (response.ok && data.success && data.previewUrls && data.previewUrls.length > 0) {
-        console.log('✅ Nova mockup gerada com sucesso!', data.previewUrls[0]);
-        setCurrentMockupUrl(data.previewUrls[0]);
+        console.log('✅ Nova galeria de mockups gerada com sucesso!', data.previewUrls.length, 'imagens');
+        setCurrentMockupUrls(data.previewUrls);
+        setActiveMockupIndex(0); // Sempre mostra a primeira imagem do novo set
         setPrintifyPreviewUrls(data.previewUrls);
       } else {
         console.error('❌ Erro ao gerar nova mockup:', data.error || 'Resposta inválida');
@@ -592,7 +597,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
                   userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={currentMockupUrl ? [currentMockupUrl] : printifyPreviewUrls}
+                  printifyGeneratedPreviewUrls={currentMockupUrls.length > 0 ? currentMockupUrls : printifyPreviewUrls}
                   onPreviewReady={handlePreviewReady}
                   onSelectImage={handleOpenGallery}
                   imageAdjustments={imageAdjustments}
@@ -600,6 +605,38 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                   selectedPrintifyVariantId={selectedPrintifyVariantId}
                   selectedImageId={selectedImageId}
                 />
+
+                {/* ✅ GALERIA DE MOCKUPS - Mostrar se temos várias imagens */}
+                {currentMockupUrls.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div className="bg-black/70 backdrop-blur-sm rounded-xl p-3 flex items-center gap-3">
+                      {/* Botão Anterior */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setActiveMockupIndex(prev => prev > 0 ? prev - 1 : currentMockupUrls.length - 1)}
+                        className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+
+                      {/* Contador */}
+                      <span className="text-white text-sm font-medium px-2">
+                        {activeMockupIndex + 1} / {currentMockupUrls.length}
+                      </span>
+
+                      {/* Botão Próximo */}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setActiveMockupIndex(prev => prev < currentMockupUrls.length - 1 ? prev + 1 : 0)}
+                        className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Botão "Escolher Arte" SEMPRE VISÍVEL - CTA Principal */}
