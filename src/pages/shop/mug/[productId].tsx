@@ -206,25 +206,28 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     const { placeholderWidth, placeholderHeight } = selectedVariant;
     const { width: userImageWidth, height: userImageHeight } = imageDimensions;
 
-    // ✅ LÓGICA ESPECIAL PARA CANECAS: Escalar pela ALTURA para evitar corte vertical
-    const scaleToFitHeight = placeholderHeight / userImageHeight;
-    const scaledImageWidth = userImageWidth * scaleToFitHeight;
-    const printifyScale = scaledImageWidth / placeholderWidth;
+    // ✅ LÓGICA ORIGINAL: Escalar para cobrir TUDO (como estava a funcionar bem)
+    const scaleToCover = Math.max(
+      placeholderWidth / userImageWidth,
+      placeholderHeight / userImageHeight
+    );
+    const finalImageWidth = userImageWidth * scaleToCover;
+    const printifyScale = finalImageWidth / placeholderWidth;
 
-    // ✅ CANECA: Movimento VERTICAL (eixo Y), X sempre centrado
-    const scaledImageHeight = userImageHeight * scaleToFitHeight;
+    // ✅ CANECA: Movimento VERTICAL ligeiro (pequenos ajustes no Y), X sempre centrado
+    const scaledImageHeight = userImageHeight * scaleToCover;
     const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
     
     const printifyX = 0.5; // X sempre centrado para canecas
     let printifyY = 0.5; // Centro padrão
 
-    // ✅ MOVIMENTO VERTICAL baseado na posição
+    // ✅ MOVIMENTO VERTICAL LIGEIRO baseado na posição (pequenos ajustes)
     if (maxMovementY > 0) {
       if (position === 'top') {
-        const movementY = -maxMovementY * 0.7; // 70% para cima
+        const movementY = -maxMovementY * 0.3; // 30% para cima (movimento ligeiro)
         printifyY = 0.5 + (movementY / placeholderHeight);
       } else if (position === 'bottom') {
-        const movementY = maxMovementY * 0.7; // 70% para baixo
+        const movementY = maxMovementY * 0.3; // 30% para baixo (movimento ligeiro)
         printifyY = 0.5 + (movementY / placeholderHeight);
       }
       // 'center' mantém printifyY = 0.5
@@ -240,12 +243,12 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
       rotation: 0
     };
 
-    console.log('🎯 [CANECA] Coordenadas calculadas (LÓGICA CORRIGIDA):', {
+    console.log('🎯 [CANECA] Coordenadas calculadas (LÓGICA ORIGINAL + AJUSTES LIGEIROS):', {
       position,
       variantId,
       placeholderDimensions: { placeholderWidth, placeholderHeight },
       userImageDimensions: { userImageWidth, userImageHeight },
-      scaleToFitHeight,
+      scaleToCover,
       printifyScale,
       scaledImageHeight,
       maxMovementY,

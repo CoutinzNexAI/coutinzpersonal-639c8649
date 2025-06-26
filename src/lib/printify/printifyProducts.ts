@@ -299,11 +299,11 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/mug/caneca.svg',
     basePrice: 25.00, // Euros
     category: 'mug',
-    // ✅ CONFIGURAÇÃO DE DESIGN: Caneca com escala pela altura para evitar corte vertical
+    // ✅ CONFIGURAÇÃO DE DESIGN: Caneca com fill completo + ajustes ligeiros
     defaultDesign: {
-      scale: 0.9, // Escala ajustada para fit pela altura (calculado dinamicamente)
+      scale: 1.1, // Escala para cobrir completamente (lógica Math.max original)
       x: 0.5, // Centro horizontal
-      y: 0.5, // Centro vertical (sempre fixo)
+      y: 0.5, // Centro vertical (com pequenos ajustes disponíveis)
       angle: 0, // Sem rotação
     },
     printifyBlueprintId: 441,
@@ -335,11 +335,11 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     mockupInitialPath: '/assets/mockups/mug/canecacoracao.svg',
     basePrice: 30.00, // Euros
     category: 'mug',
-    // ✅ CONFIGURAÇÃO DE DESIGN: Caneca coração com escala pela altura para evitar corte vertical
+    // ✅ CONFIGURAÇÃO DE DESIGN: Caneca coração com fill completo + ajustes ligeiros
     defaultDesign: {
-      scale: 0.9, // Escala ajustada para fit pela altura (calculado dinamicamente)
+      scale: 1.1, // Escala para cobrir completamente (lógica Math.max original)
       x: 0.5, // Centro horizontal
-      y: 0.5, // Centro vertical (sempre fixo)
+      y: 0.5, // Centro vertical (com pequenos ajustes disponíveis)
       angle: 0, // Sem rotação
     },
     printifyBlueprintId: 896,
