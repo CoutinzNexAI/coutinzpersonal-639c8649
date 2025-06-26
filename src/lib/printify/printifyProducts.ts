@@ -387,7 +387,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printFileResolution: 300,
     gelatoPrintDimensionsMm: { width: 300, height: 360 }, // Valores de referência
     gelatoPrintOffsetsMm: { x: 0, y: 0 },
-    supportsManualAdjustment: false, // Sem ajustes manuais
+    supportsManualAdjustment: true, // ✅ ATIVADO: Suporte ao posicionamento horizontal (igual às capas)
     printAreasConfig: [{
       position: 'front', // Apenas 'front' para o utilizador
       allowsUserImage: true,
@@ -423,7 +423,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printFileResolution: 300,
     gelatoPrintDimensionsMm: { width: 150, height: 240 }, // Valores de referência
     gelatoPrintOffsetsMm: { x: 0, y: 0 },
-    supportsManualAdjustment: false, // Sem ajustes manuais
+    supportsManualAdjustment: true, // ✅ ATIVADO: Suporte ao posicionamento horizontal (igual às capas)
     printAreasConfig: [{
       position: 'front',
       allowsUserImage: true,
@@ -458,7 +458,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printFileResolution: 300,
     gelatoPrintDimensionsMm: { width: 228, height: 190 }, // Valores de referência (9"x7.5" aprox)
     gelatoPrintOffsetsMm: { x: 0, y: 0 },
-    supportsManualAdjustment: false, // Sem ajustes manuais
+    supportsManualAdjustment: true, // ✅ ATIVADO: Suporte ao posicionamento horizontal (igual às capas)
     printAreasConfig: [{
       position: 'front',
       allowsUserImage: true,
