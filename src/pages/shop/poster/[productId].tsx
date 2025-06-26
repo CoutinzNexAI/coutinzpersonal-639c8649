@@ -144,6 +144,17 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       // Usa a MAIOR das duas escalas para garantir que a imagem cobre tudo
       const scaleToCover = Math.max(scaleToFitWidth, scaleToFitHeight);
       
+      // 🔍 DEBUG: Log dos cálculos de escala
+      console.log('🎯 [POSTER SCALE DEBUG]', {
+        productId: product.id,
+        selectedVariantId: selectedPrintifyVariantId,
+        placeholderDimensions: `${placeholderWidth}x${placeholderHeight}`,
+        userImageDimensions: `${userImageWidth}x${userImageHeight}`,
+        scaleToFitWidth: scaleToFitWidth.toFixed(3),
+        scaleToFitHeight: scaleToFitHeight.toFixed(3),
+        finalScaleToCover: scaleToCover.toFixed(3)
+      });
+      
       setImageAdjustments({
         x: 0.5, // Mantém centrado
         y: 0.5, // Mantém centrado
@@ -211,7 +222,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         printifyImageId,
         printifyVariantId: variantIdToSend,
         selectedImageUrl,
-        selectedImageId
+        selectedImageId,
+        imageAdjustments: imageAdjustments // NOVO: Ver a escala que está sendo usada
       });
 
       // Obter variante selecionada
@@ -229,11 +241,11 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         customizations: {
           variantId: selectedPrintifyVariantId!, // Obrigatório agora
           size: selectedVariant?.title || 'Tamanho não encontrado',
-          // ✅ OS CAMPOS CRÍTICOS: Usar defaultDesign do produto
-          scale: getPrintifyProduct(productId as string)?.defaultDesign.scale || 1.05,
-          x: getPrintifyProduct(productId as string)?.defaultDesign.x || 0.5,
-          y: getPrintifyProduct(productId as string)?.defaultDesign.y || 0.5,
-          angle: getPrintifyProduct(productId as string)?.defaultDesign.angle || 0,
+          // ✅ USAR OS imageAdjustments CALCULADOS DINAMICAMENTE (não defaultDesign)
+          scale: imageAdjustments?.scale || 1.05,
+          x: imageAdjustments?.x || 0.5,
+          y: imageAdjustments?.y || 0.5,
+          angle: imageAdjustments?.rotation || 0,
           print_on_side: getPrintifyProduct(productId as string)?.defaultDesign.print_on_side,
         },
         imageAdjustments: imageAdjustments,
