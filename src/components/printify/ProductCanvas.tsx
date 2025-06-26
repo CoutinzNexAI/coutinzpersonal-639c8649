@@ -84,15 +84,27 @@ export default function ProductCanvas({
   const scale = imageAdjustments?.scale || 1;
   const rotation = imageAdjustments?.rotation || 0;
 
-  const imageStyle = {
-    position: 'absolute' as const,
+  const imageStyle: React.CSSProperties = {
+    position: 'absolute',
     left: '50%',
     top: '50%',
-    // Aplica o scale e depois a translação. O translate(-50%, -50%) inicial serve para centrar a imagem.
-    transform: `translate(calc(-50% + ${xPercent}px), calc(-50% + ${yPercent}px)) scale(${scale}) rotate(${rotation}deg)`,
+    // ✅ FORMATO CORRETO: translate(-50%, -50%) para centrar + translate(x%, y%) para posicionar
+    transform: `translate(-50%, -50%) translate(${xPercent}%, ${yPercent}%) scale(${scale}) rotate(${rotation}deg)`,
     transformOrigin: 'center center',
-    transition: 'transform 0.1s linear', // Adiciona uma transição suave para o movimento
+    transition: 'transform 0.05s linear', // Transição mais rápida para feedback instantâneo
   };
+
+  // ✅ DEBUG: Log para verificar se o estilo está a ser calculado
+  if (imageAdjustments && selectedProduct.id.includes('poster_')) {
+    console.log('🎨 [ProductCanvas] Estilo da imagem calculado:', {
+      imageAdjustments,
+      xPercent,
+      yPercent,
+      scale,
+      rotation,
+      transformCSS: imageStyle.transform
+    });
+  }
 
   // Reset hasGenerated when userImageUrl OR selectedPrintifyVariantId OR selectedPhraseText changes
   useEffect(() => {
@@ -386,12 +398,13 @@ export default function ProductCanvas({
         
         {/* ✅ Overlay com imagem do utilizador (preview RESPONSIVO REAL-TIME) */}
         {userImageUrl && (
-          <img
-            src={userImageUrl}
-            alt="Sua arte"
-            className="w-32 h-32 object-cover rounded-lg border-2 border-white shadow-lg opacity-80"
-            style={imageStyle} // ✅ USA O ESTILO CALCULADO NO CORPO PRINCIPAL
-          />
+          <div style={imageStyle}>
+            <img
+              src={userImageUrl}
+              alt="Sua arte"
+              className="w-32 h-32 object-cover rounded-lg border-2 border-white shadow-lg opacity-80"
+            />
+          </div>
         )}
       </div>
       
