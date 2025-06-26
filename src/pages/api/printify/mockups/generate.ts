@@ -607,19 +607,20 @@ export default async function handler(
         dynamicPhrasePrintifyImageId: dynamicPhrasePrintifyImageId
       });
     } else if (productId === 'custom_canvas' || productId === 'framed_canvas' ||
-               productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy') {
-      // LÓGICA ESPECÍFICA PARA CANVAS/POSTER
-      console.log(`🔄 Processing Canvas/Poster product: ${productId}`);
+               productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy' ||
+               productId === 'ceramic_mug' || productId === 'heart_mug') {
+      // LÓGICA ESPECÍFICA PARA CANVAS/POSTER/CANECAS (SEM GENERATE-PRINT-FILE)
+      console.log(`🔄 Processing Canvas/Poster/Mug product: ${productId}`);
 
-      // Para Canvas, sempre fazer upload da imagem primeiro se não temos printifyImageId
+      // Para Canvas/Canecas, sempre fazer upload da imagem primeiro se não temos printifyImageId
       let finalPrintifyImageId = printifyImageId;
       
       if (!finalPrintifyImageId && userImageUrl) {
-        console.log('🔄 Canvas: Fazendo upload da imagem para Printify primeiro...');
+        console.log(`🔄 ${productId}: Fazendo upload da imagem para Printify primeiro...`);
         
         try {
           // Upload direto para Printify sem chamada HTTP interna
-          const fileName = `canvas_image_${Date.now()}.jpg`;
+          const fileName = `${productId}_image_${Date.now()}.jpg`;
           
           // Fazer download da imagem
           const imageResponse = await fetch(userImageUrl);
@@ -643,7 +644,7 @@ export default async function handler(
           
           if (printifyUploadResponse && printifyUploadResponse.id) {
             finalPrintifyImageId = printifyUploadResponse.id;
-            console.log('✅ Canvas: Imagem carregada para Printify com ID:', finalPrintifyImageId);
+            console.log(`✅ ${productId}: Imagem carregada para Printify com ID:`, finalPrintifyImageId);
           } else {
             throw new Error('Printify upload response invalid or missing ID');
           }
@@ -655,8 +656,8 @@ export default async function handler(
 
       // Agora validar que temos printifyImageId
       if (!finalPrintifyImageId) {
-        console.log('❌ [ERROR] printifyImageId é obrigatório para Canvas/Poster products');
-        throw new Error('printifyImageId is required for Canvas/Poster products');
+        console.log(`❌ [ERROR] printifyImageId é obrigatório para ${productId} products`);
+        throw new Error(`printifyImageId is required for ${productId} products`);
       }
 
       const printAreaConfig = product.printAreasConfig?.[0];
@@ -676,8 +677,8 @@ export default async function handler(
       // ✅ LÓGICA INTELIGENTE DE FALLBACK: Calcular escala correta se não receber do frontend
       let smartScale = printAreaConfig.defaultScale;
       
-      if (!imageAdjustments?.scale && (productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy')) {
-        console.log('🧠 [BACKEND] Calculando escala inteligente para poster...');
+      if (!imageAdjustments?.scale && (productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy' || productId === 'ceramic_mug' || productId === 'heart_mug')) {
+        console.log(`🧠 [BACKEND] Calculando escala inteligente para ${productId}...`);
         
                  // Obter dimensões do placeholder da variante selecionada
          const selectedVariant = product.variants?.find(v => v.id === targetVariantId);
@@ -698,7 +699,7 @@ export default async function handler(
            // PASSO C (A TRADUÇÃO): Converte para o valor de 'scale' que a Printify entende
            smartScale = finalImageWidth / placeholderWidth;
            
-           console.log('🧠 [BACKEND] Cálculo de escala inteligente (TRADUZIDO):', {
+           console.log(`🧠 [BACKEND] Cálculo de escala inteligente para ${productId} (TRADUZIDO):`, {
              placeholderWidth,
              placeholderHeight,
              userImageWidth,
@@ -721,8 +722,8 @@ export default async function handler(
 
       // Criar produto temporário na Printify para gerar mockup
       const printifyProductPayload = {
-        title: `PicTuz Canvas Mockup (${user.id}-${Date.now()})`,
-        description: 'Temporary Canvas product for mockup generation',
+        title: `PicTuz ${productId} Mockup (${user.id}-${Date.now()})`,
+        description: `Temporary ${productId} product for mockup generation`,
         blueprint_id: product.printifyBlueprintId,
         print_provider_id: product.printifyPrintProviderId,
         variants: [{
@@ -756,11 +757,11 @@ export default async function handler(
       });
 
       if (!printifyProductResponse?.id) {
-        throw new Error('Failed to create Canvas product on Printify');
+        throw new Error(`Failed to create ${productId} product on Printify`);
       }
 
       const createdProductId = printifyProductResponse.id;
-      console.log(`✅ Canvas product created with ID: ${createdProductId}`);
+      console.log(`✅ ${productId} product created with ID: ${createdProductId}`);
 
       // Polling para obter mockups
       let finalPreviewUrls: string[] = [];
@@ -768,27 +769,27 @@ export default async function handler(
       const delayMs = 8000;
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        console.log(`--> 🔍 Canvas polling attempt ${attempt}/${maxAttempts}...`);
+        console.log(`--> 🔍 ${productId} polling attempt ${attempt}/${maxAttempts}...`);
         
         try {
           const getProductResponse: PrintifyProduct = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdProductId}.json`);
 
           if (getProductResponse.images && getProductResponse.images.length > 0) {
-            console.log(`✅ Canvas mockups ready! Found ${getProductResponse.images.length} preview(s) - ALL mockup views included`);
+            console.log(`✅ ${productId} mockups ready! Found ${getProductResponse.images.length} preview(s) - ALL mockup views included`);
             finalPreviewUrls = getProductResponse.images.map(img => img.src) as string[];
             break;
           }
         } catch (pollError) {
-          console.warn(`⚠️ Canvas polling attempt ${attempt} failed:`, pollError);
+          console.warn(`⚠️ ${productId} polling attempt ${attempt} failed:`, pollError);
         }
 
         if (attempt < maxAttempts) {
-          console.log(`⏳ Canvas mockups not ready yet. Waiting ${delayMs}ms...`);
+          console.log(`⏳ ${productId} mockups not ready yet. Waiting ${delayMs}ms...`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       }
 
-      console.log(`🏁 Canvas mockup polling completed. Found ${finalPreviewUrls.length} preview URLs.`);
+      console.log(`🏁 ${productId} mockup polling completed. Found ${finalPreviewUrls.length} preview URLs.`);
 
       return res.status(200).json({
         success: true,
