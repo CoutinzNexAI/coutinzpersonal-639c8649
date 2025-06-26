@@ -190,13 +190,12 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     console.log('✅ Printify mockups received:', data);
   }, [currentMockupUrls]);
 
-  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida (LÓGICA CORRIGIDA)
+  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida (VERSÃO FINAL CORRIGIDA)
   const calculatePrintifyCoords = (position: 'top' | 'center' | 'bottom', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
-    // --- Obter dados essenciais ---
+    
     if (!product || !imageDimensions) {
       return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
     }
-    
     const selectedVariant = product.variants?.find(v => v.id === variantId);
     if (!selectedVariant) {
       return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
@@ -206,52 +205,60 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     const { width: userImageWidth, height: userImageHeight } = imageDimensions;
 
     // --- PASSO 1: CALCULAR A ESCALA "COVER" ---
-    // Descobre qual é o fator de zoom necessário para a imagem cobrir o placeholder.
     const scaleToCover = Math.max(
       placeholderWidth / userImageWidth,
       placeholderHeight / userImageHeight
     );
 
-    // --- PASSO 2: CALCULAR O MOVIMENTO MÁXIMO PERMITIDO ---
-    // Depois de escalada, quanta imagem "sobra" na vertical?
-    const scaledImageHeight = userImageHeight * scaleToCover;
-    const overflowY = Math.max(0, scaledImageHeight - placeholderHeight);
-    
-    // O máximo que o centro (0.5) pode mover-se é metade desse excesso.
-    // Convertemos para a escala de coordenadas da Printify (0 a 1).
-    const maxOffsetY = (overflowY / 2) / placeholderHeight; // Corrigido: usar placeholderHeight para Y
-    
-    // --- PASSO 3: DEFINIR A POSIÇÃO FINAL COM BASE NO BOTÃO ---
-    let finalY = 0.5; // Centro por defeito
-
-    if (position === 'top') {
-      // Move para cima usando uma fração do movimento máximo para ser "ligeiro"
-      finalY = 0.5 - (maxOffsetY * 0.7); 
-    } else if (position === 'bottom') {
-      finalY = 0.5 + (maxOffsetY * 0.7);
-    }
-
-    // --- PASSO 4: TRADUZIR A NOSSA ESCALA PARA A DA PRINTIFY ---
+    // --- PASSO 2: CALCULAR A ESCALA PARA A API DA PRINTIFY ---
     const finalImageWidth = userImageWidth * scaleToCover;
     const printifyScale = finalImageWidth / placeholderWidth;
+    
+    // --- PASSO 3: CALCULAR O MOVIMENTO MÁXIMO PERMITIDO ---
+    const scaledImageWidth = userImageWidth * scaleToCover;
+    const scaledImageHeight = userImageHeight * scaleToCover;
+    
+    const overflowX = Math.max(0, scaledImageWidth - placeholderWidth);
+    const overflowY = Math.max(0, scaledImageHeight - placeholderHeight);
+    
+    // O MÁXIMO QUE O CENTRO (0.5) PODE ANDAR
+    const maxOffsetX = (overflowX / 2) / placeholderWidth;
+    const maxOffsetY = (overflowY / 2) / placeholderHeight; // ✅ CORREÇÃO: usar placeholderHeight para Y
 
+    // --- PASSO 4: DEFINIR A POSIÇÃO FINAL COM BASE NO BOTÃO ---
+    let finalX = 0.5;
+    let finalY = 0.5;
+    const shiftAmount = 0.7; // Usar 70% do movimento máximo para um ajuste "ligeiro"
+
+    if (position === 'top') {
+      finalY = 0.5 - (maxOffsetY * shiftAmount);
+    } else if (position === 'bottom') {
+      finalY = 0.5 + (maxOffsetY * shiftAmount);
+    }
+    // Para canecas, X fica sempre centrado (finalX = 0.5)
+    
     // --- PASSO 5: RETORNAR O OBJETO COMPLETO E CORRETO ---
     const finalAdjustments = {
-      x: 0.5,             // X fica sempre centrado para canecas
-      y: finalY,          // Y é a nossa posição calculada
-      scale: printifyScale, // A escala "traduzida" que a Printify entende
+      x: finalX,
+      y: finalY,
+      scale: printifyScale,
       rotation: 0
     };
 
-    console.log('🎯 [CANECA] Coordenadas calculadas (LÓGICA FINAL CORRIGIDA):', {
+    console.log('🎯 [CANECA] Coordenadas calculadas (VERSÃO DEFINITIVA):', {
       position,
       variantId,
       placeholderDimensions: { placeholderWidth, placeholderHeight },
       userImageDimensions: { userImageWidth, userImageHeight },
       scaleToCover,
+      scaledImageWidth,
       scaledImageHeight,
+      overflowX,
       overflowY,
+      maxOffsetX,
       maxOffsetY,
+      shiftAmount,
+      finalX,
       finalY,
       printifyScale,
       finalAdjustments
