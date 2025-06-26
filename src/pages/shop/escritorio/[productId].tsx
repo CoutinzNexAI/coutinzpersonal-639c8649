@@ -19,7 +19,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
-import { RateLimiter } from '@/lib/utils/rateLimiter';
 
 interface EscritorioDetailPageProps {
   product: PrintifyProductMapping;
@@ -42,152 +41,6 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
   const [printifyImageId, setPrintifyImageId] = useState<string>('');
   const [printifyProductId, setPrintifyProductId] = useState<string>('');
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
-
-  // Estados para ajuste manual de posição (apenas para spiral_journal)
-  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
-  const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
-  const [activeMockupIndex, setActiveMockupIndex] = useState(0);
-  const [isGeneratingMockup, setIsGeneratingMockup] = useState(false);
-  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
-
-  // Rate limiter para ajustes de posição (3 ajustes por minuto)
-
-  // Função para calcular coordenadas Printify baseadas na posição selecionada
-  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', userImageWidth: number, userImageHeight: number) => {
-    if (!product || !selectedPrintifyVariantId) return { x: 0.5, y: 0.5, scale: 1.0 };
-
-    // Dimensões do placeholder (aproximadas baseadas no produto)
-    const placeholderWidth = 350; // Estimativa para caderno
-    const placeholderHeight = 450;
-
-    // Calcular escala para cobertura completa
-    const scaleToCover = Math.max(
-      placeholderWidth / userImageWidth,
-      placeholderHeight / userImageHeight
-    );
-
-    // Calcular dimensões da imagem escalonada
-    const scaledImageWidth = userImageWidth * scaleToCover;
-    const scaledImageHeight = userImageHeight * scaleToCover;
-
-    // Calcular limites de movimento
-    const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
-
-    // Calcular posição X baseada na seleção
-    let movementX = 0;
-    switch (position) {
-      case 'left':
-        movementX = -maxMovementX;
-        break;
-      case 'right':
-        movementX = maxMovementX;
-        break;
-      case 'center':
-      default:
-        movementX = 0;
-        break;
-    }
-
-    // Converter para coordenadas Printify (0.0 a 1.0)
-    const printifyX = 0.5 + (movementX / placeholderWidth);
-    const printifyY = 0.5; // Y sempre centrado para ajuste horizontal
-
-    // Traduzir escala para formato Printify
-    const finalImageWidth = userImageWidth * scaleToCover;
-    const printifyScale = finalImageWidth / placeholderWidth;
-
-    console.log(`📐 Cálculo para ${position}:`, {
-      userImageWidth,
-      userImageHeight,
-      scaleToCover: scaleToCover.toFixed(3),
-      printifyX: printifyX.toFixed(3),
-      printifyY: printifyY.toFixed(3),
-      printifyScale: printifyScale.toFixed(3)
-    });
-
-    return {
-      x: printifyX,
-      y: printifyY,
-      scale: printifyScale
-    };
-  };
-
-  // Handler para ajuste de posição
-  const handleAdjustment = async (newPosition: 'left' | 'center' | 'right') => {
-    if (!selectedImageUrl || !userImageDimensions || !userInfo?.id || !selectedPrintifyVariantId) {
-      toast.error('Dados necessários em falta para ajustar a posição');
-      return;
-    }
-
-    const rateLimitCheck = RateLimiter.checkRequestLimit();
-    if (!rateLimitCheck.allowed) {
-      toast.error(rateLimitCheck.message);
-      return;
-    }
-
-    console.log(`🎯 Ajustando posição: ${newPosition}`);
-    setImagePosition(newPosition);
-    setIsGeneratingMockup(true);
-
-    try {
-      const newCoords = calculatePrintifyCoords(newPosition, userImageDimensions.width, userImageDimensions.height);
-      
-      const updatedAdjustments = {
-        ...imageAdjustments,
-        ...newCoords
-      };
-
-      setImageAdjustments(updatedAdjustments);
-      await generateNewMockup(updatedAdjustments);
-      
-      // Record the request for rate limiting
-      RateLimiter.recordRequest();
-    } catch (error) {
-      console.error('Erro no ajuste:', error);
-      toast.error('Erro ao ajustar posição. Tente novamente.');
-    } finally {
-      setIsGeneratingMockup(false);
-    }
-  };
-
-  // Função para gerar nova mockup
-  const generateNewMockup = async (adjustments: ImageAdjustments) => {
-    if (!selectedImageUrl || !userInfo?.id || !selectedPrintifyVariantId) return;
-
-    console.log('🔄 Gerando nova mockup...');
-
-    try {
-      const response = await fetch('/api/printify/mockups/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: product?.id,
-          userImageUrl: selectedImageUrl,
-          userId: userInfo.id,
-          selectedPrintifyVariantId: selectedPrintifyVariantId,
-          imageAdjustments: adjustments,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.data?.mockupUrls) {
-        console.log('✅ Nova mockup gerada:', data.data.mockupUrls);
-        setCurrentMockupUrls(data.data.mockupUrls);
-        setActiveMockupIndex(0);
-        setPrintifyImageId(data.printifyImageId || '');
-        setPrintifyProductId(data.printifyProductId || '');
-      } else {
-        console.error('❌ Resposta inválida:', data);
-        throw new Error(data.error || 'Erro desconhecido ao gerar mockup');
-      }
-    } catch (error) {
-      console.error('❌ Erro ao gerar mockup:', error);
-      throw error;
-    }
-  };
 
   // Função utilitária: Validação consolidada
   const validatePurchase = () => {
@@ -243,13 +96,7 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
     setPrintifyPreviewUrls(data.previewUrls);
     setPrintifyImageId(data.printifyImageId);
     setPrintifyProductId(data.printifyProductId);
-    
-    // Para spiral_journal, também atualizar currentMockupUrls
-    if (product?.id === 'spiral_journal') {
-      setCurrentMockupUrls(data.previewUrls);
-      setActiveMockupIndex(0);
-    }
-  }, [product?.id]);
+  }, []);
 
   const handleAddToCart = async () => {
     const validationError = validatePurchase();
@@ -310,22 +157,6 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
     setPrintifyImageId('');
     setPrintifyProductId('');
     setImageAdjustments(undefined);
-    
-    // Reset estados de ajuste manual
-    setImagePosition('center');
-    setCurrentMockupUrls([]);
-    setActiveMockupIndex(0);
-    setUserImageDimensions(null);
-    
-    // Capturar dimensões da imagem (apenas para spiral_journal)
-    if (product?.id === 'spiral_journal') {
-      const img = new Image();
-      img.onload = function(this: HTMLImageElement) {
-        setUserImageDimensions({ width: this.width, height: this.height });
-        console.log(`📐 Dimensões da Imagem Carregadas: ${this.width}x${this.height}`);
-      };
-      img.src = imageUrl;
-    }
     
     toast.success('Arte aplicada com sucesso!');
   };
@@ -395,7 +226,7 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
                   userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={product?.id === 'spiral_journal' && currentMockupUrls.length > 0 ? currentMockupUrls : printifyPreviewUrls}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
                   onPreviewReady={handlePreviewReady}
                   onSelectImage={handleOpenGallery}
                   imageAdjustments={imageAdjustments}
@@ -549,87 +380,6 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
                       {productEmoji} {isNotebook ? 'Tamanho do Caderno' : 'Tipo de Mousepad'}
                     </label>
                   </div>
-
-                  {/* Controlos de Ajuste de Posição - Apenas para Caderno */}
-                  {selectedImageUrl && userImageDimensions && product?.id === 'spiral_journal' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="bg-gradient-to-br from-blue-50/80 to-blue-100/50 rounded-xl p-6 border border-blue-200"
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                          <span className="text-sm font-bold text-blue-800">
-                            Ajustar Posição Horizontal
-                          </span>
-                        </div>
-                        {isGeneratingMockup && (
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-xs text-blue-600">Aplicando...</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button
-                          variant={imagePosition === 'left' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => handleAdjustment('left')}
-                          disabled={isGeneratingMockup || imagePosition === 'left'}
-                          className={`flex items-center gap-2 py-3 ${
-                            imagePosition === 'left'
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'border-blue-300 text-blue-700 hover:bg-blue-100'
-                          }`}
-                        >
-                          <span className="text-base">⬅️</span>
-                          <span className="text-xs font-medium">Esquerda</span>
-                        </Button>
-
-                        <Button
-                          variant={imagePosition === 'center' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => handleAdjustment('center')}
-                          disabled={isGeneratingMockup || imagePosition === 'center'}
-                          className={`flex items-center gap-2 py-3 ${
-                            imagePosition === 'center'
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'border-blue-300 text-blue-700 hover:bg-blue-100'
-                          }`}
-                        >
-                          <span className="text-base">🎯</span>
-                          <span className="text-xs font-medium">Centro</span>
-                        </Button>
-
-                        <Button
-                          variant={imagePosition === 'right' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => handleAdjustment('right')}
-                          disabled={isGeneratingMockup || imagePosition === 'right'}
-                          className={`flex items-center gap-2 py-3 ${
-                            imagePosition === 'right'
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'border-blue-300 text-blue-700 hover:bg-blue-100'
-                          }`}
-                        >
-                          <span className="text-base">➡️</span>
-                          <span className="text-xs font-medium">Direita</span>
-                        </Button>
-                      </div>
-
-                      <div className="mt-3 text-center">
-                        <p className="text-xs text-blue-600">
-                          📝 Posicione a sua arte no caderno como preferir
-                        </p>
-                        <p className="text-xs text-blue-500 mt-1">
-                          💡 Limite: 3 ajustes por minuto
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
 
                   {/* Botão Principal */}
                   <div className="pt-3">

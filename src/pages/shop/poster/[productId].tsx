@@ -58,8 +58,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // ✅ NOVO: Estado para dimensões da imagem do utilizador
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
-  // ✅ POSIÇÕES DEFINIDAS: Estado para a posição da imagem (3 opções - horizontal ou vertical)
-  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right' | 'top' | 'bottom'>('center');
+  // ✅ POSIÇÕES DEFINIDAS: Estado para a posição da imagem (3 opções)
+  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
 
   // ✅ GALERIA DE MOCKUPS: Guarda o array de URLs das mockups atuais
   const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
@@ -174,13 +174,13 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         finalImageWidth,
         printifyScale
       });
-
-        setImageAdjustments({
+      
+      setImageAdjustments({
         x: 0.5, // Mantém centrado
         y: 0.5, // Mantém centrado
         scale: printifyScale, // USA O VALOR TRADUZIDO!
         rotation: 0
-        });
+      });
     }
   }, [selectedImageUrl, product, selectedPrintifyVariantId]);
 
@@ -394,7 +394,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   };
 
   // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida (left/center/right)
-  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right' | 'top' | 'bottom', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
+  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
     if (!product) {
       console.log('❌ Produto não encontrado');
       return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
@@ -417,45 +417,26 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     const finalImageWidth = userImageWidth * scaleToCover;
     const printifyScale = finalImageWidth / placeholderWidth;
 
-    // PASSO B: Inicializar coordenadas padrão (centro)
-    let printifyX = 0.5;
-    let printifyY = 0.5;
+    // PASSO B: Calcular coordenada X baseada na posição
+    const scaledImageWidth = userImageWidth * scaleToCover;
+    const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
 
-    // PASSO C: Calcular movimentos baseados na posição
-    if (position === 'left' || position === 'right') {
-      // Para poster vertical - ajuste horizontal
-      const scaledImageWidth = userImageWidth * scaleToCover;
-      const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
+    let printifyX = 0.5; // Centro padrão
 
-      if (maxMovementX > 0) {
-        if (position === 'left') {
-          const movementX = -maxMovementX * 0.7;
-          printifyX = 0.5 + (movementX / placeholderWidth);
-        } else if (position === 'right') {
-          const movementX = maxMovementX * 0.7;
-          printifyX = 0.5 + (movementX / placeholderWidth);
-        }
+    if (maxMovementX > 0) {
+      if (position === 'left') {
+        const movementX = -maxMovementX * 0.7; // 70% para a esquerda
+        printifyX = 0.5 + (movementX / placeholderWidth);
+      } else if (position === 'right') {
+        const movementX = maxMovementX * 0.7; // 70% para a direita
+        printifyX = 0.5 + (movementX / placeholderWidth);
       }
-    } else if (position === 'top' || position === 'bottom') {
-      // Para poster horizontal - ajuste vertical
-      const scaledImageHeight = userImageHeight * scaleToCover;
-      const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
-
-      if (maxMovementY > 0) {
-        if (position === 'top') {
-          const movementY = -maxMovementY * 0.7;
-          printifyY = 0.5 + (movementY / placeholderHeight);
-        } else if (position === 'bottom') {
-          const movementY = maxMovementY * 0.7;
-          printifyY = 0.5 + (movementY / placeholderHeight);
-        }
-      }
+      // 'center' fica com printifyX = 0.5
     }
-    // 'center' mantém X e Y em 0.5
 
     const finalAdjustments = {
       x: printifyX,
-      y: printifyY,
+      y: 0.5, // Y sempre centrado para poster vertical
       scale: printifyScale,
       rotation: 0
     };
@@ -465,8 +446,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       variantId,
       scaleToCover,
       printifyScale,
+      maxMovementX,
       printifyX,
-      printifyY,
       finalAdjustments
     });
 
@@ -502,7 +483,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     let newVariantId = selectedPrintifyVariantId;
 
     if (type === 'position') {
-      newPosition = value as 'left' | 'center' | 'right' | 'top' | 'bottom';
+      newPosition = value as 'left' | 'center' | 'right';
       setImagePosition(newPosition);
       console.log(`📍 Posição alterada para: ${newPosition}`);
     } else if (type === 'size') {
@@ -519,7 +500,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   };
 
   // ✅ FUNÇÃO QUE CHAMA O BACKEND: Gera nova mockup com a posição e variante
-  const generateNewMockup = async (currentPosition: 'left' | 'center' | 'right' | 'top' | 'bottom', currentVariantId: number) => {
+  const generateNewMockup = async (currentPosition: 'left' | 'center' | 'right', currentVariantId: number) => {
     if (!userImageDimensions || !selectedImageUrl || !selectedImageId) {
       console.log('❌ Dados insuficientes para gerar mockup');
       return;
@@ -688,7 +669,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                 </Button>
               </motion.div>
 
-              {/* ✅ CONTROLES DE POSIÇÃO - HORIZONTAL para poster vertical */}
+              {/* ✅ CONTROLES DE POSIÇÃO - Compactos para caber numa página */}
               {selectedImageUrl && userImageDimensions && product && product.id === 'poster_vertical_semi_glossy' && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -750,75 +731,6 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         <span className="inline-flex items-center gap-1.5 text-xs text-[#2D5A27] bg-[#2D5A27]/10 px-2 py-1 rounded-md font-medium">
                           <span className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full"></span>
                           Posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* ✅ CONTROLES DE POSIÇÃO - VERTICAL para poster horizontal */}
-              {selectedImageUrl && userImageDimensions && product && product.id === 'poster_horizontal_semi_glossy' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.4 }}
-                  className="mt-4"
-                >
-                  <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
-                    <CardContent className="p-4">
-                      <div className="text-center mb-3">
-                        <h3 className="text-base font-bold text-[#2D5A27] mb-1">
-                          Ajustar Posição Vertical
-                        </h3>
-                        <p className="text-xs text-[#4A6B5B]/80">
-                          Escolha como posicionar a sua arte no poster
-                        </p>
-                      </div>
-                      
-                      <div className="flex gap-2 mb-3">
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'top')} 
-                          variant={imagePosition === 'top' ? 'default' : 'outline'}
-                          size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'top' 
-                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
-                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                        >
-                          ⬆️ Cima
-                        </Button>
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'center')} 
-                          variant={imagePosition === 'center' ? 'default' : 'outline'}
-                          size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'center' 
-                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
-                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                        >
-                          🎯 Centro
-                        </Button>
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'bottom')} 
-                          variant={imagePosition === 'bottom' ? 'default' : 'outline'}
-                          size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'bottom' 
-                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
-                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                        >
-                          ⬇️ Baixo
-                        </Button>
-                      </div>
-                      
-                      <div className="text-center">
-                        <span className="inline-flex items-center gap-1.5 text-xs text-[#2D5A27] bg-[#2D5A27]/10 px-2 py-1 rounded-md font-medium">
-                          <span className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full"></span>
-                          Posição: {imagePosition === 'top' ? 'Cima' : imagePosition === 'bottom' ? 'Baixo' : 'Centro'}
                         </span>
                       </div>
                     </CardContent>
