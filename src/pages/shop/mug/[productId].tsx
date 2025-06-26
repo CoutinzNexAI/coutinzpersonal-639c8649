@@ -206,7 +206,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     const { placeholderWidth, placeholderHeight } = selectedVariant;
     const { width: userImageWidth, height: userImageHeight } = imageDimensions;
 
-    // PASSO A: Calcular escala
+    // PASSO A: Calcular escala para cobrir completamente
     const scaleToCover = Math.max(
       placeholderWidth / userImageWidth,
       placeholderHeight / userImageHeight
@@ -214,23 +214,27 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     const finalImageWidth = userImageWidth * scaleToCover;
     const printifyScale = finalImageWidth / placeholderWidth;
 
-    // ✅ CANECA: Ajustar coordenada Y baseada na posição (top/center/bottom)
+    // ✅ CANECA: Ajustar coordenada Y baseada na posição (similar aos posters)
     const scaledImageHeight = userImageHeight * scaleToCover;
     const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
     
     const printifyX = 0.5; // X sempre centrado para canecas
     let printifyY = 0.5; // Centro padrão
 
+    // ✅ USAR MOVIMENTO MAIS AGRESSIVO como nos posters (80% em vez de 70%)
     if (maxMovementY > 0) {
       if (position === 'top') {
-        const movementY = -maxMovementY * 0.7; // 70% para cima
+        const movementY = -maxMovementY * 0.8; // 80% para cima
         printifyY = 0.5 + (movementY / placeholderHeight);
       } else if (position === 'bottom') {
-        const movementY = maxMovementY * 0.7; // 70% para baixo
+        const movementY = maxMovementY * 0.8; // 80% para baixo
         printifyY = 0.5 + (movementY / placeholderHeight);
       }
-      // 'center' fica com printifyY = 0.5
+      // 'center' mantém printifyY = 0.5
     }
+
+    // ✅ LIMITE DAS COORDENADAS para evitar overflow
+    printifyY = Math.max(0.1, Math.min(0.9, printifyY));
 
     const finalAdjustments = {
       x: printifyX,
@@ -239,14 +243,15 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
       rotation: 0
     };
 
-    console.log('🎯 Coordenadas calculadas para caneca:', {
+    console.log('🎯 [CANECA] Coordenadas calculadas:', {
       position,
       variantId,
+      placeholderDimensions: { placeholderWidth, placeholderHeight },
+      userImageDimensions: { userImageWidth, userImageHeight },
       scaleToCover,
       printifyScale,
+      scaledImageHeight,
       maxMovementY,
-      printifyX,
-      printifyY,
       finalAdjustments
     });
 
@@ -357,17 +362,23 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
 
   // ✅ LÓGICA CENTRAL: Controla todos os ajustes que precisam de nova mockup
   const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
+    console.log('🎮 [CANECA] handleAdjustment chamado:', { type, value, currentPosition: imagePosition });
+    
     // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
     const { allowed, message } = RateLimiter.checkRequestLimit();
     if (!allowed) {
+      console.log('🚫 [CANECA] Rate limit bloqueou o pedido:', message);
       toast.error(message); // Mostra o erro ao utilizador
       return; // Para a execução aqui
     }
 
     if (!userImageDimensions) {
+      console.log('❌ [CANECA] userImageDimensions não está definido:', userImageDimensions);
       toast.error('Aguarde o carregamento da imagem');
       return;
     }
+
+    console.log('✅ [CANECA] Verificações passaram, a processar ajuste...');
 
     // 2. Se for permitido, atualiza o estado correspondente
     let newPosition = imagePosition;
@@ -376,28 +387,38 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     if (type === 'position') {
       newPosition = value as 'top' | 'center' | 'bottom';
       setImagePosition(newPosition);
-      console.log(`📍 Posição da caneca alterada para: ${newPosition}`);
+      console.log(`📍 [CANECA] Posição alterada de "${imagePosition}" para "${newPosition}"`);
     } else if (type === 'size') {
       newVariantId = value as number;
       setSelectedPrintifyVariantId(newVariantId);
-      console.log(`📏 Tamanho da caneca alterado para variante: ${newVariantId}`);
+      console.log(`📏 [CANECA] Tamanho alterado para variante: ${newVariantId}`);
     }
 
     // 3. Regista que um pedido foi feito
     RateLimiter.recordRequest();
+    console.log('📝 [CANECA] Pedido registado no rate limiter');
 
     // 4. E só depois chama a função para gerar a mockup
+    console.log('🚀 [CANECA] A chamar generateNewMockup...');
     await generateNewMockup(newPosition, newVariantId);
   };
 
   // ✅ FUNÇÃO QUE CHAMA O BACKEND: Gera nova mockup com a posição e variante
   const generateNewMockup = async (currentPosition: 'top' | 'center' | 'bottom', currentVariantId: number) => {
     if (!userImageDimensions || !selectedImageUrl || !selectedImageId) {
-      console.log('❌ Dados insuficientes para gerar mockup');
+      console.log('❌ Dados insuficientes para gerar mockup:', { 
+        userImageDimensions, 
+        selectedImageUrl: !!selectedImageUrl, 
+        selectedImageId: !!selectedImageId 
+      });
       return;
     }
 
-    console.log('🔄 Iniciando geração de nova mockup da caneca...', { currentPosition, currentVariantId });
+    console.log('🔄 [CANECA] Iniciando geração de nova mockup...', { 
+      currentPosition, 
+      currentVariantId,
+      productId: product?.id
+    });
     setIsGeneratingMockup(true);
 
     // Calcula as coordenadas baseadas na posição e variante
@@ -412,6 +433,8 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
       printifyImageId: selectedImageId
     };
 
+    console.log('📤 [CANECA] Enviando para API:', requestBody);
+
     try {
       const response = await fetch('/api/printify/mockups/generate', {
         method: 'POST',
@@ -420,18 +443,26 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
       });
 
       const data = await response.json();
+      console.log('📥 [CANECA] Resposta da API:', data);
 
       if (response.ok && data.success && data.previewUrls && data.previewUrls.length > 0) {
-        console.log('✅ Nova galeria de mockups da caneca gerada com sucesso!', data.previewUrls.length, 'imagens');
+        console.log('✅ [CANECA] Nova galeria de mockups gerada com sucesso!', data.previewUrls.length, 'imagens');
+        
+        // ✅ ATUALIZAR TODOS OS ESTADOS necessários
         setCurrentMockupUrls(data.previewUrls);
-        setActiveMockupIndex(0); // Sempre mostra a primeira imagem do novo set
+        setActiveMockupIndex(0);
         setPrintifyPreviewUrls(data.previewUrls);
+        
+        // ✅ ATUALIZAR imageAdjustments para refletir as novas coordenadas
+        setImageAdjustments(adjustments);
+        
+        toast.success(`Posição alterada para: ${currentPosition === 'top' ? 'Cima' : currentPosition === 'bottom' ? 'Baixo' : 'Centro'}!`);
       } else {
-        console.error('❌ Erro ao gerar nova mockup da caneca:', data.error || 'Resposta inválida');
+        console.error('❌ [CANECA] Erro ao gerar nova mockup:', data.error || 'Resposta inválida');
         toast.error('Erro ao gerar nova preview. Tente novamente.');
       }
     } catch (error) {
-      console.error('❌ Falha grave na chamada à API:', error);
+      console.error('❌ [CANECA] Falha grave na chamada à API:', error);
       toast.error('Erro de conexão. Tente novamente.');
     } finally {
       setIsGeneratingMockup(false);
@@ -540,6 +571,87 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       >
                         Fazer Login
                       </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* ✅ CONTROLES DE POSIÇÃO - Para canecas (movido para baixo dos mockups) */}
+              {selectedImageUrl && userImageDimensions && product && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.4 }}
+                  className="mt-4"
+                >
+                  <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
+                    <CardContent className="p-4">
+                      <div className="text-center mb-3">
+                        <h3 className="text-base font-bold text-[#2D5A27] mb-1">
+                          Ajustar Posição
+                        </h3>
+                        <p className="text-xs text-[#4A6B5B]/80">
+                          Escolha como posicionar a sua arte na caneca
+                        </p>
+                      </div>
+                      
+                      <div className="flex gap-2 mb-3">
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'top')} 
+                          variant={imagePosition === 'top' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'top' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                        >
+                          Cima
+                        </Button>
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
+                          variant={imagePosition === 'center' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'center' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                        >
+                          Centro
+                        </Button>
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'bottom')} 
+                          variant={imagePosition === 'bottom' ? 'default' : 'outline'}
+                          size="sm"
+                          className={`flex-1 text-xs ${imagePosition === 'bottom' 
+                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
+                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                        >
+                          Baixo
+                        </Button>
+                      </div>
+                      
+                      <div className="text-center">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-[#2D5A27] bg-[#2D5A27]/10 px-2 py-1 rounded-md font-medium">
+                          <span className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full"></span>
+                          Posição: {imagePosition === 'top' ? 'Cima' : imagePosition === 'bottom' ? 'Baixo' : 'Centro'}
+                        </span>
+                      </div>
+
+                      {/* Status/Loading da regeneração */}
+                      {isGeneratingMockup && (
+                        <div className="mt-3 flex items-center justify-center gap-2 text-xs text-[#4A6B5B]">
+                          <div className="flex space-x-1">
+                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce"></div>
+                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          </div>
+                          <span>Reposicionando arte...</span>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -654,86 +766,6 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                         Formato especial de coração
                       </p>
                 </div>
-              )}
-
-              {/* ✅ CONTROLES DE POSIÇÃO - Para canecas com top/center/bottom */}
-              {selectedImageUrl && userImageDimensions && product && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.4 }}
-                  className="mt-4"
-                >
-                  <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
-                    <CardContent className="p-4">
-                      <div className="text-center mb-3">
-                        <h3 className="text-base font-bold text-[#2D5A27] flex items-center justify-center gap-2">
-                          <ChevronDown className="w-4 h-4" />
-                          Posição da Arte
-                        </h3>
-                        <p className="text-xs text-[#4A6B5B] mt-1">Escolha onde posicionar a sua criação na caneca</p>
-                      </div>
-
-                      <div className="flex justify-center">
-                        <div className="inline-flex bg-white rounded-lg p-1 shadow-inner border border-[#2D5A27]/20">
-                          {/* Botão TOP */}
-                          <button
-                            onClick={() => handleAdjustment('position', 'top')}
-                            disabled={isGeneratingMockup}
-                            className={`px-3 py-2 rounded text-sm font-medium transition-all duration-200 flex-1 min-w-[70px] flex flex-col items-center gap-1 ${
-                              imagePosition === 'top'
-                                ? 'bg-[#2D5A27] text-white shadow-md'
-                                : 'text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                            } ${isGeneratingMockup ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            <ChevronDown className="w-3 h-3 rotate-180" />
-                            <span>Cima</span>
-                          </button>
-
-                          {/* Botão CENTER */}
-                          <button
-                            onClick={() => handleAdjustment('position', 'center')}
-                            disabled={isGeneratingMockup}
-                            className={`px-3 py-2 rounded text-sm font-medium transition-all duration-200 flex-1 min-w-[70px] flex flex-col items-center gap-1 ${
-                              imagePosition === 'center'
-                                ? 'bg-[#2D5A27] text-white shadow-md'
-                                : 'text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                            } ${isGeneratingMockup ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            <div className="w-3 h-3 rounded-full bg-current" />
-                            <span>Centro</span>
-                          </button>
-
-                          {/* Botão BOTTOM */}
-                          <button
-                            onClick={() => handleAdjustment('position', 'bottom')}
-                            disabled={isGeneratingMockup}
-                            className={`px-3 py-2 rounded text-sm font-medium transition-all duration-200 flex-1 min-w-[70px] flex flex-col items-center gap-1 ${
-                              imagePosition === 'bottom'
-                                ? 'bg-[#2D5A27] text-white shadow-md'
-                                : 'text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                            } ${isGeneratingMockup ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            <ChevronDown className="w-3 h-3" />
-                            <span>Baixo</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Status/Loading da regeneração */}
-                      {isGeneratingMockup && (
-                        <div className="mt-3 flex items-center justify-center gap-2 text-xs text-[#4A6B5B]">
-                          <div className="flex space-x-1">
-                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce"></div>
-                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                          </div>
-                          <span>Reposicionando arte...</span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
               )}
 
                   {/* Botão Principal */}
