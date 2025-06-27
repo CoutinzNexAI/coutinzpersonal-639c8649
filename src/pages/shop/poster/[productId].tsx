@@ -917,7 +917,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         €{finalPrice.toFixed(2)}
                     </div>
                     <div className="text-sm text-gray-500">IVA incluído</div>
-                    
+
                     {/* Envio Grátis Badge */}
                     <div className="mt-3 inline-flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-medium border border-green-200">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -996,7 +996,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         ${canAddToCart 
                           ? 'bg-gradient-to-r from-[#2D5A27] via-[#3d7a35] to-[#2D5A27] hover:shadow-2xl hover:scale-[1.02] text-white relative overflow-hidden group' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
+                      }`}
                     >
                       {/* Efeito Shimmer */}
                       {canAddToCart && (

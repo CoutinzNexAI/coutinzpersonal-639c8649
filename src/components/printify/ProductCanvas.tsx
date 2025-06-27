@@ -244,11 +244,11 @@ export default function ProductCanvas({
           }
         } else {
           // Para outros produtos - aceitar mesmo sem printifyImageId
-          onPreviewReady({
-            previewUrls: data.previewUrls,
+            onPreviewReady({
+              previewUrls: data.previewUrls,
             printifyImageId: data.printifyImageId || '', // Pode ser null/undefined para alguns produtos
-            printifyProductId: data.printifyProductId,
-          });
+              printifyProductId: data.printifyProductId,
+            });
         }
         setHasGenerated(true);
       }
