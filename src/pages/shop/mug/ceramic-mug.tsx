@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -59,7 +59,7 @@ const CeramicMugPage: React.FC = () => {
     try {
       await CartService.addToCart({
         productId: 'ceramic_mug',
-        productName: `Caneca Cerâmica ${selectedSize}`,
+        productName: `Caneca Personalizada ${selectedSize}`,
         productCategory: 'mug',
         userImageUrl: selectedImageUrl,
         userImageId: selectedImageId!,
@@ -114,10 +114,10 @@ const CeramicMugPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Caneca Cerâmica | PicTuz - Transformações AI Únicas</title>
+        <title>Caneca Personalizada | PicTuz - Transformações AI Únicas</title>
         <meta name="description" content="Personalize a sua caneca cerâmica com arte AI única. Disponível em 330ml e 450ml. Desconto progressivo a partir de 2 unidades!" />
         <meta name="keywords" content="caneca personalizada, caneca cerâmica, arte AI, impressão personalizada, PicTuz" />
-        <meta property="og:title" content="Caneca Cerâmica | PicTuz" />
+        <meta property="og:title" content="Caneca Personalizada | PicTuz" />
         <meta property="og:description" content="Personalize a sua caneca cerâmica com arte AI única. Desconto progressivo!" />
         <meta property="og:image" content="/mockupproduto/canecapersonalizada.png" />
         <meta property="og:type" content="product" />
@@ -131,38 +131,38 @@ const CeramicMugPage: React.FC = () => {
           <div className="max-w-7xl mx-auto">
             {/* Mobile Layout */}
             <div className="block lg:hidden">
-              {/* Breadcrumb Mobile */}
-              <motion.nav 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+            {/* Breadcrumb Mobile */}
+            <motion.nav 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
                 className="mb-4"
-              >
-                <div className="text-sm text-ghibli-earth/60">
-                  <Link href="/" className="hover:text-ghibli-moss transition-colors">
-                    🏠 Início
-                  </Link>
-                  <span className="mx-2">•</span>
-                  <Link href="/shop" className="hover:text-ghibli-moss transition-colors">
-                    🛍️ Loja
-                  </Link>
-                  <span className="mx-2">•</span>
-                  <span className="text-ghibli-moss font-medium">☕ Caneca Cerâmica</span>
-                </div>
-              </motion.nav>
+            >
+              <div className="text-sm text-ghibli-earth/60">
+                <Link href="/" className="hover:text-ghibli-moss transition-colors">
+                  🏠 Início
+                </Link>
+                <span className="mx-2">•</span>
+                <Link href="/shop" className="hover:text-ghibli-moss transition-colors">
+                  🛍️ Loja
+                </Link>
+                <span className="mx-2">•</span>
+                <span className="text-ghibli-moss font-medium">☕ Caneca Personalizada</span>
+              </div>
+            </motion.nav>
 
               {/* Title Mobile */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
                 className="mb-6"
-              >
-                <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-earth mb-2">
-                  <span className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-wood bg-clip-text text-transparent">
-                    ☕ Caneca Cerâmica
-                  </span>
-                </h1>
-              </motion.div>
+                >
+                  <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-earth mb-2">
+                    <span className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-wood bg-clip-text text-transparent">
+                    ☕ Caneca Personalizada
+                    </span>
+                  </h1>
+                </motion.div>
 
               {/* Mockup Mobile */}
               <motion.div
@@ -190,15 +190,15 @@ const CeramicMugPage: React.FC = () => {
                       </div>
                     ) : (
                       <div className="w-48 h-48 bg-gradient-to-br from-ghibli-cream/50 to-ghibli-sand/30 rounded-lg border-2 border-dashed border-ghibli-sand flex items-center justify-center">
-                        <img
-                          src="/mockupproduto/canecapersonalizada.png"
-                          alt="Caneca personalizada"
+                      <img
+                        src="/mockupproduto/canecapersonalizada.png"
+                        alt="Caneca personalizada"
                           className="w-40 h-40 object-contain opacity-60"
-                        />
-                      </div>
+                      />
+                    </div>
                     )}
                   </div>
-                  
+
                   {loading && (
                     <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center">
                       <div className="text-center">
@@ -215,36 +215,36 @@ const CeramicMugPage: React.FC = () => {
               </motion.div>
 
               {/* Price and Quantity Card Mobile */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
                 className="mb-6"
-              >
-                <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40 overflow-hidden">
-                  <CardContent className="p-4">
+                >
+                  <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40 overflow-hidden">
+                    <CardContent className="p-4">
                     {/* Price and Discount */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          {discount > 0 && (
-                            <span className="text-lg text-ghibli-earth/60 line-through">
-                              €{basePrice.toFixed(2)}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            {discount > 0 && (
+                              <span className="text-lg text-ghibli-earth/60 line-through">
+                                €{basePrice.toFixed(2)}
+                              </span>
+                            )}
+                            <span className="text-4xl sm:text-5xl font-bold text-ghibli-moss">
+                              €{discountedPrice.toFixed(2)}
                             </span>
-                          )}
-                          <span className="text-4xl sm:text-5xl font-bold text-ghibli-moss">
-                            €{discountedPrice.toFixed(2)}
-                          </span>
+                          </div>
+                          <p className="text-sm text-ghibli-earth/70">por caneca • {selectedSize}</p>
                         </div>
-                        <p className="text-sm text-ghibli-earth/70">por caneca • {selectedSize}</p>
+                        
+                        {discount > 0 && (
+                          <div className="bg-gradient-to-br from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                            -{discount}%
+                          </div>
+                        )}
                       </div>
-                      
-                      {discount > 0 && (
-                        <div className="bg-gradient-to-br from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                          -{discount}%
-                        </div>
-                      )}
-                    </div>
 
                     {/* Size Selector */}
                     <div className="mb-4">
@@ -268,68 +268,68 @@ const CeramicMugPage: React.FC = () => {
                     </div>
 
                     {/* Quantity Selector */}
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-ghibli-earth font-medium">Quantidade:</span>
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          className="h-8 w-8 p-0 border-ghibli-sand hover:bg-ghibli-cream/50"
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="text-xl font-bold text-ghibli-moss min-w-[3rem] text-center">
-                          {quantity}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setQuantity(quantity + 1)}
-                          className="h-8 w-8 p-0 border-ghibli-sand hover:bg-ghibli-cream/50"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Discount Highlights */}
-                    <div className="space-y-2 mb-4">
-                      <div className={`p-2 rounded-lg border-2 transition-all ${
-                        quantity >= 2 
-                          ? 'bg-green-50 border-green-200 text-green-800' 
-                          : 'bg-ghibli-cream/30 border-ghibli-sand/40 text-ghibli-earth/70'
-                      }`}>
-                        <span className="text-sm font-medium">🎯 2+ canecas: 10% OFF</span>
-                      </div>
-                      <div className={`p-2 rounded-lg border-2 transition-all ${
-                        quantity >= 3 
-                          ? 'bg-green-50 border-green-200 text-green-800' 
-                          : 'bg-ghibli-cream/30 border-ghibli-sand/40 text-ghibli-earth/70'
-                      }`}>
-                        <span className="text-sm font-medium">🔥 3+ canecas: 15% OFF</span>
-                      </div>
-                    </div>
-
-                    {/* Total */}
-                    <div className="border-t border-ghibli-sand/40 pt-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-ghibli-earth">Total:</span>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-ghibli-moss">
-                            €{totalPrice.toFixed(2)}
-                          </div>
-                          {savings > 0 && (
-                            <div className="text-green-600 font-medium">
-                              Poupou €{savings.toFixed(2)}
-                            </div>
-                          )}
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-ghibli-earth font-medium">Quantidade:</span>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                            className="h-8 w-8 p-0 border-ghibli-sand hover:bg-ghibli-cream/50"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="text-xl font-bold text-ghibli-moss min-w-[3rem] text-center">
+                            {quantity}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setQuantity(quantity + 1)}
+                            className="h-8 w-8 p-0 border-ghibli-sand hover:bg-ghibli-cream/50"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+
+                    {/* Discount Highlights */}
+                      <div className="space-y-2 mb-4">
+                        <div className={`p-2 rounded-lg border-2 transition-all ${
+                          quantity >= 2 
+                            ? 'bg-green-50 border-green-200 text-green-800' 
+                            : 'bg-ghibli-cream/30 border-ghibli-sand/40 text-ghibli-earth/70'
+                        }`}>
+                          <span className="text-sm font-medium">🎯 2+ canecas: 10% OFF</span>
+                        </div>
+                        <div className={`p-2 rounded-lg border-2 transition-all ${
+                          quantity >= 3 
+                            ? 'bg-green-50 border-green-200 text-green-800' 
+                            : 'bg-ghibli-cream/30 border-ghibli-sand/40 text-ghibli-earth/70'
+                        }`}>
+                          <span className="text-sm font-medium">🔥 3+ canecas: 15% OFF</span>
+                        </div>
+                      </div>
+
+                      {/* Total */}
+                      <div className="border-t border-ghibli-sand/40 pt-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-bold text-ghibli-earth">Total:</span>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-ghibli-moss">
+                              €{totalPrice.toFixed(2)}
+                            </div>
+                            {savings > 0 && (
+                            <div className="text-green-600 font-medium">
+                                Poupou €{savings.toFixed(2)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
 
               {/* Choose Art Button Mobile */}
               <motion.div 
@@ -440,7 +440,7 @@ const CeramicMugPage: React.FC = () => {
                       🛍️ Loja
                     </Link>
                     <span className="mx-2">•</span>
-                    <span className="text-ghibli-moss font-medium">☕ Caneca Cerâmica</span>
+                    <span className="text-ghibli-moss font-medium">☕ Caneca Personalizada</span>
                   </div>
                 </motion.nav>
 
@@ -503,7 +503,7 @@ const CeramicMugPage: React.FC = () => {
                 >
                   <h1 className="text-4xl lg:text-5xl font-bold text-ghibli-earth mb-4">
                     <span className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-wood bg-clip-text text-transparent">
-                      ☕ Caneca Cerâmica
+                      ☕ Caneca Personalizada
                     </span>
                   </h1>
                   <p className="text-lg text-ghibli-earth/80 leading-relaxed">
@@ -643,7 +643,7 @@ const CeramicMugPage: React.FC = () => {
                       <span>Trocar Arte</span>
                       <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
                         <ChevronRight className="w-4 h-4" />
-                      </div>
+                          </div>
                     </span>
                   </Button>
                 </motion.div>
