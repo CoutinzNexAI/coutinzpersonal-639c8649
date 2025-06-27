@@ -59,7 +59,7 @@ const CeramicMugPage: React.FC = () => {
     try {
       await CartService.addToCart({
         productId: 'ceramic_mug',
-        productName: `Caneca Personalizada ${selectedSize}`,
+        productName: `Caneca Cerâmica ${selectedSize}`,
         productCategory: 'mug',
         userImageUrl: selectedImageUrl,
         userImageId: selectedImageId!,
@@ -114,10 +114,10 @@ const CeramicMugPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Caneca Personalizada | PicTuz - Transformações AI Únicas</title>
+        <title>Caneca Cerâmica | PicTuz - Transformações AI Únicas</title>
         <meta name="description" content="Personalize a sua caneca cerâmica com arte AI única. Disponível em 330ml e 450ml. Desconto progressivo a partir de 2 unidades!" />
         <meta name="keywords" content="caneca personalizada, caneca cerâmica, arte AI, impressão personalizada, PicTuz" />
-        <meta property="og:title" content="Caneca Personalizada | PicTuz" />
+        <meta property="og:title" content="Caneca Cerâmica | PicTuz" />
         <meta property="og:description" content="Personalize a sua caneca cerâmica com arte AI única. Desconto progressivo!" />
         <meta property="og:image" content="/mockupproduto/canecapersonalizada.png" />
         <meta property="og:type" content="product" />
@@ -146,7 +146,7 @@ const CeramicMugPage: React.FC = () => {
                     🛍️ Loja
                   </Link>
                   <span className="mx-2">•</span>
-                  <span className="text-ghibli-moss font-medium">☕ Caneca Personalizada</span>
+                  <span className="text-ghibli-moss font-medium">☕ Caneca Cerâmica</span>
                 </div>
               </motion.nav>
 
@@ -159,7 +159,7 @@ const CeramicMugPage: React.FC = () => {
               >
                 <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-earth mb-2">
                   <span className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-wood bg-clip-text text-transparent">
-                    ☕ Caneca Personalizada
+                    ☕ Caneca Cerâmica
                   </span>
                 </h1>
               </motion.div>
@@ -440,7 +440,7 @@ const CeramicMugPage: React.FC = () => {
                       🛍️ Loja
                     </Link>
                     <span className="mx-2">•</span>
-                    <span className="text-ghibli-moss font-medium">☕ Caneca Personalizada</span>
+                    <span className="text-ghibli-moss font-medium">☕ Caneca Cerâmica</span>
                   </div>
                 </motion.nav>
 
@@ -503,7 +503,7 @@ const CeramicMugPage: React.FC = () => {
                 >
                   <h1 className="text-4xl lg:text-5xl font-bold text-ghibli-earth mb-4">
                     <span className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-wood bg-clip-text text-transparent">
-                      ☕ Caneca Personalizada
+                      ☕ Caneca Cerâmica
                     </span>
                   </h1>
                   <p className="text-lg text-ghibli-earth/80 leading-relaxed">
