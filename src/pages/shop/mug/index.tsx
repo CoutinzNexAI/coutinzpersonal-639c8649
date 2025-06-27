@@ -23,7 +23,7 @@ const MugShopPage: React.FC = () => {
         
         <main className="container mx-auto px-4 py-12 md:py-16">
           {/* Header */}
-          <div className="text-center mb-12 lg:mb-16">
+          <div className="text-center mb-16 lg:mb-20">
             <motion.h1 
               className="text-3xl md:text-5xl font-ghibli font-bold text-ghibli-wood mb-4"
               initial={{ opacity: 0, y: 30 }}
@@ -61,10 +61,10 @@ const MugShopPage: React.FC = () => {
                       initial={{ opacity: 0, y: 50 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: index * 0.2 }}
-                      className="max-w-sm mx-auto"
+                      className="w-full max-w-sm mx-auto"
                     >
                       <Link href={`/shop/mug/${productId}`}>
-                        <div className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                        <div className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer h-full">
                           {/* Product Image with Real Mockup */}
                           <div className="aspect-square bg-gradient-to-br from-ghibli-cream/50 to-ghibli-sand/30 p-8 flex items-center justify-center relative">
                             <img
@@ -79,7 +79,7 @@ const MugShopPage: React.FC = () => {
                           </div>
                           
                           {/* Product Info */}
-                          <div className="p-6">
+                          <div className="p-6 flex-1">
                             <h3 className="text-xl font-semibold text-ghibli-wood mb-3 group-hover:text-ghibli-moss transition-colors">
                               {product.name}
                             </h3>
@@ -92,7 +92,7 @@ const MugShopPage: React.FC = () => {
                               </div>
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
-                                <span>{product.variants?.map(v => v.title).join(', ') || 'Tamanho padrão'}</span>
+                                <span>{product.id === 'heart_mug' ? '330 ml' : 'Padrão (330ml), Grande (450ml)'}</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
@@ -107,12 +107,9 @@ const MugShopPage: React.FC = () => {
                             </div>
                             
                             {/* Price */}
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-center">
                               <div className="text-2xl font-bold text-ghibli-moss">
                                 €{product.basePrice || product.price || 25.00}
-                              </div>
-                              <div className="text-xs text-ghibli-earth/70 bg-ghibli-cream/50 px-2 py-1 rounded">
-                                + envio
                               </div>
                             </div>
                           </div>
@@ -157,29 +154,6 @@ const MugShopPage: React.FC = () => {
                     <h3 className="font-semibold mb-2 text-ghibli-wood">Lavável</h3>
                     <p>Resistente à máquina de lavar loiça e micro-ondas</p>
                   </div>
-                </div>
-
-                {/* Additional Features */}
-                <div className="mt-8 pt-6 border-t border-ghibli-sand/30">
-                  <h3 className="font-semibold text-ghibli-wood mb-4 text-center">🚀 Vantagens Exclusivas</h3>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <span className="text-green-500">✓</span>
-                      <span>Descontos progressivos (10% para 2+, 15% para 3+)</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-green-500">✓</span>
-                      <span>Entrega em ~1 semana</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-green-500">✓</span>
-                      <span>Garantia total de qualidade</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-green-500">✓</span>
-                      <span>Arte AI única e personalizada</span>
-                    </li>
-                  </ul>
                 </div>
               </motion.div>
             </div>
@@ -227,18 +201,15 @@ const MugShopPage: React.FC = () => {
                           {/* Key Features */}
                           <div className="text-sm text-ghibli-earth space-y-1 mb-3">
                             <div>🏺 Cerâmica premium</div>
-                            <div>☕ {product.variants?.length > 1 ? 'Múltiplos tamanhos' : 'Tamanho padrão'}</div>
+                            <div>☕ {product.variants?.length > 1 ? 'Múltiplos tamanhos' : '330 ml'}</div>
                             <div>✨ Impressão resistente</div>
                             {product.id === 'heart_mug' && <div>💝 Formato coração</div>}
                           </div>
                           
                           {/* Price */}
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-center">
                             <div className="text-xl font-bold text-ghibli-moss">
                               €{product.basePrice || product.price || 25.00}
-                            </div>
-                            <div className="text-xs text-ghibli-earth/70 bg-ghibli-cream/50 px-2 py-1 rounded">
-                              + envio
                             </div>
                           </div>
                         </div>
