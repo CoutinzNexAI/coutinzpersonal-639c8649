@@ -143,12 +143,12 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         printifyScale
       });
       
-      setImageAdjustments({
+        setImageAdjustments({
         x: 0.5, // Mantém centrado
         y: 0.5, // Mantém centrado
         scale: printifyScale, // USA O VALOR TRADUZIDO!
         rotation: 0
-      });
+        });
     }
   }, [selectedImageUrl, product, selectedPrintifyVariantId]);
 

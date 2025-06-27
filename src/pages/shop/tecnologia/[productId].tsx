@@ -184,7 +184,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       
       // ✅ A posição vem do estado controlado pelos botões
       const currentPosition = imagePosition;
-      
+
       // ✅ Chama a função que faz todo o trabalho COM as dimensões reais
       generateNewMockup(currentPosition, selectedPrintifyVariantId);
 
@@ -416,8 +416,8 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       // Isto vai disparar o useEffect que vai gerar a mockup
       setUserImageDimensions({ width: realWidth, height: realHeight });
       setLoading(false);
-      
-      toast.success('Arte selecionada com sucesso!');
+    
+    toast.success('Arte selecionada com sucesso!');
     };
     
     img.onerror = () => {
@@ -499,17 +499,17 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
               <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[700px] bg-white rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl overflow-hidden mb-4 lg:mb-6 border border-ghibli-sand/20">
                 {/* ✅ PRODUTO CANVAS COM ESTADO CONTROLADO */}
                 <div className={`transition-opacity duration-300 ${isGeneratingMockup ? 'opacity-50' : 'opacity-100'}`}>
-                  <ProductCanvas
-                    selectedProduct={product}
-                    userImageUrl={selectedImageUrl}
-                    userId={userInfo?.id}
-                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                    onPreviewReady={handlePreviewReady}
-                    onSelectImage={handleOpenGallery}
-                    imageAdjustments={imageAdjustments}
-                    onImageAdjust={setImageAdjustments}
-                    selectedPrintifyVariantId={selectedPrintifyVariantId}
-                  />
+                <ProductCanvas
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady}
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                />
                 </div>
 
                 {/* ✅ OVERLAY DE LOADING que aparece POR CIMA da imagem atual */}
