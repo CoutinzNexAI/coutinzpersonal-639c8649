@@ -243,14 +243,12 @@ export default function ProductCanvas({
             });
           }
         } else {
-          // Para outros produtos
-          if (data.printifyImageId) {
-            onPreviewReady({
-              previewUrls: data.previewUrls,
-              printifyImageId: data.printifyImageId,
-              printifyProductId: data.printifyProductId,
-            });
-          }
+          // Para outros produtos - aceitar mesmo sem printifyImageId
+          onPreviewReady({
+            previewUrls: data.previewUrls,
+            printifyImageId: data.printifyImageId || '', // Pode ser null/undefined para alguns produtos
+            printifyProductId: data.printifyProductId,
+          });
         }
         setHasGenerated(true);
       }
@@ -280,8 +278,8 @@ export default function ProductCanvas({
     if (selectedProduct.id === 'custom_youth_hoodie') {
       // Para sweat de criança, precisamos de imagem, variante e frase
       shouldGenerate = !!(userImageUrl && userId && selectedProduct && selectedPrintifyVariantId && selectedPhraseText);
-    } else if (selectedProduct.id === 'custom_phone_case') {
-      // Para capas de telemóvel, só gera se uma variante foi selecionada
+    } else if (selectedProduct.id === 'custom_phone_case' || selectedProduct.id === 'tote_bag') {
+      // Para capas de telemóvel e sacos, só gera se uma variante foi selecionada
       shouldGenerate = !!(userImageUrl && userId && selectedProduct && selectedPrintifyVariantId);
     } else {
       // Para outros produtos

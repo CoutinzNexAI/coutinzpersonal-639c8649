@@ -877,11 +877,11 @@ export default async function handler(
       return res.status(200).json({
         success: true,
         previewUrls: finalPreviewUrls,
-      printifyImageId: null, // ✅ Não fazemos upload, usamos SRC diretamente
-      printifyProductId: createdPrintifyProductId, // Retornar o ID do produto Printify criado
-      customerPrintifyImageId: logoImageId, // Retornar o ID da imagem do logo
-      dynamicPhrasePrintifyImageId: selectedPhraseText, // Retornar o texto da frase
-    });
+        printifyImageId: printifyImageId,
+        printifyProductId: createdPrintifyProductId,
+        customerPrintifyImageId: logoImageId,
+        dynamicPhrasePrintifyImageId: selectedPhraseText,
+      });
     }
 
   } catch (error) {
