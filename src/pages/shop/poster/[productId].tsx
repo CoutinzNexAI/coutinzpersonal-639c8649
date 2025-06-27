@@ -78,7 +78,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // ✅ COMPUTED VALUES: Valores calculados para a UI
   const canAddToCart = !!(selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo);
   const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
-  const finalPrice = (product?.basePrice || 0) + (selectedVariant?.priceAdjustment || 0);
+  // Como basePrice agora é 0, priceAdjustment contém o preço fixo total
+  const finalPrice = selectedVariant?.priceAdjustment || 20;
 
   // ✅ HANDLER: Para mudança de variante de tamanho
   const handleVariantChange = (variantId: string) => {
@@ -291,7 +292,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         productCategory: product.category || 'poster',
         userImageUrl: selectedImageUrl,
         userImageId: selectedImageId, // ID da imagem já processada
-        price: product.basePrice || product.price || 0,
+        price: selectedVariant?.priceAdjustment || 20, // Usar preço fixo da variante
         quantity: 1,
         customizations: {
           variantId: selectedPrintifyVariantId!, // Obrigatório agora
@@ -699,25 +700,25 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
               {/* Secção de Controlos Centralizada */}
               <div className="flex flex-col items-center gap-4">
                 {/* Botão "Escolher Arte" Destacado */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                >
-                  <Button
-                    onClick={handleOpenGallery}
-                    size="lg"
-                    disabled={!userInfo}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+              >
+                <Button
+                  onClick={handleOpenGallery}
+                  size="lg"
+                  disabled={!userInfo}
                     className={`px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl ${
-                      userInfo 
-                        ? 'bg-gradient-to-r from-[#2D5A27] to-[#2D5A27]/90 hover:from-[#2D5A27]/90 hover:to-[#2D5A27] text-white' 
-                        : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                    }`}
-                  >
-                    <Sparkles className="w-5 h-5 mr-3" />
-                    {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
-                  </Button>
-                </motion.div>
+                    userInfo 
+                      ? 'bg-gradient-to-r from-[#2D5A27] to-[#2D5A27]/90 hover:from-[#2D5A27]/90 hover:to-[#2D5A27] text-white' 
+                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  <Sparkles className="w-5 h-5 mr-3" />
+                  {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
+                </Button>
+              </motion.div>
 
                 {/* ✅ CONTROLOS DE POSIÇÃO ELEGANTES com Símbolos Reais */}
                 {selectedImageUrl && userImageDimensions && (
@@ -850,31 +851,31 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                   </motion.div>
                 )}
 
-                {/* Prompt de Login (apenas se não autenticado) */}
-                {!userInfo && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.5 }}
+              {/* Prompt de Login (apenas se não autenticado) */}
+              {!userInfo && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
                     className="mt-2"
-                  >
-                    <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm max-w-md">
-                      <CardContent className="p-4 text-center">
-                        <p className="text-blue-800 text-sm mb-3">
+                >
+                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm max-w-md">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-blue-800 text-sm mb-3">
                           Faça login para personalizar este poster
-                        </p>
-                        <Button
-                          onClick={() => router.push('/')}
-                          variant="outline"
-                          size="sm"
-                          className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
-                        >
-                          Fazer Login
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
+                      </p>
+                      <Button
+                        onClick={() => router.push('/')}
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                      >
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
               </div>
             </motion.div>
 
@@ -913,7 +914,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                     className="text-center py-4"
                   >
                     <div className="text-3xl font-bold text-[#2D5A27] mb-1">
-                      €{finalPrice.toFixed(2)}
+                        €{finalPrice.toFixed(2)}
                     </div>
                     <div className="text-sm text-gray-500">IVA incluído</div>
                     
@@ -948,7 +949,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                           <SelectItem key={variant.id} value={variant.id.toString()}>
                             <div className="flex justify-between items-center w-full">
                               <span>{variant.title}</span>
-                              <span className="ml-4 text-[#2D5A27] font-semibold">€{((product.basePrice || 0) + (variant.priceAdjustment || 0)).toFixed(2)}</span>
+                              <span className="ml-4 text-[#2D5A27] font-semibold">€{(variant.priceAdjustment || 20).toFixed(2)}</span>
                             </div>
                           </SelectItem>
                         ))}
@@ -968,7 +969,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         <svg className="w-4 h-4 text-[#2D5A27]" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                         </svg>
-                      </div>
+                  </div>
                       <span className="font-medium">Qualidade garantida</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-[#4A6B5B]">
@@ -1016,8 +1017,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                           <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
                           </svg>
-                        )}
-                      </div>
+                    )}
+                  </div>
                     </Button>
                     
                     {/* Feedback de sucesso */}

@@ -541,13 +541,13 @@ export default async function handler(
 
       // ✅ PASSO 1: FAZER UPLOAD DA IMAGEM PARA PRINTIFY MEDIA LIBRARY (OBRIGATÓRIO PARA PRODUCTS API)
       console.log('🔄 Uploading image to Printify Media Library...');
-      const uploadPayload = {
+          const uploadPayload = {
         file_name: `mockup-${productId}-${Date.now()}.png`,
         url: userImageUrl, // Printify vai fazer download do URL
-      };
-      
+          };
+          
       const uploadResponse = await printifyFetch('uploads/images.json', {
-        method: 'POST',
+            method: 'POST',
         body: JSON.stringify(uploadPayload),
       });
 
@@ -769,10 +769,10 @@ export default async function handler(
         console.log('🔍 [ESCALA] Scale final para Printify:', printifyScale);
         
         // Aplicar coordenadas calculadas no frontend
-        finalX = imageAdjustments.x;
-        finalY = imageAdjustments.y;
+      finalX = imageAdjustments.x;
+      finalY = imageAdjustments.y;
         finalScale = printifyScale; // ✅ USA A ESCALA CORRETA!
-        finalAngle = imageAdjustments.rotation || 0;
+      finalAngle = imageAdjustments.rotation || 0;
         
         console.log('✅ [ESCALA] Coordenadas finais calculadas:', { finalX, finalY, finalScale, finalAngle });
         
@@ -881,7 +881,7 @@ export default async function handler(
         printifyProductId: createdPrintifyProductId,
         customerPrintifyImageId: logoImageId,
         dynamicPhrasePrintifyImageId: selectedPhraseText,
-      });
+    });
     }
 
   } catch (error) {
