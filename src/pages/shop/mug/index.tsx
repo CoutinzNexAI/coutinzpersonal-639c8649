@@ -21,9 +21,9 @@ const MugShopPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-4 py-12 md:py-16">
+        <main className="container mx-auto px-4 py-16 md:py-20 lg:py-24">
           {/* Header */}
-          <div className="text-center mb-16 lg:mb-20">
+          <div className="text-center mb-20 lg:mb-24">
             <motion.h1 
               className="text-3xl md:text-5xl font-ghibli font-bold text-ghibli-wood mb-4"
               initial={{ opacity: 0, y: 30 }}
@@ -92,7 +92,7 @@ const MugShopPage: React.FC = () => {
                               </div>
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
-                                <span>{product.id === 'heart_mug' ? '330 ml' : 'Padrão (330ml), Grande (450ml)'}</span>
+                                <span>{product.id === 'heart_mug' ? 'Formato especial de coração' : 'Padrão (330ml), Grande (450ml)'}</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>

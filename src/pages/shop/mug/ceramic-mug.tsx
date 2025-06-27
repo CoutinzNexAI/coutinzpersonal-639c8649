@@ -255,14 +255,14 @@ const CeramicMugPage: React.FC = () => {
                         value={selectedSize}
                         onValueChange={(value) => setSelectedSize(value as '330ml' | '450ml')}
                       >
-                        <SelectTrigger className="w-full h-12 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl">
+                        <SelectTrigger className="w-full h-12 bg-white/90 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-2xl hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 text-ghibli-earth font-medium">
                           <SelectValue>
-                            {selectedSize === '330ml' ? '330ml' : '450ml'}
+                            {selectedSize === '330ml' ? '☕ 330ml - Padrão' : '☕ 450ml - Grande'}
                           </SelectValue>
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="330ml">330ml</SelectItem>
-                          <SelectItem value="450ml">450ml</SelectItem>
+                        <SelectContent className="rounded-2xl border-2 border-ghibli-sand/40 bg-white/95 backdrop-blur-sm">
+                          <SelectItem value="330ml" className="rounded-xl focus:bg-ghibli-cream/50">☕ 330ml - Padrão</SelectItem>
+                          <SelectItem value="450ml" className="rounded-xl focus:bg-ghibli-cream/50">☕ 450ml - Grande</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -528,14 +528,14 @@ const CeramicMugPage: React.FC = () => {
                           value={selectedSize}
                           onValueChange={(value) => setSelectedSize(value as '330ml' | '450ml')}
                         >
-                          <SelectTrigger className="w-full h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200">
+                          <SelectTrigger className="w-full h-14 bg-white/90 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-2xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200">
                             <SelectValue>
-                              {selectedSize === '330ml' ? '330ml - Tamanho clássico' : '450ml - Tamanho grande'}
+                              {selectedSize === '330ml' ? '☕ 330ml - Tamanho clássico' : '☕ 450ml - Tamanho grande'}
                             </SelectValue>
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="330ml">330ml - Tamanho clássico</SelectItem>
-                            <SelectItem value="450ml">450ml - Tamanho grande</SelectItem>
+                          <SelectContent className="rounded-2xl border-2 border-ghibli-sand/40 bg-white/95 backdrop-blur-sm">
+                            <SelectItem value="330ml" className="rounded-xl focus:bg-ghibli-cream/50">☕ 330ml - Tamanho clássico</SelectItem>
+                            <SelectItem value="450ml" className="rounded-xl focus:bg-ghibli-cream/50">☕ 450ml - Tamanho grande</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
