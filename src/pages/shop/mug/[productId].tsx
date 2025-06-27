@@ -548,31 +548,31 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                     transition={{ duration: 0.4, delay: 0.4 }}
                     className="mt-6 px-4 lg:px-0"
                   >
-                    <div className="flex gap-4 items-center justify-center">
-                      {/* Botão Trocar Arte - Minimalista */}
+                    <div className="flex gap-8 items-center justify-center">
+                      {/* Botão Trocar Arte - Maior */}
                       <Button
                         onClick={handleOpenGallery}
-                        className="px-6 py-3 bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                        className="px-8 py-4 text-base font-semibold bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                       >
-                        <Sparkles className="w-4 h-4 mr-2" />
+                        <Sparkles className="w-5 h-5 mr-2" />
                         Trocar Arte
                       </Button>
 
-                      {/* Controlos de Posição - Super Minimalistas */}
-                      <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-ghibli-sand/30">
+                      {/* Controlos de Posição - Maiores */}
+                      <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-ghibli-sand/30">
                         {/* Botão Cima */}
                         <Button 
                           onClick={() => handleAdjustment('position', 'top')} 
                           variant="ghost"
                           size="sm"
-                          className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'top' 
+                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'top' 
                             ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                             : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
                           }`}
                           disabled={isGeneratingMockup}
                           title="Cima"
                         >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
                           </svg>
                         </Button>
@@ -582,14 +582,14 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                           onClick={() => handleAdjustment('position', 'center')} 
                           variant="ghost"
                           size="sm"
-                          className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'center' 
+                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'center' 
                             ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                             : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
                           }`}
                           disabled={isGeneratingMockup}
                           title="Centro"
                         >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="3"/>
                           </svg>
                         </Button>
@@ -599,14 +599,14 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                           onClick={() => handleAdjustment('position', 'bottom')} 
                           variant="ghost"
                           size="sm"
-                          className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'bottom' 
+                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'bottom' 
                             ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                             : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
                           }`}
                           disabled={isGeneratingMockup}
                           title="Baixo"
                         >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
                           </svg>
                         </Button>
@@ -687,13 +687,32 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                   {/* Título + Preço */}
                   <div className="text-center pb-3 sm:pb-4 border-b border-ghibli-sand/30">
                     <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-2">
-                      Caneca Coração Personalizada
+                      Caneca Coração
                     </h1>
                     <div className="inline-block">
                       <div className="text-3xl sm:text-4xl font-black text-ghibli-moss drop-shadow-sm">
-                        €{currentPrice.toFixed(2)}
+                        €25.00
                       </div>
                     </div>
+                  </div>
+
+                  {/* Descrição em Tópicos - Movida para cima */}
+                  <div className="space-y-2">
+                    <ul className="text-sm space-y-1 text-ghibli-earth/80">
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                        <span>Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span> em formato de coração</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                        <span>Impressão duradoura e <span className="font-bold">resistente à lavagem</span></span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-wood rounded-full shrink-0"></div>
+                        <span className="font-bold text-ghibli-wood">Perfeita para oferecer a quem mais gosta</span>
+                        <span className="text-red-500">❤️</span>
+                      </li>
+                    </ul>
                   </div>
 
                   {/* Status Arte */}
@@ -714,15 +733,6 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       </Button>
                     </div>
                   )}
-
-                  {/* Descrição Melhorada */}
-                  <div className="px-1">
-                    <p className="text-sm leading-relaxed font-medium text-ghibli-earth/80 text-center">
-                      Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span> em formato de coração! 
-                      Impressão duradoura e <span className="font-bold">resistente à lavagem</span>. 
-                      <span className="font-bold text-ghibli-wood"> Perfeita para oferecer a quem mais gosta</span> ❤️
-                    </p>
-                  </div>
 
                   {/* Seletor/Display de Tamanho */}
                   {product.variants && product.variants.length > 1 ? (
@@ -761,14 +771,14 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       <div className="flex items-center justify-center gap-3">
                         <div className="w-3 h-3 rounded-full bg-ghibli-moss"></div>
                         <span className="text-ghibli-earth font-semibold">
-                          💝 Tamanho: {product.variants?.[0]?.title || 'Tamanho único'}
+                          💝 Tamanho: 330 ml
                         </span>
-                  </div>
+                      </div>
                       <p className="text-center text-xs text-ghibli-earth/70 mt-1">
                         Formato especial de coração
                       </p>
-                </div>
-              )}
+                    </div>
+                  )}
 
                   {/* Botão Principal */}
                   <div className="pt-3">
