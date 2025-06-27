@@ -292,43 +292,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     ],
   },
 
-  // 1. CANECA CERÂMICA (EU)
-  'ceramic_mug': {
-    id: 'ceramic_mug',
-    name: 'Caneca Cerâmica Personalizada',
-    mockupInitialPath: '/assets/mockups/mug/caneca.svg',
-    basePrice: 25.00, // Euros
-    category: 'mug',
-    // ✅ CONFIGURAÇÃO DE DESIGN: Caneca com fill completo + ajustes ligeiros
-    defaultDesign: {
-      scale: 1.1, // Escala para cobrir completamente (lógica Math.max original)
-      x: 0.5, // Centro horizontal
-      y: 0.5, // Centro vertical (com pequenos ajustes disponíveis)
-      angle: 0, // Sem rotação
-    },
-    printifyBlueprintId: 441,
-    printifyPrintProviderId: 30, // OPT OnDemand
-    variants: [
-      { id: 62327, title: 'Padrão (330ml)', placeholderWidth: 2717, placeholderHeight: 1146, isGiftPackaging: false },
-      { id: 62328, title: 'Grande (450ml)', placeholderWidth: 2811, placeholderHeight: 1276, isGiftPackaging: false },
-    ],
-    printFileBleed: 2, // Ajustar conforme a Printify, 2mm é um bom default
-    printFileResolution: 300,
-    gelatoPrintDimensionsMm: { width: 80, height: 95 }, // Valores de referência (pode ser ajustado)
-    gelatoPrintOffsetsMm: { x: 0, y: 0 },
-    supportsManualAdjustment: true, // ✅ ATIVADO: Suporte ao posicionamento manual
-    printAreasConfig: [{
-      position: 'front', // Posição de impressão
-      allowsUserImage: true,
-      defaultX: 0.5,
-      defaultY: 0.5,
-      defaultScale: 1.0, // Será dinâmico (slice)
-      defaultAngle: 0,
-      fitMethod: 'slice', // Preenchimento total
-    }],
-  },
-
-  // 2. CANECA EM FORMATO DE CORAÇÃO
+  // 1. CANECA EM FORMATO DE CORAÇÃO
   'heart_mug': {
     id: 'heart_mug',
     name: 'Caneca Coração Personalizada',
@@ -363,7 +327,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
-  // 3. CANECA CERÂMICA PERSONALIZADA
+  // 2. CANECA CERÂMICA PERSONALIZADA
   'ceramic_mug': {
     id: 'ceramic_mug',
     name: 'Caneca Cerâmica Personalizada',
@@ -399,7 +363,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
-  // 5. SACO TOTE BAG
+  // 3. SACO TOTE BAG
   'tote_bag': {
     id: 'tote_bag',
     name: 'Saco Tote Bag Personalizado',
@@ -435,7 +399,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
-  // 6. CADERNO SPIRAL JOURNAL
+  // 4. CADERNO SPIRAL JOURNAL
   'spiral_journal': {
     id: 'spiral_journal',
     name: 'Caderno Personalizado',
@@ -471,7 +435,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
-  // 7. MOUSE PAD
+  // 5. MOUSE PAD
   'mouse_pad': {
     id: 'mouse_pad',
     name: 'Mouse Pad Personalizado',
