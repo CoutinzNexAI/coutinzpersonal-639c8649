@@ -228,7 +228,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     // --- PASSO 4: DEFINIR A POSIÇÃO FINAL COM BASE NO BOTÃO ---
     const finalX = 0.5; // Para canecas, X fica sempre centrado
     let finalY = 0.5;
-    const shiftAmount = 0.7; // Usar 70% do movimento máximo para um ajuste "ligeiro"
+    const shiftAmount = 0.35; // Reduzido para metade: usar 35% do movimento máximo para um ajuste mais suave
 
     if (position === 'top') {
       finalY = 0.5 - (maxOffsetY * shiftAmount);

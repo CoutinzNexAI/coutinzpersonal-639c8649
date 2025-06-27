@@ -379,11 +379,11 @@ export default function ProductCanvas({
     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
       <div className="bg-white rounded-xl p-6 text-center max-w-sm mx-4 shadow-2xl">
         <Loader2 className="w-8 h-8 animate-spin text-ghibli-moss mx-auto mb-4" />
-        <h3 className="font-semibold text-ghibli-earth mb-2">A gerar mockups...</h3>
+        <h3 className="font-semibold text-ghibli-earth mb-2">✨ A personalizar o seu produto...</h3>
         <p className="text-sm text-ghibli-earth/70">
           {selectedProduct.id === 'custom_youth_hoodie' 
-            ? 'A processar logo, arte e frase...' 
-            : 'A processar a sua arte personalizada...'
+            ? 'A criar a sua hoodie única com logo, arte e frase...' 
+            : 'A dar vida à sua criação AI...'
           }
         </p>
       </div>
