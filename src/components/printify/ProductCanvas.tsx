@@ -345,18 +345,18 @@ export default function ProductCanvas({
         {/* Placeholder image */}
         <div className="mb-6">
           <img
-            src="/fotocanva.png"
+            src="/mockupproduto/canecacoracao.png"
             alt="Escolha uma foto para personalizar"
-            className="w-48 h-48 object-contain opacity-60"
+            className="w-56 h-56 object-contain opacity-60"
           />
         </div>
         
         {/* Call to action */}
         <div className="text-center max-w-md">
           <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-            Personalize o seu {selectedProduct.name}
+            Personaliza a sua {selectedProduct.name}
           </h3>
-          <p className="text-ghibli-earth/70 mb-6 leading-relaxed">
+          <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
             Escolha uma das suas transformações AI para criar um produto único e personalizado.
           </p>
           

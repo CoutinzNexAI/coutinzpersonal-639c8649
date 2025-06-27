@@ -530,7 +530,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mb-6"
             >
-              <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20 mx-2">
+              <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20">
                 <ProductCanvas
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
