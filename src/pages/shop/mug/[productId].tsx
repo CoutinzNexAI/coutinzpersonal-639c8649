@@ -631,15 +631,14 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                 )
               ) : (
                 <div className="px-4">
-                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm">
+                  <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm">
                     <CardContent className="p-4 text-center">
-                      <p className="text-blue-800 text-sm mb-3">
-                        Faça login para personalizar esta caneca
+                      <p className="text-ghibli-earth text-sm mb-3 font-medium">
+                        🎨 Entre para personalizar a sua caneca
                       </p>
                       <Button
                         onClick={() => router.push('/')}
-                        variant="outline"
-                        className="w-full border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                        className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0"
                       >
                         Fazer Login
                       </Button>
@@ -923,15 +922,14 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                   transition={{ duration: 0.4, delay: 0.5 }}
                   className="mt-6 flex justify-center px-4 lg:px-0"
                 >
-                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm w-full sm:max-w-md">
+                  <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm w-full sm:max-w-md">
                     <CardContent className="p-4 text-center">
-                      <p className="text-blue-800 text-sm sm:text-base mb-3">
-                        Faça login para personalizar esta caneca com as suas criações AI
+                      <p className="text-ghibli-earth text-sm mb-3 font-medium">
+                        🎨 Entre para personalizar a sua caneca
                       </p>
                       <Button
                         onClick={() => router.push('/')}
-                        variant="outline"
-                        className="w-full sm:w-auto border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                        className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0"
                       >
                         Fazer Login
                       </Button>

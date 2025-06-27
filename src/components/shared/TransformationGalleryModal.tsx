@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Search, Loader2, Image as ImageIcon } from 'lucide-react';
+import { X, Search, Loader2, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -33,6 +33,8 @@ export default function TransformationGalleryModal({
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
 
   // Fetch user transformations using direct Supabase query
   const fetchTransformations = async () => {
@@ -136,6 +138,7 @@ export default function TransformationGalleryModal({
   useEffect(() => {
     if (isOpen && userInfo) {
       console.log('🚀 Modal opened, fetching transformations...');
+      setCurrentPage(1); // Reset to first page
       fetchTransformations();
     }
   }, [isOpen, userInfo?.id]);
@@ -144,6 +147,17 @@ export default function TransformationGalleryModal({
   const filteredTransformations = transformations.filter(transformation =>
     transformation.style_requested.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredTransformations.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentTransformations = filteredTransformations.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const handleSelectImage = (transformation: Transformation) => {
     console.log('✅ Image selected:', transformation.id);
@@ -155,20 +169,29 @@ export default function TransformationGalleryModal({
   const handleClose = () => {
     setSelectedImageId(null);
     setSearchTerm('');
+    setCurrentPage(1);
     onClose();
+  };
+
+  const handlePrevPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(totalPages, prev + 1));
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden bg-ghibli-cream border-ghibli-stone">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-ghibli-cream border-ghibli-stone flex flex-col">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="text-xl font-semibold text-ghibli-earth">
             As Suas Artes Transformadas
           </DialogTitle>
         </DialogHeader>
 
         {/* Search bar */}
-        <div className="relative mb-4">
+        <div className="relative mb-4 shrink-0">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ghibli-earth/60 w-4 h-4" />
           <Input
             placeholder="Pesquisar por estilo..."
@@ -178,8 +201,8 @@ export default function TransformationGalleryModal({
           />
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Content with scroll */}
+        <div className="flex-1 overflow-y-auto min-h-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-ghibli-moss animate-spin mb-4" />
@@ -208,8 +231,8 @@ export default function TransformationGalleryModal({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredTransformations.map((transformation) => (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-1">
+              {currentTransformations.map((transformation) => (
                 <div
                   key={transformation.id}
                   className={`group relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 ${
@@ -264,13 +287,47 @@ export default function TransformationGalleryModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-between items-center pt-4 border-t border-ghibli-stone/30">
+        {/* Footer with pagination */}
+        <div className="shrink-0 flex items-center justify-between pt-4 border-t border-ghibli-stone/30">
           <p className="text-sm text-ghibli-earth/70">
             {filteredTransformations.length} transformaç{filteredTransformations.length === 1 ? 'ão' : 'ões'} encontrada{filteredTransformations.length === 1 ? '' : 's'}
+            {totalPages > 1 && (
+              <span className="ml-2">
+                • Página {currentPage} de {totalPages}
+              </span>
+            )}
           </p>
           
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                
+                <span className="text-sm text-ghibli-earth px-2">
+                  {currentPage} / {totalPages}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+            
             <Button variant="outline" onClick={handleClose}>
               Cancelar
             </Button>

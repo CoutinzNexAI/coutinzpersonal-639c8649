@@ -383,7 +383,7 @@ export default function ProductCanvas({
         <p className="text-sm text-ghibli-earth/70">
           {selectedProduct.id === 'custom_youth_hoodie' 
             ? 'A criar a sua hoodie única com logo, arte e frase...' 
-            : 'A dar vida à sua criação AI...'
+            : 'A aplicar a sua transformação AI...'
           }
         </p>
       </div>
