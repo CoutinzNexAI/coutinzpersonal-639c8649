@@ -72,6 +72,29 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // ✅ LOADING INDICATOR: Para mostrar enquanto a nova mockup é gerada
   const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
 
+  // ✅ ADICIONAR: Estados para o carrinho
+  const [cartFeedback, setCartFeedback] = useState<boolean>(false);
+
+  // ✅ COMPUTED VALUES: Valores calculados para a UI
+  const canAddToCart = !!(selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo);
+  const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
+  const finalPrice = (product?.basePrice || 0) + (selectedVariant?.priceAdjustment || 0);
+
+  // ✅ HANDLER: Para mudança de variante de tamanho
+  const handleVariantChange = (variantId: string) => {
+    const numericVariantId = parseInt(variantId);
+    setSelectedPrintifyVariantId(numericVariantId);
+    
+    // Encontrar a variante correspondente para atualizar o label
+    const selectedVariant = product?.variants?.find(v => v.id === numericVariantId);
+    if (selectedVariant) {
+      const sizeMatch = selectedVariant.title.match(/(\d+\.?\d*["″]? x \d+\.?\d*["″]? \((Horizontal|Vertical)\))/);
+      if (sizeMatch) {
+        setSelectedSizeLabel(sizeMatch[1]);
+      }
+    }
+  };
+
   // Fallback para carregamento dinâmico (caso não haja product das props)
   useEffect(() => {
     if (!initialProduct && typeof productId === 'string') {
@@ -285,7 +308,10 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
 
       console.log('✅ Item adicionado ao carrinho:', cartItem);
       toast.success(`${product.name} adicionado ao carrinho!`);
-      router.push('/checkout');
+      
+      // Mostrar feedback visual
+      setCartFeedback(true);
+      setTimeout(() => setCartFeedback(false), 3000);
 
     } catch (error) {
       console.error('❌ Erro ao adicionar ao carrinho:', error);
@@ -584,9 +610,6 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     );
   }
 
-  const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-  const finalPrice = (product.basePrice || 0) + (selectedVariant?.priceAdjustment || 0);
-
   return (
     <>
       <Head>
@@ -609,16 +632,16 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-140px)]">
-            {/* Coluna da Esquerda - Área Maximizada de Visualização (2 colunas) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-h-[calc(100vh-140px)]">
+            {/* Coluna da Esquerda - Área de Visualização Equilibrada (2 colunas) */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="lg:col-span-2 flex flex-col"
+              className="lg:col-span-2 flex flex-col justify-center"
             >
               {/* Área Principal de Visualização OTIMIZADA */}
-              <div className="relative w-full flex-1 bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-[#E8E0D0]">
+              <div className="relative w-full h-[65vh] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-[#E8E0D0]">
                 {/* ✅ OVERLAY DE LOADING quando nova mockup está a ser gerada */}
                 {isGeneratingMockup && (
                   <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-20 rounded-2xl">
@@ -673,42 +696,46 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                 )}
               </div>
 
-              {/* Botão "Escolher Arte" + Controlos de Posição UNIFICADOS */}
-              <div className="flex flex-col gap-3">
-                {/* Botão "Escolher Arte" */}
+              {/* Secção de Controlos Centralizada */}
+              <div className="flex flex-col items-center gap-4">
+                {/* Botão "Escolher Arte" Destacado */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.3 }}
-                  className="flex justify-center"
                 >
                   <Button
                     onClick={handleOpenGallery}
                     size="lg"
                     disabled={!userInfo}
-                    className={`px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                    className={`px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl ${
                       userInfo 
                         ? 'bg-gradient-to-r from-[#2D5A27] to-[#2D5A27]/90 hover:from-[#2D5A27]/90 hover:to-[#2D5A27] text-white' 
                         : 'bg-gray-400 text-gray-600 cursor-not-allowed'
                     }`}
                   >
-                    <Sparkles className="w-4 h-4 mr-2" />
+                    <Sparkles className="w-5 h-5 mr-3" />
                     {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
                   </Button>
                 </motion.div>
 
-                {/* ✅ CONTROLOS DE POSIÇÃO MINIMALISTAS - Design SUPER Clean */}
+                {/* ✅ CONTROLOS DE POSIÇÃO ELEGANTES com Símbolos Reais */}
                 {selectedImageUrl && userImageDimensions && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.4 }}
-                    className="flex justify-center"
+                    className="flex flex-col items-center gap-3"
                   >
-                    <div className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg border border-[#E8E0D0]/60">
-                      {/* Label minimalista */}
-                      <span className="text-xs font-medium text-[#4A6B5B] px-3 py-1">Posição:</span>
-                      
+                    {/* Label Elegante */}
+                    <div className="flex items-center gap-2 text-[#4A6B5B]">
+                      <div className="w-1 h-1 bg-[#2D5A27] rounded-full"></div>
+                      <span className="text-sm font-medium">Ajustar Posição</span>
+                      <div className="w-1 h-1 bg-[#2D5A27] rounded-full"></div>
+                    </div>
+                    
+                    {/* Controlos com Símbolos Bonitos */}
+                    <div className="inline-flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-2xl p-2 shadow-lg border border-[#E8E0D0]/60">
                       {/* Controlos para Poster Vertical */}
                       {product.id === 'poster_vertical_semi_glossy' && (
                         <>
@@ -716,37 +743,45 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                             onClick={() => handleAdjustment('position', 'left')} 
                             variant="ghost"
                             size="sm"
-                            className={`h-8 px-3 text-xs rounded-full transition-all duration-200 ${imagePosition === 'left' 
-                              ? 'bg-[#2D5A27] text-white shadow-sm' 
-                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10'
+                            className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'left' 
+                              ? 'bg-[#2D5A27] text-white shadow-md scale-110' 
+                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10 hover:scale-105'
                             }`}
                             disabled={isGeneratingMockup}
                           >
-                            ←
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                            </svg>
                           </Button>
+                          
                           <Button 
                             onClick={() => handleAdjustment('position', 'center')} 
                             variant="ghost"
                             size="sm"
-                            className={`h-8 px-3 text-xs rounded-full transition-all duration-200 ${imagePosition === 'center' 
-                              ? 'bg-[#2D5A27] text-white shadow-sm' 
-                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10'
+                            className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'center' 
+                              ? 'bg-[#2D5A27] text-white shadow-md scale-110' 
+                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10 hover:scale-105'
                             }`}
                             disabled={isGeneratingMockup}
                           >
-                            ●
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
                           </Button>
+                          
                           <Button 
                             onClick={() => handleAdjustment('position', 'right')} 
                             variant="ghost"
                             size="sm"
-                            className={`h-8 px-3 text-xs rounded-full transition-all duration-200 ${imagePosition === 'right' 
-                              ? 'bg-[#2D5A27] text-white shadow-sm' 
-                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10'
+                            className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'right' 
+                              ? 'bg-[#2D5A27] text-white shadow-md scale-110' 
+                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10 hover:scale-105'
                             }`}
                             disabled={isGeneratingMockup}
                           >
-                            →
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                            </svg>
                           </Button>
                         </>
                       )}
@@ -758,70 +793,89 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                             onClick={() => handleAdjustment('position', 'top')} 
                             variant="ghost"
                             size="sm"
-                            className={`h-8 px-3 text-xs rounded-full transition-all duration-200 ${imagePosition === 'top' 
-                              ? 'bg-[#2D5A27] text-white shadow-sm' 
-                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10'
+                            className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'top' 
+                              ? 'bg-[#2D5A27] text-white shadow-md scale-110' 
+                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10 hover:scale-105'
                             }`}
                             disabled={isGeneratingMockup}
                           >
-                            ↑
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                            </svg>
                           </Button>
+                          
                           <Button 
                             onClick={() => handleAdjustment('position', 'center')} 
                             variant="ghost"
                             size="sm"
-                            className={`h-8 px-3 text-xs rounded-full transition-all duration-200 ${imagePosition === 'center' 
-                              ? 'bg-[#2D5A27] text-white shadow-sm' 
-                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10'
+                            className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'center' 
+                              ? 'bg-[#2D5A27] text-white shadow-md scale-110' 
+                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10 hover:scale-105'
                             }`}
                             disabled={isGeneratingMockup}
                           >
-                            ●
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
                           </Button>
+                          
                           <Button 
                             onClick={() => handleAdjustment('position', 'bottom')} 
                             variant="ghost"
                             size="sm"
-                            className={`h-8 px-3 text-xs rounded-full transition-all duration-200 ${imagePosition === 'bottom' 
-                              ? 'bg-[#2D5A27] text-white shadow-sm' 
-                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10'
+                            className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'bottom' 
+                              ? 'bg-[#2D5A27] text-white shadow-md scale-110' 
+                              : 'text-[#4A6B5B] hover:bg-[#2D5A27]/10 hover:scale-105'
                             }`}
                             disabled={isGeneratingMockup}
                           >
-                            ↓
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                            </svg>
                           </Button>
                         </>
                       )}
                     </div>
+
+                    {/* Indicador de Posição Atual */}
+                    <div className="text-center">
+                      <span className="inline-flex items-center gap-2 text-xs text-[#2D5A27] bg-[#2D5A27]/5 px-3 py-1 rounded-full font-medium border border-[#2D5A27]/20">
+                        <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-pulse"></div>
+                        {imagePosition === 'left' ? 'Esquerda' : 
+                         imagePosition === 'right' ? 'Direita' : 
+                         imagePosition === 'top' ? 'Cima' : 
+                         imagePosition === 'bottom' ? 'Baixo' : 'Centro'}
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Prompt de Login (apenas se não autenticado) */}
+                {!userInfo && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.5 }}
+                    className="mt-2"
+                  >
+                    <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm max-w-md">
+                      <CardContent className="p-4 text-center">
+                        <p className="text-blue-800 text-sm mb-3">
+                          Faça login para personalizar este poster
+                        </p>
+                        <Button
+                          onClick={() => router.push('/')}
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                        >
+                          Fazer Login
+                        </Button>
+                      </CardContent>
+                    </Card>
                   </motion.div>
                 )}
               </div>
-
-              {/* Prompt de Login (apenas se não autenticado) */}
-              {!userInfo && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.5 }}
-                  className="mt-3 flex justify-center"
-                >
-                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm max-w-md">
-                    <CardContent className="p-3 text-center">
-                      <p className="text-blue-800 text-sm mb-2">
-                        Faça login para personalizar este poster
-                      </p>
-                      <Button
-                        onClick={() => router.push('/')}
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
-                      >
-                        Fazer Login
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
             </motion.div>
 
             {/* PAINEL DE CONTROLO COMPACTO - Coluna da Direita */}
@@ -833,165 +887,153 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
             >
               {/* CARTÃO PRINCIPAL - Painel de Controlo Compacto */}
               <Card className="bg-gradient-to-br from-white to-[#F5F1E8]/30 backdrop-blur-sm border-[#E8E0D0]/30 shadow-xl hover:shadow-2xl transition-shadow duration-300 flex-1 flex flex-col">
-                <CardContent className="p-5 space-y-4 flex-1 flex flex-col">
-                  {/* 1. TÍTULO COMPACTO */}
-                  <div className="text-center">
-                    <h1 className="text-2xl font-black text-[#2D5A27] mb-2 leading-tight">
-                      {product.id === 'poster_horizontal_semi_glossy' ? 'Poster Horizontal' : 'Poster Vertical'}
-                    </h1>
-                    <div className="w-8 h-0.5 bg-gradient-to-r from-[#2D5A27] to-[#4A6B5B] mx-auto rounded-full"></div>
-                  </div>
-
-                  {/* 2. PREÇO CENTRADO */}
-                  <div className="bg-gradient-to-r from-[#2D5A27]/10 to-[#2D5A27]/5 rounded-xl p-4 text-center">
-                    <div className="space-y-1">
-                      <span className="block text-3xl font-black text-[#2D5A27] drop-shadow-sm">
-                        €{finalPrice.toFixed(2)}
-                      </span>
-                      <span className="text-sm text-[#4A6B5B]/70 font-medium">
-                        IVA incluído
-                      </span>
+                <CardContent className="p-6 space-y-6 flex-1 flex flex-col">
+                  {/* 1. CABEÇALHO ELEGANTE */}
+                  <div className="text-center pb-4 border-b border-[#E8E0D0]/30">
+                    <motion.h1 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                      className="text-2xl font-bold text-[#2D5A27] mb-2"
+                    >
+                      {product.name}
+                    </motion.h1>
+                    <div className="flex items-center justify-center gap-2 text-sm text-[#4A6B5B]">
+                      <div className="w-1 h-1 bg-[#2D5A27] rounded-full"></div>
+                      <span>Premium • Semi-brilho • Alta qualidade</span>
+                      <div className="w-1 h-1 bg-[#2D5A27] rounded-full"></div>
                     </div>
                   </div>
 
-                  {/* 3. INCENTIVO COMPACTO */}
-                  <div className="bg-gradient-to-r from-green-50 to-green-100/50 rounded-lg p-2 border border-green-200/50 text-center">
-                    <div className="flex items-center justify-center gap-2 text-green-700">
-                      <Truck className="w-4 h-4" />
-                      <span className="font-semibold text-sm">
-                        Envio grátis &gt; €50
-                      </span>
+                  {/* 2. PREÇO DESTACADO */}
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                    className="text-center py-4"
+                  >
+                    <div className="text-3xl font-bold text-[#2D5A27] mb-1">
+                      €{finalPrice.toFixed(2)}
                     </div>
-                  </div>
+                    <div className="text-sm text-gray-500">IVA incluído</div>
+                    
+                    {/* Envio Grátis Badge */}
+                    <div className="mt-3 inline-flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-medium border border-green-200">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 4a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 14.846 4.632 17 6.414 17H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.22-.916A1 1 0 005 4H3zm7 12a2 2 0 100 4 2 2 0 000-4zm6 0a2 2 0 100 4 2 2 0 000-4z"/>
+                      </svg>
+                      Envio grátis › €50
+                    </div>
+                  </motion.div>
 
-                  {/* 4. DESCRIÇÃO CONCISA */}
-                  <div className="text-center">
-                    <p className="text-[#4A6B5B]/90 text-sm leading-relaxed">
-                      <span className="font-semibold text-[#2D5A27]">Poster premium</span> com impressão semi-brilho de alta qualidade. Cores vibrantes e duradouras.
-                    </p>
-                  </div>
-
-                  {/* 5. SELETOR DE TAMANHO COMPACTO */}
-                  <div className="flex-1 flex flex-col justify-center">
-                    <label className="block text-sm font-bold text-[#2D5A27] mb-2 text-center">
+                  {/* 3. SELEÇÃO DE TAMANHO */}
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                    className="space-y-3"
+                  >
+                    <label className="text-sm font-semibold text-[#2D5A27] flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 2v14H3V5h18z"/>
+                      </svg>
                       Tamanho
                     </label>
-                    <Select
-                      onValueChange={(value) => {
-                        const selectedVariant = product.variants?.find(v => v.title.includes(value));
-                        if (selectedVariant) {
-                          setSelectedSizeLabel(value);
-                          handleAdjustment('size', selectedVariant.id);
-                        }
-                      }}
-                      value={selectedSizeLabel || ''}
-                    >
-                      <SelectTrigger className="w-full bg-white border-2 border-[#E8E0D0]/60 text-[#2D5A27] h-11 shadow-sm hover:border-[#2D5A27]/50 focus:border-[#2D5A27] transition-colors duration-200 font-medium">
-                        <SelectValue placeholder="Selecione um tamanho">
-                          {selectedSizeLabel ? convertInchesToCm(selectedSizeLabel) : 'Selecione um tamanho'}
-                        </SelectValue>
+                    <Select value={selectedPrintifyVariantId?.toString() || ''} onValueChange={handleVariantChange}>
+                      <SelectTrigger className="w-full border-[#E8E0D0] focus:border-[#2D5A27] focus:ring-[#2D5A27]/20">
+                        <SelectValue placeholder="Selecione o tamanho" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white text-[#2D5A27] border-[#E8E0D0] max-h-48 shadow-xl">
-                        {Array.from(new Set(
-                          product.variants?.map(v => {
-                            const sizeMatch = v.title.match(/(\d+\.?\d*["″]? x \d+\.?\d*["″]? \((Horizontal|Vertical)\))/);
-                            return sizeMatch ? sizeMatch[1] : null;
-                          }).filter(Boolean)
-                        )).sort((a, b) => {
-                          const parseSize = (s: string) => {
-                            const parts = s.replace(/["″()]/g, '').split(' x ').map(part => parseFloat(part));
-                            return parts[0] * parts[1];
-                          };
-                          return parseSize(a || '') - parseSize(b || '');
-                        }).map(size => (
-                          <SelectItem key={size} value={size || ''} className="hover:bg-[#F5F1E8]/50">
-                            {convertInchesToCm(size || '')}
+                      <SelectContent>
+                        {product.variants?.map((variant) => (
+                          <SelectItem key={variant.id} value={variant.id.toString()}>
+                            <div className="flex justify-between items-center w-full">
+                              <span>{variant.title}</span>
+                              <span className="ml-4 text-[#2D5A27] font-semibold">€{((product.basePrice || 0) + (variant.priceAdjustment || 0)).toFixed(2)}</span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
+                  </motion.div>
 
-                  {/* 6. BOTÃO CARRINHO COM EFEITO CHAMATIVO */}
-                  <div className="pt-2">
+                  {/* 4. GARANTIAS COMPACTAS */}
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.6 }}
+                    className="grid grid-cols-2 gap-3 py-4 border-t border-[#E8E0D0]/30"
+                  >
+                    <div className="flex items-center gap-2 text-sm text-[#4A6B5B]">
+                      <div className="w-8 h-8 bg-[#2D5A27]/10 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-[#2D5A27]" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                      </div>
+                      <span className="font-medium">Qualidade garantida</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-[#4A6B5B]">
+                      <div className="w-8 h-8 bg-[#2D5A27]/10 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-[#2D5A27]" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                        </svg>
+                      </div>
+                      <span className="font-medium">Envio rápido</span>
+                    </div>
+                  </motion.div>
+
+                  {/* 5. BOTÃO ADICIONAR AO CARRINHO - EFEITO ESPECIAL */}
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.7 }}
+                    className="mt-auto pt-4"
+                  >
                     <Button
                       onClick={handleAddToCart}
-                      disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId || !userInfo}
-                      className={`group relative w-full py-4 text-base font-bold shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden ${
-                        selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo
-                          ? 'bg-gradient-to-r from-[#2D5A27] via-[#2D5A27] to-[#2D5A27]/90 hover:from-[#2D5A27]/90 hover:via-[#2D5A27] hover:to-[#2D5A27] text-white border-0 hover:scale-[1.02] active:scale-[0.98]' 
-                          : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
-                      }`}
-                      size="lg"
+                      disabled={!canAddToCart}
+                      className={`w-full py-4 text-base font-bold rounded-xl shadow-lg transition-all duration-300 transform 
+                        ${canAddToCart 
+                          ? 'bg-gradient-to-r from-[#2D5A27] via-[#3d7a35] to-[#2D5A27] hover:shadow-2xl hover:scale-[1.02] text-white relative overflow-hidden group' 
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
                     >
-                      {/* Efeito shimmer sutil */}
-                      {selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo && (
-                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700"></div>
+                      {/* Efeito Shimmer */}
+                      {canAddToCart && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                       )}
                       
-                      {/* Conteúdo do botão */}
-                      <span className="relative z-10 flex items-center justify-center gap-2">
-                        {loading ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            A adicionar...
-                          </>
-                        ) : !userInfo ? (
-                          'Faça Login'
-                        ) : !selectedImageUrl ? (
-                          'Escolha uma Arte'
-                        ) : !selectedPrintifyVariantId ? (
-                          'Selecione o Tamanho'
-                        ) : (!printifyProductId || !printifyImageId) ? (
-                          <>
-                            <RotateCw className="w-4 h-4 animate-spin" />
-                            A gerar...
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-lg">🛒</span>
-                            Adicionar - €{finalPrice.toFixed(2)}
-                          </>
+                      <div className="relative flex items-center justify-center gap-3">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M7 4V2a1 1 0 0 0-1-1H2a1 1 0 0 0 0 2h3v16a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3H8a1 1 0 0 1 0-2h11.38a1 1 0 0 0 .97-.757L22 8H6.38L7 4zm-2 4h13.38l-1.5 6H6.62L5 8z"/>
+                        </svg>
+                        <span>
+                          {canAddToCart 
+                            ? `Adicionar • €${finalPrice.toFixed(2)}` 
+                            : 'Selecione uma arte primeiro'
+                          }
+                        </span>
+                        {canAddToCart && (
+                          <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                          </svg>
                         )}
-                      </span>
-                    </Button>
-                  </div>
-
-                  {/* 7. STATUS DA ARTE SELECIONADA - COMPACTO */}
-                  {selectedImageUrl && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-2">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={selectedImageUrl}
-                          alt="Arte selecionada"
-                          className="w-8 h-8 rounded object-cover border border-green-300"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-green-800 text-xs">✅ Arte Aplicada</p>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={handleOpenGallery}
-                          variant="outline"
-                          className="text-xs px-2 py-1 border-green-300 text-green-700 hover:bg-green-100 h-6"
-                        >
-                          Trocar
-                        </Button>
                       </div>
-                    </div>
-                  )}
-
-                  {/* 8. GARANTIAS COMPACTAS */}
-                  <div className="grid grid-cols-2 gap-2 pt-2">
-                    <div className="text-center p-2 bg-[#2D5A27]/5 rounded-lg">
-                      <Shield className="w-4 h-4 mx-auto mb-1 text-[#2D5A27]" />
-                      <span className="text-xs font-semibold text-[#2D5A27]">Qualidade</span>
-                    </div>
-                    <div className="text-center p-2 bg-[#2D5A27]/5 rounded-lg">
-                      <Award className="w-4 h-4 mx-auto mb-1 text-[#2D5A27]" />
-                      <span className="text-xs font-semibold text-[#2D5A27]">Garantia</span>
-                    </div>
-                  </div>
+                    </Button>
+                    
+                    {/* Feedback de sucesso */}
+                    {cartFeedback && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-center"
+                      >
+                        <p className="text-green-800 text-sm font-medium">
+                          ✅ Adicionado ao carrinho!
+                        </p>
+                      </motion.div>
+                    )}
+                  </motion.div>
                 </CardContent>
               </Card>
             </motion.div>
