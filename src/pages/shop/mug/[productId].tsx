@@ -539,34 +539,122 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               />
               </div>
 
-              {/* Botão "Escolher Arte" */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                className="flex justify-center px-4 lg:px-0"
-              >
-                <Button
-                  onClick={handleOpenGallery}
-                  disabled={!userInfo}
-                  className={`w-full sm:w-auto px-8 sm:px-12 py-4 text-base lg:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl lg:rounded-2xl ${
-                    userInfo 
-                      ? 'bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white' 
-                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  }`}
-                >
-                  <Sparkles className="w-5 h-5 mr-2 lg:mr-3" />
-                  {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
-                </Button>
-              </motion.div>
+              {/* ✅ CONTROLOS LADO A LADO - Trocar Arte + Ajustar Posição */}
+              {userInfo ? (
+                selectedImageUrl && userImageDimensions && product ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.4 }}
+                    className="mt-6 px-4 lg:px-0"
+                  >
+                    <div className="flex gap-4 items-center justify-center">
+                      {/* Botão Trocar Arte - Minimalista */}
+                      <Button
+                        onClick={handleOpenGallery}
+                        className="px-6 py-3 bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Trocar Arte
+                      </Button>
 
-              {/* Prompt de Login */}
-              {!userInfo && (
+                      {/* Controlos de Posição - Super Minimalistas */}
+                      <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-ghibli-sand/30">
+                        {/* Botão Cima */}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'top')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'top' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Cima"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                          </svg>
+                        </Button>
+                        
+                        {/* Botão Centro */}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'center' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Centro"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </Button>
+                        
+                        {/* Botão Baixo */}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'bottom')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === 'bottom' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Baixo"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                          </svg>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Indicador de Status - Compacto */}
+                    <div className="mt-3 text-center">
+                      <span className="inline-flex items-center gap-2 text-xs text-ghibli-moss bg-ghibli-moss/5 px-3 py-1 rounded-full font-medium border border-ghibli-moss/20">
+                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-pulse"></div>
+                        Posição: {imagePosition === 'top' ? 'Cima' : imagePosition === 'bottom' ? 'Baixo' : 'Centro'}
+                      </span>
+                      
+                      {/* Loading indicator quando a gerar */}
+                      {isGeneratingMockup && (
+                        <div className="mt-2 flex items-center justify-center gap-2 text-xs text-ghibli-earth/70">
+                          <div className="flex space-x-1">
+                            <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce"></div>
+                            <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          </div>
+                          <span>Reposicionando arte...</span>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.3 }}
+                    className="mt-6 flex justify-center px-4 lg:px-0"
+                  >
+                    <Button
+                      onClick={handleOpenGallery}
+                      className="px-8 py-4 text-base lg:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white"
+                    >
+                      <Sparkles className="w-5 h-5 mr-2 lg:mr-3" />
+                      Escolher Arte
+                    </Button>
+                  </motion.div>
+                )
+              ) : (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.5 }}
-                  className="mt-4 flex justify-center px-4 lg:px-0"
+                  className="mt-6 flex justify-center px-4 lg:px-0"
                 >
                   <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm w-full sm:max-w-md">
                     <CardContent className="p-4 text-center">
@@ -580,87 +668,6 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       >
                         Fazer Login
                       </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* ✅ CONTROLES DE POSIÇÃO - Para canecas (movido para baixo dos mockups) */}
-              {selectedImageUrl && userImageDimensions && product && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.4 }}
-                  className="mt-4"
-                >
-                  <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
-                    <CardContent className="p-4">
-                      <div className="text-center mb-3">
-                        <h3 className="text-base font-bold text-[#2D5A27] mb-1">
-                          Ajustar Posição
-                        </h3>
-                        <p className="text-xs text-[#4A6B5B]/80">
-                          Escolha como posicionar a sua arte na caneca
-                        </p>
-                      </div>
-                      
-                      <div className="flex gap-2 mb-3">
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'top')} 
-                          variant={imagePosition === 'top' ? 'default' : 'outline'}
-                          size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'top' 
-                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
-                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                        >
-                          Cima
-                        </Button>
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'center')} 
-                          variant={imagePosition === 'center' ? 'default' : 'outline'}
-                          size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'center' 
-                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
-                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                        >
-                          Centro
-                        </Button>
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'bottom')} 
-                          variant={imagePosition === 'bottom' ? 'default' : 'outline'}
-                          size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'bottom' 
-                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
-                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                        >
-                          Baixo
-                        </Button>
-                      </div>
-                      
-                      <div className="text-center">
-                        <span className="inline-flex items-center gap-1.5 text-xs text-[#2D5A27] bg-[#2D5A27]/10 px-2 py-1 rounded-md font-medium">
-                          <span className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full"></span>
-                          Posição: {imagePosition === 'top' ? 'Cima' : imagePosition === 'bottom' ? 'Baixo' : 'Centro'}
-                        </span>
-                      </div>
-
-                      {/* Status/Loading da regeneração */}
-                      {isGeneratingMockup && (
-                        <div className="mt-3 flex items-center justify-center gap-2 text-xs text-[#4A6B5B]">
-                          <div className="flex space-x-1">
-                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce"></div>
-                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                          </div>
-                          <span>Reposicionando arte...</span>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -679,15 +686,12 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                 <CardContent className="relative z-10 p-4 sm:p-6 space-y-3 sm:space-y-4">
                   {/* Título + Preço */}
                   <div className="text-center pb-3 sm:pb-4 border-b border-ghibli-sand/30">
-                    <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-1">
-                  {product.name}
-                </h1>
+                    <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-2">
+                      Caneca Coração Personalizada
+                    </h1>
                     <div className="inline-block">
                       <div className="text-3xl sm:text-4xl font-black text-ghibli-moss drop-shadow-sm">
                         €{currentPrice.toFixed(2)}
-                      </div>
-                      <div className="text-center text-xs text-ghibli-earth/60 font-medium -mt-1">
-                        IVA incluído
                       </div>
                     </div>
                   </div>
@@ -711,25 +715,14 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                     </div>
                   )}
 
-                  {/* Incentivo de Entrega */}
-                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 rounded-xl border-l-4 border-emerald-400">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                      <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-emerald-800 text-sm">Envio GRÁTIS</p>
-                      <p className="text-xs text-emerald-600">em encomendas superiores a €50</p>
-                    </div>
-                    <div className="text-xl sm:text-2xl shrink-0">🎁</div>
-              </div>
-
-              {/* Descrição */}
+                  {/* Descrição Melhorada */}
                   <div className="px-1">
-                    <p className="text-sm leading-relaxed font-medium text-ghibli-earth/80">
-                      Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span>! 
-                      Impressão duradoura e <span className="font-bold">resistente à lavagem</span>. Perfeita para o seu café matinal.
-                </p>
-              </div>
+                    <p className="text-sm leading-relaxed font-medium text-ghibli-earth/80 text-center">
+                      Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span> em formato de coração! 
+                      Impressão duradoura e <span className="font-bold">resistente à lavagem</span>. 
+                      <span className="font-bold text-ghibli-wood"> Perfeita para oferecer a quem mais gosta</span> ❤️
+                    </p>
+                  </div>
 
                   {/* Seletor/Display de Tamanho */}
                   {product.variants && product.variants.length > 1 ? (
