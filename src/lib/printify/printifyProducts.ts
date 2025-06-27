@@ -473,7 +473,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   // POSTER HORIZONTAL (SEMI BRILHO)
   'poster_horizontal_semi_glossy': {
     id: 'poster_horizontal_semi_glossy',
-    name: 'Poster Horizontal (Semi Brilho)',
+    name: 'Poster Horizontal',
     mockupInitialPath: '/assets/mockups/poster/poster_horizontal_blank.png',
     basePrice: 15.00,
     category: 'poster',

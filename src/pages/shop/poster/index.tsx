@@ -14,7 +14,7 @@ const PosterShopPage: React.FC = () => {
     <>
       <Head>
         <title>Posters Personalizados - Loja PicTuz</title>
-        <meta name="description" content="Transforme as suas criações AI em posters únicos. Posters horizontais e verticais em semi brilho." />
+        <meta name="description" content="Transforme as suas criações AI em posters únicos. Posters horizontais e verticais de máxima qualidade." />
         <meta name="keywords" content="poster personalizado, impressão poster, decoração personalizada, arte personalizada" />
       </Head>
 
@@ -52,8 +52,8 @@ const PosterShopPage: React.FC = () => {
                   
                   // Get correct mockup image based on product type
                   const mockupImage = product.id === 'poster_horizontal_semi_glossy' 
-                    ? '/assets/mockups/poster/poster_horizontal_blank.png'
-                    : '/assets/mockups/poster/poster_vertical_blank.png';
+                    ? '/posterhorizontal.png'
+                    : '/postervertical.png';
                   
                   return (
                     <motion.div
@@ -88,11 +88,11 @@ const PosterShopPage: React.FC = () => {
                             <div className="text-sm text-ghibli-earth space-y-2 mb-4">
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
-                                <span>Impressão semi brilho premium</span>
+                                <span>Impressão de máxima qualidade</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
-                                <span>{product.variants?.length || 0} tamanhos disponíveis</span>
+                                <span>10 tamanhos disponíveis</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
@@ -143,8 +143,8 @@ const PosterShopPage: React.FC = () => {
                     <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-3">
                       <span className="text-3xl">🎨</span>
                     </div>
-                    <h3 className="font-semibold mb-2 text-ghibli-wood">Qualidade Semi Brilho</h3>
-                    <p>Papel de alta qualidade com acabamento semi brilho para cores vibrantes e duradouras</p>
+                    <h3 className="font-semibold mb-2 text-ghibli-wood">Máxima Qualidade</h3>
+                    <p>Papel premium com impressão de altíssima resolução para cores vibrantes e duradouras</p>
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -173,8 +173,8 @@ const PosterShopPage: React.FC = () => {
                 
                 // Get correct mockup image based on product type
                 const mockupImage = product.id === 'poster_horizontal_semi_glossy' 
-                  ? '/assets/mockups/poster/poster_horizontal_blank.png'
-                  : '/assets/mockups/poster/poster_vertical_blank.png';
+                  ? '/posterhorizontal.png'
+                  : '/postervertical.png';
                 
                 return (
                   <motion.div
@@ -208,11 +208,11 @@ const PosterShopPage: React.FC = () => {
                           <div className="text-sm text-ghibli-earth space-y-1 mb-3">
                             <div className="flex items-center gap-2">
                               <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
-                              <span>Impressão semi brilho premium</span>
+                              <span>Impressão de máxima qualidade</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
-                              <span>{product.variants?.length || 0} tamanhos disponíveis</span>
+                              <span>10 tamanhos disponíveis</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
@@ -261,7 +261,7 @@ const PosterShopPage: React.FC = () => {
                   <div className="w-12 h-12 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-2">
                     <span className="text-xl">🎨</span>
                   </div>
-                  <h3 className="font-semibold mb-1 text-ghibli-wood text-sm">Qualidade Semi Brilho</h3>
+                  <h3 className="font-semibold mb-1 text-ghibli-wood text-sm">Máxima Qualidade</h3>
                   <p>Cores vibrantes e duradouras</p>
                 </div>
                 <div className="text-center">

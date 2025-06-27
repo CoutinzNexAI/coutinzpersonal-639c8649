@@ -72,14 +72,36 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // ✅ LOADING INDICATOR: Para mostrar enquanto a nova mockup é gerada
   const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
 
-  // ✅ ADICIONAR: Estados para o carrinho
+  // ✅ SISTEMA DE QUANTIDADE E DESCONTOS (como nas canecas)
+  const [quantity, setQuantity] = useState(1);
   const [cartFeedback, setCartFeedback] = useState<boolean>(false);
 
-  // ✅ COMPUTED VALUES: Valores calculados para a UI
-  const canAddToCart = !!(selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo);
+  // Calculate discount and prices (replicando das canecas)
+  const calculateDiscount = (qty: number) => {
+    if (qty >= 3) return 15;
+    if (qty >= 2) return 10;
+    return 0;
+  };
+
   const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
-  // Como basePrice agora é 0, priceAdjustment contém o preço fixo total
-  const finalPrice = selectedVariant?.priceAdjustment || 20;
+  const basePrice = selectedVariant?.priceAdjustment || 20;
+  const discount = calculateDiscount(quantity);
+  const discountedPrice = basePrice * (1 - discount / 100);
+  const totalPrice = discountedPrice * quantity;
+  const savings = (basePrice * quantity) - totalPrice;
+
+  // ✅ COMPUTED VALUES: Validação consolidada (replicando das canecas)
+  const validatePurchase = () => {
+    if (!selectedImageUrl) return 'Escolha uma arte primeiro para personalizar o seu poster!';
+    if (!selectedImageId) return 'ID da transformação não encontrado. Selecione a imagem novamente.';
+    if (!userInfo) return 'Faça login para adicionar ao carrinho';
+    if (selectedPrintifyVariantId === null) return 'Por favor, selecione o tamanho do poster.';
+    if (!printifyProductId || !printifyImageId) return 'Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.';
+    return null;
+  };
+
+  const canPurchase = !validatePurchase();
+  const canAddToCart = !!(selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo);
 
   // ✅ HANDLER: Para mudança de variante de tamanho
   const handleVariantChange = (variantId: string) => {
@@ -618,19 +640,19 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         <meta name="description" content={`Personalize o seu ${product.name} com as suas criações AI. Alta qualidade e entrega rápida.`} />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-[#FAF8F0] via-[#F5F1E8] to-[#E8E0D0]">
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
         <main className="container mx-auto px-4 py-6">
           {/* Breadcrumb */}
           <div className="mb-4">
-            <nav className="text-sm text-[#4A6B5B] space-x-2">
-              <Link href="/shop" className="hover:text-[#2D5A27] transition-colors">Loja</Link>
-              <span>›</span>
-              <Link href="/shop/poster" className="hover:text-[#2D5A27] transition-colors">Posters</Link>
-              <span>›</span>
-              <span className="text-[#2D5A27] font-medium">{product.name}</span>
-            </nav>
+            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
+              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
+              <li className="text-ghibli-earth/50">/</li>
+              <li><Link href="/shop/poster" className="hover:text-ghibli-moss transition-colors">Posters</Link></li>
+              <li className="text-ghibli-earth/50">/</li>
+              <li className="text-ghibli-moss font-medium">{product.name}</li>
+            </ol>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-h-[calc(100vh-140px)]">
