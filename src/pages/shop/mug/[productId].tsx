@@ -532,7 +532,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               className="text-center mb-6 px-4"
             >
               <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight mb-4 tracking-tight">
-                {product.id === 'heart_mug' ? 'Caneca Coração ❤️' : '☕ Caneca Personalizada'}
+                {product.id === 'heart_mug' ? 'Caneca Coração ❤️' : 'Caneca Personalizada'}
               </h1>
               <div className="text-4xl sm:text-5xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
                 €{currentPrice.toFixed(2)}
@@ -831,17 +831,77 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               className="px-4 space-y-4"
             >
               {/* Status Arte Mobile */}
-              {selectedImageUrl && (
-                <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                  <img src={selectedImageUrl} className="w-10 h-10 rounded-lg object-cover border border-green-300" alt="Arte selecionada" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-green-800 text-sm">✅ Arte Aplicada</p>
-                    <p className="text-xs text-green-600 truncate">Transformação AI pronta</p>
-                  </div>
-                </div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+                className="mb-6"
+              >
+                <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
+                  <CardContent className="p-4">
+                    <h2 className="text-lg font-bold text-ghibli-moss mb-3">📊 Status Arte</h2>
+                    
+                    {selectedImageUrl ? (
+                      <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shrink-0"></div>
+                        <span className="text-green-800 font-medium text-sm">✅ Arte selecionada e pronta!</span>
+                        <Button
+                          size="sm"
+                          onClick={handleOpenGallery}
+                          variant="outline"
+                          className="text-xs px-3 py-1 border-green-300 text-green-700 hover:bg-green-100 shrink-0 ml-auto"
+                        >
+                          Trocar
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full shrink-0"></div>
+                        <span className="text-blue-800 font-medium text-sm">🎨 Escolha uma transformação AI</span>
+                        <Button
+                          size="sm"
+                          onClick={handleOpenGallery}
+                          variant="outline"
+                          className="text-xs px-3 py-1 border-blue-300 text-blue-700 hover:bg-blue-100 shrink-0 ml-auto"
+                        >
+                          Escolher
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Size Selector Mobile - NEW */}
+              {product.variants && product.variants.length > 1 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.75 }}
+                  className="mb-4"
+                >
+                  <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
+                    <CardContent className="p-4">
+                      <label className="block text-sm font-bold text-ghibli-moss mb-3">
+                        ☕ Tamanho da Caneca
+                      </label>
+                      <select
+                        value={selectedPrintifyVariantId?.toString() || ''}
+                        onChange={(e) => setSelectedPrintifyVariantId(parseInt(e.target.value))}
+                        className="w-full h-12 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium px-4 focus:border-ghibli-moss transition-all duration-200"
+                      >
+                        {product.variants?.map((variant) => (
+                          <option key={variant.id} value={variant.id.toString()}>
+                            {variant.title}
+                          </option>
+                        ))}
+                      </select>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               )}
 
-              {/* Descrição Mobile */}
+              {/* Preço e Desconto Mobile */}
               <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
                 <ul className="text-sm space-y-2 text-ghibli-earth/80">
                   <li className="flex items-center gap-2">
@@ -857,12 +917,6 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                     <span className="font-bold text-ghibli-wood">{product.id === 'heart_mug' ? 'Perfeita para oferecer a quem mais gosta' : 'Perfeita para todas as ocasiões'}</span>
                     {product.id === 'heart_mug' && <span className="text-red-500">❤️</span>}
                   </li>
-                  {product.id === 'ceramic_mug' && (
-                    <li className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
-                      <span>Disponível em <span className="font-bold text-ghibli-moss">330ml e 450ml</span></span>
-                    </li>
-                  )}
                 </ul>
               </div>
 
@@ -1209,12 +1263,6 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                         <span className="font-bold text-ghibli-wood">{product.id === 'heart_mug' ? 'Perfeita para oferecer a quem mais gosta' : 'Perfeita para todas as ocasiões'}</span>
                         {product.id === 'heart_mug' && <span className="text-red-500">❤️</span>}
                       </li>
-                      {product.id === 'ceramic_mug' && (
-                        <li className="flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
-                          <span>Disponível em <span className="font-bold text-ghibli-moss">330ml e 450ml</span></span>
-                        </li>
-                      )}
                     </ul>
               </div>
 
