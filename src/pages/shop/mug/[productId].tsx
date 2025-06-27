@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -59,6 +59,22 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
 
   // ✅ LOADING INDICATOR: Para mostrar enquanto a nova mockup é gerada
   const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
+
+  // ✅ QUANTIDADE: Estado para a quantidade de canecas
+  const [quantity, setQuantity] = useState(1);
+
+  // Calculate discount and prices
+  const calculateDiscount = (qty: number) => {
+    if (qty >= 3) return 15;
+    if (qty >= 2) return 10;
+    return 0;
+  };
+
+  const basePrice = 30;
+  const discount = calculateDiscount(quantity);
+  const discountedPrice = basePrice * (1 - discount / 100);
+  const totalPrice = discountedPrice * quantity;
+  const savings = (basePrice * quantity) - totalPrice;
 
   // Função utilitária: Validação consolidada
   const validatePurchase = () => {
@@ -307,8 +323,8 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         productCategory: product!.category || 'mug',
         userImageUrl: selectedImageUrl,
         userImageId: selectedImageId!,
-        price: product!.basePrice || product!.price || 0,
-        quantity: 1,
+        price: discountedPrice,
+        quantity: quantity,
         customizations: {
           variantId: selectedPrintifyVariantId!, // Obrigatório agora
           size: variant?.title || 'Tamanho não encontrado',
@@ -328,8 +344,8 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
         defaultDesign: productConfig.defaultDesign
       });
       
-      toast.success('Caneca adicionada ao carrinho!', {
-        description: 'Continue as compras ou vá para o checkout',
+      toast.success(`${quantity === 1 ? 'Caneca adicionada' : `${quantity} canecas adicionadas`} ao carrinho!`, {
+        description: `Total: €${totalPrice.toFixed(2)}${discount > 0 ? ` (${discount}% desconto aplicado!)` : ''}`,
         action: {
           label: 'Ver Carrinho',
           onClick: () => router.push('/checkout'),
@@ -518,8 +534,8 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight mb-4 tracking-tight">
                 Caneca Coração ❤️
               </h1>
-              <div className="text-5xl sm:text-6xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
-                €25.00
+              <div className="text-4xl sm:text-5xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
+                €30.00
               </div>
             </motion.div>
 
@@ -646,6 +662,107 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                   </Card>
                 </div>
               )}
+            </motion.div>
+
+            {/* Seletor de Quantidade e Preços Mobile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+              className="px-4 mb-4"
+            >
+              {/* Quantidade e Preço */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30 shadow-lg">
+                {/* Header com preço */}
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
+                      {discount > 0 && (
+                        <span className="text-sm text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
+                      )}
+                    </div>
+                    {discount > 0 && (
+                      <span className="text-xs text-green-600 font-medium">
+                        Poupa €{savings.toFixed(2)} com {discount}% desconto!
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Badge de desconto */}
+                  {discount > 0 && (
+                    <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      -{discount}%
+                    </div>
+                  )}
+                </div>
+
+                {/* Seletor de Quantidade */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-ghibli-earth">Quantidade:</span>
+                    <div className="flex items-center gap-2 bg-ghibli-cream/50 rounded-lg p-1">
+                      <Button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10 disabled:opacity-50"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                      
+                      <span className="min-w-[2rem] text-center font-bold text-ghibli-earth">
+                        {quantity}
+                      </span>
+                      
+                      <Button
+                        onClick={() => setQuantity(quantity + 1)}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Destaques de desconto */}
+                  <div className="space-y-1 text-xs">
+                    <div className={`flex items-center justify-between p-2 rounded-lg transition-all ${
+                      quantity >= 2 
+                        ? 'bg-green-100 border border-green-300 text-green-800' 
+                        : 'bg-gray-50 text-gray-600'
+                    }`}>
+                      <span>🎯 2+ canecas</span>
+                      <span className="font-bold">10% OFF</span>
+                    </div>
+                    <div className={`flex items-center justify-between p-2 rounded-lg transition-all ${
+                      quantity >= 3 
+                        ? 'bg-green-100 border border-green-300 text-green-800' 
+                        : 'bg-gray-50 text-gray-600'
+                    }`}>
+                      <span>🔥 3+ canecas</span>
+                      <span className="font-bold">15% OFF</span>
+                    </div>
+                  </div>
+
+                  {/* Total */}
+                  <div className="border-t border-ghibli-sand/30 pt-3 mt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-ghibli-earth">Total:</span>
+                      <div className="text-right">
+                        <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
+                        {quantity > 1 && (
+                          <div className="text-xs text-ghibli-earth/70">
+                            {quantity} × €{discountedPrice.toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </motion.div>
 
             {/* Botão Adicionar ao Carrinho Mobile - Destaque */}
@@ -949,35 +1066,102 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                 <ProductCardDecorations />
                 
                 <CardContent className="relative z-10 p-4 sm:p-6 space-y-3 sm:space-y-4">
-                  {/* Título + Preço */}
-                  <div className="text-center pb-3 sm:pb-4 border-b border-ghibli-sand/30">
-                    <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-2">
-                      Caneca Coração
-                    </h1>
-                    <div className="inline-block">
-                      <div className="text-3xl sm:text-4xl font-black text-ghibli-moss drop-shadow-sm">
-                        €25.00
+                  {/* Título + Preço + Quantidade */}
+                  <div className="pb-3 sm:pb-4 border-b border-ghibli-sand/30 space-y-4">
+                    <div className="text-center">
+                      <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-2">
+                        Caneca Coração
+                      </h1>
+                    </div>
+
+                    {/* Preço e Quantidade */}
+                    <div className="space-y-3">
+                      {/* Preço Principal */}
+                      <div className="text-center">
+                        <div className="flex items-baseline justify-center gap-2 mb-1">
+                          <span className="text-3xl sm:text-4xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
+                          {discount > 0 && (
+                            <span className="text-lg text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
+                          )}
+                          {discount > 0 && (
+                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                              -{discount}%
+                            </div>
+                          )}
+                        </div>
+                        {discount > 0 && (
+                          <p className="text-sm text-green-600 font-medium">
+                            Poupa €{savings.toFixed(2)} com {discount}% desconto!
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Seletor de Quantidade */}
+                      <div className="bg-ghibli-cream/30 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-ghibli-earth">Quantidade:</span>
+                          <div className="flex items-center gap-2 bg-white/80 rounded-lg p-1">
+                            <Button
+                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                              disabled={quantity <= 1}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10 disabled:opacity-50"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                            
+                            <span className="min-w-[2.5rem] text-center font-bold text-ghibli-earth">
+                              {quantity}
+                            </span>
+                            
+                            <Button
+                              onClick={() => setQuantity(quantity + 1)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Mini destaques de desconto */}
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className={`text-center p-2 rounded-md transition-all ${
+                            quantity >= 2 
+                              ? 'bg-green-100 border border-green-300 text-green-800' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            <div className="font-bold">2+ canecas</div>
+                            <div>10% OFF</div>
+                          </div>
+                          <div className={`text-center p-2 rounded-md transition-all ${
+                            quantity >= 3 
+                              ? 'bg-green-100 border border-green-300 text-green-800' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            <div className="font-bold">3+ canecas</div>
+                            <div>15% OFF</div>
+                          </div>
+                        </div>
+
+                        {/* Total */}
+                        {quantity > 1 && (
+                          <div className="border-t border-ghibli-sand/30 pt-2 mt-3">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-ghibli-earth">Total:</span>
+                              <div className="text-right">
+                                <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
+                                <div className="text-xs text-ghibli-earth/70">
+                                  {quantity} × €{discountedPrice.toFixed(2)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-
-                  {/* Descrição em Tópicos - Movida para cima */}
-                  <div className="space-y-2">
-                    <ul className="text-sm space-y-1 text-ghibli-earth/80">
-                      <li className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
-                        <span>Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span> em formato de coração</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
-                        <span>Impressão duradoura e <span className="font-bold">resistente à lavagem</span></span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-ghibli-wood rounded-full shrink-0"></div>
-                        <span className="font-bold text-ghibli-wood">Perfeita para oferecer a quem mais gosta</span>
-                        <span className="text-red-500">❤️</span>
-                      </li>
-                    </ul>
                   </div>
 
                   {/* Status Arte */}
@@ -998,6 +1182,25 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       </Button>
                     </div>
                   )}
+
+                  {/* Descrição em Tópicos */}
+                  <div className="space-y-2">
+                    <ul className="text-sm space-y-1 text-ghibli-earth/80">
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                        <span>Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span> em formato de coração</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                        <span>Impressão duradoura e <span className="font-bold">resistente à lavagem</span></span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-wood rounded-full shrink-0"></div>
+                        <span className="font-bold text-ghibli-wood">Perfeita para oferecer a quem mais gosta</span>
+                        <span className="text-red-500">❤️</span>
+                      </li>
+                    </ul>
+                  </div>
 
                   {/* Seletor/Display de Tamanho */}
                   {product.variants && product.variants.length > 1 ? (
