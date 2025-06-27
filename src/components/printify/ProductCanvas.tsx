@@ -347,14 +347,14 @@ export default function ProductCanvas({
           <img
             src="/mockupproduto/canecacoracao.png"
             alt="Escolha uma foto para personalizar"
-            className="w-56 h-56 object-contain opacity-60"
+            className="w-64 h-64 object-contain opacity-60"
           />
         </div>
         
         {/* Call to action */}
         <div className="text-center max-w-md">
           <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-            Personaliza a sua {selectedProduct.name}
+            Personaliza a sua Caneca Coração
           </h3>
           <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
             Escolha uma das suas transformações AI para criar um produto único e personalizado.
@@ -363,7 +363,7 @@ export default function ProductCanvas({
           {onSelectImage && (
             <Button
               onClick={onSelectImage}
-              className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
+              className="hidden lg:block bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
             >
               <Sparkles className="w-5 h-5 mr-2" />
               Escolher Arte

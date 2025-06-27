@@ -515,10 +515,10 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               transition={{ duration: 0.5 }}
               className="text-center mb-6 px-4"
             >
-              <h1 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight mb-3 drop-shadow-sm">
-                Caneca Coração
+              <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight mb-4 tracking-tight">
+                Caneca Coração ❤️
               </h1>
-              <div className="text-4xl font-black text-ghibli-moss drop-shadow-sm">
+              <div className="text-5xl sm:text-6xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
                 €25.00
               </div>
             </motion.div>

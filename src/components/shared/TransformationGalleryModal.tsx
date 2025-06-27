@@ -289,14 +289,7 @@ export default function TransformationGalleryModal({
 
         {/* Footer with pagination */}
         <div className="shrink-0 flex items-center justify-between pt-4 border-t border-ghibli-stone/30">
-          <p className="text-sm text-ghibli-earth/70">
-            {filteredTransformations.length} transformaç{filteredTransformations.length === 1 ? 'ão' : 'ões'} encontrada{filteredTransformations.length === 1 ? '' : 's'}
-            {totalPages > 1 && (
-              <span className="ml-2">
-                • Página {currentPage} de {totalPages}
-              </span>
-            )}
-          </p>
+          <div className="flex-1"></div>
           
           <div className="flex items-center gap-3">
             {/* Pagination controls */}
