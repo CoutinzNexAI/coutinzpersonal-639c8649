@@ -322,7 +322,7 @@ export default function ProductCanvas({
               className="w-64 h-64 object-contain opacity-60"
             />
           </div>
-          
+            
           {/* Call to action específico para hoodie */}
           <div className="text-center max-w-md">
             <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
@@ -340,8 +340,8 @@ export default function ProductCanvas({
                 <Sparkles className="w-5 h-5 mr-2" />
                 Escolher Arte
               </Button>
-            )}
-          </div>
+              )}
+            </div>
         </div>
       );
     }
@@ -384,20 +384,20 @@ export default function ProductCanvas({
 
     // Para caneca cerâmica, mostrar estado específico
     if (selectedProduct.id === 'ceramic_mug') {
-      return (
-        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
-          {/* Placeholder image */}
-          <div className="mb-6">
-            <img
+    return (
+      <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+        {/* Placeholder image */}
+        <div className="mb-6">
+          <img
               src="/mockupproduto/canecapersonalizada.png"
-              alt="Escolha uma foto para personalizar"
+            alt="Escolha uma foto para personalizar"
               className="w-64 h-64 object-contain opacity-60"
-            />
-          </div>
-          
-          {/* Call to action */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+          />
+        </div>
+        
+        {/* Call to action */}
+        <div className="text-center max-w-md">
+          <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
               Personaliza a sua Caneca Cerâmica
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
