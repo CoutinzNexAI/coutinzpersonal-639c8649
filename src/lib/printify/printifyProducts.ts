@@ -295,9 +295,9 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   // 1. CANECA CERÂMICA (EU)
   'ceramic_mug': {
     id: 'ceramic_mug',
-    name: 'Caneca Cerâmica Personalizada',
+    name: 'Caneca Personalizada',
     mockupInitialPath: '/assets/mockups/mug/caneca.svg',
-    basePrice: 25.00, // Euros
+    basePrice: 22.50, // Euros - 330ml base, 450ml será +5
     category: 'mug',
     // ✅ CONFIGURAÇÃO DE DESIGN: Caneca com fill completo + ajustes ligeiros
     defaultDesign: {
