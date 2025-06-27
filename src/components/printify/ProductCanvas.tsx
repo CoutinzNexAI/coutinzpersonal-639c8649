@@ -310,51 +310,128 @@ export default function ProductCanvas({
 
   // Estado inicial - sem imagem selecionada - MAXIMIZADO SEM MODAL
   const renderEmptyState = () => {
-    // Para capas de telemóvel ou sweat, mostrar o mockup inicial maximizado
-    if (selectedProduct.id === 'custom_phone_case' || selectedProduct.id === 'custom_youth_hoodie') {
+    // Para hoodie jovem, mostrar estado específico
+    if (selectedProduct.id === 'custom_youth_hoodie') {
       return (
-        <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-          {/* Mockup inicial maximizado */}
-          <div className="relative w-full h-full flex items-center justify-center p-12">
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder específico para hoodie */}
+          <div className="mb-6">
             <img
-              src={mockupUrl || selectedProduct.mockupInitialPath}
-              alt={`${selectedProduct.name} mockup inicial`}
-              className="max-w-full max-h-full object-contain drop-shadow-2xl"
-              style={{ maxHeight: '85%' }}
+              src="/assets/mockups/hoodie/youth_hoodie_blank.svg"
+              alt="Personaliza a tua hoodie"
+              className="w-64 h-64 object-contain opacity-60"
             />
+          </div>
+          
+          {/* Call to action específico para hoodie */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Personaliza a tua Hoodie Jovem
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Combina logo, arte AI e frase personalizada para criar uma hoodie única.
+            </p>
             
-            {/* Texto sutil no canto */}
-            <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-sm">
-              <p className="text-sm text-ghibli-earth/80 font-medium">
-                {selectedProduct.name}
-              </p>
-              {selectedProduct.id === 'custom_youth_hoodie' && selectedPhraseText && (
-                <p className="text-xs text-ghibli-earth/60">
-                  Frase: {selectedPhraseText}
-                </p>
-              )}
-            </div>
+            {onSelectImage && (
+              <Button
+                onClick={onSelectImage}
+                className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
+                Escolher Arte
+              </Button>
+            )}
           </div>
         </div>
       );
     }
 
-    // Para outros produtos, mostrar estado vazio tradicional
+    // Para caneca coração, mostrar estado específico
+    if (selectedProduct.id === 'heart_mug') {
+      return (
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder image */}
+          <div className="mb-6">
+            <img
+              src="/mockupproduto/canecacoracao.png"
+              alt="Escolha uma foto para personalizar"
+              className="w-64 h-64 object-contain opacity-60"
+            />
+          </div>
+          
+          {/* Call to action */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Personaliza a sua Caneca Coração
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Escolha uma das suas transformações AI para criar um produto único e personalizado.
+            </p>
+            
+            {onSelectImage && (
+              <Button
+                onClick={onSelectImage}
+                className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
+                Escolher Arte
+              </Button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Para caneca cerâmica, mostrar estado específico
+    if (selectedProduct.id === 'ceramic_mug') {
+      return (
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder image */}
+          <div className="mb-6">
+            <img
+              src="/mockupproduto/canecapersonalizada.png"
+              alt="Escolha uma foto para personalizar"
+              className="w-64 h-64 object-contain opacity-60"
+            />
+          </div>
+          
+          {/* Call to action */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Personaliza a sua Caneca Cerâmica
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Escolha uma das suas transformações AI para criar um produto único e personalizado.
+            </p>
+            
+            {onSelectImage && (
+              <Button
+                onClick={onSelectImage}
+                className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
+                Escolher Arte
+              </Button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Para outros produtos, mostrar estado vazio genérico
     return (
       <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
-        {/* Placeholder image */}
+        {/* Placeholder image genérico */}
         <div className="mb-6">
-          <img
-            src="/mockupproduto/canecacoracao.png"
-            alt="Escolha uma foto para personalizar"
-            className="w-64 h-64 object-contain opacity-60"
-          />
+          <div className="w-64 h-64 bg-ghibli-cream/50 rounded-xl border-2 border-dashed border-ghibli-sand flex items-center justify-center">
+            <span className="text-6xl opacity-40">📷</span>
+          </div>
         </div>
         
-        {/* Call to action */}
+        {/* Call to action genérico */}
         <div className="text-center max-w-md">
           <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-            Personaliza a sua Caneca Coração
+            Personaliza o seu produto
           </h3>
           <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
             Escolha uma das suas transformações AI para criar um produto único e personalizado.
@@ -363,7 +440,7 @@ export default function ProductCanvas({
           {onSelectImage && (
             <Button
               onClick={onSelectImage}
-              className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
+              className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
             >
               <Sparkles className="w-5 h-5 mr-2" />
               Escolher Arte
