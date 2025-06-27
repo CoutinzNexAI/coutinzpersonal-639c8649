@@ -764,15 +764,28 @@ const EscritorioDetailPage: React.FC<EscritorioDetailPageProps> = ({ product: in
   );
 };
 
-// Geração estática dos paths para produtos de escritório (stationery + office)
+// Geração estática dos paths para produtos de escritório
 export const getStaticPaths: GetStaticPaths = async () => {
-  const notebookProducts = getPrintifyProductsByCategory('stationery');
-  const mousepadProducts = getPrintifyProductsByCategory('office');
+  // ✅ INCLUIR NOVA CATEGORIA 'escritorio' + backwards compatibility
+  const escritorioProducts = getPrintifyProductsByCategory('escritorio');
+  const legacyNotebookProducts = getPrintifyProductsByCategory('stationery');
+  const legacyMousepadProducts = getPrintifyProductsByCategory('office');
   
-  const allProducts = { ...notebookProducts, ...mousepadProducts };
+  const allProducts = { 
+    ...escritorioProducts, 
+    ...legacyNotebookProducts, 
+    ...legacyMousepadProducts 
+  };
+  
   const paths = Object.keys(allProducts).map((productId) => ({
     params: { productId }
   }));
+
+  console.log('🏗️ [STATIC PATHS] Produtos de escritório encontrados:', {
+    escritorio: Object.keys(escritorioProducts),
+    legacy: Object.keys(legacyNotebookProducts).concat(Object.keys(legacyMousepadProducts)),
+    totalPaths: paths.length
+  });
 
   return {
     paths,
@@ -785,7 +798,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const productId = params?.productId as string;
   const product = getPrintifyProduct(productId);
 
-  if (!product || (product.category !== 'stationery' && product.category !== 'office')) {
+  // ✅ ACEITAR NOVA CATEGORIA 'escritorio' + backwards compatibility
+  if (!product || !['escritorio', 'stationery', 'office'].includes(product.category)) {
     return {
       notFound: true
     };

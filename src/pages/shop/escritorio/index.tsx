@@ -7,12 +7,28 @@ import Footer from '@/components/Footer';
 import { getPrintifyProductsByCategory } from '@/lib/printify/printifyProducts';
 
 const EscritorioShopPage: React.FC = () => {
-  const notebookProducts = getPrintifyProductsByCategory('stationery');
-  const mousepadProducts = getPrintifyProductsByCategory('office');
+  // ✅ USAR A NOVA CATEGORIA UNIFICADA 'escritorio'
+  const escritorioProducts = getPrintifyProductsByCategory('escritorio');
   
-  // Combinar produtos das duas categorias
-  const allProducts = [...Object.keys(notebookProducts), ...Object.keys(mousepadProducts)];
-  const productsData = { ...notebookProducts, ...mousepadProducts };
+  // ✅ FALLBACK: Se não encontrar produtos na nova categoria, tentar as antigas (backwards compatibility)
+  const legacyNotebookProducts = getPrintifyProductsByCategory('stationery');
+  const legacyMousepadProducts = getPrintifyProductsByCategory('office');
+  
+  // Combinar todos os produtos (nova categoria + fallback)
+  const allProductsData = { 
+    ...escritorioProducts, 
+    ...legacyNotebookProducts, 
+    ...legacyMousepadProducts 
+  };
+  
+  const allProducts = Object.keys(allProductsData);
+
+  console.log('🏢 [ESCRITORIO PAGE] Produtos encontrados:', {
+    escritorioProducts: Object.keys(escritorioProducts),
+    legacyNotebook: Object.keys(legacyNotebookProducts),
+    legacyMousepad: Object.keys(legacyMousepadProducts),
+    total: allProducts.length
+  });
 
   return (
     <>
@@ -58,8 +74,10 @@ const EscritorioShopPage: React.FC = () => {
           {/* Products Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {allProducts.map((productId, index) => {
-              const product = productsData[productId];
-              const isNotebook = product.category === 'stationery';
+              const product = allProductsData[productId];
+              // ✅ DETECTAR TIPO DE PRODUTO: Por ID do produto em vez de categoria
+              const isNotebook = productId.includes('journal') || productId.includes('caderno') || product.category === 'stationery';
+              const isMousepad = productId.includes('mouse_pad') || productId.includes('mousepad') || product.category === 'office';
               
               return (
               <motion.div
