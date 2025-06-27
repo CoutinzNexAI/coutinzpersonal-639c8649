@@ -70,7 +70,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     return 0;
   };
 
-  const basePrice = 30;
+  const basePrice = product?.basePrice || 30;
   const discount = calculateDiscount(quantity);
   const discountedPrice = basePrice * (1 - discount / 100);
   const totalPrice = discountedPrice * quantity;
@@ -532,10 +532,10 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               className="text-center mb-6 px-4"
             >
               <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight mb-4 tracking-tight">
-                Caneca Coração ❤️
+                {product.id === 'heart_mug' ? 'Caneca Coração ❤️' : '☕ Caneca Personalizada'}
               </h1>
               <div className="text-4xl sm:text-5xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
-                €30.00
+                €{currentPrice.toFixed(2)}
               </div>
             </motion.div>
 
@@ -846,7 +846,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                 <ul className="text-sm space-y-2 text-ghibli-earth/80">
                   <li className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
-                    <span>Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span> em formato de coração</span>
+                    <span>Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span> {product.id === 'heart_mug' ? 'em formato de coração' : 'resistente'}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
@@ -854,9 +854,15 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                   </li>
                   <li className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-ghibli-wood rounded-full shrink-0"></div>
-                    <span className="font-bold text-ghibli-wood">Perfeita para oferecer a quem mais gosta</span>
-                    <span className="text-red-500">❤️</span>
+                    <span className="font-bold text-ghibli-wood">{product.id === 'heart_mug' ? 'Perfeita para oferecer a quem mais gosta' : 'Perfeita para todas as ocasiões'}</span>
+                    {product.id === 'heart_mug' && <span className="text-red-500">❤️</span>}
                   </li>
+                  {product.id === 'ceramic_mug' && (
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                      <span>Disponível em <span className="font-bold text-ghibli-moss">330ml e 450ml</span></span>
+                    </li>
+                  )}
                 </ul>
               </div>
 
@@ -864,9 +870,13 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               <div className="bg-ghibli-cream/30 rounded-xl border border-ghibli-sand/40 p-4">
                 <div className="flex items-center justify-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-ghibli-moss"></div>
-                  <span className="text-ghibli-earth font-semibold">💝 Tamanho: 330 ml</span>
+                  <span className="text-ghibli-earth font-semibold">
+                    {product.id === 'heart_mug' ? '💝 Tamanho: 330 ml' : '☕ Tamanhos disponíveis'}
+                  </span>
                 </div>
-                <p className="text-center text-xs text-ghibli-earth/70 mt-1">Formato especial de coração</p>
+                <p className="text-center text-xs text-ghibli-earth/70 mt-1">
+                  {product.id === 'heart_mug' ? 'Formato especial de coração' : '330ml e 450ml'}
+                </p>
               </div>
 
               {/* Garantias Mobile */}
@@ -1070,7 +1080,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                   <div className="pb-3 sm:pb-4 border-b border-ghibli-sand/30 space-y-4">
                     <div className="text-center">
                       <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-2">
-                        Caneca Coração
+                        {product.id === 'heart_mug' ? 'Caneca Coração' : 'Caneca Personalizada'}
                 </h1>
                       </div>
 
@@ -1188,7 +1198,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                     <ul className="text-sm space-y-1 text-ghibli-earth/80">
                       <li className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
-                        <span>Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span> em formato de coração</span>
+                        <span>Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span> {product.id === 'heart_mug' ? 'em formato de coração' : 'resistente'}</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
@@ -1196,9 +1206,15 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       </li>
                       <li className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-ghibli-wood rounded-full shrink-0"></div>
-                        <span className="font-bold text-ghibli-wood">Perfeita para oferecer a quem mais gosta</span>
-                        <span className="text-red-500">❤️</span>
+                        <span className="font-bold text-ghibli-wood">{product.id === 'heart_mug' ? 'Perfeita para oferecer a quem mais gosta' : 'Perfeita para todas as ocasiões'}</span>
+                        {product.id === 'heart_mug' && <span className="text-red-500">❤️</span>}
                       </li>
+                      {product.id === 'ceramic_mug' && (
+                        <li className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                          <span>Disponível em <span className="font-bold text-ghibli-moss">330ml e 450ml</span></span>
+                        </li>
+                      )}
                     </ul>
               </div>
 
@@ -1239,11 +1255,11 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                       <div className="flex items-center justify-center gap-3">
                         <div className="w-3 h-3 rounded-full bg-ghibli-moss"></div>
                         <span className="text-ghibli-earth font-semibold">
-                          💝 Tamanho: 330 ml
+                          {product.id === 'heart_mug' ? '💝 Tamanho: 330 ml' : '☕ Tamanhos disponíveis'}
                         </span>
                   </div>
                       <p className="text-center text-xs text-ghibli-earth/70 mt-1">
-                        Formato especial de coração
+                        {product.id === 'heart_mug' ? 'Formato especial de coração' : '330ml e 450ml'}
                       </p>
                 </div>
               )}
