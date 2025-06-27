@@ -505,19 +505,286 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-2 sm:px-4 pt-16 pb-6 sm:pt-12 sm:pb-8 lg:py-8">
-          {/* Breadcrumb - Hidden on mobile */}
-          <nav className="mb-4 lg:mb-8 hidden sm:block">
-            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
-              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li className="text-ghibli-moss font-medium">{product.name}</li>
-            </ol>
-          </nav>
+        <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-12 sm:pb-8 lg:py-8">
+          {/* 📱 MOBILE LAYOUT: Título em Destaque no Topo */}
+          <div className="block lg:hidden">
+            {/* Título Mobile - Em Destaque */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-6 px-4"
+            >
+              <h1 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight mb-3 drop-shadow-sm">
+                Caneca Coração
+              </h1>
+              <div className="text-4xl font-black text-ghibli-moss drop-shadow-sm">
+                €25.00
+              </div>
+            </motion.div>
 
-          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
+            {/* Mockup Mobile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-6"
+            >
+              <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20 mx-2">
+                <ProductCanvas
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady}
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                />
+              </div>
+
+              {/* Controlos Mobile - Mais Pequenos */}
+              {userInfo ? (
+                selectedImageUrl && userImageDimensions && product ? (
+                  <div className="px-4">
+                    <div className="flex gap-4 items-center justify-center">
+                      {/* Botão Trocar Arte - Mobile */}
+                      <Button
+                        onClick={handleOpenGallery}
+                        className="px-4 py-2 text-sm font-semibold bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white rounded-lg shadow-lg transition-all duration-300"
+                      >
+                        <Sparkles className="w-4 h-4 mr-1" />
+                        Trocar
+                      </Button>
+
+                      {/* Controlos de Posição - Mobile Pequenos */}
+                      <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-ghibli-sand/30">
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'top')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'top' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Cima"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                          </svg>
+                        </Button>
+                        
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'center' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Centro"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </Button>
+                        
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'bottom')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'bottom' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Baixo"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                          </svg>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Status Compacto Mobile */}
+                    <div className="mt-2 text-center">
+                      <span className="inline-flex items-center gap-1 text-xs text-ghibli-moss bg-ghibli-moss/5 px-2 py-1 rounded-full font-medium border border-ghibli-moss/20">
+                        <div className="w-1 h-1 bg-ghibli-moss rounded-full animate-pulse"></div>
+                        {imagePosition === 'top' ? 'Cima' : imagePosition === 'bottom' ? 'Baixo' : 'Centro'}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="px-4 text-center">
+                    <Button
+                      onClick={handleOpenGallery}
+                      className="px-6 py-3 text-base font-semibold shadow-lg transition-all duration-300 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 text-white"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Escolher Arte
+                    </Button>
+                  </div>
+                )
+              ) : (
+                <div className="px-4">
+                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-blue-800 text-sm mb-3">
+                        Faça login para personalizar esta caneca
+                      </p>
+                      <Button
+                        onClick={() => router.push('/')}
+                        variant="outline"
+                        className="w-full border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                      >
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Botão Adicionar ao Carrinho Mobile - Destaque */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="px-4 mb-6"
+            >
+              {isProcessingMockup ? (
+                <div className="w-full py-4 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-xl text-center">
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    </div>
+                    <span className="text-ghibli-moss font-medium text-sm">Criando a sua caneca mágica...</span>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={!canPurchase || loading}
+                  className={`group relative w-full py-4 text-lg font-bold rounded-xl shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
+                    canPurchase
+                      ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white' 
+                      : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                  }`}
+                >
+                  {canPurchase && (
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
+                  )}
+                  
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {loading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>A adicionar...</span>
+                      </>
+                    ) : !userInfo ? (
+                      <span>Faça Login para Continuar</span>
+                    ) : !selectedImageUrl ? (
+                      <span>Escolha uma Arte Primeiro</span>
+                    ) : !selectedPrintifyVariantId ? (
+                      <span>Selecione o Tamanho</span>
+                    ) : (
+                      <>
+                        <span className="text-xl">🛒</span>
+                        <span>Adicionar ao Carrinho</span>
+                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                          <ChevronRight className="w-4 h-4" />
+                        </div>
+                      </>
+                    )}
+                  </span>
+                </Button>
+              )}
+            </motion.div>
+
+            {/* Informações Extras Mobile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="px-4 space-y-4"
+            >
+              {/* Status Arte Mobile */}
+              {selectedImageUrl && (
+                <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                  <img src={selectedImageUrl} className="w-10 h-10 rounded-lg object-cover border border-green-300" alt="Arte selecionada" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-green-800 text-sm">✅ Arte Aplicada</p>
+                    <p className="text-xs text-green-600 truncate">Transformação AI pronta</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Descrição Mobile */}
+              <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
+                <ul className="text-sm space-y-2 text-ghibli-earth/80">
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                    <span>Caneca de <span className="font-bold text-ghibli-moss">cerâmica premium</span> em formato de coração</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                    <span>Impressão duradoura e <span className="font-bold">resistente à lavagem</span></span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-ghibli-wood rounded-full shrink-0"></div>
+                    <span className="font-bold text-ghibli-wood">Perfeita para oferecer a quem mais gosta</span>
+                    <span className="text-red-500">❤️</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Tamanho Mobile */}
+              <div className="bg-ghibli-cream/30 rounded-xl border border-ghibli-sand/40 p-4">
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-ghibli-moss"></div>
+                  <span className="text-ghibli-earth font-semibold">💝 Tamanho: 330 ml</span>
+                </div>
+                <p className="text-center text-xs text-ghibli-earth/70 mt-1">Formato especial de coração</p>
+              </div>
+
+              {/* Garantias Mobile */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-ghibli-cream/40 rounded-xl p-3 text-center border border-ghibli-sand/30">
+                  <div className="w-6 h-6 mx-auto mb-1 rounded-full bg-ghibli-moss/10 flex items-center justify-center">
+                    <Shield className="w-3 h-3 text-ghibli-moss" />
+                  </div>
+                  <span className="text-xs font-bold text-ghibli-earth">Cerâmica Premium</span>
+                </div>
+                <div className="bg-ghibli-cream/40 rounded-xl p-3 text-center border border-ghibli-sand/30">
+                  <div className="w-6 h-6 mx-auto mb-1 rounded-full bg-ghibli-moss/10 flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-ghibli-moss" />
+                  </div>
+                  <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* 🖥️ DESKTOP LAYOUT: Layout Original */}
+          <div className="hidden lg:block">
+            {/* Breadcrumb */}
+            <nav className="mb-8">
+              <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
+                <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
+                <li className="text-ghibli-earth/50">/</li>
+                <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
+                <li className="text-ghibli-earth/50">/</li>
+                <li className="text-ghibli-moss font-medium">{product.name}</li>
+              </ol>
+            </nav>
+
+            <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
             {/* Área de Visualização */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -869,6 +1136,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                 </CardContent>
               </Card>
             </motion.div>
+          </div>
           </div>
         </main>
 
