@@ -363,7 +363,43 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
-  // 3. SACO TOTE BAG
+  // 3. CANECA CERÂMICA PERSONALIZADA
+  'ceramic_mug': {
+    id: 'ceramic_mug',
+    name: 'Caneca Cerâmica Personalizada',
+    mockupInitialPath: '/mockupproduto/canecapersonalizada.png',
+    basePrice: 22.50, // Euros - 330ml base
+    category: 'mug',
+    // ✅ CONFIGURAÇÃO DE DESIGN: Caneca cerâmica com fill completo + ajustes ligeiros
+    defaultDesign: {
+      scale: 1.1, // Escala para cobrir completamente (lógica Math.max original)
+      x: 0.5, // Centro horizontal
+      y: 0.5, // Centro vertical (com pequenos ajustes disponíveis)
+      angle: 0, // Sem rotação
+    },
+    printifyBlueprintId: 893, // Standard Mug 11oz
+    printifyPrintProviderId: 30, // OPT OnDemand
+    variants: [
+      { id: 77182, title: '11oz / 330ml / White', placeholderWidth: 2362, placeholderHeight: 945, isGiftPackaging: false, priceAdjustment: 0.00 }, // €22.50
+      { id: 77183, title: '15oz / 450ml / White', placeholderWidth: 2362, placeholderHeight: 945, isGiftPackaging: false, priceAdjustment: 5.00 }, // €27.50
+    ],
+    printFileBleed: 2, // Ajustar conforme a Printify
+    printFileResolution: 300,
+    gelatoPrintDimensionsMm: { width: 80, height: 95 }, // Valores de referência
+    gelatoPrintOffsetsMm: { x: 0, y: 0 },
+    supportsManualAdjustment: true, // ✅ ATIVADO: Suporte ao posicionamento manual
+    printAreasConfig: [{
+      position: 'front',
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0, // Será dinâmico (slice)
+      defaultAngle: 0,
+      fitMethod: 'slice',
+    }],
+  },
+
+  // 5. SACO TOTE BAG
   'tote_bag': {
     id: 'tote_bag',
     name: 'Saco Tote Bag Personalizado',
@@ -399,7 +435,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
-  // 4. CADERNO SPIRAL JOURNAL
+  // 6. CADERNO SPIRAL JOURNAL
   'spiral_journal': {
     id: 'spiral_journal',
     name: 'Caderno Personalizado',
@@ -435,7 +471,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
-  // 5. MOUSE PAD
+  // 7. MOUSE PAD
   'mouse_pad': {
     id: 'mouse_pad',
     name: 'Mouse Pad Personalizado',
