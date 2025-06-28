@@ -594,37 +594,37 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
           <div className="hidden lg:block">
             {/* Breadcrumb */}
             <nav className="mb-8">
-              <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
-                <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
-                <li className="text-ghibli-earth/50">/</li>
-                <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
-                <li className="text-ghibli-earth/50">/</li>
-                <li className="text-ghibli-moss font-medium">{product.name}</li>
-              </ol>
+            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
+              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
+              <li className="text-ghibli-earth/50">/</li>
+              <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
+              <li className="text-ghibli-earth/50">/</li>
+              <li className="text-ghibli-moss font-medium">{product.name}</li>
+            </ol>
             </nav>
 
             <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
               {/* Left: Área de Visualização (2 colunas) */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
                 className="lg:col-span-2"
-              >
+            >
                 <div className="relative w-full h-[500px] lg:h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-ghibli-sand/20">
-                  <ProductCanvas
-                    selectedProduct={product}
-                    userImageUrl={selectedImageUrl}
-                    userId={userInfo?.id}
-                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                    onPreviewReady={handlePreviewReady}
-                    onSelectImage={handleOpenGallery}
-                    imageAdjustments={imageAdjustments}
-                    onImageAdjust={setImageAdjustments}
-                    selectedPrintifyVariantId={selectedPrintifyVariantId}
-                    selectedImageId={selectedImageId}
-                  />
-                </div>
+                <ProductCanvas
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady}
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  selectedImageId={selectedImageId}
+                />
+              </div>
 
                 {/* Controles de Arte - Desktop lado-a-lado */}
                 <div className="flex justify-center gap-4">
@@ -685,8 +685,8 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                     <div className="text-center">
                       <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-2">
                         🎨 {product.name}
-                      </h1>
-                    </div>
+                    </h1>
+                  </div>
 
                     {/* Preço e Quantidade */}
                     <div className="space-y-3">
@@ -700,7 +700,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                           {discount > 0 && (
                             <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                               -{discount}%
-                            </div>
+                      </div>
                           )}
                         </div>
                         {discount > 0 && (
@@ -1001,6 +1001,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                 </CardContent>
               </Card>
             </motion.div>
+          </div>
           </div>
         </main>
 
