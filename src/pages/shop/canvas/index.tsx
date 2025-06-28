@@ -101,13 +101,13 @@ const CanvasShopPage: React.FC = () => {
                               {product.id === 'framed_canvas' && (
                                 <div className="flex items-center gap-2">
                                   <div className="w-1.5 h-1.5 bg-amber-600 rounded-full"></div>
-                                  <span className="font-medium text-amber-700">Moldura elegante incluída 🖼️</span>
+                                  <span className="font-medium text-amber-700">Moldura premium + máxima qualidade 🖼️</span>
                                 </div>
                               )}
                               {product.id === 'custom_canvas' && (
                                 <div className="flex items-center gap-2">
-                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                                  <span className="font-medium text-blue-600">Opções de borda espelhada ✨</span>
+                                  <div className="w-1.5 h-1.5 bg-purple-600 rounded-full"></div>
+                                  <span className="font-medium text-purple-700">Qualidade suprema garantida ✨</span>
                                 </div>
                               )}
                             </div>
@@ -143,15 +143,15 @@ const CanvasShopPage: React.FC = () => {
                     <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-3">
                       <span className="text-3xl">🎨</span>
                     </div>
-                    <h3 className="font-semibold mb-2 text-ghibli-wood">Qualidade Premium</h3>
-                    <p>Canvas de alta qualidade com impressão durável e cores vibrantes</p>
+                    <h3 className="font-semibold mb-2 text-ghibli-wood">Qualidade Suprema</h3>
+                    <p>A melhor qualidade do mercado - canvas premium com cores vibrantes que duram para sempre</p>
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-3">
                       <span className="text-3xl">🖼️</span>
                     </div>
-                    <h3 className="font-semibold mb-2 text-ghibli-wood">Opções Versáteis</h3>
-                    <p>Escolha entre canvas sem moldura ou com moldura elegante já incluída</p>
+                    <h3 className="font-semibold mb-2 text-ghibli-wood">Acabamento Profissional</h3>
+                    <p>Canvas com moldura premium ou sem moldura - ambos com qualidade de galeria de arte</p>
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -221,13 +221,13 @@ const CanvasShopPage: React.FC = () => {
                             {product.id === 'framed_canvas' && (
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-amber-600 rounded-full"></div>
-                                <span className="font-medium text-amber-700">🖼️ Com moldura</span>
+                                <span className="font-medium text-amber-700">🖼️ Premium + moldura</span>
                               </div>
                             )}
                             {product.id === 'custom_canvas' && (
                               <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                                <span className="font-medium text-blue-600">✨ Borda espelhada</span>
+                                <div className="w-1.5 h-1.5 bg-purple-600 rounded-full"></div>
+                                <span className="font-medium text-purple-700">✨ Qualidade suprema</span>
                               </div>
                             )}
                           </div>
@@ -259,13 +259,13 @@ const CanvasShopPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 text-center text-sm">
                 <div>
                   <div className="text-2xl mb-2">🎨</div>
-                  <h3 className="font-semibold mb-1 text-ghibli-wood">Premium</h3>
-                  <p className="text-xs text-ghibli-earth">Canvas de qualidade</p>
+                  <h3 className="font-semibold mb-1 text-ghibli-wood">Supremo</h3>
+                  <p className="text-xs text-ghibli-earth">Melhor qualidade</p>
                 </div>
                 <div>
                   <div className="text-2xl mb-2">🖼️</div>
-                  <h3 className="font-semibold mb-1 text-ghibli-wood">Versátil</h3>
-                  <p className="text-xs text-ghibli-earth">Com/sem moldura</p>
+                  <h3 className="font-semibold mb-1 text-ghibli-wood">Profissional</h3>
+                  <p className="text-xs text-ghibli-earth">Qualidade galeria</p>
                 </div>
                 <div>
                   <div className="text-2xl mb-2">✨</div>
