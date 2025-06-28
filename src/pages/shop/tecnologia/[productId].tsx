@@ -63,6 +63,11 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   // ✅ QUANTIDADE: Estado para a quantidade de capas
   const [quantity, setQuantity] = useState(1);
 
+  // Get correct mockup image for product (igual às canecas)
+  const getMockupImage = () => {
+    return '/mockupproduto/telemovel.png'; // Imagem padrão das capas
+  };
+
   // Calculate discount and prices
   const calculateDiscount = (qty: number) => {
     if (qty >= 3) return 15;
@@ -438,67 +443,16 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       });
 
       console.log('✅ Item adicionado ao carrinho:', cartItem);
-      toast.success(`${product!.name} adicionada ao carrinho!`);
-      router.push('/checkout');
-
-    } catch (error) {
-      console.error('❌ Erro ao adicionar ao carrinho:', error);
-      toast.error('Erro ao adicionar produto ao carrinho. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-
-    // Usar a variante selecionada pelo usuário
-    const variantIdToSend = selectedPrintifyVariantId;
-    if (!variantIdToSend) {
-      toast.error('ID da variante do produto não encontrado. Contacte o suporte.');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // ✅ DEBUG: Log dos valores antes de adicionar ao carrinho
-      console.log('🛒 Adicionando capa ao carrinho com valores:', {
-        productId: productId as string,
-        printifyProductId,
-        printifyImageId,
-        printifyVariantId: variantIdToSend,
-        selectedImageUrl,
-        selectedImageId
-      });
-
-      // Obter variante selecionada
-      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-
-      // Adicionar item ao carrinho usando o CartService - SIMPLIFICADO
-      const cartItem = CartService.addToCart({
-        productId: productId as string,
-        productName: product!.name,
-        productCategory: product!.category || 'tecnologia',
-        userImageUrl: selectedImageUrl,
-        userImageId: selectedImageId!,
-        price: product!.basePrice || product!.price || 0,
-        quantity: 1,
-        customizations: {
-          variantId: selectedPrintifyVariantId!,
-          phoneModel: selectedVariant?.title || 'Modelo não encontrado',
-          // ✅ OS CAMPOS CRÍTICOS: Usar ajustes calculados ou valores padrão
-          scale: imageAdjustments?.scale || 1.0,
-          x: imageAdjustments?.x || 0.5,
-          y: imageAdjustments?.y || 0.5,
-          angle: imageAdjustments?.rotation || 0,
+      toast.success(`${quantity === 1 ? 'Capa adicionada' : `${quantity} capas adicionadas`} ao carrinho!`, {
+        description: `Total: €${totalPrice.toFixed(2)}${discount > 0 ? ` (${discount}% desconto aplicado!)` : ''}`,
+        action: {
+          label: 'Ver Carrinho',
+          onClick: () => router.push('/checkout'),
         },
-        imageAdjustments,
       });
-
-      console.log('✅ Item adicionado ao carrinho:', cartItem);
-      toast.success(`${product.name} adicionada ao carrinho!`);
-      router.push('/checkout');
-
     } catch (error) {
       console.error('❌ Erro ao adicionar ao carrinho:', error);
-      toast.error('Erro ao adicionar produto ao carrinho. Tente novamente.');
+      toast.error('Erro ao adicionar ao carrinho. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -562,6 +516,10 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       });
     }
   };
+
+  // Condições auxiliares para botão (igual às canecas)
+  const isProcessingMockup = (!printifyProductId || !printifyImageId) && selectedImageUrl;
+  const canPurchase = selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo;
 
   if (!product) {
     return (
@@ -829,14 +787,14 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
               </div>
             </motion.div>
 
-            {/* Botão Adicionar ao Carrinho Mobile - Destaque */}
+            {/* Botão Adicionar ao Carrinho Mobile - Destaque (IGUAL ÀS CANECAS) */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               className="px-4 mb-6"
             >
-              {(!printifyProductId || !printifyImageId) && selectedImageUrl ? (
+              {isProcessingMockup ? (
                 <div className="w-full py-4 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-xl text-center">
                   <div className="flex items-center justify-center space-x-2">
                     <div className="flex space-x-1">
@@ -850,14 +808,14 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
               ) : (
                 <Button
                   onClick={handleAddToCart}
-                  disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId || !userInfo}
+                  disabled={!canPurchase || loading}
                   className={`group relative w-full py-4 text-lg font-bold rounded-xl shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
-                    selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo
+                    canPurchase
                       ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white' 
                       : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
                   }`}
                 >
-                  {selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo && (
+                  {canPurchase && (
                     <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
                   )}
                   
@@ -1062,116 +1020,136 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                 )}
               </div>
 
-              {/* Botão "Escolher Arte" OTIMIZADO para MOBILE */}
+
+
+              {/* ✅ CONTROLOS LADO A LADO - Trocar Arte + Ajustar Posição (IGUAL ÀS CANECAS) */}
+              {userInfo ? (
+                selectedImageUrl && userImageDimensions && product ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                className="flex justify-center px-4 lg:px-0"
+                    transition={{ duration: 0.4, delay: 0.4 }}
+                    className="mt-6 px-4 lg:px-0"
               >
+                    <div className="flex gap-8 items-center justify-center">
+                      {/* Botão Trocar Arte - Maior */}
                 <Button
                   onClick={handleOpenGallery}
-                  disabled={!userInfo}
-                  className={`w-full sm:w-auto px-8 sm:px-12 py-4 lg:py-4 text-base lg:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl lg:rounded-2xl ${
-                    userInfo 
-                      ? 'bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white' 
-                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  }`}
-                >
-                  <Sparkles className="w-5 h-5 mr-2 lg:mr-3" />
-                  {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
-                </Button>
-              </motion.div>
+                        className="px-8 py-4 text-base font-semibold bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      >
+                        <Sparkles className="w-5 h-5 mr-2" />
+                        Trocar Arte
+                      </Button>
 
-              {/* Prompt de Login OTIMIZADO para MOBILE */}
-              {!userInfo && (
+                      {/* Controlos de Posição - Maiores (HORIZONTAL PARA CAPAS) */}
+                      <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-ghibli-sand/30">
+                        {/* Botão Esquerda */}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'left')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'left' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Esquerda"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                          </svg>
+                </Button>
+                        
+                        {/* Botão Centro */}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'center' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Centro"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </Button>
+                        
+                        {/* Botão Direita */}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'right')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'right' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Direita"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                          </svg>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Indicador de Status - Compacto */}
+                    <div className="mt-3 text-center">
+                      <span className="inline-flex items-center gap-2 text-xs text-ghibli-moss bg-ghibli-moss/5 px-3 py-1 rounded-full font-medium border border-ghibli-moss/20">
+                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-pulse"></div>
+                        Posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
+                      </span>
+                      
+                      {/* Loading indicator quando a gerar */}
+                      {isGeneratingMockup && (
+                        <div className="mt-2 flex items-center justify-center gap-2 text-xs text-ghibli-earth/70">
+                          <div className="flex space-x-1">
+                            <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce"></div>
+                            <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          </div>
+                          <span>Reposicionando arte...</span>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.3 }}
+                    className="mt-6 flex justify-center px-4 lg:px-0"
+                  >
+                    <Button
+                      onClick={handleOpenGallery}
+                      className="px-8 py-4 text-base lg:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white"
+                    >
+                      <Sparkles className="w-5 h-5 mr-2 lg:mr-3" />
+                      Escolher Arte
+                    </Button>
+                  </motion.div>
+                )
+              ) : (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.5 }}
-                  className="mt-4 flex justify-center px-4 lg:px-0"
+                  className="mt-6 flex justify-center px-4 lg:px-0"
                 >
-                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm w-full sm:max-w-md">
+                  <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm w-full sm:max-w-md">
                     <CardContent className="p-4 text-center">
-                      <p className="text-blue-800 text-sm sm:text-base mb-3">
-                        Faça login para personalizar esta capa com as suas criações AI
+                      <p className="text-ghibli-earth text-sm mb-3 font-medium">
+                        📱 Entre para personalizar a sua capa
                       </p>
                       <Button
                         onClick={() => router.push('/')}
-                        variant="outline"
-                        className="w-full sm:w-auto border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                        className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0"
                       >
                         Fazer Login
                       </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* 🎮 CONTROLOS DE AJUSTE HORIZONTAL - ABAIXO DA MOCKUP */}
-              {selectedImageUrl && product?.supportsManualAdjustment && userImageDimensions && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.6 }}
-                  className="mt-6 px-4 lg:px-0"
-                >
-                  <Card className="bg-gradient-to-br from-[#2D5A27]/5 to-[#4A6B5B]/5 border-[#2D5A27]/20 shadow-lg">
-                    <CardContent className="p-4">
-                      <div className="text-center mb-3">
-                        <h3 className="text-base font-bold text-[#2D5A27] mb-1">
-                          Ajustar Posição Horizontal
-                        </h3>
-                        <p className="text-xs text-[#4A6B5B]/80">
-                          Desloque a sua arte para a posição ideal na capa
-                        </p>
-                      </div>
-                      
-                      <div className="flex gap-2 mb-3">
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'left')} 
-                          variant={imagePosition === 'left' ? 'default' : 'outline'}
-                          size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'left' 
-                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
-                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                        >
-                          Esquerda
-                        </Button>
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'center')} 
-                          variant={imagePosition === 'center' ? 'default' : 'outline'}
-                          size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'center' 
-                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
-                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                        >
-                          Centro
-                        </Button>
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'right')} 
-                          variant={imagePosition === 'right' ? 'default' : 'outline'}
-                          size="sm"
-                          className={`flex-1 text-xs ${imagePosition === 'right' 
-                            ? 'bg-[#2D5A27] hover:bg-[#2D5A27]/90 text-white' 
-                            : 'border-[#2D5A27]/30 text-[#2D5A27] hover:bg-[#2D5A27]/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                        >
-                          Direita
-                        </Button>
-                      </div>
-                      
-                      <div className="text-center">
-                        <span className="inline-flex items-center gap-1.5 text-xs text-[#2D5A27] bg-[#2D5A27]/10 px-2 py-1 rounded-md font-medium">
-                          <span className="w-1.5 h-1.5 bg-[#2D5A27] rounded-full"></span>
-                          Posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
-                        </span>
-                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -1331,9 +1309,9 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     </label>
                   </div>
 
-                  {/* 🛒 7. BOTÃO PRINCIPAL MOBILE-FIRST */}
+                  {/* 🛒 7. BOTÃO PRINCIPAL MOBILE-FIRST (IGUAL ÀS CANECAS) */}
                   <div className="pt-3">
-                    {(!printifyProductId || !printifyImageId) && selectedImageUrl ? (
+                    {isProcessingMockup ? (
                       <div className="w-full py-5 sm:py-6 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-xl lg:rounded-2xl text-center">
                         <div className="flex items-center justify-center space-x-2">
                           <div className="flex space-x-1">
@@ -1348,15 +1326,15 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     ) : (
                     <Button
                       onClick={handleAddToCart}
-                      disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId || !userInfo}
+                      disabled={!canPurchase || loading}
                         className={`group relative w-full py-5 sm:py-6 text-base sm:text-lg font-bold rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl hover:shadow-xl sm:hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
-                        selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo
+                        canPurchase
                             ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white' 
                           : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
                       }`}
                       >
                         {/* Shimmer effect */}
-                        {selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo && (
+                        {canPurchase && (
                           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
                         )}
                         
@@ -1374,7 +1352,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                             <span className="text-center">Selecione o Modelo</span>
                       ) : (
                         <>
-                              <span className="text-lg sm:text-xl">🛒</span>
+                              <span className="text-lg sm:text-xl">📱</span>
                               <span className="hidden sm:inline">Adicionar ao Carrinho</span>
                               <span className="sm:hidden">Adicionar</span>
                               <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center">
