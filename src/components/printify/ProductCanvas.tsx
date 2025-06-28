@@ -434,7 +434,10 @@ export default function ProductCanvas({
           {/* Call to action específico para canvas - SEM BOTÃO */}
           <div className="text-center max-w-md">
             <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Canvas de Qualidade Suprema
+              {selectedProduct.id === 'custom_canvas' 
+                ? 'Canvas Personalizável' 
+                : 'Canvas com Moldura Personalizável'
+              }
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
               Escolha uma arte e veja o seu canvas personalizado ganhar vida.

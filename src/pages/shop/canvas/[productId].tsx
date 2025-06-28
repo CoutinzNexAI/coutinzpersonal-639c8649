@@ -332,7 +332,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-4 py-8 lg:py-16">
+        <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-24 sm:pb-8 lg:py-16">
           {/* 📱 MOBILE LAYOUT: Stack vertical completo */}
           <div className="lg:hidden">
             {/* Título e Preço destacados */}
@@ -340,7 +340,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-center mb-6 bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-ghibli-sand/30"
+              className="text-center mb-6"
             >
               <h1 className="text-2xl sm:text-3xl font-black text-ghibli-earth mb-3 drop-shadow-sm">
                 🎨 {product.name}
@@ -348,9 +348,6 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
               <div className="inline-block">
                 <div className="text-4xl font-black text-ghibli-moss">
                   €{currentPrice.toFixed(2)}
-                </div>
-                <div className="text-xs text-ghibli-earth/60 font-medium">
-                  IVA incluído
                 </div>
               </div>
             </motion.div>
@@ -544,12 +541,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                         <span className="font-medium text-amber-700">Moldura elegante incluída 🖼️</span>
                       </div>
                     )}
-                    {product.id === 'custom_canvas' && (
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                        <span className="font-medium text-blue-600">Opções de borda espelhada ✨</span>
-                      </div>
-                    )}
+
                   </div>
                 </CardContent>
               </Card>
