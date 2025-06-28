@@ -4,11 +4,10 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -20,7 +19,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
-import { validatePurchase } from '@/utils/productValidation';
 import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
 
 interface PosterDetailPageProps {
@@ -33,27 +31,17 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   const { userInfo, session } = useAuth();
   
   const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
-  // Inicializar os estados como vazios/nulos
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
-  const [mockupImageUrl, setMockupImageUrl] = useState<string | null>(null);
   
   // Estados para Printify
   const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
   const [printifyImageId, setPrintifyImageId] = useState<string>('');
   const [printifyProductId, setPrintifyProductId] = useState<string>('');
-
-  // Estado específico para seleção de variante do poster
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
-
-  // Estado específico para Poster - FIXO em "mirror"
-  const [selectedEdgeType] = useState<string>('mirror');
-
-  // Estado para seleção de tamanho (para posters)
-  const [selectedSizeLabel, setSelectedSizeLabel] = useState<string | null>(null);
 
   // ✅ NOVO: Estado para dimensões da imagem do utilizador
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
@@ -72,28 +60,21 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // ✅ LOADING INDICATOR: Para mostrar enquanto a nova mockup é gerada
   const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
 
-  // ✅ ADICIONAR: Estados para o carrinho
-  const [cartFeedback, setCartFeedback] = useState<boolean>(false);
+  // ✅ QUANTIDADE: Estado para a quantidade de posters
+  const [quantity, setQuantity] = useState(1);
+
+  // ✅ PREÇOS PARA POSTERS: Sem desconto progressivo, preço fixo por variante
+  const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
+  const basePrice = selectedVariant?.priceAdjustment || 20; // Preço por poster baseado na variante
+  const totalPrice = basePrice * quantity;
 
   // ✅ COMPUTED VALUES: Valores calculados para a UI
   const canAddToCart = !!(selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo);
-  const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
-  // Como basePrice agora é 0, priceAdjustment contém o preço fixo total
-  const finalPrice = selectedVariant?.priceAdjustment || 20;
 
   // ✅ HANDLER: Para mudança de variante de tamanho
   const handleVariantChange = (variantId: string) => {
     const numericVariantId = parseInt(variantId);
     setSelectedPrintifyVariantId(numericVariantId);
-    
-    // Encontrar a variante correspondente para atualizar o label
-    const selectedVariant = product?.variants?.find(v => v.id === numericVariantId);
-    if (selectedVariant) {
-      const sizeMatch = selectedVariant.title.match(/(\d+\.?\d*["″]? x \d+\.?\d*["″]? \((Horizontal|Vertical)\))/);
-      if (sizeMatch) {
-        setSelectedSizeLabel(sizeMatch[1]);
-      }
-    }
   };
 
   // Fallback para carregamento dinâmico (caso não haja product das props)
@@ -110,13 +91,6 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
           console.log('🔍 [POSTER DEBUG] Primeira variante selecionada:', { id: firstVariant.id, title: firstVariant.title });
           
           setSelectedPrintifyVariantId(firstVariant.id);
-          // Extrair tamanho do primeiro variant
-          const firstVariantTitle = firstVariant.title;
-          const sizeMatch = firstVariantTitle.match(/(\d+\.?\d*["″]? x \d+\.?\d*["″]? \((Horizontal|Vertical)\))/);
-          if (sizeMatch) {
-            setSelectedSizeLabel(sizeMatch[1]);
-            console.log('🔍 [POSTER DEBUG] Tamanho extraído:', sizeMatch[1]);
-          }
         }
       } else {
         router.push('/shop');
@@ -132,32 +106,9 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
         console.log('🔍 [POSTER DEBUG] Primeira variante selecionada (initial):', { id: firstVariant.id, title: firstVariant.title });
         
         setSelectedPrintifyVariantId(firstVariant.id);
-        // Extrair tamanho do primeiro variant
-        const firstVariantTitle = firstVariant.title;
-        const sizeMatch = firstVariantTitle.match(/(\d+\.?\d*["″]? x \d+\.?\d*["″]? \((Horizontal|Vertical)\))/);
-        if (sizeMatch) {
-          setSelectedSizeLabel(sizeMatch[1]);
-          console.log('🔍 [POSTER DEBUG] Tamanho extraído (initial):', sizeMatch[1]);
-        }
       }
     }
   }, [productId, initialProduct, router]);
-
-  // useEffect para encontrar selectedPrintifyVariantId com base no tamanho selecionado
-  useEffect(() => {
-    if (product && selectedSizeLabel && product.variants) {
-      const foundVariant = product.variants.find(variant => 
-        variant.title.includes(selectedSizeLabel)
-      );
-
-      if (foundVariant && foundVariant.id !== selectedPrintifyVariantId) {
-        setSelectedPrintifyVariantId(foundVariant.id);
-      } else if (!foundVariant && selectedPrintifyVariantId !== null) {
-        setSelectedPrintifyVariantId(null);
-        toast.error('Combinação de tamanho não encontrada para o Poster.');
-      }
-    }
-  }, [selectedSizeLabel, product, selectedPrintifyVariantId]);
 
   // Reset estados quando a variante muda
   useEffect(() => {
@@ -167,7 +118,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       setPrintifyImageId('');
       setPrintifyProductId('');
     }
-  }, [selectedPrintifyVariantId, selectedSizeLabel]);
+  }, [selectedPrintifyVariantId]);
 
   // Calcular defaultScale dinâmico e atualizar imageAdjustments - CORREÇÃO DEFINITIVA
   useEffect(() => {
@@ -309,10 +260,6 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
 
       console.log('✅ Item adicionado ao carrinho:', cartItem);
       toast.success(`${product.name} adicionado ao carrinho!`);
-      
-      // Mostrar feedback visual
-      setCartFeedback(true);
-      setTimeout(() => setCartFeedback(false), 3000);
 
     } catch (error) {
       console.error('❌ Erro ao adicionar ao carrinho:', error);
@@ -914,7 +861,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                     className="text-center py-4"
                   >
                     <div className="text-3xl font-bold text-[#2D5A27] mb-1">
-                        €{finalPrice.toFixed(2)}
+                        €{basePrice.toFixed(2)}
                     </div>
                     <div className="text-sm text-gray-500">IVA incluído</div>
 
@@ -1009,7 +956,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         </svg>
                         <span>
                           {canAddToCart 
-                            ? `Adicionar • €${finalPrice.toFixed(2)}` 
+                            ? `Adicionar • €${basePrice.toFixed(2)}` 
                             : 'Selecione uma arte primeiro'
                           }
                         </span>
@@ -1020,20 +967,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                     )}
                   </div>
                     </Button>
-                    
-                    {/* Feedback de sucesso */}
-                    {cartFeedback && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-center"
-                      >
-                        <p className="text-green-800 text-sm font-medium">
-                          ✅ Adicionado ao carrinho!
-                        </p>
-                      </motion.div>
-                    )}
+
                   </motion.div>
                 </CardContent>
               </Card>

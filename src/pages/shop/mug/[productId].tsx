@@ -70,7 +70,21 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
     return 0;
   };
 
-  const basePrice = product?.basePrice || 30;
+  // ✅ CORREÇÃO: Preços corretos baseados na variante selecionada
+  const getBasePrice = () => {
+    if (product?.id === 'heart_mug') {
+      return 30.00; // Heart mug sempre €30.00
+    }
+    
+    if (product?.id === 'ceramic_mug' && selectedPrintifyVariantId) {
+      // 330ml (id: 62327) = €22.50, 450ml (id: 62328) = €27.50
+      return selectedPrintifyVariantId === 62327 ? 22.50 : 27.50;
+    }
+    
+    return product?.basePrice || 30; // Fallback
+  };
+
+  const basePrice = getBasePrice();
   const discount = calculateDiscount(quantity);
   const discountedPrice = basePrice * (1 - discount / 100);
   const totalPrice = discountedPrice * quantity;
@@ -830,18 +844,18 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               transition={{ duration: 0.6, delay: 0.6 }}
               className="px-4 space-y-4"
             >
-              {/* Status Arte Mobile */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.7 }}
-                className="mb-6"
-              >
-                <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
-                  <CardContent className="p-4">
-                    <h2 className="text-lg font-bold text-ghibli-moss mb-3">📊 Status Arte</h2>
-                    
-                    {selectedImageUrl ? (
+              {/* Status Arte Mobile - SÓ MOSTRA QUANDO HÁ IMAGEM SELECIONADA */}
+              {selectedImageUrl && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.7 }}
+                  className="mb-6"
+                >
+                  <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
+                    <CardContent className="p-4">
+                      <h2 className="text-lg font-bold text-ghibli-moss mb-3">📊 Status Arte</h2>
+                      
                       <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shrink-0"></div>
                         <span className="text-green-800 font-medium text-sm">✅ Arte selecionada e pronta!</span>
@@ -854,23 +868,10 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                           Trocar
                         </Button>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full shrink-0"></div>
-                        <span className="text-blue-800 font-medium text-sm">🎨 Escolha uma transformação AI</span>
-                        <Button
-                          size="sm"
-                          onClick={handleOpenGallery}
-                          variant="outline"
-                          className="text-xs px-3 py-1 border-blue-300 text-blue-700 hover:bg-blue-100 shrink-0 ml-auto"
-                        >
-                          Escolher
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
 
               {/* Size Selector Mobile - NEW */}
               {product.variants && product.variants.length > 1 && (
