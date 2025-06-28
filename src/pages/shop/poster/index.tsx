@@ -52,8 +52,8 @@ const PosterShopPage: React.FC = () => {
                   
                   // Get correct mockup image based on product type
                   const mockupImage = product.id === 'poster_horizontal_semi_glossy' 
-                    ? '/posterhorizontal.png'
-                    : '/postervertical.png';
+                    ? '/mockupproduto/posterhorizontal.png'
+                    : '/mockupproduto/postervertical.png';
               
               return (
                 <motion.div
@@ -173,8 +173,8 @@ const PosterShopPage: React.FC = () => {
                 
                 // Get correct mockup image based on product type
                 const mockupImage = product.id === 'poster_horizontal_semi_glossy' 
-                  ? '/posterhorizontal.png'
-                  : '/postervertical.png';
+                  ? '/mockupproduto/posterhorizontal.png'
+                  : '/mockupproduto/postervertical.png';
                 
                 return (
                   <motion.div

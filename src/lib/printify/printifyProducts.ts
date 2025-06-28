@@ -474,7 +474,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'poster_horizontal_semi_glossy': {
     id: 'poster_horizontal_semi_glossy',
     name: 'Poster Horizontal',
-    mockupInitialPath: '/posterhorizontal.png',
+    mockupInitialPath: '/mockupproduto/posterhorizontal.png',
     basePrice: 20.00,
     category: 'poster',
     // ✅ CONFIGURAÇÃO DE DESIGN: Poster com fill para cobertura completa
@@ -515,7 +515,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'poster_vertical_semi_glossy': {
     id: 'poster_vertical_semi_glossy',
     name: 'Poster Vertical',
-    mockupInitialPath: '/postervertical.png',
+    mockupInitialPath: '/mockupproduto/postervertical.png',
     basePrice: 20.00,
     category: 'poster',
     // ✅ CONFIGURAÇÃO DE DESIGN: Poster vertical com fill para cobertura completa

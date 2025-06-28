@@ -1259,7 +1259,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: 0.3 }}
-                      className="mt-6 flex justify-center px-4 lg:px-0"
+                      className="mt-6 hidden lg:flex justify-center px-4 lg:px-0"
                     >
                       <Button
                         onClick={handleOpenGallery}
