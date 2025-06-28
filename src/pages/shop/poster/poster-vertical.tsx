@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -31,7 +31,7 @@ const PosterVerticalPage: React.FC = () => {
   const product = getPrintifyProduct('poster_vertical_semi_glossy');
   const selectedVariant = product?.variants?.find(v => v.id === selectedVariantId);
 
-  // Calculate discount and prices - same logic as ceramic mug
+  // Calculate discount and prices - same as ceramic mug
   const calculateDiscount = (qty: number) => {
     if (qty >= 3) return 15;
     if (qty >= 2) return 10;
@@ -228,7 +228,7 @@ const PosterVerticalPage: React.FC = () => {
                           <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                           <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                         </div>
-                        <span className="text-ghibli-moss font-medium text-sm">✨ A personalizar o seu poster...</span>
+                        <span className="text-ghibli-moss font-medium text-sm">✨ A personalizar o seu produto...</span>
                       </div>
                     </div>
                   )}
@@ -270,7 +270,7 @@ const PosterVerticalPage: React.FC = () => {
                     {/* Size Selector */}
                     <div className="mb-4">
                       <label className="block text-sm font-bold text-ghibli-moss mb-2">
-                        �� Tamanho do Poster
+                        📋 Tamanho
                       </label>
                       <Select
                         value={selectedVariantId.toString()}
@@ -284,7 +284,7 @@ const PosterVerticalPage: React.FC = () => {
                         <SelectContent className="rounded-2xl border-2 border-ghibli-sand/40 bg-white/95 backdrop-blur-sm">
                           {product.variants?.map((variant) => (
                             <SelectItem key={variant.id} value={variant.id.toString()} className="rounded-xl focus:bg-ghibli-cream/50">
-                              📋 {variant.title} - €{variant.priceAdjustment?.toFixed(2)}
+                              📋 {variant.title}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -505,7 +505,7 @@ const PosterVerticalPage: React.FC = () => {
                           <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                           <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                         </div>
-                        <span className="text-ghibli-moss font-medium">✨ A personalizar o seu poster...</span>
+                        <span className="text-ghibli-moss font-medium">✨ A personalizar o seu produto...</span>
                       </div>
                     </div>
                   )}
@@ -546,7 +546,7 @@ const PosterVerticalPage: React.FC = () => {
                       {/* Size Selector */}
                       <div className="mb-6">
                         <label className="block text-sm font-bold text-ghibli-moss mb-3">
-                          📐 Tamanho do Poster
+                          📋 Tamanho do Poster
                         </label>
                         <Select
                           value={selectedVariantId.toString()}
@@ -554,13 +554,13 @@ const PosterVerticalPage: React.FC = () => {
                         >
                           <SelectTrigger className="w-full h-14 bg-white/90 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-2xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200">
                             <SelectValue>
-                              📋 {selectedVariant?.title} - €{selectedVariant?.priceAdjustment?.toFixed(2)}
+                              📋 {selectedVariant?.title}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent className="rounded-2xl border-2 border-ghibli-sand/40 bg-white/95 backdrop-blur-sm">
                             {product.variants?.map((variant) => (
                               <SelectItem key={variant.id} value={variant.id.toString()} className="rounded-xl focus:bg-ghibli-cream/50">
-                                📋 {variant.title} - €{variant.priceAdjustment?.toFixed(2)}
+                                📋 {variant.title}
                               </SelectItem>
                             ))}
                           </SelectContent>

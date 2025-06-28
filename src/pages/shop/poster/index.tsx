@@ -54,15 +54,15 @@ const PosterShopPage: React.FC = () => {
                   const mockupImage = product.id === 'poster_horizontal_semi_glossy' 
                     ? '/posterhorizontal.png'
                     : '/postervertical.png';
-                  
-                  return (
-                    <motion.div
+              
+              return (
+                <motion.div
                       key={productId}
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: index * 0.2 }}
                       className="w-full max-w-sm mx-auto"
-                    >
+                >
                       <Link href={`/shop/poster/${productId}`}>
                         <div className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer h-full">
                           {/* Product Image with Real Mockup */}
@@ -192,19 +192,19 @@ const PosterShopPage: React.FC = () => {
                             alt={product.name}
                             className="w-32 h-32 object-contain drop-shadow-lg"
                           />
-                          {/* Preview Badge */}
+                        {/* Preview Badge */}
                           <div className="absolute top-3 right-3 bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
-                            Preview
-                          </div>
+                          Preview
                         </div>
-                        
-                        {/* Product Info */}
+                      </div>
+                      
+                      {/* Product Info */}
                         <div className="p-5">
                           <h3 className="text-lg font-semibold text-ghibli-wood mb-2 group-hover:text-ghibli-moss transition-colors">
-                            {product.name}
-                          </h3>
-                          
-                          {/* Specifications */}
+                          {product.name}
+                        </h3>
+                        
+                        {/* Specifications */}
                           <div className="text-sm text-ghibli-earth space-y-1 mb-3">
                             <div className="flex items-center gap-2">
                               <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
@@ -230,48 +230,48 @@ const PosterShopPage: React.FC = () => {
                                 <span className="font-medium text-purple-600">Formato Vertical 📏</span>
                               </div>
                             )}
-                          </div>
-                          
-                          {/* Price */}
+                        </div>
+                        
+                        {/* Price */}
                           <div className="flex items-center justify-center">
                             <div className="text-xl font-bold text-ghibli-moss">
                               €{product.basePrice || product.price || 15.00}
-                            </div>
                           </div>
                         </div>
                       </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
-            
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+
             {/* Mobile Info Section */}
-            <motion.div 
+          <motion.div 
               className="mt-12 bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-ghibli-sand/30"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
               <h2 className="text-xl font-semibold text-ghibli-wood mb-4 text-center">
-                ✨ Porquê Escolher Posters PicTuz?
-              </h2>
+              ✨ Porquê Escolher Posters PicTuz?
+            </h2>
               <div className="grid grid-cols-3 gap-4 text-xs text-ghibli-earth">
-                <div className="text-center">
+              <div className="text-center">
                   <div className="w-12 h-12 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-2">
                     <span className="text-xl">🎨</span>
                   </div>
                   <h3 className="font-semibold mb-1 text-ghibli-wood text-sm">Máxima Qualidade</h3>
                   <p>Cores vibrantes e duradouras</p>
-                </div>
-                <div className="text-center">
+              </div>
+              <div className="text-center">
                   <div className="w-12 h-12 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-2">
                     <span className="text-xl">📐</span>
                   </div>
                   <h3 className="font-semibold mb-1 text-ghibli-wood text-sm">Formatos Versáteis</h3>
                   <p>Horizontal ou vertical</p>
-                </div>
-                <div className="text-center">
+              </div>
+              <div className="text-center">
                   <div className="w-12 h-12 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-2">
                     <span className="text-xl">🖼️</span>
                   </div>
@@ -280,7 +280,7 @@ const PosterShopPage: React.FC = () => {
                 </div>
               </div>
             </motion.div>
-          </div>
+            </div>
         </main>
         
         <Footer />
