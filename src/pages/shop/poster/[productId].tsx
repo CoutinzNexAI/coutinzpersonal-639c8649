@@ -1075,20 +1075,20 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
             </motion.div>
           </div>
 
-          {/* 🖥️ DESKTOP LAYOUT: Layout Original */}
+                    {/* 🖥️ DESKTOP LAYOUT: Layout Original */}
           <div className="hidden lg:block">
             {/* Breadcrumb */}
             <nav className="mb-8">
-              <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
-                <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
-                <li className="text-ghibli-earth/50">/</li>
-                <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
-                <li className="text-ghibli-earth/50">/</li>
-                <li className="text-ghibli-moss font-medium">{product.name}</li>
-              </ol>
-                         </nav>
+            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
+              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
+              <li className="text-ghibli-earth/50">/</li>
+              <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
+              <li className="text-ghibli-earth/50">/</li>
+              <li className="text-ghibli-moss font-medium">{product.name}</li>
+            </ol>
+          </nav>
 
-            <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
+          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
               {/* Área de Visualização */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -1300,181 +1300,247 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                 )}
               </motion.div>
 
-              {/* Painel Lateral - Sticky Sidebar */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="lg:col-span-1 order-2 lg:order-2"
-              >
-                <div className="sticky top-6 space-y-6">
-                  {/* Título e Preço */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-ghibli-sand/20">
-                    <h1 className="text-2xl lg:text-3xl font-black text-ghibli-earth mb-2 leading-tight">
-                      {product.id === 'poster_vertical_semi_glossy' ? '📋 Poster Vertical' : '📄 Poster Horizontal'}
-                    </h1>
-                    
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="text-3xl lg:text-4xl font-black text-ghibli-moss">
-                        €{discountedPrice.toFixed(2)}
-                      </div>
-                      {discount > 0 && (
-                        <div className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-                          -{discount}%
-                        </div>
-                      )}
+            {/* Painel de Controlo */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="lg:col-span-1 order-2"
+            >
+              <Card className="bg-gradient-to-br from-white to-ghibli-cream/30 backdrop-blur-sm border-ghibli-sand/30 shadow-xl hover:shadow-2xl transition-shadow duration-300 flex-1 flex flex-col">
+                
+                <ProductCardDecorations />
+                
+                <CardContent className="relative z-10 p-4 sm:p-6 space-y-3 sm:space-y-4">
+                  {/* Título + Preço + Quantidade */}
+                  <div className="pb-3 sm:pb-4 border-b border-ghibli-sand/30 space-y-4">
+                    <div className="text-center">
+                      <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-2">
+                        {product.id === 'poster_vertical_semi_glossy' ? '📋 Poster Vertical' : '📄 Poster Horizontal'}
+                      </h1>
                     </div>
 
-                    {discount > 0 && (
-                      <div className="text-sm text-gray-600 mb-4">
-                        <span className="line-through">€{basePrice.toFixed(2)}</span>
-                        <span className="text-green-600 font-semibold ml-2">
-                          Poupa €{savings.toFixed(2)}!
-                        </span>
-                      </div>
-                    )}
-
-                    <p className="text-sm text-ghibli-earth/80 leading-relaxed">
-                      Poster de <span className="font-bold text-ghibli-moss">máxima qualidade</span> com impressão premium. 
-                      Perfeito para decorar qualquer espaço com as suas criações AI.
-                    </p>
-                  </div>
-
-                  {/* Seletor de Tamanho */}
-                  {product.variants && product.variants.length > 1 && (
-                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-ghibli-sand/20">
-                      <label className="block text-lg font-bold text-ghibli-moss mb-4 flex items-center gap-2">
-                        <div className="w-2 h-2 bg-ghibli-moss rounded-full"></div>
-                        Tamanho do Poster
-                      </label>
-                      <select
-                        value={selectedPrintifyVariantId?.toString() || ''}
-                        onChange={(e) => setSelectedPrintifyVariantId(parseInt(e.target.value))}
-                        className="w-full h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium px-4 focus:border-ghibli-moss transition-all duration-200 focus:outline-none"
-                      >
-                        {product.variants?.map((variant) => (
-                          <option key={variant.id} value={variant.id.toString()}>
-                            {variant.title} ({convertInchesToCm(variant.title)})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {/* Quantidade e Descontos */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-ghibli-sand/20">
-                    <div className="flex items-center justify-between mb-4">
-                      <label className="text-lg font-bold text-ghibli-moss flex items-center gap-2">
-                        <div className="w-2 h-2 bg-ghibli-moss rounded-full"></div>
-                        Quantidade
-                      </label>
-                      <div className="flex items-center gap-2 bg-ghibli-cream/50 rounded-xl p-2">
-                        <Button
-                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                          disabled={quantity <= 1}
-                          size="sm"
-                          variant="ghost"
-                          className="h-10 w-10 p-0 rounded-lg hover:bg-ghibli-moss/10 disabled:opacity-50"
-                        >
-                          <Minus className="w-5 h-5" />
-                        </Button>
-                        
-                        <span className="min-w-[3rem] text-center font-bold text-xl text-ghibli-earth">
-                          {quantity}
-                        </span>
-                        
-                        <Button
-                          onClick={() => setQuantity(quantity + 1)}
-                          size="sm"
-                          variant="ghost"
-                          className="h-10 w-10 p-0 rounded-lg hover:bg-ghibli-moss/10"
-                        >
-                          <Plus className="w-5 h-5" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Progressão de Descontos */}
-                    <div className="space-y-2 mb-4">
-                      <div className={`flex items-center justify-between p-3 rounded-xl transition-all ${
-                        quantity >= 2 
-                          ? 'bg-green-100 border border-green-300 text-green-800' 
-                          : 'bg-gray-50 text-gray-600'
-                      }`}>
-                        <span className="font-medium">2+ posters</span>
-                        <span className="font-bold">10% OFF</span>
-                      </div>
-                      <div className={`flex items-center justify-between p-3 rounded-xl transition-all ${
-                        quantity >= 3 
-                          ? 'bg-green-100 border border-green-300 text-green-800' 
-                          : 'bg-gray-50 text-gray-600'
-                      }`}>
-                        <span className="font-medium">3+ posters</span>
-                        <span className="font-bold">15% OFF</span>
-                      </div>
-                    </div>
-
-                    {/* Total */}
-                    <div className="border-t border-ghibli-sand/30 pt-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-ghibli-earth">Total:</span>
-                        <div className="text-right">
-                          <div className="text-2xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
-                          {quantity > 1 && (
-                            <div className="text-sm text-ghibli-earth/70">
-                              {quantity} × €{discountedPrice.toFixed(2)}
+                    {/* Preço e Quantidade */}
+                    <div className="space-y-3">
+                      {/* Preço Principal */}
+                      <div className="text-center">
+                        <div className="flex items-baseline justify-center gap-2 mb-1">
+                          <span className="text-3xl sm:text-4xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
+                          {discount > 0 && (
+                            <span className="text-lg text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
+                          )}
+                          {discount > 0 && (
+                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                              -{discount}%
                             </div>
                           )}
                         </div>
+                        {discount > 0 && (
+                          <p className="text-sm text-green-600 font-medium">
+                            Poupa €{savings.toFixed(2)} com {discount}% desconto!
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Seletor de Quantidade */}
+                      <div className="bg-ghibli-cream/30 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-ghibli-earth">Quantidade:</span>
+                          <div className="flex items-center gap-2 bg-white/80 rounded-lg p-1">
+                            <Button
+                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                              disabled={quantity <= 1}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10 disabled:opacity-50"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                            
+                            <span className="min-w-[2.5rem] text-center font-bold text-ghibli-earth">
+                              {quantity}
+                            </span>
+                            
+                            <Button
+                              onClick={() => setQuantity(quantity + 1)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Mini destaques de desconto */}
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className={`text-center p-2 rounded-md transition-all ${
+                            quantity >= 2 
+                              ? 'bg-green-100 border border-green-300 text-green-800' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            <div className="font-bold">2+ posters</div>
+                            <div>10% OFF</div>
+                          </div>
+                          <div className={`text-center p-2 rounded-md transition-all ${
+                            quantity >= 3 
+                              ? 'bg-green-100 border border-green-300 text-green-800' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            <div className="font-bold">3+ posters</div>
+                            <div>15% OFF</div>
+                          </div>
+                        </div>
+
+                        {/* Total */}
+                        {quantity > 1 && (
+                          <div className="border-t border-ghibli-sand/30 pt-2 mt-3">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-ghibli-earth">Total:</span>
+                              <div className="text-right">
+                                <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
+                                <div className="text-xs text-ghibli-earth/70">
+                                  {quantity} × €{discountedPrice.toFixed(2)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Botão Adicionar ao Carrinho */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-ghibli-sand/20">
+                  {/* Status Arte */}
+                  {selectedImageUrl && (
+                    <div className="flex items-center gap-2 sm:gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                      <img src={selectedImageUrl} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover border border-green-300" alt="Arte selecionada" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-green-800 text-sm">✅ Arte Aplicada</p>
+                        <p className="text-xs text-green-600 truncate">Transformação AI pronta</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={handleOpenGallery}
+                        variant="outline"
+                        className="text-xs px-3 py-1 border-green-300 text-green-700 hover:bg-green-100 shrink-0"
+                      >
+                        Trocar
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Descrição em Tópicos */}
+                  <div className="space-y-2">
+                    <ul className="text-sm space-y-1 text-ghibli-earth/80">
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                        <span>Poster de <span className="font-bold text-ghibli-moss">máxima qualidade</span> em papel premium</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                        <span>Impressão de <span className="font-bold">altíssima resolução</span> resistente</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-wood rounded-full shrink-0"></div>
+                        <span className="font-bold text-ghibli-wood">Perfeito para decorar qualquer espaço</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Seletor/Display de Tamanho */}
+                  {product.variants && product.variants.length > 1 ? (
+                    // Se há múltiplas variantes, mostrar dropdown
+                    <div className="relative">
+                      <Select
+                        onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
+                        value={selectedPrintifyVariantId?.toString() || ''}
+                      >
+                        <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
+                            <SelectValue placeholder="Escolha o tamanho">
+                              <span className="truncate">
+                                {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o tamanho'}
+                              </span>
+                            </SelectValue>
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
+                          {product.variants?.map((variant) => (
+                            <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
+                              {variant.title} ({convertInchesToCm(variant.title)})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
+                        📋 Tamanho do Poster
+                      </label>
+                    </div>
+                  ) : (
+                    // Se há apenas 1 variante, apenas mostrar o tamanho (sem dropdown)
+                    <div className="relative p-4 bg-ghibli-cream/30 rounded-xl border border-ghibli-sand/40">
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-ghibli-moss"></div>
+                        <span className="text-ghibli-earth font-semibold">
+                          📋 Tamanhos disponíveis
+                        </span>
+                      </div>
+                                             <p className="text-center text-xs text-ghibli-earth/70 mt-1">
+                         Desde 5"x7" até 24"x36"
+                       </p>
+                     </div>
+                   )}
+
+                  {/* Botão Principal */}
+                  <div className="pt-3">
                     {isProcessingMockup ? (
-                      <div className="w-full py-4 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-xl text-center">
+                      <div className="w-full py-5 sm:py-6 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-xl lg:rounded-2xl text-center">
                         <div className="flex items-center justify-center space-x-2">
                           <div className="flex space-x-1">
                             <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce"></div>
                             <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                             <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                           </div>
-                          <span className="text-ghibli-moss font-medium text-sm">Criando o seu poster mágico...</span>
+                          <span className="text-ghibli-moss font-medium text-sm sm:text-base">Criando o seu poster mágico...</span>
                         </div>
+                        <div className="mt-2 text-xs text-ghibli-earth/70">✨ Aplicando transformação AI</div>
                       </div>
                     ) : (
                       <Button
                         onClick={handleAddToCart}
                         disabled={!canPurchase || loading}
-                        className={`group relative w-full py-4 text-lg font-bold rounded-xl shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
+                        className={`group relative w-full py-5 sm:py-6 text-base sm:text-lg font-bold rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl hover:shadow-xl sm:hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
                           canPurchase
                             ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white' 
                             : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
                         }`}
                       >
+                        {/* Shimmer effect */}
                         {canPurchase && (
                           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
                         )}
                         
-                        <span className="relative z-10 flex items-center justify-center gap-2">
+                        <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
                           {loading ? (
                             <>
-                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                               <span>A adicionar...</span>
                             </>
                           ) : !userInfo ? (
-                            <span>Faça Login para Continuar</span>
+                            <span className="text-center">Faça Login para Continuar</span>
                           ) : !selectedImageUrl ? (
-                            <span>Escolha uma Arte Primeiro</span>
+                            <span className="text-center">Escolha uma Arte Primeiro</span>
                           ) : !selectedPrintifyVariantId ? (
-                            <span>Selecione o Tamanho</span>
+                            <span className="text-center">Selecione o Tamanho</span>
                           ) : (
                             <>
-                              <span className="text-xl">🛒</span>
-                              <span>Adicionar ao Carrinho</span>
-                              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                                <ChevronRight className="w-4 h-4" />
+                              <span className="text-lg sm:text-xl">🛒</span>
+                              <span className="hidden sm:inline">Adicionar ao Carrinho</span>
+                              <span className="sm:hidden">Adicionar</span>
+                              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center">
+                                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
                               </div>
                             </>
                           )}
@@ -1483,48 +1549,40 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                     )}
                   </div>
 
-                  {/* Garantias e Informações */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-ghibli-sand/20">
-                    <h3 className="text-lg font-bold text-ghibli-moss mb-4 flex items-center gap-2">
-                      <div className="w-2 h-2 bg-ghibli-moss rounded-full"></div>
-                      Garantias de Qualidade
-                    </h3>
+                  {/* Grid de Garantias */}
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-3 sm:pt-4">
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
+                      </div>
+                      <span className="text-xs font-bold text-ghibli-earth">Material Premium</span>
+                    </div>
                     
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-ghibli-moss/10 flex items-center justify-center shrink-0">
-                          <Shield className="w-4 h-4 text-ghibli-moss" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-ghibli-earth text-sm">Material Premium</p>
-                          <p className="text-xs text-ghibli-earth/70">Papel de alta qualidade resistente</p>
-                        </div>
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-ghibli-moss/10 flex items-center justify-center shrink-0">
-                          <Sparkles className="w-4 h-4 text-ghibli-moss" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-ghibli-earth text-sm">Impressão HD</p>
-                          <p className="text-xs text-ghibli-earth/70">Resolução máxima, cores vibrantes</p>
-                        </div>
+                      <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
+                    </div>
+                    
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Truck className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-ghibli-moss/10 flex items-center justify-center shrink-0">
-                          <div className="w-4 h-4 rounded-full bg-ghibli-moss"></div>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-ghibli-earth text-sm">Entrega Rápida</p>
-                          <p className="text-xs text-ghibli-earth/70">Produção e envio em poucos dias</p>
-                        </div>
+                      <span className="text-xs font-bold text-ghibli-earth">~1 semana</span>
+                    </div>
+
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Award className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
                       </div>
+                      <span className="text-xs font-bold text-ghibli-earth">Garantia Total</span>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            </div>
+                                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
           </div>
 
           {/* TransformationGalleryModal */}
