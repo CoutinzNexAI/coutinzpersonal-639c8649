@@ -82,7 +82,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'custom_canvas': {
     id: 'custom_canvas',
     name: 'Canvas Sem Borda',
-    mockupInitialPath: '/assets/mockups/canvas/canvas_unframed_blank.png',
+    mockupInitialPath: '/mockupproduto/canva.png',
     basePrice: 20.00,
     category: 'canvas',
     // ✅ CONFIGURAÇÃO DE DESIGN: Canvas com fill e borda espelhada por padrão
@@ -96,17 +96,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 1159, // Canvas Stretched 0.75"
     printifyPrintProviderId: 105, // Jondo
     variants: [
-      // Inclui o tamanho 6"
-      { id: 101418, title: '6" x 6"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 }, // A partir de 20 euros
-      // Mantém os tamanhos 10", 12", 14", 16"
-      { id: 91656, title: '10″ x 10″', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 5.00 },
-      { id: 91657, title: '12″ x 12″', placeholderWidth: 3600, placeholderHeight: 3600, isGiftPackaging: false, priceAdjustment: 10.00 },
-      { id: 91658, title: '14" x 14"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 15.00 },
-      { id: 91659, title: '16″ x 16″', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 20.00 },
-      // Inclui 20", 24", 30" e remove o 32" se existia
-      { id: 91660, title: '20″ x 20″', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 25.00 },
-      { id: 91661, title: '24″ x 24″', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 30.00 },
-      { id: 91662, title: '30″ x 30″', placeholderWidth: 9000, placeholderHeight: 9000, isGiftPackaging: false, priceAdjustment: 35.00 },
+      { id: 101418, title: '6" x 6" (15cm x 15cm)', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 10.00 }, // €30
+      { id: 91656, title: '10″ x 10″ (25cm x 25cm)', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 20.00 }, // €40
+      { id: 91657, title: '12″ x 12″ (30cm x 30cm)', placeholderWidth: 3600, placeholderHeight: 3600, isGiftPackaging: false, priceAdjustment: 25.00 }, // €45
+      { id: 91658, title: '14" x 14" (36cm x 36cm)', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 30.00 }, // €50
+      { id: 91659, title: '16″ x 16″ (41cm x 41cm)', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 35.00 }, // €55
+      { id: 91660, title: '20″ x 20″ (51cm x 51cm)', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 50.00 }, // €70
+      { id: 91661, title: '24″ x 24″ (61cm x 61cm)', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 60.00 }, // €80
     ],
     printAreasConfig: [{
       position: 'front',
@@ -130,7 +126,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'framed_canvas': {
     id: 'framed_canvas',
     name: 'Canvas com Moldura',
-    mockupInitialPath: '/assets/mockups/canvas/canvas_framed_blank.png',
+    mockupInitialPath: '/mockupproduto/canvamoldura.png',
     basePrice: 40.00,
     category: 'canvas',
     // ✅ CONFIGURAÇÃO DE DESIGN: Canvas com moldura também usa fill e borda espelhada

@@ -418,6 +418,32 @@ export default function ProductCanvas({
       );
     }
 
+    // Para canvas, mostrar estado específico sem botão
+    if (selectedProduct.id === 'custom_canvas' || selectedProduct.id === 'framed_canvas') {
+      return (
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder image do canvas */}
+          <div className="mb-6">
+            <img
+              src={selectedProduct.mockupInitialPath}
+              alt="Canvas personalizado"
+              className="w-64 h-64 object-contain opacity-60"
+            />
+          </div>
+          
+          {/* Call to action específico para canvas - SEM BOTÃO */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Canvas de Qualidade Suprema
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Escolha uma arte e veja o seu canvas personalizado ganhar vida.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     // Para outros produtos, mostrar estado vazio genérico
     return (
       <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">

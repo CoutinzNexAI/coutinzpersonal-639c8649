@@ -340,10 +340,10 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-center mb-6"
+              className="text-center mb-6 bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-ghibli-sand/30"
             >
-              <h1 className="text-2xl sm:text-3xl font-black text-ghibli-earth mb-3">
-                {product.name}
+              <h1 className="text-2xl sm:text-3xl font-black text-ghibli-earth mb-3 drop-shadow-sm">
+                🎨 {product.name}
               </h1>
               <div className="inline-block">
                 <div className="text-4xl font-black text-ghibli-moss">
@@ -378,23 +378,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
               </div>
             </motion.div>
 
-            {/* Botão Escolher Arte - Mobile */}
-            {!selectedImageUrl && userInfo && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                className="mb-6 flex justify-center"
-              >
-                <Button
-                  onClick={handleOpenGallery}
-                  className="px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white"
-                >
-                  <Sparkles className="w-5 h-5 mr-3" />
-                  Escolher Arte
-                </Button>
-              </motion.div>
-            )}
+
 
             {/* Cards Mobile: Seletores e Informações */}
             <motion.div
@@ -592,16 +576,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
 
           {/* 🖥️ DESKTOP LAYOUT: Layout Original */}
           <div className="hidden lg:block">
-            {/* Breadcrumb */}
-            <nav className="mb-8">
-            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
-              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li className="text-ghibli-moss font-medium">{product.name}</li>
-            </ol>
-            </nav>
+
 
             <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
               {/* Left: Área de Visualização (2 colunas) */}
