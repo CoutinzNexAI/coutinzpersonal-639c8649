@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { GetStaticPaths, GetStaticProps } from 'next';
+import { GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
+import { Shield, Sparkles, ChevronRight, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,325 +12,79 @@ import { toast } from 'sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
-import ProductCanvas from '@/components/printify/ProductCanvas';
-import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
+import { getPrintifyProduct, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
-import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
-import { validatePurchase } from '@/utils/productValidation';
-import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
 
-interface PosterVerticalPageProps {
-  product: PrintifyProductMapping;
-}
-
-const PosterVerticalPage: React.FC<PosterVerticalPageProps> = ({ product: initialProduct }) => {
+const PosterVerticalPage: React.FC = () => {
   const router = useRouter();
-  const { userInfo, session } = useAuth();
+  const { userInfo } = useAuth();
   
-  const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
-  const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
-  const [mockupImageUrl, setMockupImageUrl] = useState<string | null>(null);
-  
-  // Estados para Printify
-  const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
-  const [printifyImageId, setPrintifyImageId] = useState<string>('');
-  const [printifyProductId, setPrintifyProductId] = useState<string>('');
-  const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
-
-  // ✅ NOVO: Estado para dimensões da imagem do utilizador
-  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
-
-  // ✅ POSIÇÕES DEFINIDAS: Estado para a posição da imagem (3 opções)
-  // Para poster vertical: left/center/right (movimento horizontal)
+  const [selectedSize, setSelectedSize] = useState<'A4' | 'A3'>('A4');
   const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
-
-  // ✅ GALERIA DE MOCKUPS: Guarda o array de URLs das mockups atuais
-  const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
-
-  // ✅ ÍNDICE ATIVO: Para saber qual mockup mostrar na galeria
-  const [activeMockupIndex, setActiveMockupIndex] = useState<number>(0);
-
-  // ✅ LOADING INDICATOR: Para mostrar enquanto a nova mockup é gerada
-  const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
-
-  // ✅ QUANTIDADE: Estado para a quantidade de posters
   const [quantity, setQuantity] = useState(1);
 
-  // Estados de carregamento
-  const [isProcessingMockup, setIsProcessingMockup] = useState(false);
-
-  // Calculate discount and prices
+  // Calculate discount and prices - different from ceramic mug
   const calculateDiscount = (qty: number) => {
     if (qty >= 3) return 15;
     if (qty >= 2) return 10;
     return 0;
   };
 
-  const basePrice = product?.basePrice || 20;
+  // Poster pricing: A4 = €20, A3 = €27
+  const basePrice = selectedSize === 'A4' ? 20 : 27;
   const discount = calculateDiscount(quantity);
   const discountedPrice = basePrice * (1 - discount / 100);
   const totalPrice = discountedPrice * quantity;
   const savings = (basePrice * quantity) - totalPrice;
 
-  // Função utilitária: Validação consolidada
-  const validateCanPurchase = () => {
-    if (!selectedImageUrl) return 'Escolha uma arte primeiro para personalizar o seu poster!';
-    if (!selectedImageId) return 'ID da transformação não encontrado. Selecione a imagem novamente.';
-    if (!userInfo) return 'Faça login para adicionar ao carrinho';
-    if (selectedPrintifyVariantId === null) return 'Por favor, selecione o tamanho do poster.';
-    if (!printifyProductId || !printifyImageId) return 'Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.';
-    return null;
-  };
+  const canPurchase = selectedImageUrl && selectedImageId && userInfo;
 
-  const canPurchase = !validateCanPurchase();
-
-  // Setup inicial do produto - Forçar poster vertical
-  useEffect(() => {
-    // Sempre usar o produto poster_vertical_semi_glossy
-    const foundProduct = getPrintifyProduct('poster_vertical_semi_glossy');
-    if (foundProduct && foundProduct.category === 'poster') {
-      setProduct(foundProduct);
-      if (foundProduct.variants && foundProduct.variants.length > 0) {
-        console.log('🔍 [POSTER VERTICAL DEBUG] Variantes disponíveis:', foundProduct.variants.map(v => ({ id: v.id, title: v.title })));
-        
-        const firstVariant = foundProduct.variants[0];
-        console.log('🔍 [POSTER VERTICAL DEBUG] Primeira variante selecionada:', { id: firstVariant.id, title: firstVariant.title });
-        
-        setSelectedPrintifyVariantId(firstVariant.id);
-      }
-    } else {
-      router.push('/shop');
-      toast.error('Produto não encontrado');
-    }
-  }, [router]);
-
-  // Reset estados quando a variante muda
-  useEffect(() => {
-    if (selectedImageUrl && selectedPrintifyVariantId) {
-      // Reset mockups Printify para forçar nova geração quando variante muda
-      setPrintifyPreviewUrls([]);
-      setPrintifyImageId('');
-      setPrintifyProductId('');
-    }
-  }, [selectedPrintifyVariantId]);
-
-  // Calcular defaultScale dinâmico e atualizar imageAdjustments - Adaptado para poster vertical
-  useEffect(() => {
-    if (selectedImageUrl && product && selectedPrintifyVariantId) {
-      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-      if (!selectedVariant) return;
-
-      const { placeholderWidth, placeholderHeight } = selectedVariant;
-      const userImageWidth = 1016; // Assumindo que a imagem AI é sempre quadrada
-      const userImageHeight = 1016;
-
-      // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
-      const scaleToCover = Math.max(
-        placeholderWidth / userImageWidth,
-        placeholderHeight / userImageHeight
-      );
-
-      // PASSO B: Calcula qual será a LARGURA da imagem depois de aplicar este zoom
-      const finalImageWidth = userImageWidth * scaleToCover;
-
-      // PASSO C (A TRADUÇÃO): Converte a nossa largura final para o valor de 'scale' que a Printify entende
-      const printifyScale = finalImageWidth / placeholderWidth;
-      
-      console.log('🎯 [POSTER VERTICAL FRONTEND] Cálculo de escala definitivo:', {
-        placeholderWidth,
-        placeholderHeight,
-        userImageWidth,
-        userImageHeight,
-        scaleToCover,
-        finalImageWidth,
-        printifyScale
-      });
-      
-        setImageAdjustments({
-        x: 0.5, // Mantém centrado
-        y: 0.5, // Mantém centrado
-        scale: printifyScale, // USA O VALOR TRADUZIDO!
-        rotation: 0
-        });
-    }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId]);
-
-  // ✅ DETECTAR DIMENSÕES DA IMAGEM: Quando uma imagem é selecionada
-  useEffect(() => {
-    if (selectedImageUrl) {
-      const img = new Image();
-      img.onload = () => {
-        setUserImageDimensions({ width: img.width, height: img.height });
-        console.log('📐 [POSTER VERTICAL] Dimensões da imagem detectadas:', { width: img.width, height: img.height });
-      };
-      img.onerror = () => {
-        console.error('❌ [POSTER VERTICAL] Erro ao carregar imagem para detectar dimensões');
-        // Default para imagens AI quadradas
-        setUserImageDimensions({ width: 1016, height: 1016 });
-      };
-      img.src = selectedImageUrl;
-    } else {
-      setUserImageDimensions(null);
-    }
-  }, [selectedImageUrl]);
-
-  // Função para lidar com os mockups gerados pelo ProductCanvas
-  const handlePreviewReady = useCallback((data: {
-    previewUrls: string[];
-    printifyImageId: string;
-    printifyProductId: string;
-  }) => {
-    setPrintifyPreviewUrls(data.previewUrls);
-    setPrintifyImageId(data.printifyImageId);
-    setPrintifyProductId(data.printifyProductId);
-    
-    // ✅ Inicializar galeria de mockups com todas as mockups geradas
-    if (data.previewUrls.length > 0 && currentMockupUrls.length === 0) {
-      setCurrentMockupUrls(data.previewUrls);
-      setActiveMockupIndex(0);
-    }
-    
-    console.log('✅ Printify mockups received:', data);
-  }, [currentMockupUrls]);
-
-  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida
-  // Para poster vertical: left/center/right (ajusta X)
-  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
-    if (!product) {
-      console.log('❌ Produto não encontrado');
-      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
-    }
-
-    const selectedVariant = product.variants?.find(v => v.id === variantId);
-    if (!selectedVariant) {
-      console.log('❌ Variante não encontrada');
-      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
-    }
-
-    const { placeholderWidth, placeholderHeight } = selectedVariant;
-    const { width: userImageWidth, height: userImageHeight } = imageDimensions;
-
-    // PASSO A: Calcular escala
-    const scaleToCover = Math.max(
-      placeholderWidth / userImageWidth,
-      placeholderHeight / userImageHeight
-    );
-    const finalImageWidth = userImageWidth * scaleToCover;
-    const printifyScale = finalImageWidth / placeholderWidth;
-
-    let printifyX = 0.5; // Centro padrão
-    const printifyY = 0.5; // Centro padrão
-
-    // ✅ POSTER VERTICAL: Ajustar coordenada X baseada na posição (left/center/right)
-    const scaledImageWidth = userImageWidth * scaleToCover;
-    const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
-
-    if (maxMovementX > 0) {
-      if (position === 'left') {
-        const movementX = -maxMovementX * 0.7; // 70% para a esquerda
-        printifyX = 0.5 + (movementX / placeholderWidth);
-      } else if (position === 'right') {
-        const movementX = maxMovementX * 0.7; // 70% para a direita
-        printifyX = 0.5 + (movementX / placeholderWidth);
-      }
-      // 'center' fica com printifyX = 0.5
-    }
-
-    const finalAdjustments = {
-      x: printifyX,
-      y: printifyY,
-      scale: printifyScale,
-      rotation: 0
-    };
-
-    console.log('🎯 Coordenadas calculadas para poster vertical:', {
-      position,
-      variantId,
-      scaleToCover,
-      printifyScale,
-      printifyX,
-      printifyY,
-      finalAdjustments
-    });
-
-    return finalAdjustments;
-  };
-
-  // Handler para adicionar ao carrinho
   const handleAddToCart = async () => {
-    if (!selectedImageUrl) {
-      toast.error('Escolha uma arte primeiro para personalizar o seu poster!');
-      return;
-    }
-
-    if (!product) {
-      toast.error('Produto não encontrado.');
-      return;
-    }
-
-    if (!userInfo) {
-      toast.error('Faça login para adicionar ao carrinho');
-      return;
-    }
-
-    if (selectedPrintifyVariantId === null) {
-      toast.error('Por favor, selecione um tamanho.');
-      return;
-    }
-
-    if (!printifyProductId || !printifyImageId) {
-      toast.error('Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.');
-      return;
+    if (!canPurchase) {
+      if (!userInfo) {
+        toast.error('Faça login para adicionar ao carrinho');
+        return;
+      }
+      if (!selectedImageUrl) {
+        toast.error('Escolha uma arte primeiro!');
+        return;
+      }
     }
 
     setLoading(true);
 
     try {
-      console.log('🛒 Adicionando poster vertical ao carrinho com valores:', {
-        productId: 'poster_vertical_semi_glossy',
-        printifyProductId,
-        printifyImageId,
-        printifyVariantId: selectedPrintifyVariantId,
-        selectedImageUrl,
-        selectedImageId,
-        calculatedImageAdjustments: imageAdjustments,
-      });
-
-      // Obter variante selecionada
-      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-
-      // Adicionar item ao carrinho usando o CartService
-      const cartItem = CartService.addToCart({
-        productId: 'poster_vertical_semi_glossy',
-        productName: 'Poster Vertical',
+      await CartService.addToCart({
+        productId: 'poster_vertical',
+        productName: `Poster Vertical ${selectedSize}`,
         productCategory: 'poster',
         userImageUrl: selectedImageUrl,
-        userImageId: selectedImageId,
-        price: selectedVariant?.priceAdjustment || 20,
+        userImageId: selectedImageId!,
+        price: discountedPrice,
         quantity: quantity,
         customizations: {
-          variantId: selectedPrintifyVariantId!,
-          size: selectedVariant?.title || 'Tamanho não encontrado',
-          scale: imageAdjustments?.scale || 1.05,
-          x: imageAdjustments?.x || 0.5,
-          y: imageAdjustments?.y || 0.5,
-          angle: imageAdjustments?.rotation || 0,
-          print_on_side: 'mirror',
+          variantId: selectedSize === 'A4' ? 2001 : 2002,
+          scale: 1,
+          x: imagePosition === 'left' ? 0.3 : imagePosition === 'right' ? 0.7 : 0.5,
+          y: 0.5,
+          angle: 0,
+          size: selectedSize
         },
-        imageAdjustments: imageAdjustments,
+        imageAdjustments: { x: 0.5, y: 0.5, scale: 1, rotation: 0 }
       });
 
-      console.log('✅ Item adicionado ao carrinho:', cartItem);
-      toast.success(`${quantity}x Poster Vertical adicionado ao carrinho!`);
+      const quantityText = quantity === 1 ? 'Poster adicionado' : `${quantity} posters adicionados`;
+      const totalText = savings > 0 ? ` | Total: €${totalPrice.toFixed(2)} (Poupou €${savings.toFixed(2)})` : ` | Total: €${totalPrice.toFixed(2)}`;
       
+      toast.success(`${quantityText} ao carrinho!${totalText}`);
     } catch (error) {
-      console.error('❌ Erro ao adicionar ao carrinho:', error);
+      console.error('Erro ao adicionar ao carrinho:', error);
       toast.error('Erro ao adicionar ao carrinho. Tente novamente.');
     } finally {
       setLoading(false);
@@ -339,424 +93,756 @@ const PosterVerticalPage: React.FC<PosterVerticalPageProps> = ({ product: initia
 
   const handleOpenGallery = () => {
     if (!userInfo) {
-      toast.error('Faça login para aceder à sua galeria de transformações');
+      toast.error('🎨 Entre para personalizar o seu poster', {
+        description: 'Faça login para aceder às suas transformações AI',
+        style: {
+          background: 'linear-gradient(to right, #22c55e, #16a34a)',
+          color: 'white',
+          border: 'none'
+        },
+        className: 'font-medium'
+      });
       return;
     }
     setIsGalleryModalOpen(true);
   };
 
   const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
+    setSelectedImageUrl(imageUrl);
+    setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
-    
-    if (!imageUrl) {
-      toast.error('URL da imagem transformada não encontrado.');
-      return;
-    }
-
-    // ✅ PASSO 1 - Obtém as dimensões da imagem antes de fazer upload
-    const img = new Image();
-    img.onload = function(this: HTMLImageElement) {
-      setUserImageDimensions({ width: this.width, height: this.height });
-      console.log(`📐 Dimensões da Imagem Carregadas: ${this.width}x${this.height}`);
-    };
-    img.src = imageUrl;
-
-    // --- PASSO 2: Carregar a imagem transformada para a Printify Media Library ---
-    toast.loading('A carregar arte para Printify...');
-    setLoading(true);
-
-    try {
-      const printifyUploadResponse = await fetch('/api/printify/uploads/image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageUrl: imageUrl,
-          fileName: `transformed-image-${imageId || Date.now()}.png`
-        }),
-      });
-
-      const uploadData = await printifyUploadResponse.json();
-
-      if (printifyUploadResponse.ok && uploadData.success && uploadData.imageId) {
-        setSelectedImageId(uploadData.imageId);
-        setSelectedImageUrl(uploadData.previewUrl || imageUrl);
-        
-        // Reset mockups para gerar novos
-        setPrintifyPreviewUrls([]);
-        setPrintifyImageId('');
-        setPrintifyProductId('');
-        
-        // ✅ Reset posição para centro quando nova imagem é selecionada
-        setImagePosition('center');
-        
-        toast.dismiss();
-        toast.success('Arte carregada para Printify com sucesso!');
-      } else {
-        toast.dismiss();
-        toast.error(uploadData.error || 'Erro ao carregar arte para Printify. Tente novamente.');
-        setSelectedImageId(null);
-        setSelectedImageUrl('');
-        setUserImageDimensions(null);
-      }
-    } catch (error) {
-      console.error('❌ Erro no upload da arte para Printify:', error);
-      toast.dismiss();
-      toast.error('Erro na comunicação ao carregar arte para Printify.');
-      setSelectedImageId(null);
-      setSelectedImageUrl('');
-      setUserImageDimensions(null);
-    } finally {
-      setLoading(false);
-    }
+    toast.success('Arte selecionada! Pronta para personalizar o seu poster.');
   };
-
-  if (!product) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-ghibli-moss border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-ghibli-earth">A carregar produto...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const currentPrice = product.basePrice || product.price || 0;
 
   return (
     <>
       <Head>
-        <title>Poster Vertical Personalizado - Loja PicTuz</title>
-        <meta name="description" content="Personalize o seu Poster Vertical com as suas criações AI. Impressão de máxima qualidade." />
+        <title>Poster Vertical Personalizado | PicTuz - Transformações AI Únicas</title>
+        <meta name="description" content="Personalize o seu Poster Vertical com arte AI única. Disponível em A4 e A3. Desconto progressivo a partir de 2 unidades!" />
+        <meta name="keywords" content="poster personalizado, poster vertical, arte AI, impressão personalizada, PicTuz" />
+        <meta property="og:title" content="Poster Vertical Personalizado | PicTuz" />
+        <meta property="og:description" content="Personalize o seu Poster Vertical com arte AI única. Desconto progressivo!" />
+        <meta property="og:image" content="/assets/mockups/poster/poster_vertical_blank.png" />
+        <meta property="og:type" content="product" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-ghibli-cream/95 to-ghibli-sand/30">
         <Header />
-        
-        <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-12 sm:pb-8 lg:py-8">
-          {/* Breadcrumb */}
-          <nav className="mb-8">
-            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
-              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li><Link href="/shop/poster" className="hover:text-ghibli-moss transition-colors">Posters</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li className="text-ghibli-moss font-medium">Poster Vertical</li>
-            </ol>
-          </nav>
+        <ProductCardDecorations />
 
-          {/* 📱 MOBILE LAYOUT: Título em Destaque no Topo */}
-          <div className="block lg:hidden">
-            {/* Título Mobile - Em Destaque */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
+        <main className="container mx-auto px-4 py-6 lg:py-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Mobile Layout */}
+            <div className="block lg:hidden">
+            {/* Breadcrumb Mobile */}
+            <motion.nav 
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center mb-6 px-4"
+                className="mb-4"
             >
-              <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight mb-4 tracking-tight">
-                Poster Vertical 📸
-              </h1>
-              <div className="text-4xl sm:text-5xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
-                €{currentPrice.toFixed(2)}
+              <div className="text-sm text-ghibli-earth/60">
+                <Link href="/" className="hover:text-ghibli-moss transition-colors">
+                  🏠 Início
+                </Link>
+                <span className="mx-2">•</span>
+                <Link href="/shop" className="hover:text-ghibli-moss transition-colors">
+                  🛍️ Loja
+                </Link>
+                <span className="mx-2">•</span>
+                <Link href="/shop/poster" className="hover:text-ghibli-moss transition-colors">
+                  📸 Posters
+                </Link>
+                <span className="mx-2">•</span>
+                <span className="text-ghibli-moss font-medium">Poster Vertical</span>
               </div>
-            </motion.div>
+            </motion.nav>
 
-            {/* Mockup Mobile */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-6"
-            >
-                             <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20">
-                 <ProductCanvas
-                   selectedProduct={product}
-                   userImageUrl={selectedImageUrl}
-                   userId={userInfo?.id}
-                   printifyGeneratedPreviewUrls={currentMockupUrls.length > 0 ? currentMockupUrls : printifyPreviewUrls}
-                   onPreviewReady={handlePreviewReady}
-                   onSelectImage={handleOpenGallery}
-                   imageAdjustments={imageAdjustments}
-                   onImageAdjust={setImageAdjustments}
-                   selectedPrintifyVariantId={selectedPrintifyVariantId}
-                   selectedImageId={selectedImageId}
-                 />
-               </div>
-            </motion.div>
+              {/* Title Mobile */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                className="mb-6"
+                >
+                  <h1 className="text-3xl sm:text-4xl font-bold text-ghibli-earth mb-2">
+                    <span className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-wood bg-clip-text text-transparent">
+                    📸 Poster Vertical
+                    </span>
+                  </h1>
+                </motion.div>
 
-            {/* Seleção de Arte Mobile */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="px-4 mb-6"
-            >
-              {userInfo ? (
-                <div className="text-center">
-                  <Button
-                    onClick={handleOpenGallery}
-                    className="px-6 py-3 text-base font-semibold shadow-lg transition-all duration-300 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 text-white"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Escolher Arte
-                  </Button>
-                </div>
-              ) : (
-                <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm">
-                  <CardContent className="p-4 text-center">
-                    <p className="text-ghibli-earth text-sm mb-3 font-medium">
-                      🎨 Entre para personalizar o seu poster
-                    </p>
-                    <Button
-                      className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0"
-                    >
-                      Fazer Login
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </motion.div>
-
-            {/* Sistema de Quantidade Mobile */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="px-4 mb-6"
-            >
-              <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/30 shadow-xl">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-semibold text-ghibli-wood">Quantidade:</span>
-                    <div className="flex items-center gap-3">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="h-8 w-8 p-0 border-ghibli-moss/30 hover:bg-ghibli-moss/10"
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="font-bold text-lg min-w-[2rem] text-center text-ghibli-wood">{quantity}</span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setQuantity(quantity + 1)}
-                        className="h-8 w-8 p-0 border-ghibli-moss/30 hover:bg-ghibli-moss/10"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Preços e Descontos */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-ghibli-earth">Preço unitário:</span>
-                      <span className="font-medium">€{basePrice.toFixed(2)}</span>
-                    </div>
-                    {discount > 0 && (
-                      <>
-                        <div className="flex justify-between text-green-600">
-                          <span>Desconto ({discount}%):</span>
-                          <span className="font-medium">-€{savings.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-ghibli-earth">Preço com desconto:</span>
-                          <span className="font-medium">€{discountedPrice.toFixed(2)}</span>
-                        </div>
-                      </>
-                    )}
-                    <div className="flex justify-between text-lg font-bold text-ghibli-moss border-t border-ghibli-sand/30 pt-2">
-                      <span>Total:</span>
-                      <span>€{totalPrice.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-
-          {/* 💻 DESKTOP LAYOUT */}
-          <div className="hidden lg:grid lg:grid-cols-5 lg:gap-8">
-            {/* Coluna Esquerda: 2 colunas da grid (40%) */}
-            <div className="lg:col-span-2">
+              {/* Mockup Mobile */}
               <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="grid grid-cols-1 gap-6"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="mb-6"
               >
-                {/* Mockup Principal */}
-                                 <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20 aspect-square">
-                   <ProductCanvas
-                     selectedProduct={product}
-                     userImageUrl={selectedImageUrl}
-                     userId={userInfo?.id}
-                     printifyGeneratedPreviewUrls={currentMockupUrls.length > 0 ? currentMockupUrls : printifyPreviewUrls}
-                     onPreviewReady={handlePreviewReady}
-                     onSelectImage={handleOpenGallery}
-                     imageAdjustments={imageAdjustments}
-                     onImageAdjust={setImageAdjustments}
-                     selectedPrintifyVariantId={selectedPrintifyVariantId}
-                     selectedImageId={selectedImageId}
-                   />
-                 </div>
-              </motion.div>
-            </div>
-
-            {/* Coluna Direita: 3 colunas da grid (60%) - Sidebar Sticky */}
-            <div className="lg:col-span-3">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="sticky top-8"
-              >
-                <Card className="bg-gradient-to-br from-white to-ghibli-cream/30 backdrop-blur-sm border-ghibli-sand/30 shadow-2xl">
-                  <CardContent className="p-8 space-y-8">
-                    {/* Header */}
-                    <div className="text-center pb-6 border-b border-ghibli-sand/30">
-                      <h1 className="text-3xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent mb-3">
-                        Poster Vertical 📸
-                      </h1>
-                      <div className="text-5xl font-black text-ghibli-moss mb-2">
-                        €{currentPrice.toFixed(2)}
+                <div className="relative bg-white rounded-2xl shadow-xl border border-ghibli-sand/30 overflow-hidden">
+                  <div className="h-80 relative flex items-center justify-center p-6">
+                    {selectedImageUrl ? (
+                      <div className="relative">
+                        <img
+                          src="/assets/mockups/poster/poster_vertical_blank.png"
+                          alt="Poster vertical personalizado"
+                          className="w-32 h-48 object-contain"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <img
+                            src={selectedImageUrl}
+                            alt="Arte selecionada"
+                            className={`w-24 h-36 object-cover rounded opacity-70 ${
+                              imagePosition === 'left' ? 'transform -translate-x-2' :
+                              imagePosition === 'right' ? 'transform translate-x-2' : ''
+                            }`}
+                          />
+                        </div>
                       </div>
-                      <p className="text-ghibli-earth">Impressão de máxima qualidade</p>
+                    ) : (
+                      <div className="w-32 h-48 bg-gradient-to-br from-ghibli-cream/50 to-ghibli-sand/30 rounded-lg border-2 border-dashed border-ghibli-sand flex items-center justify-center">
+                      <img
+                        src="/assets/mockups/poster/poster_vertical_blank.png"
+                        alt="Poster vertical personalizado"
+                          className="w-28 h-44 object-contain opacity-60"
+                      />
                     </div>
+                    )}
+                  </div>
 
-                    {/* Arte Selection */}
-                    <div>
-                      {userInfo ? (
-                        <div className="text-center">
-                                                     <Button
-                             onClick={handleOpenGallery}
-                             className="px-8 py-4 text-lg font-bold shadow-lg transition-all duration-300 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 text-white hover:scale-105"
-                           >
-                             <Sparkles className="w-5 h-5 mr-2" />
-                             Escolher Arte
-                           </Button>
+                  {loading && (
+                    <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="flex space-x-1 justify-center mb-2">
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                         </div>
-                      ) : (
-                        <Card className="bg-ghibli-moss/10 border-ghibli-moss/30">
-                          <CardContent className="p-6 text-center">
-                            <p className="text-ghibli-earth mb-4 font-medium">
-                              🎨 Entre para personalizar o seu poster
-                            </p>
-                            <Button className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white">
-                              Fazer Login
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      )}
+                        <span className="text-ghibli-moss font-medium text-sm">✨ A personalizar o seu poster...</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+
+              {/* Position Controls Mobile */}
+              {selectedImageUrl && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="mb-6"
+                >
+                  <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
+                    <CardContent className="p-4">
+                      <label className="block text-sm font-bold text-ghibli-moss mb-3">
+                        📍 Posição da Arte
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(['left', 'center', 'right'] as const).map((position) => (
+                          <Button
+                            key={position}
+                            variant={imagePosition === position ? "default" : "outline"}
+                            onClick={() => setImagePosition(position)}
+                            className={`h-12 text-sm ${
+                              imagePosition === position 
+                                ? 'bg-ghibli-moss text-white border-ghibli-moss' 
+                                : 'border-ghibli-sand/60 hover:bg-ghibli-cream/50'
+                            }`}
+                          >
+                            {position === 'left' ? '⬅️ Esquerda' : 
+                             position === 'center' ? '🎯 Centro' : '➡️ Direita'}
+                          </Button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Price and Quantity Card Mobile */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mb-6"
+                >
+                  <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40 overflow-hidden">
+                    <CardContent className="p-4">
+                    {/* Price and Discount */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            {discount > 0 && (
+                              <span className="text-lg text-ghibli-earth/60 line-through">
+                                €{basePrice.toFixed(2)}
+                              </span>
+                            )}
+                            <span className="text-4xl sm:text-5xl font-bold text-ghibli-moss">
+                              €{discountedPrice.toFixed(2)}
+                            </span>
+                          </div>
+                          <p className="text-sm text-ghibli-earth/70">por poster • {selectedSize}</p>
+                        </div>
+                        
+                        {discount > 0 && (
+                          <div className="bg-gradient-to-br from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                            -{discount}%
+                          </div>
+                        )}
+                      </div>
+
+                    {/* Size Selector */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold text-ghibli-moss mb-2">
+                        📏 Tamanho
+                      </label>
+                      <Select
+                        value={selectedSize}
+                        onValueChange={(value) => setSelectedSize(value as 'A4' | 'A3')}
+                      >
+                        <SelectTrigger className="w-full h-12 bg-white/90 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-2xl hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 text-ghibli-earth font-medium">
+                          <SelectValue>
+                            {selectedSize === 'A4' ? '📏 A4 - 21x30cm' : '📏 A3 - 30x42cm'}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-2 border-ghibli-sand/40 bg-white/95 backdrop-blur-sm">
+                          <SelectItem value="A4" className="rounded-xl focus:bg-ghibli-cream/50">📏 A4 - 21x30cm</SelectItem>
+                          <SelectItem value="A3" className="rounded-xl focus:bg-ghibli-cream/50">📏 A3 - 30x42cm</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    {/* Sistema de Quantidade e Descontos */}
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-semibold text-ghibli-wood">Quantidade:</span>
-                        <div className="flex items-center gap-4">
+                    {/* Quantity Selector */}
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-ghibli-earth font-medium">Quantidade:</span>
+                        <div className="flex items-center gap-3">
                           <Button
-                            size="lg"
                             variant="outline"
+                            size="sm"
                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            className="h-10 w-10 p-0 border-ghibli-moss/30 hover:bg-ghibli-moss/10"
+                            className="h-8 w-8 p-0 border-ghibli-sand hover:bg-ghibli-cream/50"
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
-                          <span className="font-bold text-2xl min-w-[3rem] text-center text-ghibli-wood">{quantity}</span>
+                          <span className="text-xl font-bold text-ghibli-moss min-w-[3rem] text-center">
+                            {quantity}
+                          </span>
                           <Button
-                            size="lg"
                             variant="outline"
+                            size="sm"
                             onClick={() => setQuantity(quantity + 1)}
-                            className="h-10 w-10 p-0 border-ghibli-moss/30 hover:bg-ghibli-moss/10"
+                            className="h-8 w-8 p-0 border-ghibli-sand hover:bg-ghibli-cream/50"
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
 
-                      {/* Descontos Progressivos */}
-                      {quantity < 2 ? (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <p className="text-blue-800 text-sm">
-                            💡 <strong>Dica:</strong> Compre 2+ posters e poupe 10% | 3+ posters e poupe 15%
-                          </p>
+                    {/* Discount Highlights */}
+                      <div className="space-y-2 mb-4">
+                        <div className={`p-2 rounded-lg border-2 transition-all ${
+                          quantity >= 2 
+                            ? 'bg-green-50 border-green-200 text-green-800' 
+                            : 'bg-ghibli-cream/30 border-ghibli-sand/40 text-ghibli-earth/70'
+                        }`}>
+                          <span className="text-sm font-medium">🎯 2+ posters: 10% OFF</span>
                         </div>
-                      ) : (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                          <p className="text-green-800 text-sm font-medium">
-                            🎉 Está a poupar {discount}% nesta compra!
-                          </p>
+                        <div className={`p-2 rounded-lg border-2 transition-all ${
+                          quantity >= 3 
+                            ? 'bg-green-50 border-green-200 text-green-800' 
+                            : 'bg-ghibli-cream/30 border-ghibli-sand/40 text-ghibli-earth/70'
+                        }`}>
+                          <span className="text-sm font-medium">🔥 3+ posters: 15% OFF</span>
                         </div>
-                      )}
+                      </div>
 
-                      {/* Resumo de Preços */}
-                      <div className="space-y-3 text-base">
-                        <div className="flex justify-between">
-                          <span className="text-ghibli-earth">Preço unitário:</span>
-                          <span className="font-medium">€{basePrice.toFixed(2)}</span>
-                        </div>
-                        {discount > 0 && (
-                          <>
-                            <div className="flex justify-between text-green-600">
-                              <span>Desconto ({discount}%):</span>
-                              <span className="font-medium">-€{savings.toFixed(2)}</span>
+                      {/* Total */}
+                      <div className="border-t border-ghibli-sand/40 pt-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-bold text-ghibli-earth">Total:</span>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-ghibli-moss">
+                              €{totalPrice.toFixed(2)}
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-ghibli-earth">Preço com desconto:</span>
-                              <span className="font-medium">€{discountedPrice.toFixed(2)}</span>
+                            {savings > 0 && (
+                            <div className="text-green-600 font-medium">
+                                Poupou €{savings.toFixed(2)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+
+              {/* Choose Art Button Mobile */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mb-6"
+              >
+                <Button
+                  onClick={handleOpenGallery}
+                  className="group relative w-full py-4 sm:py-5 text-base sm:text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 bg-gradient-to-br from-ghibli-wood via-ghibli-wood-light to-ghibli-wood hover:from-ghibli-wood-light hover:via-ghibli-wood hover:to-ghibli-wood-light text-white"
+                >
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
+                  
+                  <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
+                    <span className="text-xl sm:text-2xl">🎨</span>
+                    <span>Trocar Arte</span>
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center">
+                      <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </div>
+                  </span>
+                </Button>
+              </motion.div>
+
+              {/* Add to Cart Button Mobile */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="mb-8"
+              >
+                {loading ? (
+                  <div className="w-full py-5 sm:py-6 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-xl text-center">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                        <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      </div>
+                      <span className="text-ghibli-moss font-medium text-sm sm:text-base">Criando o seu poster mágico...</span>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={handleAddToCart}
+                    disabled={!canPurchase || loading}
+                    className={`group relative w-full py-5 sm:py-6 text-base sm:text-lg font-bold rounded-xl shadow-lg sm:shadow-xl hover:shadow-xl sm:hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
+                      canPurchase
+                        ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white' 
+                        : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                    }`}
+                  >
+                    {canPurchase && (
+                      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
+                    )}
+                    
+                    <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
+                      {loading ? (
+                        <>
+                          <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>A adicionar...</span>
+                        </>
+                      ) : !userInfo ? (
+                        <span className="text-center">Faça Login para Continuar</span>
+                      ) : !selectedImageUrl ? (
+                        <span className="text-center">Escolha uma Arte Primeiro</span>
+                      ) : (
+                        <>
+                          <span className="text-lg sm:text-xl">🛒</span>
+                          <span className="hidden sm:inline">
+                            {quantity === 1 ? 'Adicionar ao Carrinho' : `Adicionar ${quantity} Posters`}
+                          </span>
+                          <span className="sm:hidden">
+                            {quantity === 1 ? 'Adicionar' : `Adicionar ${quantity}`}
+                          </span>
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center">
+                            <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </div>
+                        </>
+                      )}
+                    </span>
+                  </Button>
+                )}
+              </motion.div>
+            </div>
+
+            {/* Desktop Layout */}
+            <div className="hidden lg:grid lg:grid-cols-2 gap-12">
+              {/* Left Column: Mockup */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="order-2 lg:order-1"
+              >
+                {/* Breadcrumb Desktop */}
+                <motion.nav 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6"
+                >
+                  <div className="text-sm text-ghibli-earth/60">
+                    <Link href="/" className="hover:text-ghibli-moss transition-colors">
+                      🏠 Início
+                    </Link>
+                    <span className="mx-2">•</span>
+                    <Link href="/shop" className="hover:text-ghibli-moss transition-colors">
+                      🛍️ Loja
+                    </Link>
+                    <span className="mx-2">•</span>
+                    <Link href="/shop/poster" className="hover:text-ghibli-moss transition-colors">
+                      📸 Posters
+                    </Link>
+                    <span className="mx-2">•</span>
+                    <span className="text-ghibli-moss font-medium">Poster Vertical</span>
+                  </div>
+                </motion.nav>
+
+                {/* Mockup Desktop */}
+                <div className="relative bg-white rounded-2xl shadow-xl border border-ghibli-sand/30 overflow-hidden">
+                  <div className="aspect-square relative flex items-center justify-center p-8">
+                    {selectedImageUrl ? (
+                      <div className="relative">
+                        <img
+                          src="/assets/mockups/poster/poster_vertical_blank.png"
+                          alt="Poster vertical personalizado"
+                          className="w-48 h-72 object-contain"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <img
+                            src={selectedImageUrl}
+                            alt="Arte selecionada"
+                            className={`w-36 h-54 object-cover rounded opacity-70 ${
+                              imagePosition === 'left' ? 'transform -translate-x-4' :
+                              imagePosition === 'right' ? 'transform translate-x-4' : ''
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-48 h-72 bg-gradient-to-br from-ghibli-cream/50 to-ghibli-sand/30 rounded-lg border-2 border-dashed border-ghibli-sand flex items-center justify-center">
+                        <img
+                          src="/assets/mockups/poster/poster_vertical_blank.png"
+                          alt="Poster vertical personalizado"
+                          className="w-44 h-66 object-contain opacity-60"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {loading && (
+                    <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="flex space-x-1 justify-center mb-2">
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        </div>
+                        <span className="text-ghibli-moss font-medium">✨ A personalizar o seu poster...</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+
+              {/* Right Column: Product Details */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="order-1 lg:order-2 space-y-6"
+              >
+                {/* Title Desktop */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <h1 className="text-4xl lg:text-5xl font-bold text-ghibli-earth mb-4">
+                    <span className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-wood bg-clip-text text-transparent">
+                      📸 Poster Vertical
+                    </span>
+                  </h1>
+                  <p className="text-lg text-ghibli-earth/80 leading-relaxed">
+                    Transforme as suas memórias em <span className="font-bold text-ghibli-moss">arte personalizada</span> num poster vertical premium. Disponível em dois tamanhos perfeitos para qualquer espaço.
+                  </p>
+                </motion.div>
+
+                {/* Position Controls Desktop */}
+                {selectedImageUrl && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
+                      <CardContent className="p-6">
+                        <label className="block text-sm font-bold text-ghibli-moss mb-4">
+                          📍 Posição da Arte no Poster
+                        </label>
+                        <div className="grid grid-cols-3 gap-3">
+                          {(['left', 'center', 'right'] as const).map((position) => (
+                            <Button
+                              key={position}
+                              variant={imagePosition === position ? "default" : "outline"}
+                              onClick={() => setImagePosition(position)}
+                              className={`h-14 text-base ${
+                                imagePosition === position 
+                                  ? 'bg-ghibli-moss text-white border-ghibli-moss' 
+                                  : 'border-ghibli-sand/60 hover:bg-ghibli-cream/50'
+                              }`}
+                            >
+                              {position === 'left' ? '⬅️ Esquerda' : 
+                               position === 'center' ? '🎯 Centro' : '➡️ Direita'}
+                            </Button>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+
+                {/* Desktop price and controls card */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
+                    <CardContent className="p-6">
+                      {/* Size Selector */}
+                      <div className="mb-6">
+                        <label className="block text-sm font-bold text-ghibli-moss mb-3">
+                          📏 Tamanho do Poster
+                        </label>
+                        <Select
+                          value={selectedSize}
+                          onValueChange={(value) => setSelectedSize(value as 'A4' | 'A3')}
+                        >
+                          <SelectTrigger className="w-full h-14 bg-white/90 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-2xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200">
+                            <SelectValue>
+                              {selectedSize === 'A4' ? '📏 A4 - 21x30cm (clássico)' : '📏 A3 - 30x42cm (grande)'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl border-2 border-ghibli-sand/40 bg-white/95 backdrop-blur-sm">
+                            <SelectItem value="A4" className="rounded-xl focus:bg-ghibli-cream/50">📏 A4 - 21x30cm (clássico)</SelectItem>
+                            <SelectItem value="A3" className="rounded-xl focus:bg-ghibli-cream/50">📏 A3 - 30x42cm (grande)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Prices and Discount */}
+                      <div className="mb-6">
+                        <div className="flex items-center gap-4 mb-2">
+                          {discount > 0 && (
+                            <span className="text-xl text-ghibli-earth/60 line-through">
+                              €{basePrice.toFixed(2)}
+                            </span>
+                          )}
+                          <span className="text-3xl font-bold text-ghibli-moss">
+                            €{discountedPrice.toFixed(2)}
+                          </span>
+                          {discount > 0 && (
+                            <span className="bg-gradient-to-br from-red-500 to-red-600 text-white px-2 py-1 rounded-full text-sm font-bold">
+                              -{discount}%
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-ghibli-earth/70">por poster • Tamanho {selectedSize}</p>
+                      </div>
+
+                      {/* Discount Cards */}
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                        <div className={`p-3 rounded-xl border-2 text-center transition-all ${
+                          quantity >= 2 
+                            ? 'bg-green-50 border-green-200 text-green-800' 
+                            : 'bg-ghibli-cream/30 border-ghibli-sand/40 text-ghibli-earth/70'
+                        }`}>
+                          <div className="text-lg font-bold">🎯 10% OFF</div>
+                          <div className="text-sm">2+ posters</div>
+                        </div>
+                        <div className={`p-3 rounded-xl border-2 text-center transition-all ${
+                          quantity >= 3 
+                            ? 'bg-green-50 border-green-200 text-green-800' 
+                            : 'bg-ghibli-cream/30 border-ghibli-sand/40 text-ghibli-earth/70'
+                        }`}>
+                          <div className="text-lg font-bold">🔥 15% OFF</div>
+                          <div className="text-sm">3+ posters</div>
+                        </div>
+                      </div>
+
+                      {/* Quantity */}
+                      <div className="flex items-center justify-between mb-6">
+                        <span className="text-ghibli-earth font-medium">Quantidade:</span>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                            className="h-10 w-10 p-0 border-ghibli-sand hover:bg-ghibli-cream/50"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="text-2xl font-bold text-ghibli-moss min-w-[4rem] text-center">
+                            {quantity}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setQuantity(quantity + 1)}
+                            className="h-10 w-10 p-0 border-ghibli-sand hover:bg-ghibli-cream/50"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Total */}
+                      <div className="border-t border-ghibli-sand/40 pt-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xl font-bold text-ghibli-earth">Total:</span>
+                          <div className="text-right">
+                            <div className="text-3xl font-bold text-ghibli-moss">
+                              €{totalPrice.toFixed(2)}
+                            </div>
+                            {savings > 0 && (
+                              <div className="text-green-600 font-medium">
+                                Poupou €{savings.toFixed(2)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+
+                {/* Choose Art Button Desktop */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <Button
+                    onClick={handleOpenGallery}
+                    className="group relative w-full py-6 text-xl font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 bg-gradient-to-br from-ghibli-wood via-ghibli-wood-light to-ghibli-wood hover:from-ghibli-wood-light hover:via-ghibli-wood hover:to-ghibli-wood-light text-white"
+                  >
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
+                    
+                    <span className="relative z-10 flex items-center justify-center gap-3">
+                      <span className="text-2xl">🎨</span>
+                      <span>Trocar Arte</span>
+                      <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                        <ChevronRight className="w-4 h-4" />
+                          </div>
+                    </span>
+                  </Button>
+                </motion.div>
+
+                {/* Add to Cart Button Desktop */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  {loading ? (
+                    <div className="w-full py-6 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-2xl text-center">
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        </div>
+                        <span className="text-ghibli-moss font-medium text-lg">Criando o seu poster mágico...</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={handleAddToCart}
+                      disabled={!canPurchase || loading}
+                      className={`group relative w-full py-6 text-xl font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
+                        canPurchase
+                          ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white' 
+                          : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                      }`}
+                    >
+                      {canPurchase && (
+                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
+                      )}
+                      
+                      <span className="relative z-10 flex items-center justify-center gap-3">
+                        {loading ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>A adicionar...</span>
+                          </>
+                        ) : !userInfo ? (
+                          <span>Faça Login para Continuar</span>
+                        ) : !selectedImageUrl ? (
+                          <span>Escolha uma Arte Primeiro</span>
+                        ) : (
+                          <>
+                            <span className="text-xl">🛒</span>
+                            <span>{quantity === 1 ? 'Adicionar ao Carrinho' : `Adicionar ${quantity} Posters`}</span>
+                            <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                              <ChevronRight className="w-4 h-4" />
                             </div>
                           </>
                         )}
-                        <div className="flex justify-between text-xl font-bold text-ghibli-moss border-t border-ghibli-sand/30 pt-3">
-                          <span>Total:</span>
-                          <span>€{totalPrice.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    </div>
+                      </span>
+                    </Button>
+                  )}
+                </motion.div>
 
-                    {/* Garantias */}
-                    <div className="grid grid-cols-3 gap-4 py-6 border-t border-ghibli-sand/30">
-                      <div className="text-center">
-                        <div className="w-12 h-12 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Shield className="w-6 h-6 text-ghibli-moss" />
-                        </div>
-                        <p className="text-xs text-ghibli-earth font-medium">Qualidade Garantida</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="w-12 h-12 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Truck className="w-6 h-6 text-ghibli-moss" />
-                        </div>
-                        <p className="text-xs text-ghibli-earth font-medium">Envio Rápido</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="w-12 h-12 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Award className="w-6 h-6 text-ghibli-moss" />
-                        </div>
-                        <p className="text-xs text-ghibli-earth font-medium">Impressão Premium</p>
-                      </div>
-                    </div>
+                {/* Description Desktop */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <Card className="bg-white/80 backdrop-blur-sm border-ghibli-sand/40">
+                    <CardContent className="p-6">
+                      <h3 className="text-lg font-bold text-ghibli-moss mb-4">📸 Sobre este Poster</h3>
+                      
+                      <ul className="space-y-3 text-ghibli-earth/80">
+                        <li className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full shrink-0"></div>
+                          <span>Poster de <span className="font-bold text-ghibli-moss">qualidade premium</span> resistente</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full shrink-0"></div>
+                          <span>Impressão duradoura e <span className="font-bold">cores vibrantes</span></span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-ghibli-wood rounded-full shrink-0"></div>
+                          <span className="font-bold text-ghibli-wood">Perfeito para decorar qualquer espaço</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full shrink-0"></div>
+                          <span>Disponível em <span className="font-bold text-ghibli-moss">A4 e A3</span></span>
+                        </li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </motion.div>
 
-                    {/* Botão de Compra */}
-                                         <Button
-                       onClick={handleAddToCart}
-                       disabled={!canPurchase}
-                       className={`w-full py-4 text-lg font-bold rounded-xl shadow-lg transition-all duration-300 transform ${
-                         canPurchase 
-                           ? 'bg-gradient-to-r from-ghibli-moss via-ghibli-wood to-ghibli-moss hover:shadow-2xl hover:scale-[1.02] text-white' 
-                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                       }`}
-                     >
-                       {canPurchase 
-                         ? `Adicionar ao Carrinho • €${totalPrice.toFixed(2)}` 
-                         : 'Escolha uma arte primeiro'
-                       }
-                     </Button>
-                  </CardContent>
-                </Card>
+                {/* Guarantees Desktop */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="group p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Shield className="w-5 h-5 text-ghibli-moss" />
+                      </div>
+                      <span className="text-sm font-bold text-ghibli-earth">Impressão Premium</span>
+                    </div>
+                    
+                    <div className="group p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Sparkles className="w-5 h-5 text-ghibli-moss" />
+                      </div>
+                      <span className="text-sm font-bold text-ghibli-earth">Cores Vibrantes</span>
+                    </div>
+                  </div>
+                </motion.div>
               </motion.div>
             </div>
           </div>
@@ -776,18 +862,8 @@ const PosterVerticalPage: React.FC<PosterVerticalPageProps> = ({ product: initia
 
 // Para garantir que a página seja gerada estaticamente
 export const getStaticProps: GetStaticProps = async () => {
-  const product = getPrintifyProduct('poster_vertical_semi_glossy');
-  
-  if (!product || product.category !== 'poster') {
-    return {
-      notFound: true
-    };
-  }
-
   return {
-    props: {
-      product
-    }
+    props: {}
   };
 };
 
