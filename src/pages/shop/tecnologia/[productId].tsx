@@ -1006,16 +1006,16 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
           <div className="hidden lg:block">
             {/* Breadcrumb */}
             <nav className="mb-8">
-              <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
-                <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
-                <li className="text-ghibli-earth/50">/</li>
-                <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
-                <li className="text-ghibli-earth/50">/</li>
-                <li className="text-ghibli-moss font-medium">{product.name}</li>
-              </ol>
-            </nav>
+            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
+              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
+              <li className="text-ghibli-earth/50">/</li>
+              <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
+              <li className="text-ghibli-earth/50">/</li>
+              <li className="text-ghibli-moss font-medium">{product.name}</li>
+            </ol>
+          </nav>
 
-            <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
+          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
             {/* 📱 MOBILE: Mockup + Botão PRIMEIRO (ordem 1) */}
             {/* 🖥️ DESKTOP: Área de visualização à esquerda (ordem 1) */}
             <motion.div
@@ -1202,19 +1202,19 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     
                     {/* Preço principal */}
                     <div className="space-y-1">
-                      <div className="inline-block">
+                    <div className="inline-block">
                         <div className="text-2xl sm:text-3xl font-black text-ghibli-moss">
                           €{discountedPrice.toFixed(2)}
-                        </div>
+                      </div>
                         {discount > 0 && (
                           <div className="flex items-center justify-center gap-2 text-xs">
                             <span className="line-through text-ghibli-earth/50">€{basePrice.toFixed(2)}</span>
                             <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">
                               -{discount}%
                             </span>
-                          </div>
-                        )}
                       </div>
+                        )}
+                    </div>
                       
                       {/* Quantidade */}
                       <div className="flex items-center justify-center gap-2 mt-2">

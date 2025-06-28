@@ -54,7 +54,7 @@ const CanvasShopPage: React.FC = () => {
                   const mockupImage = product.id === 'framed_canvas' 
                     ? '/mockupproduto/canvamoldura.png'
                     : '/mockupproduto/canva.png';
-                  
+              
               return (
                 <motion.div
                   key={productId}
