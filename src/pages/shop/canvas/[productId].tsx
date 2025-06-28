@@ -157,6 +157,30 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
     }
   }, [selectedImageUrl, product, selectedPrintifyVariantId, imageAdjustments]);
 
+  // Estados para Quantity e Discounts (como mugs)
+  const [quantity, setQuantity] = useState(1);
+
+  // Cálculo de preços com descontos como mugs
+  const calculateDiscount = (qty: number) => {
+    if (qty >= 3) return 15;
+    if (qty >= 2) return 10;
+    return 0;
+  };
+
+  const getBasePrice = () => {
+    const basePrice = product?.basePrice || product?.price || 0;
+    const variantAdjustment = product?.variants?.find(v => v.id === selectedPrintifyVariantId)?.priceAdjustment || 0;
+    return basePrice + variantAdjustment;
+  };
+
+  const basePrice = getBasePrice();
+  const discount = calculateDiscount(quantity);
+  const discountedPrice = basePrice * (1 - discount / 100);
+  const savings = (basePrice - discountedPrice) * quantity;
+  const totalPrice = discountedPrice * quantity;
+  const canPurchase = !!selectedImageUrl && !!selectedImageId && !!userInfo && selectedPrintifyVariantId !== null && !!printifyProductId && !!printifyImageId;
+  const isProcessingMockup = !printifyPreviewUrls.length && selectedImageUrl;
+
   // Handlers simplificados
   const handlePreviewReady = useCallback((data: {
     previewUrls: string[];
@@ -196,8 +220,8 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
         productCategory: product!.category || 'canvas',
         userImageUrl: selectedImageUrl,
         userImageId: selectedImageId!,
-        price: (product!.basePrice || product!.price || 0) + (product!.variants?.find(v => v.id === selectedPrintifyVariantId)?.priceAdjustment || 0),
-        quantity: 1,
+        price: discountedPrice,
+        quantity: quantity,
         customizations: {
           ...customizations,
           variantId: selectedPrintifyVariantId!, // Obrigatório agora
@@ -259,9 +283,7 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
     }
   };
 
-  // Condições auxiliares para botão
-  const isProcessingMockup = (!printifyProductId || !printifyImageId) && selectedImageUrl;
-  const canPurchase = selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo;
+  // Condições auxiliares para botão - removidas duplicadas
 
   // Função para obter opções disponíveis (Canvas com Moldura)
   const getAvailableColors = () => {
@@ -310,27 +332,37 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-2 sm:px-4 pt-16 pb-6 sm:pt-12 sm:pb-8 lg:py-8">
-          {/* Breadcrumb - Hidden on mobile */}
-          <nav className="mb-4 lg:mb-8 hidden sm:block">
-            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
-              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li className="text-ghibli-moss font-medium">{product.name}</li>
-            </ol>
-            </nav>
-
-          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
-            {/* Área de Visualização */}
+        <main className="container mx-auto px-4 py-8 lg:py-16">
+          {/* 📱 MOBILE LAYOUT: Stack vertical completo */}
+          <div className="lg:hidden">
+            {/* Título e Preço destacados */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="lg:col-span-2 order-1"
+              className="text-center mb-6"
             >
-              <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[700px] bg-white rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl overflow-hidden mb-4 lg:mb-6 border border-ghibli-sand/20">
+              <h1 className="text-2xl sm:text-3xl font-black text-ghibli-earth mb-3">
+                {product.name}
+              </h1>
+              <div className="inline-block">
+                <div className="text-4xl font-black text-ghibli-moss">
+                  €{currentPrice.toFixed(2)}
+                </div>
+                <div className="text-xs text-ghibli-earth/60 font-medium">
+                  IVA incluído
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Mockup Mobile */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="mb-6"
+            >
+              <div className="relative w-full h-[400px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20">
                 <ProductCanvas
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
@@ -344,45 +376,289 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                   selectedImageId={selectedImageId}
                 />
               </div>
+            </motion.div>
 
-              {/* Botão "Escolher Arte" */}
+            {/* Botão Escolher Arte - Mobile */}
+            {!selectedImageUrl && userInfo && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
-                className="flex justify-center px-4 lg:px-0"
+                className="mb-6 flex justify-center"
               >
                 <Button
                   onClick={handleOpenGallery}
+                  className="px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white"
+                >
+                  <Sparkles className="w-5 h-5 mr-3" />
+                  Escolher Arte
+                </Button>
+              </motion.div>
+            )}
+
+            {/* Cards Mobile: Seletores e Informações */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="space-y-4"
+            >
+              {/* Status Arte Mobile */}
+              {selectedImageUrl && (
+                <Card className="bg-gradient-to-br from-white to-ghibli-cream/30 backdrop-blur-sm border-ghibli-sand/30 shadow-lg">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <img src={selectedImageUrl} className="w-12 h-12 rounded-lg object-cover border border-green-300" alt="Arte selecionada" />
+                      <div className="flex-1">
+                        <p className="font-semibold text-green-800">✅ Arte Aplicada</p>
+                        <p className="text-xs text-green-600">Transformação AI pronta</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={handleOpenGallery}
+                        variant="outline"
+                        className="text-xs px-3 py-1 border-green-300 text-green-700 hover:bg-green-100"
+                      >
+                        Trocar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Card Seletor de Tamanho/Opções - Mobile */}
+              <Card className="bg-gradient-to-br from-white to-ghibli-cream/30 backdrop-blur-sm border-ghibli-sand/30 shadow-lg">
+                <CardContent className="p-4 space-y-4">
+                  {product.id === 'framed_canvas' ? (
+                    <>
+                      <div>
+                        <label className="block text-sm font-bold text-ghibli-moss mb-2">🎨 Cor da Moldura</label>
+                        <Select onValueChange={setSelectedFrameColor} value={selectedFrameColor || ''}>
+                          <SelectTrigger className="w-full h-12 bg-white/80 border-2 border-ghibli-sand/40 rounded-xl">
+                            <SelectValue placeholder="Escolha a cor">
+                              {selectedFrameColor === 'Espresso' ? 'Castanho' : selectedFrameColor || 'Escolha a cor'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getAvailableColors().map((color) => (
+                              <SelectItem key={color} value={color}>
+                                {color === 'Espresso' ? 'Castanho' : color === 'Black' ? 'Preto' : color === 'White' ? 'Branco' : color}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-ghibli-moss mb-2">📏 Tamanho</label>
+                        <Select onValueChange={setSelectedSizeLabel} value={selectedSizeLabel || ''}>
+                          <SelectTrigger className="w-full h-12 bg-white/80 border-2 border-ghibli-sand/40 rounded-xl">
+                            <SelectValue placeholder="Escolha o tamanho" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getAvailableSizes().map((size) => (
+                              <SelectItem key={size} value={size}>{size}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-bold text-ghibli-moss mb-2">📏 Tamanho do Canvas</label>
+                      <Select
+                        onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
+                        value={selectedPrintifyVariantId?.toString() || ''}
+                      >
+                        <SelectTrigger className="w-full h-12 bg-white/80 border-2 border-ghibli-sand/40 rounded-xl">
+                          <SelectValue placeholder="Escolha o tamanho">
+                            {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o tamanho'}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {product.variants?.map((variant) => (
+                            <SelectItem key={variant.id} value={variant.id.toString()}>
+                              {variant.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Botão Adicionar ao Carrinho - Mobile */}
+              <Card className="bg-gradient-to-br from-white to-ghibli-cream/30 backdrop-blur-sm border-ghibli-sand/30 shadow-lg">
+                <CardContent className="p-4">
+                  {isProcessingMockup ? (
+                    <div className="py-6 text-center">
+                      <div className="flex items-center justify-center space-x-2 mb-2">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        </div>
+                        <span className="text-ghibli-moss font-medium">Criando canvas mágico...</span>
+                      </div>
+                      <div className="text-xs text-ghibli-earth/70">✨ Aplicando transformação AI</div>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={handleAddToCart}
+                      disabled={!canPurchase || loading}
+                      className={`w-full py-6 text-lg font-bold rounded-xl shadow-lg transition-all duration-300 ${
+                        canPurchase
+                          ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white transform hover:scale-[1.02]'
+                          : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                      }`}
+                    >
+                      {loading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>A adicionar...</span>
+                        </div>
+                      ) : !userInfo ? (
+                        'Faça Login para Continuar'
+                      ) : !selectedImageUrl ? (
+                        'Escolha uma Arte Primeiro'
+                      ) : !selectedPrintifyVariantId ? (
+                        'Selecione as Opções'
+                      ) : (
+                        <span className="flex items-center justify-center gap-2">
+                          <span>🛒</span>
+                          <span>Adicionar ao Carrinho</span>
+                          <ArrowRight className="w-5 h-5" />
+                        </span>
+                      )}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Informações e Garantias - Mobile */}
+              <Card className="bg-gradient-to-br from-white to-ghibli-cream/30 backdrop-blur-sm border-ghibli-sand/30 shadow-lg">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-bold text-ghibli-wood mb-3 text-center">
+                    ✨ Canvas Premium
+                  </h3>
+                  <div className="space-y-3 text-sm text-ghibli-earth">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
+                      <span>Canvas de qualidade premium</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
+                      <span>Impressão de máxima qualidade</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
+                      <span>Cores vibrantes e duradouras</span>
+                    </div>
+                    {product.id === 'framed_canvas' && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-amber-600 rounded-full"></div>
+                        <span className="font-medium text-amber-700">Moldura elegante incluída 🖼️</span>
+                      </div>
+                    )}
+                    {product.id === 'custom_canvas' && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                        <span className="font-medium text-blue-600">Opções de borda espelhada ✨</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Prompt de Login - Mobile */}
+              {!userInfo && (
+                <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm">
+                  <CardContent className="p-4 text-center">
+                    <p className="text-blue-800 mb-3">
+                      Faça login para personalizar este canvas com as suas criações AI
+                    </p>
+                    <Button
+                      onClick={() => router.push('/')}
+                      variant="outline"
+                      className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                    >
+                      Fazer Login
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </motion.div>
+          </div>
+
+          {/* 🖥️ DESKTOP LAYOUT: Layout Original */}
+          <div className="hidden lg:block">
+            {/* Breadcrumb */}
+            <nav className="mb-8">
+              <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
+                <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
+                <li className="text-ghibli-earth/50">/</li>
+                <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
+                <li className="text-ghibli-earth/50">/</li>
+                <li className="text-ghibli-moss font-medium">{product.name}</li>
+              </ol>
+            </nav>
+
+            <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+              {/* Left: Área de Visualização (2 colunas) */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="lg:col-span-2"
+              >
+                <div className="relative w-full h-[500px] lg:h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-ghibli-sand/20">
+                  <ProductCanvas
+                    selectedProduct={product}
+                    userImageUrl={selectedImageUrl}
+                    userId={userInfo?.id}
+                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                    onPreviewReady={handlePreviewReady}
+                    onSelectImage={handleOpenGallery}
+                    imageAdjustments={imageAdjustments}
+                    onImageAdjust={setImageAdjustments}
+                    selectedPrintifyVariantId={selectedPrintifyVariantId}
+                    selectedImageId={selectedImageId}
+                  />
+                </div>
+
+                {/* Controles de Arte - Desktop lado-a-lado */}
+                <div className="flex justify-center gap-4">
+                <Button
+                  onClick={handleOpenGallery}
                   disabled={!userInfo}
-                  className={`w-full sm:w-auto px-8 sm:px-12 py-4 text-base lg:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl lg:rounded-2xl ${
+                    className={`px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-2xl ${
                     userInfo 
                       ? 'bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white' 
                       : 'bg-gray-400 text-gray-600 cursor-not-allowed'
                   }`}
                 >
-                  <Upload className="w-5 h-5 mr-2 lg:mr-3" />
+                    <Upload className="w-5 h-5 mr-3" />
                   {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
                 </Button>
-              </motion.div>
+                </div>
 
-              {/* Prompt de Login */}
+                {/* Prompt de Login Desktop */}
               {!userInfo && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.5 }}
-                  className="mt-4 flex justify-center px-4 lg:px-0"
-                >
-                  <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm w-full sm:max-w-md">
-                    <CardContent className="p-4 text-center">
-                      <p className="text-blue-800 text-sm sm:text-base mb-3">
+                    className="mt-6 flex justify-center"
+                  >
+                    <Card className="bg-blue-50/80 border-blue-200 backdrop-blur-sm max-w-md">
+                      <CardContent className="p-6 text-center">
+                        <p className="text-blue-800 mb-4">
                         Faça login para personalizar este canvas com as suas criações AI
                       </p>
                       <Button
                         onClick={() => router.push('/')}
                         variant="outline"
-                        className="w-full sm:w-auto border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+                          className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
                       >
                         Fazer Login
                       </Button>
@@ -392,27 +668,112 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
               )}
             </motion.div>
 
-            {/* Painel de Controlo */}
+              {/* Right: Painel de Controlo Sticky (1 coluna) */}
             <motion.div
-              {...PRODUCT_ANIMATIONS.sidebar}
-              className="lg:col-span-1 order-2"
-            >
-              <Card className={PRODUCT_STYLES.card}>
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="lg:col-span-1"
+              >
+                <Card className="bg-gradient-to-br from-white to-ghibli-cream/30 backdrop-blur-sm border-ghibli-sand/30 shadow-xl hover:shadow-2xl transition-shadow duration-300 sticky top-8">
                 
                 <ProductCardDecorations />
                 
-                <CardContent className="relative z-10 p-4 sm:p-6 space-y-3 sm:space-y-4">
-                  {/* Título + Preço */}
-                  <div className="text-center pb-3 sm:pb-4 border-b border-ghibli-sand/30">
-                    <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-1">
-                      {product.name}
-                    </h1>
-                    <div className="inline-block">
-                      <div className="text-3xl sm:text-4xl font-black text-ghibli-moss drop-shadow-sm">
-                        €{currentPrice.toFixed(2)}
-                  </div>
-                      <div className="text-center text-xs text-ghibli-earth/60 font-medium -mt-1">
-                        IVA incluído
+                  <CardContent className="relative z-10 p-6 space-y-4">
+                  {/* Título + Preço + Quantidade */}
+                  <div className="pb-3 sm:pb-4 border-b border-ghibli-sand/30 space-y-4">
+                    <div className="text-center">
+                      <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-2">
+                        🎨 {product.name}
+                      </h1>
+                    </div>
+
+                    {/* Preço e Quantidade */}
+                    <div className="space-y-3">
+                      {/* Preço Principal */}
+                      <div className="text-center">
+                        <div className="flex items-baseline justify-center gap-2 mb-1">
+                          <span className="text-3xl sm:text-4xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
+                          {discount > 0 && (
+                            <span className="text-lg text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
+                          )}
+                          {discount > 0 && (
+                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                              -{discount}%
+                            </div>
+                          )}
+                        </div>
+                        {discount > 0 && (
+                          <p className="text-sm text-green-600 font-medium">
+                            Poupa €{savings.toFixed(2)} com {discount}% desconto!
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Seletor de Quantidade */}
+                      <div className="bg-ghibli-cream/30 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-ghibli-earth">Quantidade:</span>
+                          <div className="flex items-center gap-2 bg-white/80 rounded-lg p-1">
+                            <Button
+                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                              disabled={quantity <= 1}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10 disabled:opacity-50"
+                            >
+                              <span className="w-4 h-4">-</span>
+                            </Button>
+                            
+                            <span className="min-w-[2.5rem] text-center font-bold text-ghibli-earth">
+                              {quantity}
+                            </span>
+                            
+                            <Button
+                              onClick={() => setQuantity(quantity + 1)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10"
+                            >
+                              <span className="w-4 h-4">+</span>
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Mini destaques de desconto */}
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className={`text-center p-2 rounded-md transition-all ${
+                            quantity >= 2 
+                              ? 'bg-green-100 border border-green-300 text-green-800' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            <div className="font-bold">2+ canvas</div>
+                            <div>10% OFF</div>
+                          </div>
+                          <div className={`text-center p-2 rounded-md transition-all ${
+                            quantity >= 3 
+                              ? 'bg-green-100 border border-green-300 text-green-800' 
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            <div className="font-bold">3+ canvas</div>
+                            <div>15% OFF</div>
+                          </div>
+                        </div>
+
+                        {/* Total */}
+                        {quantity > 1 && (
+                          <div className="border-t border-ghibli-sand/30 pt-2 mt-3">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-ghibli-earth">Total:</span>
+                              <div className="text-right">
+                                <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
+                                <div className="text-xs text-ghibli-earth/70">
+                                  {quantity} × €{discountedPrice.toFixed(2)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -436,29 +797,22 @@ const CanvasDetailPage: React.FC<CanvasDetailPageProps> = ({ product: initialPro
                     </div>
                   )}
 
-                  {/* Incentivo de Entrega */}
-                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 rounded-xl border-l-4 border-emerald-400">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                      <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-emerald-800 text-sm">Envio GRÁTIS</p>
-                      <p className="text-xs text-emerald-600">em encomendas superiores a €50</p>
-                    </div>
-                    <div className="text-xl sm:text-2xl shrink-0">🎁</div>
-                  </div>
-
-                  {/* Descrição */}
-                  <div className="px-1">
-                    <p className="text-sm leading-relaxed font-medium text-ghibli-earth/80">
-                      {product.id === 'framed_canvas' ? (
-                        <>Canvas premium com <span className="font-bold text-ghibli-moss">moldura elegante</span>! 
-                        Arte de alta qualidade para decorar o seu espaço.</>
-                      ) : (
-                        <>Canvas esticado <span className="font-bold text-ghibli-moss">sem moldura</span>! 
-                        Arte moderna e minimalista em <span className="font-bold">alta qualidade</span>.</>
-                      )}
-                    </p>
+                  {/* Descrição em Tópicos */}
+                  <div className="space-y-2">
+                    <ul className="text-sm space-y-1 text-ghibli-earth/80">
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                        <span>Canvas de <span className="font-bold text-ghibli-moss">qualidade premium</span> {product.id === 'framed_canvas' ? 'com moldura elegante' : 'esticado'}</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                        <span>Impressão de <span className="font-bold">alta definição</span> resistente ao desbotamento</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-ghibli-wood rounded-full shrink-0"></div>
+                        <span className="font-bold text-ghibli-wood">Perfeito para decorar qualquer espaço</span>
+                      </li>
+                    </ul>
                   </div>
 
                   {/* Seletores específicos para Canvas com Moldura */}

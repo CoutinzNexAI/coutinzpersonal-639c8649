@@ -47,23 +47,23 @@ const CanvasShopPage: React.FC = () => {
             {/* Left: Products (2 columns) */}
             <div className="lg:col-span-2">
               <div className="grid md:grid-cols-2 gap-8 justify-center">
-                {productIds.map((productId, index) => {
-                  const product = canvasProducts[productId];
-                  
+            {productIds.map((productId, index) => {
+              const product = canvasProducts[productId];
+              
                   // Get correct mockup image
                   const mockupImage = product.id === 'framed_canvas' 
                     ? '/mockupproduto/canvamoldura.png'
                     : '/mockupproduto/canva.png';
                   
-                  return (
-                    <motion.div
-                      key={productId}
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
+              return (
+                <motion.div
+                  key={productId}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: index * 0.2 }}
                       className="w-full max-w-sm mx-auto"
-                    >
-                      <Link href={`/shop/canvas/${productId}`}>
+                >
+                  <Link href={`/shop/canvas/${productId}`}>
                         <div className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer h-full">
                           {/* Product Image with Real Mockup */}
                           <div className="aspect-square bg-gradient-to-br from-ghibli-cream/50 to-ghibli-sand/30 p-8 flex items-center justify-center relative">
@@ -72,19 +72,19 @@ const CanvasShopPage: React.FC = () => {
                               alt={product.name}
                               className="w-40 h-40 object-contain drop-shadow-lg"
                             />
-                            {/* Preview Badge */}
+                        {/* Preview Badge */}
                             <div className="absolute top-4 right-4 bg-green-600 text-white text-xs px-3 py-1 rounded-full font-medium">
-                              Preview
-                            </div>
-                          </div>
-                          
-                          {/* Product Info */}
+                          Preview
+                        </div>
+                      </div>
+                      
+                      {/* Product Info */}
                           <div className="p-6 flex-1">
                             <h3 className="text-xl font-semibold text-ghibli-wood mb-3 group-hover:text-ghibli-moss transition-colors">
-                              {product.name}
-                            </h3>
-                            
-                            {/* Specifications */}
+                          {product.name}
+                        </h3>
+                        
+                        {/* Specifications */}
                             <div className="text-sm text-ghibli-earth space-y-2 mb-4">
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
@@ -236,26 +236,26 @@ const CanvasShopPage: React.FC = () => {
                           <div className="flex items-center justify-center">
                             <div className="text-xl font-bold text-ghibli-moss">
                               €{product.basePrice || product.price || 20.00}
-                            </div>
                           </div>
                         </div>
                       </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
 
             {/* Mobile Info Section */}
-            <motion.div 
+          <motion.div 
               className="mt-12 bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-ghibli-sand/30"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
               <h2 className="text-xl font-semibold text-ghibli-wood mb-4 text-center">
                 ✨ Porquê Escolher PicTuz?
-              </h2>
+            </h2>
               <div className="grid grid-cols-2 gap-4 text-center text-sm">
                 <div>
                   <div className="text-2xl mb-2">🎨</div>
@@ -271,15 +271,15 @@ const CanvasShopPage: React.FC = () => {
                   <div className="text-2xl mb-2">✨</div>
                   <h3 className="font-semibold mb-1 text-ghibli-wood">Durável</h3>
                   <p className="text-xs text-ghibli-earth">Impressão resistente</p>
-                </div>
+              </div>
                 <div>
                   <div className="text-2xl mb-2">⚡</div>
                   <h3 className="font-semibold mb-1 text-ghibli-wood">Pronto</h3>
                   <p className="text-xs text-ghibli-earth">Para pendurar</p>
-                </div>
+              </div>
               </div>
             </motion.div>
-          </div>
+            </div>
         </main>
         
         <Footer />

@@ -846,16 +846,16 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
             >
               {/* Status Arte Mobile - SÓ MOSTRA QUANDO HÁ IMAGEM SELECIONADA */}
               {selectedImageUrl && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.7 }}
-                  className="mb-6"
-                >
-                  <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
-                    <CardContent className="p-4">
-                      <h2 className="text-lg font-bold text-ghibli-moss mb-3">📊 Status Arte</h2>
-                      
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.7 }}
+                className="mb-6"
+              >
+                <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
+                  <CardContent className="p-4">
+                    <h2 className="text-lg font-bold text-ghibli-moss mb-3">📊 Status Arte</h2>
+                    
                       <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shrink-0"></div>
                         <span className="text-green-800 font-medium text-sm">✅ Arte selecionada e pronta!</span>
@@ -868,9 +868,9 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                           Trocar
                         </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
               )}
 
               {/* Size Selector Mobile - NEW */}

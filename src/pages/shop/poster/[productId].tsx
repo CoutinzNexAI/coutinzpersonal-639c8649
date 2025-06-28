@@ -72,7 +72,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
 
   // ✅ PREÇOS PARA POSTERS: baseado na variante selecionada
   const getBasePrice = () => {
-    const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
+  const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
     return selectedVariant?.priceAdjustment || 20; // Preço por poster baseado na variante
   };
 
@@ -609,7 +609,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
               </h1>
               <div className="text-4xl sm:text-5xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
                 €{currentPrice.toFixed(2)}
-              </div>
+                    </div>
             </motion.div>
 
             {/* Mockup Mobile */}
@@ -655,7 +655,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                             <Button 
                               onClick={() => handleAdjustment('position', 'left')} 
                               variant="ghost"
-                              size="sm"
+                        size="sm"
                               className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'left' 
                                 ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                                 : 'text-ghibli-earth hover:bg-ghibli-moss/10'
@@ -670,7 +670,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                             
                             <Button 
                               onClick={() => handleAdjustment('position', 'center')} 
-                              variant="ghost"
+                        variant="ghost"
                               size="sm"
                               className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'center' 
                                 ? 'bg-ghibli-moss text-white shadow-md scale-110' 
@@ -682,12 +682,12 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="3"/>
                               </svg>
-                            </Button>
-                            
-                            <Button 
+                      </Button>
+
+                      <Button
                               onClick={() => handleAdjustment('position', 'right')} 
                               variant="ghost"
-                              size="sm"
+                        size="sm"
                               className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'right' 
                                 ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                                 : 'text-ghibli-earth hover:bg-ghibli-moss/10'
@@ -705,7 +705,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                           <>
                             <Button 
                               onClick={() => handleAdjustment('position', 'top')} 
-                              variant="ghost"
+                        variant="ghost"
                               size="sm"
                               className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'top' 
                                 ? 'bg-ghibli-moss text-white shadow-md scale-110' 
@@ -717,7 +717,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
                               </svg>
-                            </Button>
+                      </Button>
                             
                             <Button 
                               onClick={() => handleAdjustment('position', 'center')} 
@@ -752,7 +752,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                             </Button>
                           </>
                         )}
-                      </div>
+                    </div>
                     </div>
 
                     {/* Status Compacto Mobile */}
@@ -792,7 +792,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       </Button>
                     </CardContent>
                   </Card>
-                </div>
+                  </div>
               )}
             </motion.div>
 
@@ -818,9 +818,9 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       <span className="text-xs text-green-600 font-medium">
                         Poupa €{savings.toFixed(2)} com {discount}% desconto!
                       </span>
-                    )}
-                  </div>
-                  
+                )}
+              </div>
+
                   {/* Badge de desconto */}
                   {discount > 0 && (
                     <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -1006,18 +1006,18 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shrink-0"></div>
                         <span className="text-green-800 font-medium text-sm">✅ Arte selecionada e pronta!</span>
-                        <Button
+                <Button
                           size="sm"
-                          onClick={handleOpenGallery}
+                  onClick={handleOpenGallery}
                           variant="outline"
                           className="text-xs px-3 py-1 border-green-300 text-green-700 hover:bg-green-100 shrink-0 ml-auto"
                         >
                           Trocar
-                        </Button>
+                </Button>
                       </div>
                     </CardContent>
                   </Card>
-                </motion.div>
+              </motion.div>
               )}
 
               {/* Preço e Desconto Mobile */}
@@ -1107,10 +1107,10 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                 {/* ✅ CONTROLOS LADO A LADO - Trocar Arte + Ajustar Posição */}
                 {userInfo ? (
                   selectedImageUrl && userImageDimensions && product ? (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.4 }}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.4 }}
                       className="mt-6 px-4 lg:px-0"
                     >
                       <div className="flex gap-8 items-center justify-center">
@@ -1127,109 +1127,109 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-ghibli-sand/30">
                           {product.id === 'poster_vertical_semi_glossy' ? (
                             // Poster Vertical: left/center/right
-                            <>
-                              <Button 
-                                onClick={() => handleAdjustment('position', 'left')} 
-                                variant="ghost"
-                                size="sm"
+                        <>
+                          <Button 
+                            onClick={() => handleAdjustment('position', 'left')} 
+                            variant="ghost"
+                            size="sm"
                                 className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'left' 
                                   ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                                   : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
-                                }`}
-                                disabled={isGeneratingMockup}
+                            }`}
+                            disabled={isGeneratingMockup}
                                 title="Esquerda"
-                              >
+                          >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                   <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/>
-                                </svg>
-                              </Button>
-                              
-                              <Button 
-                                onClick={() => handleAdjustment('position', 'center')} 
-                                variant="ghost"
-                                size="sm"
+                            </svg>
+                          </Button>
+                          
+                          <Button 
+                            onClick={() => handleAdjustment('position', 'center')} 
+                            variant="ghost"
+                            size="sm"
                                 className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'center' 
                                   ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                                   : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
-                                }`}
-                                disabled={isGeneratingMockup}
+                            }`}
+                            disabled={isGeneratingMockup}
                                 title="Centro"
-                              >
+                          >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                  <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                              </Button>
-                              
-                              <Button 
-                                onClick={() => handleAdjustment('position', 'right')} 
-                                variant="ghost"
-                                size="sm"
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          </Button>
+                          
+                          <Button 
+                            onClick={() => handleAdjustment('position', 'right')} 
+                            variant="ghost"
+                            size="sm"
                                 className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'right' 
                                   ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                                   : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
-                                }`}
-                                disabled={isGeneratingMockup}
+                            }`}
+                            disabled={isGeneratingMockup}
                                 title="Direita"
-                              >
+                          >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                   <path d="M8.59 16.59L13.17 12l-4.58-4.59L10 6l6 6-6 6-1.41-1.41z"/>
-                                </svg>
-                              </Button>
-                            </>
+                            </svg>
+                          </Button>
+                        </>
                           ) : (
                             // Poster Horizontal: top/center/bottom
-                            <>
-                              <Button 
-                                onClick={() => handleAdjustment('position', 'top')} 
-                                variant="ghost"
-                                size="sm"
+                        <>
+                          <Button 
+                            onClick={() => handleAdjustment('position', 'top')} 
+                            variant="ghost"
+                            size="sm"
                                 className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'top' 
                                   ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                                   : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
-                                }`}
-                                disabled={isGeneratingMockup}
+                            }`}
+                            disabled={isGeneratingMockup}
                                 title="Cima"
-                              >
+                          >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
-                                </svg>
-                              </Button>
-                              
-                              <Button 
-                                onClick={() => handleAdjustment('position', 'center')} 
-                                variant="ghost"
-                                size="sm"
+                              <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                            </svg>
+                          </Button>
+                          
+                          <Button 
+                            onClick={() => handleAdjustment('position', 'center')} 
+                            variant="ghost"
+                            size="sm"
                                 className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'center' 
                                   ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                                   : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
-                                }`}
-                                disabled={isGeneratingMockup}
+                            }`}
+                            disabled={isGeneratingMockup}
                                 title="Centro"
-                              >
+                          >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                  <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                              </Button>
-                              
-                              <Button 
-                                onClick={() => handleAdjustment('position', 'bottom')} 
-                                variant="ghost"
-                                size="sm"
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          </Button>
+                          
+                          <Button 
+                            onClick={() => handleAdjustment('position', 'bottom')} 
+                            variant="ghost"
+                            size="sm"
                                 className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'bottom' 
                                   ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                                   : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
-                                }`}
-                                disabled={isGeneratingMockup}
+                            }`}
+                            disabled={isGeneratingMockup}
                                 title="Baixo"
-                              >
+                          >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-                                </svg>
-                              </Button>
-                            </>
-                          )}
+                              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                            </svg>
+                          </Button>
+                        </>
+                      )}
                         </div>
-                      </div>
+                    </div>
 
                       {/* Indicador de Status - Compacto */}
                       <div className="mt-3 text-center">
@@ -1239,7 +1239,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                             ? (imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro')
                             : (imagePosition === 'top' ? 'Cima' : imagePosition === 'bottom' ? 'Baixo' : 'Centro')
                           }
-                        </span>
+                      </span>
                         
                         {/* Loading indicator quando a gerar */}
                         {isGeneratingMockup && (
@@ -1248,7 +1248,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                               <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce"></div>
                               <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                               <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                            </div>
+                    </div>
                             <span>Reposicionando arte...</span>
                           </div>
                         )}
@@ -1271,28 +1271,28 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                     </motion.div>
                   )
                 ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.5 }}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
                     className="mt-6 flex justify-center px-4 lg:px-0"
-                  >
+                >
                     <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm w-full sm:max-w-md">
-                      <CardContent className="p-4 text-center">
+                    <CardContent className="p-4 text-center">
                         <p className="text-ghibli-earth text-sm mb-3 font-medium">
                           🎨 Entre para personalizar o seu poster
-                        </p>
-                        <Button
-                          onClick={() => router.push('/')}
+                      </p>
+                      <Button
+                        onClick={() => router.push('/')}
                           className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0"
-                        >
-                          Fazer Login
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )}
-              </motion.div>
+                      >
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </motion.div>
 
             {/* Painel de Controlo */}
             <motion.div
@@ -1363,8 +1363,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                             >
                               <Plus className="w-4 h-4" />
                             </Button>
-                          </div>
-                        </div>
+                    </div>
+                  </div>
 
                         {/* Mini destaques de desconto */}
                         <div className="grid grid-cols-2 gap-2 text-xs">
@@ -1439,7 +1439,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         <span className="font-bold text-ghibli-wood">Perfeito para decorar qualquer espaço</span>
                       </li>
                     </ul>
-                  </div>
+                    </div>
 
                   {/* Seletor/Display de Tamanho */}
                   {product.variants && product.variants.length > 1 ? (
@@ -1458,20 +1458,20 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                               </span>
                             </SelectValue>
                           </div>
-                        </SelectTrigger>
+                      </SelectTrigger>
                         <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
-                          {product.variants?.map((variant) => (
+                        {product.variants?.map((variant) => (
                             <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
                               {variant.title}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                       
                       <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
                         📋 Tamanho do Poster
                       </label>
-                    </div>
+                  </div>
                   ) : (
                     // Se há apenas 1 variante, apenas mostrar o tamanho (sem dropdown)
                     <div className="relative p-4 bg-ghibli-cream/30 rounded-xl border border-ghibli-sand/40">
@@ -1480,11 +1480,11 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         <span className="text-ghibli-earth font-semibold">
                           📋 Tamanhos disponíveis
                         </span>
-                      </div>
+                    </div>
                                              <p className="text-center text-xs text-ghibli-earth/70 mt-1">
                          Desde 5"x7" até 24"x36"
                        </p>
-                     </div>
+                      </div>
                    )}
 
                   {/* Botão Principal */}
@@ -1502,8 +1502,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         <div className="mt-2 text-xs text-ghibli-earth/70">✨ Aplicando transformação AI</div>
                       </div>
                     ) : (
-                      <Button
-                        onClick={handleAddToCart}
+                    <Button
+                      onClick={handleAddToCart}
                         disabled={!canPurchase || loading}
                         className={`group relative w-full py-5 sm:py-6 text-base sm:text-lg font-bold rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl hover:shadow-xl sm:hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
                           canPurchase
@@ -1573,18 +1573,18 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                       <span className="text-xs font-bold text-ghibli-earth">Garantia Total</span>
                     </div>
                   </div>
-                                </CardContent>
+                </CardContent>
               </Card>
             </motion.div>
           </div>
-          </div>
+      </div>
 
           {/* TransformationGalleryModal */}
-          <TransformationGalleryModal
-            isOpen={isGalleryModalOpen}
-            onClose={() => setIsGalleryModalOpen(false)}
-            onSelectImage={handleSelectImageFromGallery}
-          />
+      <TransformationGalleryModal
+        isOpen={isGalleryModalOpen}
+        onClose={() => setIsGalleryModalOpen(false)}
+        onSelectImage={handleSelectImageFromGallery}
+      />
         </main>
       </div>
     </>
