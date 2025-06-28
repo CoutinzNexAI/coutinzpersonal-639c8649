@@ -585,26 +585,437 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         <Header />
         <ProductCardDecorations />
         
-        <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-24 sm:pb-8 lg:py-16">
-          {/* 📱 MOBILE-FIRST: Título centralizado primeiro */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-6"
-          >
-            <h1 className="text-2xl sm:text-3xl font-black text-ghibli-earth mb-3 drop-shadow-sm">
-              📱 Capa Personalizada
-            </h1>
-            <p className="text-sm sm:text-base text-ghibli-earth/70 max-w-2xl mx-auto">
-              Proteja o seu telemóvel com <span className="font-bold text-ghibli-moss">estilo único</span>! 
-              Capa premium com as suas criações AI em alta qualidade.
-            </p>
-          </motion.div>
+        <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-24 sm:pb-8 lg:py-8">
+          {/* 📱 MOBILE LAYOUT: Título em Destaque no Topo */}
+          <div className="block lg:hidden">
+            {/* Título Mobile - Em Destaque */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-6 px-4"
+            >
+              <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight mb-4 tracking-tight">
+                📱 Capa Personalizada
+              </h1>
+              <div className="text-4xl sm:text-5xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
+                €{basePrice.toFixed(2)}
+              </div>
+            </motion.div>
 
-          {/* 📱 MOBILE-FIRST: Mockup primeiro, depois painel de compra */}
-          {/* 🖥️ DESKTOP: Layout em grid como antes */}
-          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
+            {/* Mockup Mobile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-6"
+            >
+              <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20">
+                <ProductCanvas
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady}
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                />
+              </div>
+
+              {/* Controlos Mobile - Mais Pequenos */}
+              {userInfo ? (
+                selectedImageUrl && userImageDimensions && product ? (
+                  <div className="px-4">
+                    <div className="flex gap-4 items-center justify-center">
+                      {/* Botão Trocar Arte - Mobile */}
+                      <Button
+                        onClick={handleOpenGallery}
+                        className="px-4 py-2 text-sm font-semibold bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white rounded-lg shadow-lg transition-all duration-300"
+                      >
+                        <Sparkles className="w-4 h-4 mr-1" />
+                        Trocar
+                      </Button>
+
+                      {/* Controlos de Posição - Mobile Pequenos */}
+                      <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-ghibli-sand/30">
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'left')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'left' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Esquerda"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                          </svg>
+                        </Button>
+                        
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'center' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Centro"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </Button>
+                        
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'right')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'right' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Direita"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                          </svg>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Status Compacto Mobile */}
+                    <div className="mt-2 text-center">
+                      <span className="inline-flex items-center gap-1 text-xs text-ghibli-moss bg-ghibli-moss/5 px-2 py-1 rounded-full font-medium border border-ghibli-moss/20">
+                        <div className="w-1 h-1 bg-ghibli-moss rounded-full animate-pulse"></div>
+                        {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="px-4 text-center">
+                    <Button
+                      onClick={handleOpenGallery}
+                      className="px-6 py-3 text-base font-semibold shadow-lg transition-all duration-300 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 text-white"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Escolher Arte
+                    </Button>
+                  </div>
+                )
+              ) : (
+                <div className="px-4">
+                  <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-ghibli-earth text-sm mb-3 font-medium">
+                        📱 Entre para personalizar a sua capa
+                      </p>
+                      <Button
+                        onClick={() => router.push('/')}
+                        className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0"
+                      >
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Seletor de Quantidade e Preços Mobile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+              className="px-4 mb-4"
+            >
+              {/* Quantidade e Preço */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30 shadow-lg">
+                {/* Header com preço */}
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
+                      {discount > 0 && (
+                        <span className="text-sm text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
+                      )}
+                    </div>
+                    {discount > 0 && (
+                      <span className="text-xs text-green-600 font-medium">
+                        Poupa €{savings.toFixed(2)} com {discount}% desconto!
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Badge de desconto */}
+                  {discount > 0 && (
+                    <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      -{discount}%
+                    </div>
+                  )}
+                </div>
+
+                {/* Seletor de Quantidade */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-ghibli-earth">Quantidade:</span>
+                    <div className="flex items-center gap-2 bg-ghibli-cream/50 rounded-lg p-1">
+                      <Button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10 disabled:opacity-50"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                      
+                      <span className="min-w-[2rem] text-center font-bold text-ghibli-earth">
+                        {quantity}
+                      </span>
+                      
+                      <Button
+                        onClick={() => setQuantity(quantity + 1)}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Destaques de desconto */}
+                  <div className="space-y-1 text-xs">
+                    <div className={`flex items-center justify-between p-2 rounded-lg transition-all ${
+                      quantity >= 2 
+                        ? 'bg-green-100 border border-green-300 text-green-800' 
+                        : 'bg-gray-50 text-gray-600'
+                    }`}>
+                      <span>🎯 2+ capas</span>
+                      <span className="font-bold">10% OFF</span>
+                    </div>
+                    <div className={`flex items-center justify-between p-2 rounded-lg transition-all ${
+                      quantity >= 3 
+                        ? 'bg-green-100 border border-green-300 text-green-800' 
+                        : 'bg-gray-50 text-gray-600'
+                    }`}>
+                      <span>🔥 3+ capas</span>
+                      <span className="font-bold">15% OFF</span>
+                    </div>
+                  </div>
+
+                  {/* Total */}
+                  <div className="border-t border-ghibli-sand/30 pt-3 mt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-ghibli-earth">Total:</span>
+                      <div className="text-right">
+                        <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
+                        {quantity > 1 && (
+                          <div className="text-xs text-ghibli-earth/70">
+                            {quantity} × €{discountedPrice.toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Botão Adicionar ao Carrinho Mobile - Destaque */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="px-4 mb-6"
+            >
+              {(!printifyProductId || !printifyImageId) && selectedImageUrl ? (
+                <div className="w-full py-4 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-xl text-center">
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    </div>
+                    <span className="text-ghibli-moss font-medium text-sm">Criando a sua capa mágica...</span>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={!selectedImageUrl || loading || !printifyProductId || !printifyImageId || !selectedPrintifyVariantId || !userInfo}
+                  className={`group relative w-full py-4 text-lg font-bold rounded-xl shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
+                    selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo
+                      ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white' 
+                      : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                  }`}
+                >
+                  {selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo && (
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
+                  )}
+                  
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {loading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>A adicionar...</span>
+                      </>
+                    ) : !userInfo ? (
+                      <span>Faça Login para Continuar</span>
+                    ) : !selectedImageUrl ? (
+                      <span>Escolha uma Arte Primeiro</span>
+                    ) : !selectedPrintifyVariantId ? (
+                      <span>Selecione o Modelo</span>
+                    ) : (
+                      <>
+                        <span className="text-xl">📱</span>
+                        <span>Adicionar ao Carrinho</span>
+                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                          <ChevronRight className="w-4 h-4" />
+                        </div>
+                      </>
+                    )}
+                  </span>
+                </Button>
+              )}
+            </motion.div>
+
+            {/* Informações Extras Mobile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="px-4 space-y-4"
+            >
+              {/* Status Arte Mobile - SÓ MOSTRA QUANDO HÁ IMAGEM SELECIONADA */}
+              {selectedImageUrl && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.7 }}
+                  className="mb-6"
+                >
+                  <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
+                    <CardContent className="p-4">
+                      <h2 className="text-lg font-bold text-ghibli-moss mb-3">📊 Status Arte</h2>
+                      
+                      <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shrink-0"></div>
+                        <span className="text-green-800 font-medium text-sm">✅ Arte selecionada e pronta!</span>
+                        <Button
+                          size="sm"
+                          onClick={handleOpenGallery}
+                          variant="outline"
+                          className="text-xs px-3 py-1 border-green-300 text-green-700 hover:bg-green-100 shrink-0 ml-auto"
+                        >
+                          Trocar
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Model Selector Mobile */}
+              {product.variants && product.variants.length > 1 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.75 }}
+                  className="mb-4"
+                >
+                  <Card className="bg-white/90 backdrop-blur-sm border-ghibli-sand/40">
+                    <CardContent className="p-4">
+                      <label className="block text-sm font-bold text-ghibli-moss mb-3">
+                        📱 Modelo do Telemóvel
+                      </label>
+                      <select
+                        value={selectedPrintifyVariantId?.toString() || ''}
+                        onChange={(e) => setSelectedPrintifyVariantId(parseInt(e.target.value))}
+                        className="w-full h-12 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium px-4 focus:border-ghibli-moss transition-all duration-200"
+                      >
+                        {product.variants?.map((variant) => (
+                          <option key={variant.id} value={variant.id.toString()}>
+                            {variant.title}
+                          </option>
+                        ))}
+                      </select>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Descrição e Garantias Mobile */}
+              <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
+                <ul className="text-sm space-y-2 text-ghibli-earth/80">
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                    <span>Capa de <span className="font-bold text-ghibli-moss">proteção premium</span> resistente</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
+                    <span>Impressão duradoura e <span className="font-bold">resistente ao desgaste</span></span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-ghibli-wood rounded-full shrink-0"></div>
+                    <span className="font-bold text-ghibli-wood">Proteção total com estilo único</span>
+                    <span className="text-blue-500">📱</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Compatibilidade Mobile */}
+              <div className="bg-ghibli-cream/30 rounded-xl border border-ghibli-sand/40 p-4">
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-ghibli-moss"></div>
+                  <span className="text-ghibli-earth font-semibold">
+                    📱 Múltiplos modelos disponíveis
+                  </span>
+                </div>
+                <p className="text-center text-xs text-ghibli-earth/70 mt-1">
+                  iPhone e Samsung Galaxy
+                </p>
+              </div>
+
+              {/* Garantias Mobile */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-ghibli-cream/40 rounded-xl p-3 text-center border border-ghibli-sand/30">
+                  <div className="w-6 h-6 mx-auto mb-1 rounded-full bg-ghibli-moss/10 flex items-center justify-center">
+                    <Shield className="w-3 h-3 text-ghibli-moss" />
+                  </div>
+                  <span className="text-xs font-bold text-ghibli-earth">Proteção Premium</span>
+                </div>
+                <div className="bg-ghibli-cream/40 rounded-xl p-3 text-center border border-ghibli-sand/30">
+                  <div className="w-6 h-6 mx-auto mb-1 rounded-full bg-ghibli-moss/10 flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-ghibli-moss" />
+                  </div>
+                  <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* 🖥️ DESKTOP LAYOUT: Layout Original */}
+          <div className="hidden lg:block">
+            {/* Breadcrumb */}
+            <nav className="mb-8">
+              <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
+                <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
+                <li className="text-ghibli-earth/50">/</li>
+                <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
+                <li className="text-ghibli-earth/50">/</li>
+                <li className="text-ghibli-moss font-medium">{product.name}</li>
+              </ol>
+            </nav>
+
+            <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
             {/* 📱 MOBILE: Mockup + Botão PRIMEIRO (ordem 1) */}
             {/* 🖥️ DESKTOP: Área de visualização à esquerda (ordem 1) */}
             <motion.div
@@ -667,7 +1078,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                       : 'bg-gray-400 text-gray-600 cursor-not-allowed'
                   }`}
                 >
-                  <Upload className="w-5 h-5 mr-2 lg:mr-3" />
+                  <Sparkles className="w-5 h-5 mr-2 lg:mr-3" />
                   {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
                 </Button>
               </motion.div>
@@ -967,7 +1378,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                               <span className="hidden sm:inline">Adicionar ao Carrinho</span>
                               <span className="sm:hidden">Adicionar</span>
                               <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center">
-                                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
                               </div>
                         </>
                       )}
@@ -1009,6 +1420,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                 </CardContent>
               </Card>
             </motion.div>
+          </div>
           </div>
         </main>
 

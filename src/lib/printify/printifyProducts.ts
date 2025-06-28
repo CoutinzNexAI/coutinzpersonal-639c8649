@@ -222,7 +222,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'custom_phone_case': {
     id: 'custom_phone_case',
     name: 'Capa de Telemóvel Personalizada',
-    mockupInitialPath: '/mockupproduto/capa.png', // Imagem base no frontend
+    mockupInitialPath: '/mockupproduto/telemovel.png', // Imagem base no frontend
     basePrice: 25.00, // Preço de venda em euros
     category: 'tecnologia',
     // ✅ CONFIGURAÇÃO DE DESIGN: Capa com ajuste manual, scale dinâmico
