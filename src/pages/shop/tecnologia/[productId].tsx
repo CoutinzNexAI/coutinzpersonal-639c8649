@@ -4,12 +4,11 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Check, Upload, Truck, RotateCw, ChevronDown, ArrowRight, Shield, Sparkles, Award } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight, Minus, Plus, Upload, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
@@ -17,20 +16,10 @@ import ProductCanvas from '@/components/printify/ProductCanvas';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
+import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
+import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
+import { validatePurchase } from '@/utils/productValidation';
 import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
-
-interface ImageAdjustments {
-  x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
-  y: number;          // Posição Y da imagem dentro da área de impressão (0-1, percentagem)
-  scale: number;      // Zoom (escala, 1 = tamanho original)
-  rotation?: number;  // Rotação em graus (se suportada pelo produto)
-  cropArea?: {        // Área de crop da imagem original
-    x: number;        // X do crop em percentagem da imagem original
-    y: number;        // Y do crop em percentagem da imagem original
-    width: number;    // Largura do crop em percentagem da imagem original
-    height: number;   // Altura do crop em percentagem da imagem original
-  };
-}
 
 interface PhoneCaseDetailPageProps {
   product: PrintifyProductMapping;
@@ -47,28 +36,74 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
-  
-  // Estados para posicionamento horizontal
-  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
-  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
-  const [isGeneratingMockup, setIsGeneratingMockup] = useState(false);
+  const [mockupImageUrl, setMockupImageUrl] = useState<string | null>(null);
   
   // Estados para Printify
   const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
   const [printifyImageId, setPrintifyImageId] = useState<string>('');
   const [printifyProductId, setPrintifyProductId] = useState<string>('');
-
-  // Estado específico para seleção de variante da capa
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
 
-  // Fallback para carregamento dinâmico (caso não haja product das props)
+  // ✅ NOVO: Estado para dimensões da imagem do utilizador
+  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
+
+  // ✅ POSIÇÕES DEFINIDAS: Estado para a posição da imagem (3 opções)
+  // Para capas: left/center/right (movimento horizontal)
+  const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
+
+  // ✅ GALERIA DE MOCKUPS: Guarda o array de URLs das mockups atuais
+  const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
+
+  // ✅ ÍNDICE ATIVO: Para saber qual mockup mostrar na galeria
+  const [activeMockupIndex, setActiveMockupIndex] = useState<number>(0);
+
+  // ✅ LOADING INDICATOR: Para mostrar enquanto a nova mockup é gerada
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
+
+  // ✅ QUANTIDADE: Estado para a quantidade de capas
+  const [quantity, setQuantity] = useState(1);
+
+  // Calculate discount and prices
+  const calculateDiscount = (qty: number) => {
+    if (qty >= 3) return 15;
+    if (qty >= 2) return 10;
+    return 0;
+  };
+
+  // ✅ PREÇO BASE PARA CAPAS: €25.00
+  const getBasePrice = () => {
+    return 25.00; // Capa sempre €25.00
+  };
+
+  const basePrice = getBasePrice();
+  const discount = calculateDiscount(quantity);
+  const discountedPrice = basePrice * (1 - discount / 100);
+  const totalPrice = discountedPrice * quantity;
+  const savings = (basePrice * quantity) - totalPrice;
+
+  // Função utilitária: Validação consolidada
+  const validatePurchase = () => {
+    if (!selectedImageUrl) return 'Escolha uma arte primeiro para personalizar a sua capa!';
+    if (!selectedImageId) return 'ID da transformação não encontrado. Selecione a imagem novamente.';
+    if (!userInfo) return 'Faça login para adicionar ao carrinho';
+    if (selectedPrintifyVariantId === null) return 'Por favor, selecione o modelo do telemóvel.';
+    if (!printifyProductId || !printifyImageId) return 'Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.';
+    return null;
+  };
+
+  // Setup inicial do produto
   useEffect(() => {
     if (!initialProduct && typeof productId === 'string') {
       const foundProduct = getPrintifyProduct(productId);
       if (foundProduct && foundProduct.category === 'tecnologia') {
         setProduct(foundProduct);
-        if (foundProduct.id === 'custom_phone_case' && foundProduct.variants && foundProduct.variants.length > 0) {
-          setSelectedPrintifyVariantId(foundProduct.variants[0].id);
+        if (foundProduct.variants && foundProduct.variants.length > 0) {
+          console.log('🔍 [CAPA DEBUG] Variantes disponíveis:', foundProduct.variants.map(v => ({ id: v.id, title: v.title })));
+          
+          const firstVariant = foundProduct.variants[0];
+          console.log('🔍 [CAPA DEBUG] Primeira variante selecionada:', { id: firstVariant.id, title: firstVariant.title });
+          
+          setSelectedPrintifyVariantId(firstVariant.id);
         }
       } else {
         router.push('/shop');
@@ -76,13 +111,18 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       }
     } else if (initialProduct) {
       // Set default variant for initial product
-      if (initialProduct.id === 'custom_phone_case' && initialProduct.variants && initialProduct.variants.length > 0) {
-        setSelectedPrintifyVariantId(initialProduct.variants[0].id);
+      if (initialProduct.variants && initialProduct.variants.length > 0) {
+        console.log('🔍 [CAPA DEBUG] Variantes disponíveis (initial):', initialProduct.variants.map(v => ({ id: v.id, title: v.title })));
+        
+        const firstVariant = initialProduct.variants[0];
+        console.log('🔍 [CAPA DEBUG] Primeira variante selecionada (initial):', { id: firstVariant.id, title: firstVariant.title });
+        
+        setSelectedPrintifyVariantId(firstVariant.id);
       }
     }
   }, [productId, initialProduct, router]);
 
-  // Reset estados quando a variante muda (mesmo se já há imagem selecionada)
+  // Reset estados quando a variante muda
   useEffect(() => {
     if (selectedImageUrl && selectedPrintifyVariantId) {
       // Reset mockups Printify para forçar nova geração quando variante muda
@@ -90,10 +130,70 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       setPrintifyImageId('');
       setPrintifyProductId('');
     }
-  }, [selectedPrintifyVariantId]); // Só depende da variante
+  }, [selectedPrintifyVariantId]);
 
-  // Função para calcular coordenadas Printify baseadas na posição horizontal
-  const calculatePrintifyCoords = useCallback((position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
+  // Calcular defaultScale dinâmico e atualizar imageAdjustments - Adaptado para capas
+  useEffect(() => {
+    if (selectedImageUrl && product && selectedPrintifyVariantId) {
+      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+      if (!selectedVariant) return;
+
+      const { placeholderWidth, placeholderHeight } = selectedVariant;
+      const userImageWidth = 1016; // Assumindo que a imagem AI é sempre quadrada
+      const userImageHeight = 1016;
+
+      // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
+      const scaleToCover = Math.max(
+        placeholderWidth / userImageWidth,
+        placeholderHeight / userImageHeight
+      );
+
+      // PASSO B: Calcula qual será a LARGURA da imagem depois de aplicar este zoom
+      const finalImageWidth = userImageWidth * scaleToCover;
+
+      // PASSO C (A TRADUÇÃO): Converte a nossa largura final para o valor de 'scale' que a Printify entende
+      const printifyScale = finalImageWidth / placeholderWidth;
+      
+      console.log('🎯 [CAPA FRONTEND] Cálculo de escala definitivo:', {
+        placeholderWidth,
+        placeholderHeight,
+        userImageWidth,
+        userImageHeight,
+        scaleToCover,
+        finalImageWidth,
+        printifyScale
+      });
+      
+        setImageAdjustments({
+        x: 0.5, // Mantém centrado
+        y: 0.5, // Mantém centrado
+        scale: printifyScale, // USA O VALOR TRADUZIDO!
+        rotation: 0
+        });
+    }
+  }, [selectedImageUrl, product, selectedPrintifyVariantId]);
+
+  // ✅ DETECTAR DIMENSÕES DA IMAGEM: Quando uma imagem é selecionada
+  useEffect(() => {
+    if (selectedImageUrl) {
+      const img = new Image();
+      img.onload = () => {
+        setUserImageDimensions({ width: img.width, height: img.height });
+        console.log('📐 [CAPA] Dimensões da imagem detectadas:', { width: img.width, height: img.height });
+      };
+      img.onerror = () => {
+        console.error('❌ [CAPA] Erro ao carregar imagem para detectar dimensões');
+        // Default para imagens AI quadradas
+        setUserImageDimensions({ width: 1016, height: 1016 });
+      };
+      img.src = selectedImageUrl;
+    } else {
+      setUserImageDimensions(null);
+    }
+  }, [selectedImageUrl]);
+
+  // ✅ FUNÇÃO PARA CALCULAR COORDENADAS HORIZONTAIS (CAPAS)
+  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
     console.log('🧮 [CAPA] Calculando coordenadas:', { position, variantId, imageDimensions });
 
     if (!product || !product.variants) {
@@ -135,10 +235,10 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
     if (overflowX > 0) {
       if (position === 'left') {
-        const movementX = -maxOffsetX * 0.35; // ✅ AJUSTE: 35% para movimento mais subtil (era 70%)
+        const movementX = -maxOffsetX * 0.7; // 70% do movimento máximo
         printifyX = 0.5 + movementX;
       } else if (position === 'right') {
-        const movementX = maxOffsetX * 0.35; // ✅ AJUSTE: 35% para movimento mais subtil (era 70%)
+        const movementX = maxOffsetX * 0.7; // 70% do movimento máximo
         printifyX = 0.5 + movementX;
       }
       // 'center' fica com printifyX = 0.5
@@ -154,7 +254,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     console.log('✅ [CAPA] Coordenadas finais:', finalAdjustments);
 
     return finalAdjustments;
-  }, [product]);
+  };
 
   // ✅ CONTROLADOR DE TRÁFEGO MESTRE: Único useEffect responsável por gerar mockups
   // Só executa quando TODOS os dados necessários estão prontos (evita a "corrida")
@@ -291,32 +391,61 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   };
 
   const handleAddToCart = async () => {
-    // Mostrar toast se não há arte selecionada
-    if (!selectedImageUrl) {
-      toast.error('Escolha uma arte primeiro para personalizar a sua capa!');
+    // Validar com a função consolidada
+    const validationError = validatePurchase();
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
-    if (!product || !selectedImageId) {
-      toast.error('ID da transformação não encontrado. Selecione a imagem novamente.');
-      return;
-    }
+    setLoading(true);
 
-    if (!userInfo) {
-      toast.error('Faça login para adicionar ao carrinho');
-      return;
-    }
+    try {
+      // ✅ DEBUG: Log dos valores antes de adicionar ao carrinho
+      console.log('🛒 Adicionando capa ao carrinho com valores:', {
+        productId: productId as string,
+        printifyProductId,
+        printifyImageId,
+        printifyVariantId: selectedPrintifyVariantId,
+        selectedImageUrl,
+        selectedImageId,
+        quantity,
+        totalPrice
+      });
 
-    // Validação específica para capas - variante selecionada
-    if (selectedPrintifyVariantId === null) {
-      toast.error('Por favor, selecione um modelo de telemóvel.');
-      return;
-    }
+      // Obter variante selecionada
+      const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
 
-    // ✅ NOVO: Validação dos IDs Printify necessários
-    if (!printifyProductId || !printifyImageId) {
-      toast.error('Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.');
-      return;
+      // Adicionar item ao carrinho usando o CartService
+      const cartItem = CartService.addToCart({
+        productId: productId as string,
+        productName: product!.name,
+        productCategory: product!.category || 'tecnologia',
+        userImageUrl: selectedImageUrl,
+        userImageId: selectedImageId!,
+        price: discountedPrice,
+        quantity: quantity,
+        customizations: {
+          variantId: selectedPrintifyVariantId!,
+          phoneModel: selectedVariant?.title || 'Modelo não encontrado',
+          // ✅ OS CAMPOS CRÍTICOS: Usar ajustes calculados ou valores padrão
+          scale: imageAdjustments?.scale || 1.0,
+          x: imageAdjustments?.x || 0.5,
+          y: imageAdjustments?.y || 0.5,
+          angle: imageAdjustments?.rotation || 0,
+        },
+        imageAdjustments,
+      });
+
+      console.log('✅ Item adicionado ao carrinho:', cartItem);
+      toast.success(`${product!.name} adicionada ao carrinho!`);
+      router.push('/checkout');
+
+    } catch (error) {
+      console.error('❌ Erro ao adicionar ao carrinho:', error);
+      toast.error('Erro ao adicionar produto ao carrinho. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
 
     // Usar a variante selecionada pelo usuário
@@ -375,13 +504,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     }
   };
 
-  const handleOpenGallery = () => {
-    if (!userInfo) {
-      toast.error('Faça login para aceder à sua galeria de transformações');
-      return;
-    }
-    setIsGalleryModalOpen(true);
-  };
+  const handleOpenGallery = () => setIsGalleryModalOpen(true);
 
   const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
     console.log('🎬 [SYNC] Iniciando seleção de imagem...', { imageUrl: !!imageUrl, imageId });
@@ -431,22 +554,11 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     img.src = imageUrl;
   };
 
-  const handleResetSelection = () => {
-    setSelectedImageUrl('');
-    setSelectedImageId(null);
-    setPrintifyPreviewUrls([]);
-    setPrintifyImageId('');
-    setPrintifyProductId('');
-    setImageAdjustments(undefined);
-  };
-
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
     if (imageAdjustments) {
-      // Manter X sempre centrado (0.5) - não permitir alteração
       setImageAdjustments({ 
         ...imageAdjustments, 
-        ...adjustments, 
-        x: 0.5 // Forçar X sempre centrado
+        ...adjustments 
       });
     }
   };
@@ -465,24 +577,30 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   return (
     <>
       <Head>
-        <title>{product.name} - Loja PicTuz</title>
-        <meta name="description" content={`Personalize a sua ${product.name} com as suas criações AI. Proteção premium para o seu telemóvel com design único.`} />
+        <title>📱 Capa Personalizada - Loja PicTuz</title>
+        <meta name="description" content="Personalize a sua capa de telemóvel com as suas criações AI. Proteção premium com design único e qualidade superior." />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
+        <ProductCardDecorations />
         
-        <main className="container mx-auto px-2 sm:px-4 pt-16 pb-6 sm:pt-12 sm:pb-8 lg:py-8">
-          {/* Breadcrumb - Hidden on mobile for cleaner look */}
-          <nav className="mb-4 lg:mb-8 hidden sm:block">
-            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
-              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li className="text-ghibli-moss font-medium">{product.name}</li>
-            </ol>
-          </nav>
+        <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-24 sm:pb-8 lg:py-16">
+          {/* 📱 MOBILE-FIRST: Título centralizado primeiro */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-6"
+          >
+            <h1 className="text-2xl sm:text-3xl font-black text-ghibli-earth mb-3 drop-shadow-sm">
+              📱 Capa Personalizada
+            </h1>
+            <p className="text-sm sm:text-base text-ghibli-earth/70 max-w-2xl mx-auto">
+              Proteja o seu telemóvel com <span className="font-bold text-ghibli-moss">estilo único</span>! 
+              Capa premium com as suas criações AI em alta qualidade.
+            </p>
+          </motion.div>
 
           {/* 📱 MOBILE-FIRST: Mockup primeiro, depois painel de compra */}
           {/* 🖥️ DESKTOP: Layout em grid como antes */}
@@ -668,16 +786,68 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                   {/* 🎯 1. TÍTULO + PREÇO MOBILE-OPTIMIZED */}
                   <div className="text-center pb-3 sm:pb-4 border-b border-ghibli-sand/30">
                     <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-1">
-                      Capa de Telemóvel Personalizada
+                      📱 Capa Personalizada
                     </h1>
-                    <div className="inline-block">
-                      <div className="text-3xl sm:text-4xl font-black text-ghibli-moss drop-shadow-sm">
-                        €25.00
+                    
+                    {/* Preço principal */}
+                    <div className="space-y-1">
+                      <div className="inline-block">
+                        <div className="text-2xl sm:text-3xl font-black text-ghibli-moss">
+                          €{discountedPrice.toFixed(2)}
+                        </div>
+                        {discount > 0 && (
+                          <div className="flex items-center justify-center gap-2 text-xs">
+                            <span className="line-through text-ghibli-earth/50">€{basePrice.toFixed(2)}</span>
+                            <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">
+                              -{discount}%
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-center text-xs text-ghibli-earth/60 font-medium -mt-1">
-                        IVA incluído
+                      
+                      {/* Quantidade */}
+                      <div className="flex items-center justify-center gap-2 mt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          disabled={quantity <= 1}
+                          className="w-8 h-8 p-0 border-ghibli-sand"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                        <span className="w-16 text-center font-semibold text-ghibli-earth">
+                          {quantity} {quantity === 1 ? 'capa' : 'capas'}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setQuantity(quantity + 1)}
+                          className="w-8 h-8 p-0 border-ghibli-sand"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
                       </div>
+
+                      {/* Total e poupança */}
+                      {quantity > 1 && (
+                        <div className="text-xs text-ghibli-earth/70 space-y-1">
+                          <div>Total: <span className="font-bold text-ghibli-moss">€{totalPrice.toFixed(2)}</span></div>
+                          {savings > 0 && (
+                            <div className="text-green-600 font-medium">
+                              Poupa €{savings.toFixed(2)}!
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Incentivo de desconto */}
+                    {quantity === 1 && (
+                      <div className="mt-2 text-xs text-ghibli-earth/60 bg-ghibli-cream/50 px-3 py-2 rounded-lg">
+                        💡 <span className="font-medium">2+ capas:</span> 10% desconto • <span className="font-medium">3+ capas:</span> 15% desconto
+                      </div>
+                    )}
                   </div>
 
                   {/* 🎨 2. STATUS ARTE MOBILE-OPTIMIZED */}
