@@ -388,15 +388,9 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
 
   // ✅ FUNÇÃO: Converter polegadas para centímetros
   const convertInchesToCm = (sizeText: string): string => {
-    // Exemplo: "22" x 34" (Vertical)" -> "56 x 86 cm (Vertical)"
-    const inchMatch = sizeText.match(/(\d+(?:\.\d+)?)["″]?\s*x\s*(\d+(?:\.\d+)?)["″]?\s*\(([^)]+)\)/);
-    if (inchMatch) {
-      const width = Math.round(parseFloat(inchMatch[1]) * 2.54);
-      const height = Math.round(parseFloat(inchMatch[2]) * 2.54);
-      const orientation = inchMatch[3];
-      return `${width} x ${height} cm (${orientation})`;
-    }
-    return sizeText; // Fallback se não conseguir fazer parse
+    // As variantes já têm o formato correto: "5" x 7" (12,7 x 17,8 cm)"
+    // Só retornamos o título sem modificações
+    return sizeText;
   };
 
   // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida
@@ -1468,7 +1462,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
                           {product.variants?.map((variant) => (
                             <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
-                              {variant.title} ({convertInchesToCm(variant.title)})
+                              {variant.title}
                             </SelectItem>
                           ))}
                         </SelectContent>
