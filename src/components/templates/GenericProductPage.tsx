@@ -79,20 +79,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
   const [quantity, setQuantity] = useState(1);
 
-  // --- BLOCO DE DIAGNÓSTICO 'FIO DE ARIADNE' ---
-const finalCoordinateConfig = config.getCoordinateConfig ? config.getCoordinateConfig(product) : config.coordinateConfig;
-
-console.log('--- RELATÓRIO DE ESTADO (FIO DE ARIADNE) ---');
-console.log(`Produto: ${product.name} (ID: ${product.id})`);
-console.log(`Utilizador Logado? ${!!userInfo}`);
-console.log(`Imagem Selecionada? ${!!selectedImageUrl}`);
-console.log(`Config de Coordenadas Existe? ${!!finalCoordinateConfig}`);
-if (finalCoordinateConfig) {
-  console.log('Detalhes da Config de Coordenadas:', finalCoordinateConfig);
-}
-console.log('------------------------------------------');
-// --- FIM DO BLOCO ---
-
   // Cálculos de preço usando a configuração
   const calculateDiscount = (qty: number) => {
     const applicableTiers = config.discountTiers?.filter((tier) => qty >= tier.min) || [];
@@ -252,13 +238,8 @@ console.log('------------------------------------------');
     toast.success('Arte aplicada com sucesso!');
   };
 
-  // Função para gerar novos mockups quando a posição muda
-  const generateNewMockup = async (position: 'top' | 'center' | 'bottom' | 'left' | 'right', variantId: number, isPositionChange: boolean = false) => {
-    console.log('[DEBUG 3] Entrando em generateNewMockup. Verificando condições...', {
-      hasImageUrl: !!selectedImageUrl,
-      hasUserInfo: !!userInfo?.id,
-      hasImageDimensions: !!userImageDimensions
-    });
+  // Função para gerar novos mockups quando a posição muda - ESTABILIZADA COM useCallback
+  const generateNewMockup = useCallback(async (position: 'top' | 'center' | 'bottom' | 'left' | 'right', variantId: number, isPositionChange: boolean = false) => {
     if (!selectedImageUrl || !userInfo?.id || !userImageDimensions) return;
 
     // Calcular novas coordenadas baseadas na posição
@@ -282,9 +263,9 @@ console.log('------------------------------------------');
         userId: userInfo.id,
         imageAdjustments: newAdjustments,
         selectedPrintifyVariantId: variantId,
-        userImageDimensions: userImageDimensions, // ✅ CORREÇÃO: Enviar dimensões para evitar fallback
+        userImageDimensions: userImageDimensions,
       };
-      console.log('[DEBUG 4] Enviando para API. Corpo do pedido:', requestBody);
+      
       const response = await fetch('/api/printify/mockups/generate', {
         method: 'POST',
         headers: {
@@ -320,10 +301,9 @@ console.log('------------------------------------------');
     } finally {
       setIsGeneratingMockup(false);
     }
-  };
+  }, [selectedImageUrl, userInfo, userImageDimensions, imageAdjustments, config, product]);
 
-  const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
-    console.log(`[DEBUG 1] handleAdjustment chamado: type=${type}, value=${value}`);
+  const handleAdjustment = useCallback(async (type: 'position' | 'size', value: string | number) => {
     // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
     const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
     if (!allowed) {
@@ -355,12 +335,11 @@ console.log('------------------------------------------');
 
     // 3. E SÓ DEPOIS CHAMA A FUNÇÃO PARA GERAR A MOCKUP (O ATAQUE)
     // Garante que newVariantId não é nulo antes de chamar
-    console.log('[DEBUG 2] Pre-flight check para generateNewMockup', { newPosition, newVariantId });
     if (newVariantId !== null) {
       const isPositionChange = type === 'position';
       await generateNewMockup(newPosition, newVariantId, isPositionChange);
     }
-  };
+  }, [userImageDimensions, imagePosition, selectedPrintifyVariantId, generateNewMockup]);
 
   // Condições auxiliares
   const isProcessingMockup = (!printifyProductId || !printifyImageId) && selectedImageUrl;
