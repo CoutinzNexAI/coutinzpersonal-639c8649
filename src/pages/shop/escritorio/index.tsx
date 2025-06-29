@@ -21,13 +21,13 @@ const EscritorioShopPage: React.FC = () => {
     ...legacyMousepadProducts 
   };
   
-  const allProducts = Object.keys(allProductsData);
+  const productIds = Object.keys(allProductsData);
 
   console.log('🏢 [ESCRITORIO PAGE] Produtos encontrados:', {
     escritorioProducts: Object.keys(escritorioProducts),
     legacyNotebook: Object.keys(legacyNotebookProducts),
     legacyMousepad: Object.keys(legacyMousepadProducts),
-    total: allProducts.length
+    total: productIds.length
   });
 
   return (
@@ -38,23 +38,14 @@ const EscritorioShopPage: React.FC = () => {
         <meta name="keywords" content="cadernos personalizados, mousepads personalizados, escritório personalizado, impressão personalizada" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-[#FAF8F0] via-[#F5F1E8] to-[#E8E0D0]">
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-4 py-12 md:py-16">
-          {/* Breadcrumb simplificado */}
-          <div className="mb-8">
-            <nav className="text-sm text-[#4A6B5B]">
-              <Link href="/shop" className="hover:text-[#2D5A27] transition-colors">
-                ← Voltar à Loja
-            </Link>
-            </nav>
-          </div>
-
+        <main className="container mx-auto px-4 py-16 md:py-20 lg:py-24">
           {/* Header */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-20 lg:mb-24">
             <motion.h1 
-              className="text-3xl md:text-5xl font-bold text-[#2D5A27] mb-4"
+              className="text-3xl md:text-5xl font-ghibli font-bold text-ghibli-wood mb-4"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -62,7 +53,7 @@ const EscritorioShopPage: React.FC = () => {
               📝 Produtos de Escritório
             </motion.h1>
             <motion.p 
-              className="text-lg text-[#4A6B5B] max-w-2xl mx-auto"
+              className="text-lg text-ghibli-earth max-w-2xl mx-auto"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -71,113 +62,227 @@ const EscritorioShopPage: React.FC = () => {
             </motion.p>
           </div>
 
-          {/* Products Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {allProducts.map((productId, index) => {
-              const product = allProductsData[productId];
-              // ✅ DETECTAR TIPO DE PRODUTO: Por ID do produto em vez de categoria
-              const isNotebook = productId.includes('journal') || productId.includes('caderno') || product.category === 'stationery';
-              const isMousepad = productId.includes('mouse_pad') || productId.includes('mousepad') || product.category === 'office';
-              
-              return (
-              <motion.div
-                  key={productId}
-                  initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                  <Link href={`/shop/escritorio/${productId}`}>
-                    <div className="group bg-white rounded-2xl shadow-lg border border-[#E8E0D0] overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
-                      {/* Product Image */}
-                      <div className="aspect-square bg-gradient-to-br from-[#F5F1E8] to-[#E8E0D0] p-8 flex items-center justify-center relative">
-                        {isNotebook ? (
-                          <div className="w-24 h-32 bg-white rounded-lg border-2 border-[#2D5A27] flex items-center justify-center relative shadow-lg">
-                            <div className="text-3xl">📝</div>
-                            {/* Print area preview */}
-                            <div className="absolute inset-2 bg-gray-100 rounded flex items-center justify-center">
-                              <div className="text-xs text-gray-500">Arte</div>
+          {/* Desktop Layout: Products Left + Info Right */}
+          <div className="hidden lg:grid lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
+            {/* Left: Products (2 columns) */}
+            <div className="lg:col-span-2">
+              <div className="grid md:grid-cols-2 gap-8 justify-center">
+                {productIds.map((productId, index) => {
+                  const product = allProductsData[productId];
+                  
+                  // Get correct mockup image based on product type
+                  const isNotebook = productId.includes('journal') || productId.includes('caderno') || product.category === 'stationery';
+                  const mockupImage = isNotebook 
+                    ? '/mockupproduto/caderno.png'
+                    : '/mockupproduto/mousepad.png';
+                  
+                  return (
+                    <motion.div
+                      key={productId}
+                      initial={{ opacity: 0, y: 50 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: index * 0.2 }}
+                      className="w-full max-w-sm mx-auto"
+                    >
+                      <Link href={`/shop/escritorio/${productId}`}>
+                        <div className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer h-full">
+                          {/* Product Image with Real Mockup */}
+                          <div className="aspect-square bg-gradient-to-br from-ghibli-cream/50 to-ghibli-sand/30 p-8 flex items-center justify-center relative">
+                            <img
+                              src={mockupImage}
+                              alt={product.name}
+                              className="w-40 h-40 object-contain drop-shadow-lg"
+                            />
+                            {/* Preview Badge */}
+                            <div className="absolute top-4 right-4 bg-green-600 text-white text-xs px-3 py-1 rounded-full font-medium">
+                              Preview
                             </div>
                           </div>
-                        ) : (
-                          <div className="w-36 h-24 bg-[#2D5A27] rounded-xl flex items-center justify-center relative shadow-lg">
-                            <div className="text-3xl text-white">🖱️</div>
-                            {/* Print area preview */}
-                            <div className="absolute inset-2 bg-white/20 rounded-lg flex items-center justify-center">
-                              <div className="text-xs text-white/80">Arte</div>
+                          
+                          {/* Product Info */}
+                          <div className="p-6 flex-1">
+                            <h3 className="text-xl font-semibold text-ghibli-wood mb-3 group-hover:text-ghibli-moss transition-colors">
+                              {product.name}
+                            </h3>
+                            
+                            {/* Specifications */}
+                            <div className="text-sm text-ghibli-earth space-y-2 mb-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
+                                <span>Impressão de alta qualidade</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
+                                <span>{isNotebook ? 'Páginas lisas para criar' : 'Base antiderrapante'}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
+                                <span>Duradouro e resistente</span>
+                              </div>
+                              {isNotebook ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                  <span className="font-medium text-blue-600">Caderno Espiral 📓</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                                  <span className="font-medium text-purple-600">Mousepad 23x19 cm 🖱️</span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Price */}
+                            <div className="flex items-center justify-center">
+                              <div className="text-2xl font-bold text-ghibli-moss">
+                                €{product.basePrice || product.price || 20.00}
+                              </div>
                             </div>
                           </div>
-                      )}
-                        {/* Preview Badge */}
-                        <div className="absolute top-4 right-4 bg-[#2D5A27] text-white text-xs px-2 py-1 rounded-full">
-                          Preview
-                      </div>
-                    </div>
-                    
-                      {/* Product Info */}
-                      <div className="p-6">
-                        <h3 className="text-lg font-semibold text-[#2D5A27] mb-2 group-hover:text-[#4A6B5B] transition-colors">
-                        {product.name}
-                      </h3>
-                        
-                        {/* Specifications */}
-                        <div className="text-sm text-[#4A6B5B] space-y-1 mb-4">
-                          <div>🎨 Impressão de alta qualidade</div>
-                          <div>📏 {product.variants?.length || 0} opções disponíveis</div>
-                          <div>✨ Duradouro e resistente</div>
-                          {isNotebook ? (
-                            <div>📝 Páginas lisas para criar</div>
-                          ) : (
-                            <div>🖱️ Base antiderrapante</div>
-                          )}
                         </div>
-                        
-                        {/* Price */}
-                      <div className="flex items-center justify-between">
-                          <div className="text-lg font-bold text-[#2D5A27]">
-                            {product.basePrice ? `€${product.basePrice}` : `€${product.price || 20.00}`}
-                          </div>
-                          <div className="text-xs text-[#4A6B5B]/70">
-                            + envio
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                </Link>
-              </motion.div>
-              );
-            })}
-          </div>
-
-          {/* Info Section */}
-          <motion.div
-            className="mt-16 bg-white/80 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto border border-[#E8E0D0]"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            <h2 className="text-2xl font-semibold text-[#2D5A27] mb-6 text-center">
-              ✨ Porquê Escolher Produtos de Escritório PicTuz?
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6 text-sm text-[#4A6B5B]">
-              <div className="text-center">
-                <div className="text-3xl mb-3">🎨</div>
-                <h3 className="font-semibold mb-2">Qualidade Premium</h3>
-                <p>Materiais de alta qualidade com impressão durável e cores vibrantes</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl mb-3">📝</div>
-                <h3 className="font-semibold mb-2">Funcionalidade</h3>
-                <p>Produtos práticos que combinam estilo único com utilidade diária</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl mb-3">⚡</div>
-                <h3 className="font-semibold mb-2">Inspiração Diária</h3>
-                <p>Transforme o seu espaço de trabalho num lugar único e inspirador</p>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
-          </motion.div>
-        </main>
 
+            {/* Right: Info Section */}
+            <div className="lg:col-span-1">
+              <motion.div 
+                className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 border border-ghibli-sand/30 sticky top-8"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                <h2 className="text-2xl font-semibold text-ghibli-wood mb-6 text-center">
+                  ✨ Porquê Escolher Escritório PicTuz?
+                </h2>
+                <div className="space-y-6 text-sm text-ghibli-earth">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-3xl">🎨</span>
+                    </div>
+                    <h3 className="font-semibold mb-2 text-ghibli-wood">Qualidade Premium</h3>
+                    <p>Materiais de alta qualidade com impressão durável e cores vibrantes</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-3xl">📝</span>
+                    </div>
+                    <h3 className="font-semibold mb-2 text-ghibli-wood">Funcionalidade</h3>
+                    <p>Produtos práticos que combinam estilo único com utilidade diária</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-3xl">⚡</span>
+                    </div>
+                    <h3 className="font-semibold mb-2 text-ghibli-wood">Inspiração Diária</h3>
+                    <p>Transforme o seu espaço de trabalho num lugar único e inspirador</p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Mobile Layout: Stacked Products */}
+          <div className="lg:hidden">
+            <div className="grid gap-6 max-w-md mx-auto">
+              {productIds.map((productId, index) => {
+                const product = allProductsData[productId];
+                
+                // Get correct mockup image based on product type
+                const isNotebook = productId.includes('journal') || productId.includes('caderno') || product.category === 'stationery';
+                const mockupImage = isNotebook 
+                  ? '/mockupproduto/caderno.png'
+                  : '/mockupproduto/mousepad.png';
+                
+                return (
+                  <motion.div
+                    key={productId}
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.2 }}
+                  >
+                    <Link href={`/shop/escritorio/${productId}`}>
+                      <div className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/30 overflow-hidden hover:shadow-xl transition-all duration-300 active:scale-95 cursor-pointer">
+                        {/* Product Image */}
+                        <div className="aspect-[4/3] bg-gradient-to-br from-ghibli-cream/50 to-ghibli-sand/30 p-6 flex items-center justify-center relative">
+                          <img
+                            src={mockupImage}
+                            alt={product.name}
+                            className="w-32 h-32 object-contain drop-shadow-lg"
+                          />
+                          {/* Preview Badge */}
+                          <div className="absolute top-3 right-3 bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            Preview
+                          </div>
+                        </div>
+                        
+                        {/* Product Info */}
+                        <div className="p-5">
+                          <h3 className="text-lg font-semibold text-ghibli-wood mb-2 group-hover:text-ghibli-moss transition-colors">
+                            {product.name}
+                          </h3>
+                          
+                          {/* Key Features */}
+                          <div className="text-sm text-ghibli-earth space-y-1 mb-3">
+                            <div>🎨 Impressão premium</div>
+                            <div>📏 {product.variants?.length || 0} opções</div>
+                            <div>✨ Duradouro</div>
+                            {isNotebook ? <div>📓 Páginas lisas</div> : <div>🖱️ Antiderrapante</div>}
+                          </div>
+                          
+                          {/* Price */}
+                          <div className="flex items-center justify-center">
+                            <div className="text-xl font-bold text-ghibli-moss">
+                              €{product.basePrice || product.price || 20.00}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Mobile Info Section */}
+            <motion.div 
+              className="mt-12 bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-ghibli-sand/30"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <h2 className="text-xl font-semibold text-ghibli-wood mb-4 text-center">
+                ✨ Porquê Escolher PicTuz?
+              </h2>
+              <div className="grid grid-cols-2 gap-4 text-center text-sm">
+                <div>
+                  <div className="text-2xl mb-2">🎨</div>
+                  <h3 className="font-semibold mb-1 text-ghibli-wood">Premium</h3>
+                  <p className="text-xs text-ghibli-earth">Alta qualidade</p>
+                </div>
+                <div>
+                  <div className="text-2xl mb-2">📝</div>
+                  <h3 className="font-semibold mb-1 text-ghibli-wood">Funcional</h3>
+                  <p className="text-xs text-ghibli-earth">Uso diário</p>
+                </div>
+                <div>
+                  <div className="text-2xl mb-2">⚡</div>
+                  <h3 className="font-semibold mb-1 text-ghibli-wood">Inspirador</h3>
+                  <p className="text-xs text-ghibli-earth">Único</p>
+                </div>
+                <div>
+                  <div className="text-2xl mb-2">🚀</div>
+                  <h3 className="font-semibold mb-1 text-ghibli-wood">Rápido</h3>
+                  <p className="text-xs text-ghibli-earth">~1 semana</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </main>
+        
         <Footer />
       </div>
     </>
