@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
+import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
 
 // Componentes compartilhados
 import ProductQuantityPricing from '@/components/shared/ProductQuantityPricing';
@@ -67,7 +68,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   // Estados específicos do produto
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
-  const [imagePosition, setImagePosition] = useState<'top' | 'center' | 'bottom'>('center');
+  const [imagePosition, setImagePosition] = useState<'top' | 'center' | 'bottom' | 'left' | 'right'>('center');
   const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
   const [isGeneratingMockup] = useState<boolean>(false);
   const [quantity, setQuantity] = useState(1);
@@ -231,23 +232,91 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     toast.success('Arte aplicada com sucesso!');
   };
 
-  const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
-    if (type === 'size' && typeof value === 'number') {
-      setSelectedPrintifyVariantId(value);
-    } else if (type === 'position' && typeof value === 'string') {
-      const position = value as 'top' | 'center' | 'bottom';
-      setImagePosition(position);
-      
-      // APENAS calcular coordenadas se o produto suporta ajustes de posição
-      if (userImageDimensions && selectedPrintifyVariantId && config.calculatePrintifyCoords) {
-        const newAdjustments = config.calculatePrintifyCoords(
-          position,
-          selectedPrintifyVariantId,
-          userImageDimensions,
-          product
-        );
-        setImageAdjustments(newAdjustments);
+  // Função para gerar novos mockups quando a posição muda
+  const generateNewMockup = async (position: 'top' | 'center' | 'bottom' | 'left' | 'right', variantId: number) => {
+    if (!selectedImageUrl || !userInfo?.id || !userImageDimensions) return;
+
+    // Calcular novas coordenadas baseadas na posição
+    let newAdjustments = imageAdjustments;
+    if (config.calculatePrintifyCoords) {
+      newAdjustments = config.calculatePrintifyCoords(
+        position,
+        variantId,
+        userImageDimensions,
+        product
+      );
+      setImageAdjustments(newAdjustments);
+    }
+
+    try {
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          userImageUrl: selectedImageUrl,
+          userId: userInfo.id,
+          imageAdjustments: newAdjustments,
+          selectedPrintifyVariantId: variantId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to generate mockup');
+      }
+
+      if (data.previewUrls && data.printifyProductId) {
+        setPrintifyPreviewUrls(data.previewUrls);
+        setPrintifyImageId(data.printifyImageId || '');
+        setPrintifyProductId(data.printifyProductId);
+        setCurrentMockupUrls(data.previewUrls);
+        toast.success('Mockup atualizado com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error generating new mockup:', error);
+      toast.error('Erro ao gerar novo mockup. Tente novamente.');
+    }
+  };
+
+  const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
+    // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
+    const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
+    if (!allowed) {
+      toast.error(message);
+      return;
+    }
+
+    if (!userImageDimensions) {
+      toast.error('Aguarde o carregamento da imagem');
+      return;
+    }
+
+    let newPosition = imagePosition;
+    let newVariantId = selectedPrintifyVariantId;
+
+    if (type === 'position' && typeof value === 'string') {
+      newPosition = value as 'top' | 'center' | 'bottom' | 'left' | 'right';
+      setImagePosition(newPosition);
+    } else if (type === 'size' && typeof value === 'number') {
+      newVariantId = value;
+      setSelectedPrintifyVariantId(newVariantId);
+    }
+
+    // 2. Se for permitido, regista o pedido
+    GlobalRateLimiter.recordRequest();
+
+    // 3. E SÓ DEPOIS CHAMA A FUNÇÃO PARA GERAR A MOCKUP (O ATAQUE)
+    // Garante que newVariantId não é nulo antes de chamar
+    if (newVariantId !== null) {
+      await generateNewMockup(newPosition, newVariantId);
     }
   };
 

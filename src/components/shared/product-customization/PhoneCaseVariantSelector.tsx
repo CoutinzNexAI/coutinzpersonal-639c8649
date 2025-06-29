@@ -96,7 +96,23 @@ export const PhoneCaseVariantSelector: React.FC<PhoneCaseVariantSelectorProps> =
   // Reset modelo quando marca muda
   const handleBrandChange = (brand: string) => {
     setSelectedBrand(brand);
-    // Limpar seleção de modelo quando marca muda
+    
+    // Se mudou para Samsung, selecionar automaticamente o S23 se disponível
+    if (brand === 'Samsung') {
+      const samsungModels = variantsByBrand[brand] || [];
+      const s23Model = samsungModels.find(model => 
+        model.cleanName.toLowerCase().includes('s23') && 
+        !model.cleanName.toLowerCase().includes('s23+') &&
+        !model.cleanName.toLowerCase().includes('s23 ultra')
+      );
+      
+      if (s23Model) {
+        onVariantChange(s23Model.id);
+        return;
+      }
+    }
+    
+    // Para outras marcas ou se S23 não estiver disponível, limpar seleção
     if (selectedVariantId) {
       const currentVariant = product.variants?.find(v => v.id === selectedVariantId);
       if (currentVariant && extractBrand(currentVariant.title) !== brand) {

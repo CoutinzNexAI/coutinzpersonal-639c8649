@@ -48,15 +48,6 @@ export default function NotebookVariantSelector({
           </button>
         ))}
       </div>
-
-      {/* Preço do produto */}
-      <div className="mt-4 p-3 bg-ghibli-cream/30 rounded-lg">
-        <div className="text-sm text-ghibli-earth/70">
-          Preço: <span className="font-semibold text-ghibli-earth">
-            €{(product.basePrice || 20).toFixed(2)}
-          </span>
-        </div>
-      </div>
     </div>
   );
 } 
