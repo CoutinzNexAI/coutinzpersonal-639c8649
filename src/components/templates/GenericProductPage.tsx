@@ -37,7 +37,7 @@ interface GenericProductPageProps {
     getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => number;
     discountTiers: Array<{ min: number; discount: number; label: string; emoji: string; }>;
     descriptionItems: (product: PrintifyProductMapping) => Array<{ text: string; color?: 'moss' | 'wood'; emoji?: string; }>;
-    guaranteeItems: () => Array<{ icon: string; title: string; }>;
+    guaranteeItems: () => Array<{ icon: React.ComponentType<{ className?: string }>; title: string; }>;
     coordinateConfig: { positionType: string; positions: readonly string[]; };
     calculatePrintifyCoords: (position: string, variantId: number, imageDimensions: { width: number; height: number }, product: PrintifyProductMapping) => ImageAdjustments;
     validatePurchase: (selectedImageUrl: string, selectedImageId: string | null, userInfo: unknown, selectedPrintifyVariantId: number | null, printifyProductId: string, printifyImageId: string) => string | null;
@@ -268,7 +268,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
         <Header />
         
-        <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-12 sm:pb-8 lg:py-8">
+        <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-12 sm:pb-8 lg:pt-24 lg:pb-8">
           {/* Layout Mobile */}
           <div className="block lg:hidden">
             <motion.div
@@ -378,8 +378,10 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 <ProductDescription items={config.descriptionItems(product)} />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <ProductGuarantees guarantees={config.guaranteeItems()} />
+              <div className="flex justify-center">
+                <div className="grid grid-cols-2 gap-3 max-w-sm">
+                  <ProductGuarantees guarantees={config.guaranteeItems()} />
+                </div>
               </div>
             </motion.div>
           </div>
@@ -519,9 +521,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                         </div>
 
                         {/* Destaques de desconto */}
-                                                 {config.discountTiers && (
-                           <div className="grid grid-cols-2 gap-2 text-xs">
-                             {config.discountTiers.map((tier, index: number) => (
+                        {config.discountTiers && (
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {config.discountTiers.map((tier, index: number) => (
                               <div key={index} className={`text-center p-2 rounded-md transition-all ${
                                 quantity >= tier.min 
                                   ? 'bg-green-100 border border-green-300 text-green-800' 
@@ -557,6 +559,20 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     selectedImageUrl={selectedImageUrl}
                     onOpenGallery={handleOpenGallery}
                   />
+
+                  {/* Controlos de Posição */}
+                  {userInfo && selectedImageUrl && (
+                    <ProductPositionControls
+                      selectedImageUrl={selectedImageUrl}
+                      userImageDimensions={userImageDimensions}
+                      product={product}
+                      imagePosition={imagePosition}
+                      isGeneratingMockup={isGeneratingMockup}
+                      onOpenGallery={handleOpenGallery}
+                      onAdjustPosition={(position) => handleAdjustment('position', position)}
+                      positionType={(config.coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
+                    />
+                  )}
 
                   {/* Descrição */}
                   <ProductDescription items={config.descriptionItems(product)} />

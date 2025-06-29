@@ -80,7 +80,7 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
       <>
         <span className={size === 'mobile' ? 'text-lg' : 'text-lg sm:text-xl'}>🛒</span>
         <span className={size === 'mobile' ? '' : 'hidden sm:inline'}>Adicionar ao Carrinho</span>
-        {size === 'mobile' && <span className="sm:hidden">Adicionar</span>}
+        {size === 'mobile' && <span className="sm:hidden">Adicionar ao Carrinho</span>}
         <div className={`${size === 'mobile' ? 'w-5 h-5' : 'w-5 h-5 sm:w-6 sm:h-6'} rounded-full bg-white/20 flex items-center justify-center`}>
           <ChevronRight className={`${size === 'mobile' ? 'w-3 h-3' : 'w-3 h-3 sm:w-4 sm:h-4'}`} />
         </div>

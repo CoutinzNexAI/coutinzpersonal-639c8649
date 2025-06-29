@@ -1,5 +1,6 @@
 import { ImageAdjustments } from '@/types/product';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
+import { Shield, Sparkles, Truck, Award } from 'lucide-react';
 
 // Ficheiro de configuração para produtos do tipo Caneca
 // Define configurações específicas, variantes e comportamentos para canecas
@@ -48,19 +49,19 @@ export const mugConfig = {
   // Itens de garantias (função que retorna JSX)
   guaranteeItems: () => [
     {
-      icon: 'Shield',
+      icon: Shield,
       title: 'Cerâmica Premium'
     },
     {
-      icon: 'Sparkles',
+      icon: Sparkles,
       title: 'Impressão HD'
     },
     {
-      icon: 'Truck',
+      icon: Truck,
       title: '~1 semana'
     },
     {
-      icon: 'Award',
+      icon: Award,
       title: 'Garantia Total'
     }
   ],

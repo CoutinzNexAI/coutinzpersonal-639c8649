@@ -2,7 +2,7 @@ import React from 'react';
 import { Shield, Sparkles, Truck, Award } from 'lucide-react';
 
 interface GuaranteeItem {
-  icon: React.ReactNode;
+  icon: React.ReactNode | React.ComponentType<{ className?: string }>;
   title: string;
 }
 
@@ -42,7 +42,7 @@ export const ProductGuarantees: React.FC<ProductGuaranteesProps> = ({
           className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30"
         >
           <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-            {guarantee.icon}
+            {React.isValidElement(guarantee.icon) ? guarantee.icon : React.createElement(guarantee.icon as React.ComponentType<{ className?: string }>, { className: "w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" })}
           </div>
           <span className="text-xs font-bold text-ghibli-earth">{guarantee.title}</span>
         </div>
