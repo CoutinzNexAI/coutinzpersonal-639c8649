@@ -29,6 +29,7 @@ import ProductVariantSelector from '@/components/shared/ProductVariantSelector';
 import ProductAddToCartButton from '@/components/shared/ProductAddToCartButton';
 import ProductMobileControls from '@/components/shared/ProductMobileControls';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
+import PhoneCaseVariantSelector from '@/components/shared/product-customization/PhoneCaseVariantSelector';
 
 interface GenericProductPageProps {
   product: PrintifyProductMapping;
@@ -384,15 +385,27 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
               {/* Seletor de Variantes Mobile */}
               <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
-                <ProductVariantSelector
-                  product={product}
-                  selectedVariantId={selectedPrintifyVariantId}
-                  onVariantChange={(variantId) => handleAdjustment('size', variantId)}
-                  label={config.variantSelectorConfig?.label || "Variante"}
-                  emoji={config.variantSelectorConfig?.emoji || "🎯"}
-                  customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
-                  customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
-                />
+                {config.VariantSelectorComponent === 'PhoneCaseVariantSelector' ? (
+                  <PhoneCaseVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                    label={config.variantSelectorConfig?.label || "Modelo do Telemóvel"}
+                    emoji={config.variantSelectorConfig?.emoji || "📱"}
+                    customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                    customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                  />
+                ) : (
+                  <ProductVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                    label={config.variantSelectorConfig?.label || "Variante"}
+                    emoji={config.variantSelectorConfig?.emoji || "🎯"}
+                    customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                    customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                  />
+                )}
               </div>
 
               <ProductGuarantees guarantees={config.guaranteeItems()} />
@@ -618,15 +631,27 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   <ProductDescription items={config.descriptionItems(product)} />
 
                   {/* Seletor de Variantes */}
-                  <ProductVariantSelector
-                    product={product}
-                    selectedVariantId={selectedPrintifyVariantId}
-                    onVariantChange={(variantId) => handleAdjustment('size', variantId)}
-                    label={config.variantSelectorConfig?.label || "Variante"}
-                    emoji={config.variantSelectorConfig?.emoji || "🎯"}
-                    customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
-                    customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
-                  />
+                  {config.VariantSelectorComponent === 'PhoneCaseVariantSelector' ? (
+                    <PhoneCaseVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                      label={config.variantSelectorConfig?.label || "Modelo do Telemóvel"}
+                      emoji={config.variantSelectorConfig?.emoji || "📱"}
+                      customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                      customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                    />
+                  ) : (
+                    <ProductVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                      label={config.variantSelectorConfig?.label || "Variante"}
+                      emoji={config.variantSelectorConfig?.emoji || "🎯"}
+                      customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                      customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                    />
+                  )}
 
                   {/* Botão Principal */}
                   <div className="pt-3">
