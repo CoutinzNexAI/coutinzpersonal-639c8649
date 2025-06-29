@@ -13,7 +13,7 @@ const BagDetailPage: React.FC<BagDetailPageProps> = ({ product }) => {
     <GenericProductPage 
       product={product} 
       config={bagConfig}
-    />
+                />
   );
 };
 
