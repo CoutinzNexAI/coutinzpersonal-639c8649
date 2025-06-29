@@ -54,6 +54,8 @@ interface GenericProductPageProps {
 const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config }) => {
   const router = useRouter();
   const { userInfo } = useAuth();
+
+  
   
   // Resolver coordinateConfig dinamicamente
   const coordinateConfig = config.getCoordinateConfig ? config.getCoordinateConfig(product) : config.coordinateConfig;
@@ -76,6 +78,20 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
   const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
   const [quantity, setQuantity] = useState(1);
+
+  // --- BLOCO DE DIAGNÓSTICO 'FIO DE ARIADNE' ---
+const finalCoordinateConfig = config.getCoordinateConfig ? config.getCoordinateConfig(product) : config.coordinateConfig;
+
+console.log('--- RELATÓRIO DE ESTADO (FIO DE ARIADNE) ---');
+console.log(`Produto: ${product.name} (ID: ${product.id})`);
+console.log(`Utilizador Logado? ${!!userInfo}`);
+console.log(`Imagem Selecionada? ${!!selectedImageUrl}`);
+console.log(`Config de Coordenadas Existe? ${!!finalCoordinateConfig}`);
+if (finalCoordinateConfig) {
+  console.log('Detalhes da Config de Coordenadas:', finalCoordinateConfig);
+}
+console.log('------------------------------------------');
+// --- FIM DO BLOCO ---
 
   // Cálculos de preço usando a configuração
   const calculateDiscount = (qty: number) => {

@@ -1,5 +1,7 @@
 # Componentes Compartilhados de Produto
 
+
+
 Esta pasta contém componentes reutilizáveis criados para simplificar o desenvolvimento de páginas de produtos. Todos os componentes foram extraídos da página de canecas e são otimizados para eficiência e reutilização.
 
 ## 🧩 Componentes Disponíveis
