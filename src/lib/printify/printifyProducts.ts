@@ -222,7 +222,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   // CAPA DE TELEMÓVEL PERSONALIZADA (COM AJUSTE MANUAL E MÚLTIPLAS VARIANTES)
   'custom_phone_case': {
     id: 'custom_phone_case',
-    name: 'Capa de Telemóvel Personalizada',
+    name: 'Capa de Telemóvel',
     mockupInitialPath: '/mockupproduto/telemovel.png', // Imagem base no frontend
     basePrice: 25.00, // Preço de venda em euros
     category: 'tecnologia',
@@ -292,7 +292,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   // 1. CANECA CERÂMICA (EU)
   'ceramic_mug': {
     id: 'ceramic_mug',
-    name: 'Caneca Personalizada',
+    name: 'Caneca',
     mockupInitialPath: '/assets/mockups/mug/caneca.svg',
     basePrice: 22.50, // Euros - 330ml base, 450ml será +5
     category: 'mug',
@@ -328,7 +328,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   // 2. CANECA EM FORMATO DE CORAÇÃO
   'heart_mug': {
     id: 'heart_mug',
-    name: 'Caneca Coração Personalizada',
+    name: 'Caneca Coração',
     mockupInitialPath: '/assets/mockups/mug/canecacoracao.svg',
     basePrice: 30.00, // Euros
     category: 'mug',
@@ -363,7 +363,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   // 3. SACO TOTE BAG
   'tote_bag': {
     id: 'tote_bag',
-    name: 'Saco Tote Bag Personalizado',
+    name: 'Saco Tote Bag',
     mockupInitialPath: '/assets/mockups/bag/saco.svg',
     basePrice: 25.00, // Euros
     category: 'bags', // Nova categoria
@@ -399,7 +399,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   // 4. CADERNO SPIRAL JOURNAL
   'spiral_journal': {
     id: 'spiral_journal',
-    name: 'Caderno Personalizado',
+    name: 'Caderno',
     mockupInitialPath: '/assets/mockups/journal/spiral_journal_blank.svg',
     basePrice: 20.00, // Euros
     category: 'escritorio', // ✅ MUDANÇA: escritorio em vez de stationery
@@ -435,7 +435,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   // 5. MOUSE PAD
   'mouse_pad': {
     id: 'mouse_pad',
-    name: 'Mouse Pad Personalizado',
+    name: 'Mouse Pad',
     mockupInitialPath: '/assets/mockups/mousepad/mouse_pad_blank.svg',
     basePrice: 30.00, // Euros
     category: 'escritorio', // ✅ MUDANÇA: escritorio em vez de office

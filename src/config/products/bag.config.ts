@@ -48,7 +48,7 @@ export const bagConfig = {
   },
 
   // Componente de seleção de variantes
-  VariantSelectorComponent: 'ProductVariantSelector',
+  VariantSelectorComponent: 'ToteBagVariantSelector',
 
   // 🎯 A MAGIA ACONTECE AQUI:
   // Ao OMITIR `coordinateConfig` e `calculatePrintifyCoords`, o GenericProductPage

@@ -550,6 +550,58 @@ export default function ProductCanvas({
       );
     }
 
+    // Para caderno (spiral_journal), mostrar placeholder específico
+    if (selectedProduct.id === 'spiral_journal') {
+      return (
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder image */}
+          <div className="mb-6">
+            <img
+              src="/mockupproduto/caderno.png"
+              alt="Caderno Personalizado"
+              className="w-64 h-64 object-contain opacity-60"
+            />
+          </div>
+          
+          {/* Call to action específico para caderno */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Caderno Personalizado
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Escolha uma arte e veja o seu caderno personalizado ganhar vida.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Para mouse pad, mostrar placeholder específico
+    if (selectedProduct.id === 'mouse_pad') {
+      return (
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder image */}
+          <div className="mb-6">
+            <img
+              src="/mockupproduto/mousepad.png"
+              alt="Mouse Pad Personalizado"
+              className="w-64 h-64 object-contain opacity-60"
+            />
+          </div>
+          
+          {/* Call to action específico para mouse pad */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Mouse Pad Personalizado
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Escolha uma arte e veja o seu mouse pad personalizado ganhar vida.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     // Para outros produtos, mostrar estado vazio genérico
     return (
       <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
@@ -724,9 +776,11 @@ export default function ProductCanvas({
 
   if (isLoadingMockups) {
     return (
-      <div className="relative w-full h-full">
-        {renderInitialPreview()}
-        {renderLoadingOverlay()}
+      <div className="relative w-full h-full bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-ghibli-moss mx-auto mb-4" />
+          <p className="text-ghibli-earth/70 text-sm">A gerar mockup...</p>
+        </div>
       </div>
     );
   }

@@ -132,5 +132,5 @@ export const notebookConfig = {
     emoji: '📝'
   },
 
-  VariantSelectorComponent: 'ProductVariantSelector'
+  VariantSelectorComponent: 'NotebookVariantSelector'
 }; 

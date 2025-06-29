@@ -29,8 +29,8 @@ export const mousepadConfig = {
       emoji: '🎨'
     },
     {
-      text: 'Tamanho ideal para <span class="font-bold">qualquer secretária</span>',
-      emoji: '💻'
+      text: 'Tamanho <span class="font-bold text-ghibli-moss">23 x 19 cm</span> ideal para qualquer secretária',
+      emoji: '📏'
     }
   ],
 

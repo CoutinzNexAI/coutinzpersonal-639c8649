@@ -83,5 +83,9 @@ export const canvasConfig = {
     emoji: '📐'
   },
 
-  VariantSelectorComponent: 'ProductVariantSelector'
+  getVariantSelectorComponent: (product: PrintifyProductMapping) => {
+    return product.id === 'framed_canvas' ? 'FramedCanvasVariantSelector' : 'ProductVariantSelector';
+  },
+  
+  VariantSelectorComponent: 'ProductVariantSelector' // fallback
 }; 

@@ -88,7 +88,7 @@ export const phoneCaseConfig = {
 
   // ✅ SELETOR DE VARIANTES: Configuração para dropdown encadeado
   variantSelectorConfig: {
-    label: 'Modelo do Telemóvel',
+    label: '',
     emoji: '📱',
     getCustomSingleVariantText: (_product: PrintifyProductMapping) => {
       const variantCount = _product.variants?.length || 0;

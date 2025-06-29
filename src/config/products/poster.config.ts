@@ -48,9 +48,11 @@ export const posterConfig = {
   ],
 
   // ✅ COORDENADAS: Configuração específica para posters
-  coordinateConfig: {
-    positionType: 'adaptive', // Poster vertical = horizontal, Poster horizontal = vertical
-    positions: ['left', 'center', 'right', 'top', 'bottom'] as const
+  getCoordinateConfig: (product: PrintifyProductMapping) => {
+    if (product.id === 'poster_horizontal_semi_glossy') {
+      return { positionType: 'vertical' as const, positions: ['top', 'center', 'bottom'] as const };
+    }
+    return { positionType: 'horizontal' as const, positions: ['left', 'center', 'right'] as const };
   },
 
   // ✅ CÁLCULO DE COORDENADAS: Lógica específica para posters
@@ -82,7 +84,7 @@ export const posterConfig = {
     const printifyScale = finalImageWidth / placeholderWidth;
 
     // PASSO 4: DEFINIR POSIÇÃO BASEADA NO TIPO DE POSTER
-    const finalX = 0.5; // Para posters, sempre centrado no eixo principal
+    const finalX = 0.5;
     let finalY = 0.5;
     
     // Determinar tipo de movimento baseado no produto
@@ -96,8 +98,8 @@ export const posterConfig = {
       } else if (position === 'right') {
         finalY = 0.5 + shiftAmount;
       }
-    } else {
-      // Poster Horizontal: move top/center/bottom (vertical)
+    } else if (product.id === 'poster_horizontal_semi_glossy') {
+      // Poster Horizontal: move top/center/bottom (vertical) - ORDEM 2
       if (position === 'top') {
         finalY = 0.5 - shiftAmount;
       } else if (position === 'bottom') {

@@ -28,6 +28,9 @@ import ProductAddToCartButton from '@/components/shared/ProductAddToCartButton';
 import ProductMobileControls from '@/components/shared/ProductMobileControls';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
 import PhoneCaseVariantSelector from '@/components/shared/product-customization/PhoneCaseVariantSelector';
+import FramedCanvasVariantSelector from '@/components/shared/product-customization/FramedCanvasVariantSelector';
+import ToteBagVariantSelector from '@/components/shared/product-customization/ToteBagVariantSelector';
+import NotebookVariantSelector from '@/components/shared/product-customization/NotebookVariantSelector';
 
 interface GenericProductPageProps {
   product: PrintifyProductMapping;
@@ -41,6 +44,7 @@ interface GenericProductPageProps {
     calculatePrintifyCoords?: (position: string, variantId: number, imageDimensions: { width: number; height: number }, product: PrintifyProductMapping) => ImageAdjustments;
     validatePurchase: (selectedImageUrl: string, selectedImageId: string | null, userInfo: unknown, selectedPrintifyVariantId: number | null, printifyProductId: string, printifyImageId: string) => string | null;
     variantSelectorConfig: { label: string; emoji: string; getCustomSingleVariantText?: (product: PrintifyProductMapping) => string | undefined; getCustomSingleVariantSubtext?: (product: PrintifyProductMapping) => string | undefined; };
+    getVariantSelectorComponent?: (product: PrintifyProductMapping) => string;
     VariantSelectorComponent: string;
   };
 }
@@ -385,7 +389,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
               {/* Seletor de Variantes Mobile */}
               <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
-                {config.VariantSelectorComponent === 'PhoneCaseVariantSelector' ? (
+                {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
                   <PhoneCaseVariantSelector
                     product={product}
                     selectedVariantId={selectedPrintifyVariantId}
@@ -394,6 +398,24 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     emoji={config.variantSelectorConfig?.emoji || "📱"}
                     customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
                     customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                  />
+                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'FramedCanvasVariantSelector' ? (
+                  <FramedCanvasVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                  />
+                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'ToteBagVariantSelector' ? (
+                  <ToteBagVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                  />
+                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
+                  <NotebookVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
                   />
                 ) : (
                   <ProductVariantSelector
@@ -631,7 +653,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   <ProductDescription items={config.descriptionItems(product)} />
 
                   {/* Seletor de Variantes */}
-                  {config.VariantSelectorComponent === 'PhoneCaseVariantSelector' ? (
+                  {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
                     <PhoneCaseVariantSelector
                       product={product}
                       selectedVariantId={selectedPrintifyVariantId}
@@ -640,6 +662,24 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                       emoji={config.variantSelectorConfig?.emoji || "📱"}
                       customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
                       customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                    />
+                  ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'FramedCanvasVariantSelector' ? (
+                    <FramedCanvasVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                    />
+                  ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'ToteBagVariantSelector' ? (
+                    <ToteBagVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                    />
+                  ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
+                    <NotebookVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
                     />
                   ) : (
                     <ProductVariantSelector
