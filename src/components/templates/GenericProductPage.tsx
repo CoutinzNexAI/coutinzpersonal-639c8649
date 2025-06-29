@@ -238,6 +238,11 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   // Função para gerar novos mockups quando a posição muda
   const generateNewMockup = async (position: 'top' | 'center' | 'bottom' | 'left' | 'right', variantId: number, isPositionChange: boolean = false) => {
+    console.log('[DEBUG 3] Entrando em generateNewMockup. Verificando condições...', {
+      hasImageUrl: !!selectedImageUrl,
+      hasUserInfo: !!userInfo?.id,
+      hasImageDimensions: !!userImageDimensions
+    });
     if (!selectedImageUrl || !userInfo?.id || !userImageDimensions) return;
 
     // Calcular novas coordenadas baseadas na posição
@@ -255,19 +260,21 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     setIsGeneratingMockup(true);
     
     try {
+      const requestBody = {
+        productId: product.id,
+        userImageUrl: selectedImageUrl,
+        userId: userInfo.id,
+        imageAdjustments: newAdjustments,
+        selectedPrintifyVariantId: variantId,
+        userImageDimensions: userImageDimensions, // ✅ CORREÇÃO: Enviar dimensões para evitar fallback
+      };
+      console.log('[DEBUG 4] Enviando para API. Corpo do pedido:', requestBody);
       const response = await fetch('/api/printify/mockups/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          productId: product.id,
-          userImageUrl: selectedImageUrl,
-          userId: userInfo.id,
-          imageAdjustments: newAdjustments,
-          selectedPrintifyVariantId: variantId,
-          userImageDimensions: userImageDimensions, // ✅ CORREÇÃO: Enviar dimensões para evitar fallback
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -300,6 +307,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   };
 
   const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
+    console.log(`[DEBUG 1] handleAdjustment chamado: type=${type}, value=${value}`);
     // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
     const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
     if (!allowed) {
@@ -331,6 +339,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
     // 3. E SÓ DEPOIS CHAMA A FUNÇÃO PARA GERAR A MOCKUP (O ATAQUE)
     // Garante que newVariantId não é nulo antes de chamar
+    console.log('[DEBUG 2] Pre-flight check para generateNewMockup', { newPosition, newVariantId });
     if (newVariantId !== null) {
       const isPositionChange = type === 'position';
       await generateNewMockup(newPosition, newVariantId, isPositionChange);
@@ -393,6 +402,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   imageAdjustments={imageAdjustments}
                   onImageAdjust={setImageAdjustments}
                   selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  isGeneratingMockup={isGeneratingMockup}
                 />
               </div>
 
@@ -540,6 +550,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   imageAdjustments={imageAdjustments}
                   onImageAdjust={setImageAdjustments}
                   selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  isGeneratingMockup={isGeneratingMockup}
                 />
               </div>
 

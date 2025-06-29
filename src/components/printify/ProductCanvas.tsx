@@ -43,6 +43,7 @@ interface ProductCanvasProps {
   selectedPhraseText?: string;
   mockupUrl?: string;
   selectedImageId?: string | null; // Para Canvas products
+  isGeneratingMockup?: boolean;
 }
 
 interface GenerateMockupResponse {
@@ -69,7 +70,8 @@ export default function ProductCanvas({
   allImageAdjustments,
   selectedPhraseText,
   mockupUrl,
-  selectedImageId
+  selectedImageId,
+  isGeneratingMockup = false
 }: ProductCanvasProps) {
   const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
@@ -623,6 +625,17 @@ export default function ProductCanvas({
   );
 
   // Renderização principal
+  if (isGeneratingMockup) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-white">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-ghibli-moss mx-auto mb-4" />
+          <p className="text-ghibli-earth">A gerar a sua obra de arte...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return renderErrorState();
   }
