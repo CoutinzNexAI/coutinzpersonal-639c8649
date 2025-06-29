@@ -16,7 +16,7 @@ const EscritorioDetailPage: React.FC<EscritorioPageProps> = ({ product }) => {
     config = notebookConfig;
   } else if (product.id === 'mouse_pad') {
     config = mousepadConfig;
-  } else {
+      } else {
     // Fallback para o caso de adicionares mais produtos de escritório
     config = notebookConfig; 
   }

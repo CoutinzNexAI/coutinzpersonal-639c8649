@@ -68,23 +68,23 @@ const EscritorioShopPage: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="grid md:grid-cols-2 gap-8 justify-center">
                 {productIds.map((productId, index) => {
-                  const product = allProductsData[productId];
+              const product = allProductsData[productId];
                   
                   // Get correct mockup image based on product type
-                  const isNotebook = productId.includes('journal') || productId.includes('caderno') || product.category === 'stationery';
+              const isNotebook = productId.includes('journal') || productId.includes('caderno') || product.category === 'stationery';
                   const mockupImage = isNotebook 
                     ? '/mockupproduto/caderno.png'
                     : '/mockupproduto/mousepad.png';
-                  
-                  return (
-                    <motion.div
-                      key={productId}
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
+              
+              return (
+              <motion.div
+                  key={productId}
+                  initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: index * 0.2 }}
                       className="w-full max-w-sm mx-auto"
-                    >
-                      <Link href={`/shop/escritorio/${productId}`}>
+              >
+                  <Link href={`/shop/escritorio/${productId}`}>
                         <div className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer h-full">
                           {/* Product Image with Real Mockup */}
                           <div className="aspect-square bg-gradient-to-br from-ghibli-cream/50 to-ghibli-sand/30 p-8 flex items-center justify-center relative">
@@ -123,8 +123,8 @@ const EscritorioShopPage: React.FC = () => {
                                 <div className="flex items-center gap-2">
                                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
                                   <span className="font-medium text-blue-600">Caderno Espiral 📓</span>
-                                </div>
-                              ) : (
+                          </div>
+                        ) : (
                                 <div className="flex items-center gap-2">
                                   <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
                                   <span className="font-medium text-purple-600">Mousepad 23x19 cm 🖱️</span>
@@ -213,50 +213,50 @@ const EscritorioShopPage: React.FC = () => {
                             alt={product.name}
                             className="w-32 h-32 object-contain drop-shadow-lg"
                           />
-                          {/* Preview Badge */}
+                        {/* Preview Badge */}
                           <div className="absolute top-3 right-3 bg-green-600 text-white text-xs px-2 py-1 rounded-full font-medium">
-                            Preview
-                          </div>
-                        </div>
-                        
-                        {/* Product Info */}
+                          Preview
+                      </div>
+                    </div>
+                    
+                      {/* Product Info */}
                         <div className="p-5">
                           <h3 className="text-lg font-semibold text-ghibli-wood mb-2 group-hover:text-ghibli-moss transition-colors">
-                            {product.name}
-                          </h3>
-                          
+                        {product.name}
+                      </h3>
+                        
                           {/* Key Features */}
                           <div className="text-sm text-ghibli-earth space-y-1 mb-3">
                             <div>🎨 Impressão premium</div>
                             <div>📏 {product.variants?.length || 0} opções</div>
                             <div>✨ Duradouro</div>
                             {isNotebook ? <div>📓 Páginas lisas</div> : <div>🖱️ Antiderrapante</div>}
-                          </div>
-                          
-                          {/* Price */}
+                        </div>
+                        
+                        {/* Price */}
                           <div className="flex items-center justify-center">
                             <div className="text-xl font-bold text-ghibli-moss">
                               €{product.basePrice || product.price || 20.00}
-                            </div>
                           </div>
                         </div>
                       </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </div>
+                    </div>
+                </Link>
+              </motion.div>
+              );
+            })}
+          </div>
 
             {/* Mobile Info Section */}
-            <motion.div 
+          <motion.div
               className="mt-12 bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-ghibli-sand/30"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
               <h2 className="text-xl font-semibold text-ghibli-wood mb-4 text-center">
                 ✨ Porquê Escolher PicTuz?
-              </h2>
+            </h2>
               <div className="grid grid-cols-2 gap-4 text-center text-sm">
                 <div>
                   <div className="text-2xl mb-2">🎨</div>
@@ -272,17 +272,17 @@ const EscritorioShopPage: React.FC = () => {
                   <div className="text-2xl mb-2">⚡</div>
                   <h3 className="font-semibold mb-1 text-ghibli-wood">Inspirador</h3>
                   <p className="text-xs text-ghibli-earth">Único</p>
-                </div>
+              </div>
                 <div>
                   <div className="text-2xl mb-2">🚀</div>
                   <h3 className="font-semibold mb-1 text-ghibli-wood">Rápido</h3>
                   <p className="text-xs text-ghibli-earth">~1 semana</p>
-                </div>
+              </div>
               </div>
             </motion.div>
-          </div>
+            </div>
         </main>
-        
+
         <Footer />
       </div>
     </>

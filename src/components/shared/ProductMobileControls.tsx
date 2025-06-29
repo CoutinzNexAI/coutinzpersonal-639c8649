@@ -81,43 +81,43 @@ export const ProductMobileControls: React.FC<ProductMobileControlsProps> = ({
 
         {/* Controlos de Posição - Mobile Pequenos - APENAS SE showPositionControls */}
         {showPositionControls && (
-          <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-ghibli-sand/30">
-            {positions.map(({ key, title, icon }) => (
-              <Button 
-                key={key}
-                onClick={() => onAdjustPosition(key)} 
-                variant="ghost"
-                size="sm"
-                className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === key 
-                  ? 'bg-ghibli-moss text-white shadow-md scale-110' 
-                  : 'text-ghibli-earth hover:bg-ghibli-moss/10'
-                }`}
-                disabled={isGeneratingMockup}
-                title={title}
-              >
-                {icon === 'circle' ? (
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                ) : (
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                    <path d={icon}/>
-                  </svg>
-                )}
-              </Button>
-            ))}
-          </div>
+        <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-ghibli-sand/30">
+          {positions.map(({ key, title, icon }) => (
+            <Button 
+              key={key}
+              onClick={() => onAdjustPosition(key)} 
+              variant="ghost"
+              size="sm"
+              className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === key 
+                ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                : 'text-ghibli-earth hover:bg-ghibli-moss/10'
+              }`}
+              disabled={isGeneratingMockup}
+              title={title}
+            >
+              {icon === 'circle' ? (
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              ) : (
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <path d={icon}/>
+                </svg>
+              )}
+            </Button>
+          ))}
+        </div>
         )}
       </div>
 
       {/* Status Compacto Mobile - APENAS SE showPositionControls */}
       {showPositionControls && (
-        <div className="mt-2 text-center">
-          <span className="inline-flex items-center gap-1 text-xs text-ghibli-moss bg-ghibli-moss/5 px-2 py-1 rounded-full font-medium border border-ghibli-moss/20">
-            <div className="w-1 h-1 bg-ghibli-moss rounded-full animate-pulse"></div>
-            {positions.find(p => p.key === imagePosition)?.title}
-          </span>
-        </div>
+      <div className="mt-2 text-center">
+        <span className="inline-flex items-center gap-1 text-xs text-ghibli-moss bg-ghibli-moss/5 px-2 py-1 rounded-full font-medium border border-ghibli-moss/20">
+          <div className="w-1 h-1 bg-ghibli-moss rounded-full animate-pulse"></div>
+          {positions.find(p => p.key === imagePosition)?.title}
+        </span>
+      </div>
       )}
     </div>
   );

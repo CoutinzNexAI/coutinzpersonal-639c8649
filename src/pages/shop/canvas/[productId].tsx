@@ -27,7 +27,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const productId = params?.productId as string;
   const product = getPrintifyProduct(productId);
-
+  
   if (!product || product.category !== 'canvas') {
     return { notFound: true };
   }
