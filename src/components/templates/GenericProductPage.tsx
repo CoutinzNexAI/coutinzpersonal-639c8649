@@ -266,6 +266,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           userId: userInfo.id,
           imageAdjustments: newAdjustments,
           selectedPrintifyVariantId: variantId,
+          userImageDimensions: userImageDimensions, // ✅ CORREÇÃO: Enviar dimensões para evitar fallback
         }),
       });
 
