@@ -84,22 +84,22 @@ export const posterConfig = {
     const printifyScale = finalImageWidth / placeholderWidth;
 
     // PASSO 4: DEFINIR POSIÇÃO BASEADA NO TIPO DE POSTER
-    const finalX = 0.5;
+    let finalX = 0.5;
     let finalY = 0.5;
     
     // Determinar tipo de movimento baseado no produto
     const isVerticalPoster = product.id === 'poster_vertical_semi_glossy';
-    const shiftAmount = 0.35;
+    const shiftAmount = 0.15; // 15% para movimento mais subtil
     
     if (isVerticalPoster) {
-      // Poster Vertical: move left/center/right (horizontal)
+      // Poster Vertical: move left/center/right (horizontal) - mexe no X
       if (position === 'left') {
-        finalY = 0.5 - shiftAmount;
+        finalX = 0.5 - shiftAmount;
       } else if (position === 'right') {
-        finalY = 0.5 + shiftAmount;
+        finalX = 0.5 + shiftAmount;
       }
     } else if (product.id === 'poster_horizontal_semi_glossy') {
-      // Poster Horizontal: move top/center/bottom (vertical) - ORDEM 2
+      // Poster Horizontal: move top/center/bottom (vertical) - mexe no Y
       if (position === 'top') {
         finalY = 0.5 - shiftAmount;
       } else if (position === 'bottom') {
