@@ -426,8 +426,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
-                className="flex flex-col items-center gap-4"
-              >
+                className="flex flex-row justify-center items-center gap-4"
+                >
                 {/* Botão Trocar Arte */}
                 <Button
                   onClick={handleOpenGallery}
