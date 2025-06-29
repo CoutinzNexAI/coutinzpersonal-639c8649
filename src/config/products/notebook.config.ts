@@ -5,7 +5,7 @@ import { ImageAdjustments } from '@/types/product';
 export const notebookConfig = {
   productCategory: 'escritorio',
 
-  getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
+  getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
     // Caderno tem preço fixo de €20.00 conforme printifyProducts.ts
     return product?.basePrice || 20.00;
   },
@@ -15,7 +15,7 @@ export const notebookConfig = {
     { min: 2, discount: 10, label: '10% OFF para 2+ cadernos', emoji: '📝' }
   ],
 
-  descriptionItems: (product: PrintifyProductMapping) => [
+  descriptionItems: (_product: PrintifyProductMapping) => [
     {
       text: 'Caderno personalizado de <span class="font-bold text-ghibli-moss">alta qualidade</span>',
       emoji: '📝'
@@ -97,7 +97,7 @@ export const notebookConfig = {
     const overflowY = Math.max(0, scaledImageHeight - placeholderHeight);
     
     const maxOffsetX = (overflowX / 2) / placeholderWidth;
-    const maxOffsetY = (overflowY / 2) / placeholderHeight;
+    const _maxOffsetY = (overflowY / 2) / placeholderHeight;
 
     // PASSO 4: DEFINIR A POSIÇÃO FINAL COM BASE NO BOTÃO (horizontal)
     const finalY = 0.5; // Para cadernos, Y fica sempre centrado

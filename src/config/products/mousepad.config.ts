@@ -4,7 +4,7 @@ import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 export const mousepadConfig = {
   productCategory: 'escritorio',
 
-  getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
+  getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
     // Mousepad tem preço fixo de €30.00 conforme printifyProducts.ts
     return product?.basePrice || 30.00;
   },
@@ -14,7 +14,7 @@ export const mousepadConfig = {
     { min: 2, discount: 10, label: '10% OFF para 2+ mousepads', emoji: '🖱️' }
   ],
 
-  descriptionItems: (product: PrintifyProductMapping) => [
+  descriptionItems: (_product: PrintifyProductMapping) => [
     {
       text: 'Mousepad premium com <span class="font-bold text-ghibli-moss">base antiderrapante</span>',
       emoji: '🖱️'

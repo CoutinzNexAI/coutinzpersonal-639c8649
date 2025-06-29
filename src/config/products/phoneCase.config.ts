@@ -6,7 +6,7 @@ export const phoneCaseConfig = {
   productCategory: 'tecnologia',
 
   // ✅ PREÇOS: Preço fixo para todas as capas
-  getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
+  getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
     return product.basePrice || 25; // €25 por capa, independente do modelo
   },
 
@@ -17,7 +17,7 @@ export const phoneCaseConfig = {
   ],
 
   // ✅ DESCRIÇÃO: Específica para capas de telemóvel - 3 tópicos diretos
-  descriptionItems: (product: PrintifyProductMapping) => [
+  descriptionItems: (_product: PrintifyProductMapping) => [
     { text: 'Proteção premium com material TPU resistente', color: 'moss' as const, emoji: '🛡️' },
     { text: 'Impressão HD de alta qualidade', color: 'moss' as const, emoji: '🎨' },
     { text: 'Compatible com carregamento wireless', color: 'wood' as const, emoji: '⚡' }
@@ -77,8 +77,8 @@ export const phoneCaseConfig = {
     selectedImageId: string | null,
     userInfo: unknown,
     selectedPrintifyVariantId: number | null,
-    printifyProductId: string,
-    printifyImageId: string
+    _printifyProductId: string,
+    _printifyImageId: string
   ): string | null => {
     if (!userInfo) return 'Precisa de fazer login para personalizar a sua capa.';
     if (!selectedImageUrl) return 'Escolha uma arte para a sua capa personalizada.';
@@ -90,11 +90,11 @@ export const phoneCaseConfig = {
   variantSelectorConfig: {
     label: 'Modelo do Telemóvel',
     emoji: '📱',
-    getCustomSingleVariantText: (product: PrintifyProductMapping) => {
-      const variantCount = product.variants?.length || 0;
+    getCustomSingleVariantText: (_product: PrintifyProductMapping) => {
+      const variantCount = _product.variants?.length || 0;
       return `${variantCount} modelos disponíveis`;
     },
-    getCustomSingleVariantSubtext: (product: PrintifyProductMapping) => {
+    getCustomSingleVariantSubtext: (_product: PrintifyProductMapping) => {
       return 'iPhone e Samsung Galaxy';
     }
   },

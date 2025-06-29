@@ -103,7 +103,7 @@ export const mugConfig = {
     const overflowX = Math.max(0, scaledImageWidth - placeholderWidth);
     const overflowY = Math.max(0, scaledImageHeight - placeholderHeight);
     
-    const maxOffsetX = (overflowX / 2) / placeholderWidth;
+    const _maxOffsetX = (overflowX / 2) / placeholderWidth;
     const maxOffsetY = (overflowY / 2) / placeholderHeight;
 
     // PASSO 4: DEFINIR A POSIÇÃO FINAL COM BASE NO BOTÃO

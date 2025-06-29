@@ -6,7 +6,7 @@ export const bagConfig = {
   productCategory: 'bags',
 
   // ✅ PREÇO: Base para sacos
-  getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => {
+  getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null) => {
     return product.basePrice || 18; // €18 preço base para sacos
   },
 
@@ -17,7 +17,7 @@ export const bagConfig = {
   ],
 
   // ✅ DESCRIÇÃO: Específica para sacos - 3 tópicos diretos
-  descriptionItems: (product: PrintifyProductMapping) => [
+  descriptionItems: (_product: PrintifyProductMapping) => [
     { text: 'Material algodão 100% sustentável', color: 'moss' as const },
     { text: 'Impressão HD duradoura e resistente', color: 'moss' as const },
     { text: 'Alças reforçadas para uso diário', color: 'wood' as const }

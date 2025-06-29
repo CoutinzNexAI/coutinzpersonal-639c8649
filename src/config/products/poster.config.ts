@@ -23,7 +23,7 @@ export const posterConfig = {
   ],
 
   // ✅ DESCRIÇÃO: Específica para posters
-  descriptionItems: (product: PrintifyProductMapping) => [
+  descriptionItems: (_product: PrintifyProductMapping) => [
     { 
       text: 'Poster de <span class="font-bold text-ghibli-moss">máxima qualidade</span> em papel premium',
       emoji: '🎨'
@@ -119,13 +119,13 @@ export const posterConfig = {
     selectedImageId: string | null,
     userInfo: unknown,
     selectedPrintifyVariantId: number | null,
-    printifyProductId: string,
-    printifyImageId: string
+    _printifyProductId: string,
+    _printifyImageId: string
   ): string | null => {
     if (!userInfo) return 'Faça Login para Continuar';
     if (!selectedImageUrl) return 'Escolha uma Arte Primeiro';
     if (!selectedPrintifyVariantId) return 'Selecione o Tamanho';
-    if (!printifyProductId || !printifyImageId) return 'Aguarde o processamento...';
+    if (!_printifyProductId || !_printifyImageId) return 'Aguarde o processamento...';
     return null;
   },
 
@@ -133,8 +133,8 @@ export const posterConfig = {
   variantSelectorConfig: {
     label: 'Tamanho do Poster',
     emoji: '📋',
-    getCustomSingleVariantText: (product: PrintifyProductMapping) => 'Tamanhos disponíveis',
-    getCustomSingleVariantSubtext: (product: PrintifyProductMapping) => 'Desde 5"x7" até 24"x36"'
+    getCustomSingleVariantText: (_product: PrintifyProductMapping) => 'Tamanhos disponíveis',
+    getCustomSingleVariantSubtext: (_product: PrintifyProductMapping) => 'Desde 5"x7" até 24"x36"'
   },
 
   // ✅ COMPONENTE DE VARIANTES: Usar o PosterVariantSelector

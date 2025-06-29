@@ -19,8 +19,6 @@ import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/pr
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 
 // Componentes compartilhados
-import ProductHeader from '@/components/shared/ProductHeader';
-import ProductPositionControls from '@/components/shared/ProductPositionControls';
 import ProductQuantityPricing from '@/components/shared/ProductQuantityPricing';
 import ProductArtStatus from '@/components/shared/ProductArtStatus';
 import ProductGuarantees from '@/components/shared/ProductGuarantees';
