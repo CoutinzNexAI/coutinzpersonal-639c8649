@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, ChevronRight, Minus, Plus } from 'lucide-react';
+import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight, Minus, Plus, Upload, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,11 +16,8 @@ import ProductCanvas from '@/components/printify/ProductCanvas';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
-import { ImageAdjustments } from '@/types/product';
+import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
-import { PositionControls } from '@/components/shared/PositionControls';
-import { ProductPricing } from '@/components/shared/ProductPricing';
-import { ProductGuarantees } from '@/components/shared/ProductGuarantees';
 import { validatePurchase } from '@/utils/productValidation';
 import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
 
@@ -31,7 +28,7 @@ interface PhoneCaseDetailPageProps {
 const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: initialProduct }) => {
   const router = useRouter();
   const { productId } = router.query;
-  const { userInfo } = useAuth();
+  const { userInfo, session } = useAuth();
   
   const [product, setProduct] = useState<PrintifyProductMapping | null>(initialProduct || null);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
@@ -39,6 +36,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  const [mockupImageUrl, setMockupImageUrl] = useState<string | null>(null);
   
   // Estados para Printify
   const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
@@ -46,19 +44,29 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   const [printifyProductId, setPrintifyProductId] = useState<string>('');
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
 
-  // Estado para dimensões da imagem do utilizador
+  // ✅ NOVO: Estado para dimensões da imagem do utilizador
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
-  // Posição da imagem: left/center/right (movimento horizontal para capas)
+  // ✅ POSIÇÕES DEFINIDAS: Estado para a posição da imagem (3 opções)
+  // Para capas: left/center/right (movimento horizontal)
   const [imagePosition, setImagePosition] = useState<'left' | 'center' | 'right'>('center');
 
-  // Loading indicator para nova mockup
+  // ✅ GALERIA DE MOCKUPS: Guarda o array de URLs das mockups atuais
+  const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
+
+  // ✅ ÍNDICE ATIVO: Para saber qual mockup mostrar na galeria
+  const [activeMockupIndex, setActiveMockupIndex] = useState<number>(0);
+
+  // ✅ LOADING INDICATOR: Para mostrar enquanto a nova mockup é gerada
   const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
 
-  // Quantidade de capas
+  // ✅ QUANTIDADE: Estado para a quantidade de capas
   const [quantity, setQuantity] = useState(1);
 
-
+  // Get correct mockup image for product (igual às canecas)
+  const getMockupImage = () => {
+    return '/mockupproduto/telemovel.png'; // Imagem padrão das capas
+  };
 
   // Calculate discount and prices
   const calculateDiscount = (qty: number) => {
@@ -90,19 +98,32 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
   // Setup inicial do produto
   useEffect(() => {
-    const currentProduct = initialProduct || (typeof productId === 'string' ? getPrintifyProduct(productId) : null);
-    
-    if (!currentProduct || currentProduct.category !== 'tecnologia') {
-      router.push('/shop');
-      toast.error('Produto não encontrado');
-      return;
-    }
-    
-    setProduct(currentProduct);
-    
-    // Selecionar primeira variante como padrão
-    if (currentProduct.variants?.length > 0) {
-      setSelectedPrintifyVariantId(currentProduct.variants[0].id);
+    if (!initialProduct && typeof productId === 'string') {
+      const foundProduct = getPrintifyProduct(productId);
+      if (foundProduct && foundProduct.category === 'tecnologia') {
+        setProduct(foundProduct);
+        if (foundProduct.variants && foundProduct.variants.length > 0) {
+          console.log('🔍 [CAPA DEBUG] Variantes disponíveis:', foundProduct.variants.map(v => ({ id: v.id, title: v.title })));
+          
+          const firstVariant = foundProduct.variants[0];
+          console.log('🔍 [CAPA DEBUG] Primeira variante selecionada:', { id: firstVariant.id, title: firstVariant.title });
+          
+          setSelectedPrintifyVariantId(firstVariant.id);
+        }
+      } else {
+        router.push('/shop');
+        toast.error('Produto não encontrado');
+      }
+    } else if (initialProduct) {
+      // Set default variant for initial product
+      if (initialProduct.variants && initialProduct.variants.length > 0) {
+        console.log('🔍 [CAPA DEBUG] Variantes disponíveis (initial):', initialProduct.variants.map(v => ({ id: v.id, title: v.title })));
+        
+        const firstVariant = initialProduct.variants[0];
+        console.log('🔍 [CAPA DEBUG] Primeira variante selecionada (initial):', { id: firstVariant.id, title: firstVariant.title });
+        
+        setSelectedPrintifyVariantId(firstVariant.id);
+      }
     }
   }, [productId, initialProduct, router]);
 
@@ -116,97 +137,170 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     }
   }, [selectedPrintifyVariantId]);
 
-  // Calcular escala inicial para imageAdjustments
+  // Calcular defaultScale dinâmico e atualizar imageAdjustments - Adaptado para capas
   useEffect(() => {
-    if (!selectedImageUrl || !product || !selectedPrintifyVariantId) return;
-    
-    const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-    if (!selectedVariant) return;
+    if (selectedImageUrl && product && selectedPrintifyVariantId) {
+      const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+      if (!selectedVariant) return;
 
-    const { placeholderWidth, placeholderHeight } = selectedVariant;
-    const userImageSize = 1016; // Imagens AI são quadradas
-    
-    const scaleToCover = Math.max(
-      placeholderWidth / userImageSize,
-      placeholderHeight / userImageSize
-    );
-    
-    const finalImageWidth = userImageSize * scaleToCover;
-    const printifyScale = finalImageWidth / placeholderWidth;
-    
-    setImageAdjustments({
-      x: 0.5,
-      y: 0.5,
-      scale: printifyScale,
-      rotation: 0
-    });
+      const { placeholderWidth, placeholderHeight } = selectedVariant;
+      const userImageWidth = 1016; // Assumindo que a imagem AI é sempre quadrada
+      const userImageHeight = 1016;
+
+      // PASSO A: Calcula o fator de zoom necessário para cobrir toda a área (lógica Math.max)
+      const scaleToCover = Math.max(
+        placeholderWidth / userImageWidth,
+        placeholderHeight / userImageHeight
+      );
+
+      // PASSO B: Calcula qual será a LARGURA da imagem depois de aplicar este zoom
+      const finalImageWidth = userImageWidth * scaleToCover;
+
+      // PASSO C (A TRADUÇÃO): Converte a nossa largura final para o valor de 'scale' que a Printify entende
+      const printifyScale = finalImageWidth / placeholderWidth;
+      
+      console.log('🎯 [CAPA FRONTEND] Cálculo de escala definitivo:', {
+        placeholderWidth,
+        placeholderHeight,
+        userImageWidth,
+        userImageHeight,
+        scaleToCover,
+        finalImageWidth,
+        printifyScale
+      });
+      
+        setImageAdjustments({
+        x: 0.5, // Mantém centrado
+        y: 0.5, // Mantém centrado
+        scale: printifyScale, // USA O VALOR TRADUZIDO!
+        rotation: 0
+        });
+    }
   }, [selectedImageUrl, product, selectedPrintifyVariantId]);
 
-  // Detectar dimensões da imagem selecionada
+  // ✅ DETECTAR DIMENSÕES DA IMAGEM: Quando uma imagem é selecionada
   useEffect(() => {
-    if (!selectedImageUrl) {
+    if (selectedImageUrl) {
+      const img = new Image();
+      img.onload = () => {
+        setUserImageDimensions({ width: img.width, height: img.height });
+        console.log('📐 [CAPA] Dimensões da imagem detectadas:', { width: img.width, height: img.height });
+      };
+      img.onerror = () => {
+        console.error('❌ [CAPA] Erro ao carregar imagem para detectar dimensões');
+        // Default para imagens AI quadradas
+        setUserImageDimensions({ width: 1016, height: 1016 });
+      };
+      img.src = selectedImageUrl;
+    } else {
       setUserImageDimensions(null);
-      return;
     }
-
-    const img = new Image();
-    img.onload = () => setUserImageDimensions({ width: img.width, height: img.height });
-    img.onerror = () => setUserImageDimensions({ width: 1016, height: 1016 }); // Fallback
-    img.src = selectedImageUrl;
   }, [selectedImageUrl]);
 
-  // Calcular coordenadas para posicionamento horizontal
+  // ✅ FUNÇÃO PARA CALCULAR COORDENADAS HORIZONTAIS (CAPAS)
   const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
-    const selectedVariant = product?.variants?.find(v => v.id === variantId);
-    if (!selectedVariant) throw new Error(`Variante ${variantId} não encontrada`);
+    console.log('🧮 [CAPA] Calculando coordenadas:', { position, variantId, imageDimensions });
+
+    if (!product || !product.variants) {
+      throw new Error('Produto ou variantes não encontrados');
+    }
+
+    // Encontrar a variante selecionada
+    const selectedVariant = product.variants.find(v => v.id === variantId);
+    if (!selectedVariant) {
+      throw new Error(`Variante ${variantId} não encontrada`);
+    }
 
     const { placeholderWidth, placeholderHeight } = selectedVariant;
     const { width: userImageWidth, height: userImageHeight } = imageDimensions;
 
-    // Calcular escala para cobrir toda a área
+    console.log('📐 [CAPA] Dimensões:', { 
+      placeholder: { placeholderWidth, placeholderHeight }, 
+      userImage: { userImageWidth, userImageHeight } 
+    });
+
+    // PASSO A: Calcular escala "FILL" para cobertura completa (Math.max)
     const scaleToCover = Math.max(
       placeholderWidth / userImageWidth,
       placeholderHeight / userImageHeight
     );
-    
+
+    // PASSO B: Traduzir para escala Printify
     const finalImageWidth = userImageWidth * scaleToCover;
     const printifyScale = finalImageWidth / placeholderWidth;
 
-    // Calcular posição horizontal
+    console.log('🔍 [CAPA] Escala calculada:', { scaleToCover, finalImageWidth, printifyScale });
+
+    // PASSO C: Calcular movimento horizontal
+    const scaledImageWidth = userImageWidth * scaleToCover;
+    const overflowX = Math.max(0, scaledImageWidth - placeholderWidth);
+    const maxOffsetX = (overflowX / 2) / placeholderWidth;
+
     let printifyX = 0.5; // Centro padrão
-    
-    if (position !== 'center') {
-      const scaledImageWidth = userImageWidth * scaleToCover;
-      const overflowX = Math.max(0, scaledImageWidth - placeholderWidth);
-      const maxOffsetX = (overflowX / 2) / placeholderWidth;
-      
-      if (overflowX > 0) {
+
+    if (overflowX > 0) {
+      if (position === 'left') {
+        const movementX = -maxOffsetX * 0.7; // 70% do movimento máximo
+        printifyX = 0.5 + movementX;
+      } else if (position === 'right') {
         const movementX = maxOffsetX * 0.7; // 70% do movimento máximo
-        printifyX = 0.5 + (position === 'left' ? -movementX : movementX);
+        printifyX = 0.5 + movementX;
       }
+      // 'center' fica com printifyX = 0.5
     }
 
-    return {
+    const finalAdjustments = {
       x: printifyX,
       y: 0.5,
       scale: printifyScale,
       rotation: 0
     };
+
+    console.log('✅ [CAPA] Coordenadas finais:', finalAdjustments);
+
+    return finalAdjustments;
   };
 
-  // Controlador principal para geração de mockups
+  // ✅ CONTROLADOR DE TRÁFEGO MESTRE: Único useEffect responsável por gerar mockups
+  // Só executa quando TODOS os dados necessários estão prontos (evita a "corrida")
   useEffect(() => {
+    // ✅ CONDIÇÃO DE GUARDA: SÓ avança se tivermos TODOS os dados necessários
     if (!selectedImageUrl || !selectedPrintifyVariantId || !userImageDimensions || !userInfo?.id) {
-      return;
+      console.log("⏳ [TRAFFIC-CONTROLLER] A aguardar todos os dados para gerar mockup...", {
+        selectedImageUrl: !!selectedImageUrl,
+        selectedPrintifyVariantId: !!selectedPrintifyVariantId,
+        userImageDimensions: !!userImageDimensions,
+        userId: !!userInfo?.id
+      });
+      return; // Se alguma informação crucial falta, não faz nada
     }
 
+    console.log('🚀 [TRAFFIC-CONTROLLER] TODOS os dados prontos! Iniciando geração...', {
+      selectedImageUrl: !!selectedImageUrl,
+      selectedPrintifyVariantId,
+      imagePosition,
+      userImageDimensions,
+      userId: !!userInfo?.id
+    });
+
+    // ✅ DEBOUNCE MÍNIMO: Apenas para garantir que o estado React estabiliza
     const handler = setTimeout(() => {
-      generateNewMockup(imagePosition, selectedPrintifyVariantId);
-    }, 100);
+      console.log('🎯 [TRAFFIC-CONTROLLER] Disparando geração com dimensões reais confirmadas...');
+      
+      // ✅ A posição vem do estado controlado pelos botões
+      const currentPosition = imagePosition;
+
+      // ✅ Chama a função que faz todo o trabalho COM as dimensões reais
+      generateNewMockup(currentPosition, selectedPrintifyVariantId);
+
+    }, 100); // Debounce mínimo apenas para estabilizar o React state
 
     return () => clearTimeout(handler);
+
+  // ✅ DEPENDÊNCIAS CRUCIAIS: Qualquer mudança nestes valores dispara nova geração
   }, [selectedImageUrl, selectedPrintifyVariantId, imagePosition, userImageDimensions, userInfo?.id]);
 
+  // Função para lidar com os mockups gerados pelo ProductCanvas
   const handlePreviewReady = useCallback((data: {
     previewUrls: string[];
     printifyImageId: string;
@@ -215,9 +309,12 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setPrintifyPreviewUrls(data.previewUrls);
     setPrintifyImageId(data.printifyImageId);
     setPrintifyProductId(data.printifyProductId);
+    console.log('✅ Printify mockups received:', data);
   }, []);
 
+  // ✅ FUNÇÃO SIMPLIFICADA: Só muda o estado, o useEffect faz o resto
   const handleAdjustment = async (type: 'position', value: string) => {
+    // ✅ RATE LIMITING: Verificar se pode fazer o pedido (copiado do poster)
     const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
     if (!allowed) {
       toast.error(message);
@@ -234,46 +331,64 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
       return;
     }
 
+    console.log('🎮 [CAPA] handleAdjustment chamado:', { type, value, currentPosition: imagePosition });
+
     if (type === 'position') {
-      setImagePosition(value as 'left' | 'center' | 'right');
+      const newPosition = value as 'left' | 'center' | 'right';
+      setImagePosition(newPosition); // ✅ Só muda o estado - o useEffect vai disparar automaticamente
+      console.log(`📍 [CAPA] Posição alterada de "${imagePosition}" para "${newPosition}"`);
+      
+      // ✅ REGISTAR PEDIDO: Após mudança bem-sucedida (copiado do poster)
       GlobalRateLimiter.recordRequest();
     }
   };
 
+  // Função para gerar nova mockup
   const generateNewMockup = async (currentPosition: 'left' | 'center' | 'right', currentVariantId: number) => {
-    if (!userImageDimensions || !selectedImageUrl || !selectedImageId) return;
+    if (!userImageDimensions || !selectedImageUrl || !selectedImageId) {
+      console.log('❌ Dados insuficientes para gerar mockup');
+      return;
+    }
 
+    console.log('🔄 [CAPA] Iniciando geração de nova mockup...', { currentPosition, currentVariantId });
     setIsGeneratingMockup(true);
-    
+
+    // ✅ CALCULAR AJUSTES AUTOMATICAMENTE baseados na posição e variante
     const adjustments = calculatePrintifyCoords(currentPosition, currentVariantId, userImageDimensions);
+    
+    // ✅ APLICAR AJUSTES IMEDIATAMENTE para evitar bordas brancas
     setImageAdjustments(adjustments);
+
+    const requestBody = {
+      productId: product?.id,
+      userImageUrl: selectedImageUrl,
+      userId: userInfo?.id,
+      imageAdjustments: adjustments,
+      selectedPrintifyVariantId: currentVariantId,
+    };
 
     try {
       const response = await fetch('/api/printify/mockups/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: product?.id,
-          userImageUrl: selectedImageUrl,
-          userId: userInfo?.id,
-          imageAdjustments: adjustments,
-          selectedPrintifyVariantId: currentVariantId,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
 
-      if (response.ok && data.success && data.previewUrls?.length > 0) {
+      if (response.ok && data.success && data.previewUrls && data.previewUrls.length > 0) {
+        console.log('✅ [CAPA] Nova mockup gerada com sucesso!', data.previewUrls.length, 'imagens');
         setPrintifyPreviewUrls(data.previewUrls);
         setPrintifyImageId(data.printifyImageId);
         setPrintifyProductId(data.printifyProductId);
         
-        const positionText = currentPosition === 'left' ? 'Esquerda' : currentPosition === 'right' ? 'Direita' : 'Centro';
-        toast.success(`Posição alterada para: ${positionText}`);
+        toast.success(`Posição alterada para: ${currentPosition === 'left' ? 'Esquerda' : currentPosition === 'right' ? 'Direita' : 'Centro'}`);
       } else {
+        console.error('❌ [CAPA] Erro ao gerar nova mockup:', data.error || 'Resposta inválida');
         toast.error('Erro ao gerar nova preview. Tente novamente.');
       }
     } catch (error) {
+      console.error('❌ [CAPA] Falha na chamada à API:', error);
       toast.error('Erro de conexão. Tente novamente.');
     } finally {
       setIsGeneratingMockup(false);
@@ -291,9 +406,23 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setLoading(true);
 
     try {
+      // ✅ DEBUG: Log dos valores antes de adicionar ao carrinho
+      console.log('🛒 Adicionando capa ao carrinho com valores:', {
+        productId: productId as string,
+        printifyProductId,
+        printifyImageId,
+        printifyVariantId: selectedPrintifyVariantId,
+        selectedImageUrl,
+        selectedImageId,
+        quantity,
+        totalPrice
+      });
+
+      // Obter variante selecionada
       const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
 
-      CartService.addToCart({
+      // Adicionar item ao carrinho usando o CartService
+      const cartItem = CartService.addToCart({
         productId: productId as string,
         productName: product!.name,
         productCategory: product!.category || 'tecnologia',
@@ -304,6 +433,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         customizations: {
           variantId: selectedPrintifyVariantId!,
           phoneModel: selectedVariant?.title || 'Modelo não encontrado',
+          // ✅ OS CAMPOS CRÍTICOS: Usar ajustes calculados ou valores padrão
           scale: imageAdjustments?.scale || 1.0,
           x: imageAdjustments?.x || 0.5,
           y: imageAdjustments?.y || 0.5,
@@ -312,6 +442,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         imageAdjustments,
       });
 
+      console.log('✅ Item adicionado ao carrinho:', cartItem);
       toast.success(`${quantity === 1 ? 'Capa adicionada' : `${quantity} capas adicionadas`} ao carrinho!`, {
         description: `Total: €${totalPrice.toFixed(2)}${discount > 0 ? ` (${discount}% desconto aplicado!)` : ''}`,
         action: {
@@ -320,6 +451,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
         },
       });
     } catch (error) {
+      console.error('❌ Erro ao adicionar ao carrinho:', error);
       toast.error('Erro ao adicionar ao carrinho. Tente novamente.');
     } finally {
       setLoading(false);
@@ -329,32 +461,50 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   const handleOpenGallery = () => setIsGalleryModalOpen(true);
 
   const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
-    setLoading(true);
+    console.log('🎬 [SYNC] Iniciando seleção de imagem...', { imageUrl: !!imageUrl, imageId });
+    
+    setLoading(true); // ✅ Loading geral enquanto carrega dimensões
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
     
-    // Reset estados para nova imagem
+    // ✅ Reset estados - preparar para nova imagem
     setImagePosition('center');
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
-    setImageAdjustments(undefined);
+    setImageAdjustments(undefined); // Limpar ajustes antigos
+    
+    // ✅ CRÍTICO: Reset userImageDimensions para null
+    // Isto impede o useEffect de disparar antes das dimensões estarem prontas
     setUserImageDimensions(null);
     
+    console.log('🔄 [SYNC] Estados resetados. Carregando dimensões reais da imagem...');
+    
+    // ✅ AGUARDAR DIMENSÕES REAIS: Só define userImageDimensions quando tiver certeza
     const img = new Image();
     img.onload = function(this: HTMLImageElement) {
-      setUserImageDimensions({ width: this.naturalWidth, height: this.naturalHeight });
+      const realWidth = this.naturalWidth;
+      const realHeight = this.naturalHeight;
+      
+      console.log(`✅ [SYNC] Dimensões carregadas: ${realWidth}x${realHeight}`);
+      
+      // ✅ AGORA SIM: Define as dimensões reais
+      // Isto vai disparar o useEffect que vai gerar a mockup
+      setUserImageDimensions({ width: realWidth, height: realHeight });
       setLoading(false);
-      toast.success('Arte selecionada com sucesso!');
+    
+    toast.success('Arte selecionada com sucesso!');
     };
     
     img.onerror = () => {
-      setUserImageDimensions({ width: 1024, height: 1024 });
+      console.error('❌ [SYNC] Erro ao carregar imagem. Usando fallback 1024x1024');
+      setUserImageDimensions({ width: 1024, height: 1024 }); // Fallback seguro
       setLoading(false);
       toast.success('Arte selecionada (dimensões estimadas)');
     };
     
+    // ✅ INICIAR CARREGAMENTO: Isto dispara o img.onload
     img.src = imageUrl;
   };
 
@@ -446,12 +596,56 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                         Trocar
                       </Button>
 
-                      <PositionControls
-                        currentPosition={imagePosition}
-                        onPositionChange={(position) => handleAdjustment('position', position)}
-                        isGeneratingMockup={isGeneratingMockup}
-                        variant="mobile"
-                      />
+                      {/* Controlos de Posição - Mobile Pequenos */}
+                      <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-ghibli-sand/30">
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'left')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'left' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Esquerda"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                          </svg>
+                        </Button>
+                        
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'center' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Centro"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </Button>
+                        
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'right')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'right' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Direita"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                          </svg>
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Status Compacto Mobile */}
@@ -525,16 +719,71 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                   )}
                 </div>
 
-                <ProductPricing
-                  basePrice={basePrice}
-                  quantity={quantity}
-                  onQuantityChange={setQuantity}
-                  discount={discount}
-                  totalPrice={totalPrice}
-                  savings={savings}
-                  productName="capa"
-                  variant="mobile"
-                />
+                {/* Seletor de Quantidade */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-ghibli-earth">Quantidade:</span>
+                    <div className="flex items-center gap-2 bg-ghibli-cream/50 rounded-lg p-1">
+                      <Button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10 disabled:opacity-50"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                      
+                      <span className="min-w-[2rem] text-center font-bold text-ghibli-earth">
+                        {quantity}
+                      </span>
+                      
+                      <Button
+                        onClick={() => setQuantity(quantity + 1)}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Destaques de desconto */}
+                  <div className="space-y-1 text-xs">
+                    <div className={`flex items-center justify-between p-2 rounded-lg transition-all ${
+                      quantity >= 2 
+                        ? 'bg-green-100 border border-green-300 text-green-800' 
+                        : 'bg-gray-50 text-gray-600'
+                    }`}>
+                      <span>🎯 2+ capas</span>
+                      <span className="font-bold">10% OFF</span>
+                    </div>
+                    <div className={`flex items-center justify-between p-2 rounded-lg transition-all ${
+                      quantity >= 3 
+                        ? 'bg-green-100 border border-green-300 text-green-800' 
+                        : 'bg-gray-50 text-gray-600'
+                    }`}>
+                      <span>🔥 3+ capas</span>
+                      <span className="font-bold">15% OFF</span>
+                    </div>
+                  </div>
+
+                  {/* Total */}
+                  <div className="border-t border-ghibli-sand/30 pt-3 mt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-ghibli-earth">Total:</span>
+                      <div className="text-right">
+                        <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
+                        {quantity > 1 && (
+                          <div className="text-xs text-ghibli-earth/70">
+                            {quantity} × €{discountedPrice.toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
@@ -693,7 +942,21 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                 </p>
               </div>
 
-              <ProductGuarantees variant="mobile" />
+              {/* Garantias Mobile */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-ghibli-cream/40 rounded-xl p-3 text-center border border-ghibli-sand/30">
+                  <div className="w-6 h-6 mx-auto mb-1 rounded-full bg-ghibli-moss/10 flex items-center justify-center">
+                    <Shield className="w-3 h-3 text-ghibli-moss" />
+                  </div>
+                  <span className="text-xs font-bold text-ghibli-earth">Proteção Premium</span>
+                </div>
+                <div className="bg-ghibli-cream/40 rounded-xl p-3 text-center border border-ghibli-sand/30">
+                  <div className="w-6 h-6 mx-auto mb-1 rounded-full bg-ghibli-moss/10 flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-ghibli-moss" />
+                  </div>
+                  <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
+                </div>
+              </div>
             </motion.div>
           </div>
 
@@ -778,12 +1041,59 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                         Trocar Arte
                       </Button>
 
-                                            <PositionControls
-                        currentPosition={imagePosition}
-                        onPositionChange={(position) => handleAdjustment('position', position)}
-                        isGeneratingMockup={isGeneratingMockup}
-                        variant="desktop"
-                      />
+                      {/* Controlos de Posição - Maiores (HORIZONTAL PARA CAPAS) */}
+                      <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-ghibli-sand/30">
+                        {/* Botão Esquerda */}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'left')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'left' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Esquerda"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                          </svg>
+                </Button>
+                        
+                        {/* Botão Centro */}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'center')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'center' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Centro"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </Button>
+                        
+                        {/* Botão Direita */}
+                        <Button 
+                          onClick={() => handleAdjustment('position', 'right')} 
+                          variant="ghost"
+                          size="sm"
+                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'right' 
+                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
+                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
+                          }`}
+                          disabled={isGeneratingMockup}
+                          title="Direita"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+                          </svg>
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Indicador de Status - Compacto */}
@@ -868,16 +1178,58 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                       📱 Capa Personalizada
                     </h1>
                     
-                    <ProductPricing
-                      basePrice={basePrice}
-                      quantity={quantity}
-                      onQuantityChange={setQuantity}
-                      discount={discount}
-                      totalPrice={totalPrice}
-                      savings={savings}
-                      productName="capa"
-                      variant="desktop"
-                    />
+                    {/* Preço principal */}
+                    <div className="space-y-1">
+                    <div className="inline-block">
+                        <div className="text-2xl sm:text-3xl font-black text-ghibli-moss">
+                          €{discountedPrice.toFixed(2)}
+                      </div>
+                        {discount > 0 && (
+                          <div className="flex items-center justify-center gap-2 text-xs">
+                            <span className="line-through text-ghibli-earth/50">€{basePrice.toFixed(2)}</span>
+                            <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">
+                              -{discount}%
+                            </span>
+                      </div>
+                        )}
+                    </div>
+                      
+                      {/* Quantidade */}
+                      <div className="flex items-center justify-center gap-2 mt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          disabled={quantity <= 1}
+                          className="w-8 h-8 p-0 border-ghibli-sand"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                        <span className="w-16 text-center font-semibold text-ghibli-earth">
+                          {quantity} {quantity === 1 ? 'capa' : 'capas'}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setQuantity(quantity + 1)}
+                          className="w-8 h-8 p-0 border-ghibli-sand"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
+
+                      {/* Total e poupança */}
+                      {quantity > 1 && (
+                        <div className="text-xs text-ghibli-earth/70 space-y-1">
+                          <div>Total: <span className="font-bold text-ghibli-moss">€{totalPrice.toFixed(2)}</span></div>
+                          {savings > 0 && (
+                            <div className="text-green-600 font-medium">
+                              Poupa €{savings.toFixed(2)}!
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Incentivo de desconto */}
                     {quantity === 1 && (
@@ -1013,7 +1365,36 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     )}
                   </div>
 
-                  <ProductGuarantees variant="desktop" />
+                  {/* 🛡️ 8. GRID DE GARANTIAS MOBILE-OPTIMIZED */}
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-3 sm:pt-4">
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
+                      </div>
+                      <span className="text-xs font-bold text-ghibli-earth">Proteção Premium</span>
+                    </div>
+                    
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
+                      </div>
+                      <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
+                    </div>
+                    
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Truck className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
+                      </div>
+                      <span className="text-xs font-bold text-ghibli-earth">~1 semana</span>
+                    </div>
+                    
+                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Award className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
+                      </div>
+                      <span className="text-xs font-bold text-ghibli-earth">Garantia Total</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
