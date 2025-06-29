@@ -447,6 +447,57 @@ export default function ProductCanvas({
       );
     }
 
+    // Para posters, mostrar placeholder específico baseado na orientação
+    if (selectedProduct.id === 'poster_horizontal_semi_glossy') {
+      return (
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder image horizontal */}
+          <div className="mb-6">
+            <img
+              src="/mockupproduto/posterhorizontal.png"
+              alt="Poster Horizontal Personalizado"
+              className="w-64 h-64 object-contain opacity-60"
+            />
+          </div>
+          
+          {/* Call to action específico para poster horizontal */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Poster Horizontal Personalizado
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Escolha uma arte e veja o seu poster horizontal ganhar vida.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (selectedProduct.id === 'poster_vertical_semi_glossy') {
+      return (
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder image vertical */}
+          <div className="mb-6">
+            <img
+              src="/mockupproduto/postervertical.png"
+              alt="Poster Vertical Personalizado"
+              className="w-64 h-64 object-contain opacity-60"
+            />
+          </div>
+          
+          {/* Call to action específico para poster vertical */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Poster Vertical Personalizado
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Escolha uma arte e veja o seu poster vertical ganhar vida.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     // Para outros produtos, mostrar estado vazio genérico
     return (
       <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
@@ -469,7 +520,7 @@ export default function ProductCanvas({
           {onSelectImage && (
             <Button
               onClick={onSelectImage}
-              className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
+              className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
             >
               <Sparkles className="w-5 h-5 mr-2" />
               Escolher Arte

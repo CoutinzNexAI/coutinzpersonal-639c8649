@@ -33,6 +33,7 @@ export interface PrintifyProductMapping {
     placeholderHeight: number;
     isGiftPackaging: boolean;
     priceAdjustment?: number;
+    price?: number; // Preço em cêntimos para variantes específicas
   }[];
 
   // Propriedades para GERAÇÃO DO FICHEIRO DE IMPRESSÃO (O Teu Backend) - Opcional para produtos Printify
@@ -483,16 +484,16 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 1220,
     printifyPrintProviderId: 105,
     variants: [
-      { id: 92369, title: '7" x 5" (17,78 x 12,7 cm)', placeholderWidth: 2100, placeholderHeight: 1500, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 101854, title: '11" x 9" (27,94 x 22,86 cm)', placeholderWidth: 3300, placeholderHeight: 2700, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 92375, title: '14" x 11" (35,56 x 27,94 cm)', placeholderWidth: 4200, placeholderHeight: 3300, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 92377, title: '18" x 12" (45,72 x 30,48 cm)', placeholderWidth: 5400, placeholderHeight: 3600, isGiftPackaging: false, priceAdjustment: 10.00 },
-      { id: 92379, title: '20" x 16" (50,8 x 40,64 cm)', placeholderWidth: 6000, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 10.00 },
-      { id: 101834, title: '24" x 16" (60,96 x 40,64 cm)', placeholderWidth: 7200, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 15.00 },
-      { id: 92381, title: '24" x 18" (60,96 x 45,72 cm)', placeholderWidth: 7200, placeholderHeight: 5400, isGiftPackaging: false, priceAdjustment: 15.00 },
-      { id: 92383, title: '30" x 20" (76,2 x 50,8 cm)', placeholderWidth: 9000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 15.00 },
-      { id: 101846, title: '34" x 22" (86,36 x 55,88 cm)', placeholderWidth: 10200, placeholderHeight: 6600, isGiftPackaging: false, priceAdjustment: 20.00 },
-      { id: 92387, title: '36" x 24" (91,44 x 60,96 cm)', placeholderWidth: 10800, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 20.00 },
+      { id: 92369, title: '7" x 5" (17,78 x 12,7 cm)', placeholderWidth: 2100, placeholderHeight: 1500, isGiftPackaging: false, price: 2000 },
+      { id: 101854, title: '11" x 9" (27,94 x 22,86 cm)', placeholderWidth: 3300, placeholderHeight: 2700, isGiftPackaging: false, price: 2000 },
+      { id: 92375, title: '14" x 11" (35,56 x 27,94 cm)', placeholderWidth: 4200, placeholderHeight: 3300, isGiftPackaging: false, price: 3000 },
+      { id: 92377, title: '18" x 12" (45,72 x 30,48 cm)', placeholderWidth: 5400, placeholderHeight: 3600, isGiftPackaging: false, price: 3000 },
+      { id: 92379, title: '20" x 16" (50,8 x 40,64 cm)', placeholderWidth: 6000, placeholderHeight: 4800, isGiftPackaging: false, price: 3000 },
+      { id: 101834, title: '24" x 16" (60,96 x 40,64 cm)', placeholderWidth: 7200, placeholderHeight: 4800, isGiftPackaging: false, price: 3500 },
+      { id: 92381, title: '24" x 18" (60,96 x 45,72 cm)', placeholderWidth: 7200, placeholderHeight: 5400, isGiftPackaging: false, price: 3500 },
+      { id: 92383, title: '30" x 20" (76,2 x 50,8 cm)', placeholderWidth: 9000, placeholderHeight: 6000, isGiftPackaging: false, price: 3500 },
+      { id: 101846, title: '34" x 22" (86,36 x 55,88 cm)', placeholderWidth: 10200, placeholderHeight: 6600, isGiftPackaging: false, price: 4000 },
+      { id: 92387, title: '36" x 24" (91,44 x 60,96 cm)', placeholderWidth: 10800, placeholderHeight: 7200, isGiftPackaging: false, price: 4000 },
     ],
     printAreasConfig: [{
       position: 'front',
@@ -524,16 +525,16 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 1220,
     printifyPrintProviderId: 105,
     variants: [
-      { id: 92389, title: '5" x 7" (12,7 x 17,8 cm)', placeholderWidth: 1500, placeholderHeight: 2100, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 101856, title: '9" x 11" (22,9 x 27,9 cm)', placeholderWidth: 2700, placeholderHeight: 3300, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 92395, title: '11" x 14" (27,9 x 35,6 cm)', placeholderWidth: 3300, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 92397, title: '12" x 18" (30,5 x 45,7 cm)', placeholderWidth: 3600, placeholderHeight: 5400, isGiftPackaging: false, priceAdjustment: 10.00 },
-      { id: 92399, title: '16" x 20" (40,6 x 50,8 cm)', placeholderWidth: 4800, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 10.00 },
-      { id: 101836, title: '16" x 24" (40,6 x 61,0 cm)', placeholderWidth: 4800, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 15.00 },
-      { id: 92401, title: '18" x 24" (45,7 x 61,0 cm)', placeholderWidth: 5400, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 15.00 },
-      { id: 92403, title: '20" x 30" (50,8 x 76,2 cm)', placeholderWidth: 6000, placeholderHeight: 9000, isGiftPackaging: false, priceAdjustment: 15.00 },
-      { id: 101848, title: '22" x 34" (55,9 x 86,4 cm)', placeholderWidth: 6600, placeholderHeight: 10200, isGiftPackaging: false, priceAdjustment: 20.00 },
-      { id: 92407, title: '24" x 36" (61,0 x 91,4 cm)', placeholderWidth: 7200, placeholderHeight: 10800, isGiftPackaging: false, priceAdjustment: 20.00 },
+      { id: 92389, title: '5" x 7" (12,7 x 17,8 cm)', placeholderWidth: 1500, placeholderHeight: 2100, isGiftPackaging: false, price: 2000 },
+      { id: 101856, title: '9" x 11" (22,9 x 27,9 cm)', placeholderWidth: 2700, placeholderHeight: 3300, isGiftPackaging: false, price: 2000 },
+      { id: 92395, title: '11" x 14" (27,9 x 35,6 cm)', placeholderWidth: 3300, placeholderHeight: 4200, isGiftPackaging: false, price: 3000 },
+      { id: 92397, title: '12" x 18" (30,5 x 45,7 cm)', placeholderWidth: 3600, placeholderHeight: 5400, isGiftPackaging: false, price: 3000 },
+      { id: 92399, title: '16" x 20" (40,6 x 50,8 cm)', placeholderWidth: 4800, placeholderHeight: 6000, isGiftPackaging: false, price: 3000 },
+      { id: 101836, title: '16" x 24" (40,6 x 61,0 cm)', placeholderWidth: 4800, placeholderHeight: 7200, isGiftPackaging: false, price: 3500 },
+      { id: 92401, title: '18" x 24" (45,7 x 61,0 cm)', placeholderWidth: 5400, placeholderHeight: 7200, isGiftPackaging: false, price: 3500 },
+      { id: 92403, title: '20" x 30" (50,8 x 76,2 cm)', placeholderWidth: 6000, placeholderHeight: 9000, isGiftPackaging: false, price: 3500 },
+      { id: 101848, title: '22" x 34" (55,9 x 86,4 cm)', placeholderWidth: 6600, placeholderHeight: 10200, isGiftPackaging: false, price: 4000 },
+      { id: 92407, title: '24" x 36" (61,0 x 91,4 cm)', placeholderWidth: 7200, placeholderHeight: 10800, isGiftPackaging: false, price: 4000 },
     ],
     printAreasConfig: [{
       position: 'front',

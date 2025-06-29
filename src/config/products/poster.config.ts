@@ -11,7 +11,9 @@ export const posterConfig = {
   // ✅ PREÇOS: baseado na variante selecionada
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
     const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
-    return selectedVariant?.priceAdjustment || 20; // Preço por poster baseado na variante
+    // O preço na nossa base de dados está em cêntimos. Convertemos para euros.
+    // O fallback de 20 é para o caso de algo falhar.
+    return selectedVariant?.price ? selectedVariant.price / 100 : 20;
   },
 
   // ✅ DESCONTOS: Para múltiplos posters
