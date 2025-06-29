@@ -26,6 +26,11 @@ import ProductDescription from '@/components/shared/ProductDescription';
 import ProductVariantSelector from '@/components/shared/ProductVariantSelector';
 import ProductAddToCartButton from '@/components/shared/ProductAddToCartButton';
 import ProductLoadingState from '@/components/shared/ProductLoadingState';
+import ProductMobileControls from '@/components/shared/ProductMobileControls';
+import ProductQuantityPricing from '@/components/shared/ProductQuantityPricing';
+import ProductPositionControls from '@/components/shared/ProductPositionControls';
+import ProductGuarantees from '@/components/shared/ProductGuarantees';
+import ProductHeader from '@/components/shared/ProductHeader';
 import { useProductPricing } from '@/hooks/useProductPricing';
 import { useProductValidation } from '@/hooks/useProductValidation';
 import { useProductCoordinates } from '@/hooks/useProductCoordinates';
@@ -522,92 +527,20 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                 />
               </div>
 
-              {/* Controlos Mobile - Mais Pequenos */}
-              {userInfo ? (
-                selectedImageUrl && userImageDimensions && product ? (
-                  <div className="px-4">
-                    <div className="flex gap-4 items-center justify-center">
-                      {/* Botão Trocar Arte - Mobile */}
-                      <Button
-                        onClick={handleOpenGallery}
-                        className="px-4 py-2 text-sm font-semibold bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white rounded-lg shadow-lg transition-all duration-300"
-                      >
-                        <Sparkles className="w-4 h-4 mr-1" />
-                        Trocar
-                      </Button>
-
-                      {/* Controlos de Posição - Mobile Pequenos */}
-                      <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-ghibli-sand/30">
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'left')} 
-                          variant="ghost"
-                          size="sm"
-                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'left' 
-                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
-                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                          title="Esquerda"
-                        >
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                          </svg>
-                        </Button>
-                        
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'center')} 
-                          variant="ghost"
-                          size="sm"
-                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'center' 
-                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
-                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                          title="Centro"
-                        >
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
-                        </Button>
-                        
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'right')} 
-                          variant="ghost"
-                          size="sm"
-                          className={`h-8 w-8 rounded-full transition-all duration-200 ${imagePosition === 'right' 
-                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
-                            : 'text-ghibli-earth hover:bg-ghibli-moss/10'
-                          }`}
-                          disabled={isGeneratingMockup}
-                          title="Direita"
-                        >
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                          </svg>
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Status Compacto Mobile */}
-                    <div className="mt-2 text-center">
-                      <span className="inline-flex items-center gap-1 text-xs text-ghibli-moss bg-ghibli-moss/5 px-2 py-1 rounded-full font-medium border border-ghibli-moss/20">
-                        <div className="w-1 h-1 bg-ghibli-moss rounded-full animate-pulse"></div>
-                        {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="px-4 text-center">
-                    <Button
-                      onClick={handleOpenGallery}
-                      className="px-6 py-3 text-base font-semibold shadow-lg transition-all duration-300 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 text-white"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Escolher Arte
-                    </Button>
-                  </div>
-                )
-              ) : (
+              {/* Controlos Mobile - COMPONENTE GENÉRICO */}
+              <ProductMobileControls
+                selectedImageUrl={selectedImageUrl}
+                userImageDimensions={userImageDimensions}
+                product={product}
+                imagePosition={imagePosition}
+                isGeneratingMockup={isGeneratingMockup}
+                userInfo={userInfo}
+                onOpenGallery={handleOpenGallery}
+                onAdjustPosition={(position) => handleAdjustment('position', position)}
+                positionType="horizontal"
+              />
+              
+              {!userInfo && (
                 <div className="px-4">
                   <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm">
                     <CardContent className="p-4 text-center">
@@ -626,105 +559,22 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
               )}
             </motion.div>
 
-            {/* Seletor de Quantidade e Preços Mobile */}
+            {/* Seletor de Quantidade e Preços Mobile - COMPONENTE GENÉRICO */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35 }}
               className="px-4 mb-4"
             >
-              {/* Quantidade e Preço */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30 shadow-lg">
-                {/* Header com preço */}
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
-                      {discount > 0 && (
-                        <span className="text-sm text-gray-500 line-through">€25.00</span>
-                      )}
-                    </div>
-                    {discount > 0 && (
-                      <span className="text-xs text-green-600 font-medium">
-                        Poupa €{savings.toFixed(2)} com {discount}% desconto!
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Badge de desconto */}
-                  {discount > 0 && (
-                    <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      -{discount}%
-                    </div>
-                  )}
-                </div>
-
-                {/* Seletor de Quantidade */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-ghibli-earth">Quantidade:</span>
-                    <div className="flex items-center gap-2 bg-ghibli-cream/50 rounded-lg p-1">
-                      <Button
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        disabled={quantity <= 1}
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10 disabled:opacity-50"
-                      >
-                        <Minus className="w-4 h-4" />
-                      </Button>
-                      
-                      <span className="min-w-[2rem] text-center font-bold text-ghibli-earth">
-                        {quantity}
-                      </span>
-                      
-                      <Button
-                        onClick={() => setQuantity(quantity + 1)}
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Destaques de desconto */}
-                  <div className="space-y-1 text-xs">
-                    <div className={`flex items-center justify-between p-2 rounded-lg transition-all ${
-                      quantity >= 2 
-                        ? 'bg-green-100 border border-green-300 text-green-800' 
-                        : 'bg-gray-50 text-gray-600'
-                    }`}>
-                      <span>🎯 2+ capas</span>
-                      <span className="font-bold">10% OFF</span>
-                    </div>
-                    <div className={`flex items-center justify-between p-2 rounded-lg transition-all ${
-                      quantity >= 3 
-                        ? 'bg-green-100 border border-green-300 text-green-800' 
-                        : 'bg-gray-50 text-gray-600'
-                    }`}>
-                      <span>🔥 3+ capas</span>
-                      <span className="font-bold">15% OFF</span>
-                    </div>
-                  </div>
-
-                  {/* Total */}
-                  <div className="border-t border-ghibli-sand/30 pt-3 mt-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-ghibli-earth">Total:</span>
-                      <div className="text-right">
-                        <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
-                        {quantity > 1 && (
-                          <div className="text-xs text-ghibli-earth/70">
-                            {quantity} × €{discountedPrice.toFixed(2)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ProductQuantityPricing
+                basePrice={25.00}
+                quantity={quantity}
+                onQuantityChange={setQuantity}
+                discountTiers={[
+                  { min: 2, discount: 10, label: 'capas', emoji: '🎯' },
+                  { min: 3, discount: 15, label: 'capas', emoji: '🔥' }
+                ]}
+              />
             </motion.div>
 
             {/* Botão Adicionar ao Carrinho Mobile - Destaque (IGUAL ÀS CANECAS) */}
@@ -902,16 +752,8 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
           {/* 🖥️ DESKTOP LAYOUT: Layout Original */}
           <div className="hidden lg:block">
-            {/* Breadcrumb */}
-            <nav className="mb-8">
-            <ol className="flex items-center space-x-2 text-sm text-ghibli-earth">
-              <li><Link href="/shop" className="hover:text-ghibli-moss transition-colors">Loja</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li><Link href={`/shop/${product.category}`} className="hover:text-ghibli-moss transition-colors capitalize">{product.category}</Link></li>
-              <li className="text-ghibli-earth/50">/</li>
-              <li className="text-ghibli-moss font-medium">{product.name}</li>
-            </ol>
-          </nav>
+            {/* Breadcrumb - COMPONENTE GENÉRICO */}
+            <ProductHeader product={product} />
 
           <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-8">
             {/* 📱 MOBILE: Mockup + Botão PRIMEIRO (ordem 1) */}
@@ -962,117 +804,20 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
 
 
-              {/* ✅ CONTROLOS LADO A LADO - Trocar Arte + Ajustar Posição (IGUAL ÀS CANECAS) */}
-              {userInfo ? (
-                selectedImageUrl && userImageDimensions && product ? (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.4 }}
-                    className="mt-6 px-4 lg:px-0"
-              >
-                    <div className="flex gap-8 items-center justify-center">
-                      {/* Botão Trocar Arte - Maior */}
-                <Button
-                  onClick={handleOpenGallery}
-                        className="px-8 py-4 text-base font-semibold bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                      >
-                        <Sparkles className="w-5 h-5 mr-2" />
-                        Trocar Arte
-                      </Button>
-
-                      {/* Controlos de Posição - Maiores (HORIZONTAL PARA CAPAS) */}
-                      <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-ghibli-sand/30">
-                        {/* Botão Esquerda */}
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'left')} 
-                          variant="ghost"
-                          size="sm"
-                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'left' 
-                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
-                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
-                          }`}
-                          disabled={isGeneratingMockup}
-                          title="Esquerda"
-                        >
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                          </svg>
-                </Button>
-                        
-                        {/* Botão Centro */}
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'center')} 
-                          variant="ghost"
-                          size="sm"
-                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'center' 
-                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
-                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
-                          }`}
-                          disabled={isGeneratingMockup}
-                          title="Centro"
-                        >
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
-                        </Button>
-                        
-                        {/* Botão Direita */}
-                        <Button 
-                          onClick={() => handleAdjustment('position', 'right')} 
-                          variant="ghost"
-                          size="sm"
-                          className={`h-12 w-12 rounded-full transition-all duration-200 ${imagePosition === 'right' 
-                            ? 'bg-ghibli-moss text-white shadow-md scale-110' 
-                            : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
-                          }`}
-                          disabled={isGeneratingMockup}
-                          title="Direita"
-                        >
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                          </svg>
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Indicador de Status - Compacto */}
-                    <div className="mt-3 text-center">
-                      <span className="inline-flex items-center gap-2 text-xs text-ghibli-moss bg-ghibli-moss/5 px-3 py-1 rounded-full font-medium border border-ghibli-moss/20">
-                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-pulse"></div>
-                        Posição: {imagePosition === 'left' ? 'Esquerda' : imagePosition === 'right' ? 'Direita' : 'Centro'}
-                      </span>
-                      
-                      {/* Loading indicator quando a gerar */}
-                      {isGeneratingMockup && (
-                        <div className="mt-2 flex items-center justify-center gap-2 text-xs text-ghibli-earth/70">
-                          <div className="flex space-x-1">
-                            <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce"></div>
-                            <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                          </div>
-                          <span>Reposicionando arte...</span>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.3 }}
-                    className="mt-6 flex justify-center px-4 lg:px-0"
-                  >
-                    <Button
-                      onClick={handleOpenGallery}
-                      className="px-8 py-4 text-base lg:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white"
-                    >
-                      <Sparkles className="w-5 h-5 mr-2 lg:mr-3" />
-                      Escolher Arte
-                    </Button>
-                  </motion.div>
-                )
-              ) : (
+              {/* ✅ CONTROLOS DESKTOP - COMPONENTE GENÉRICO */}
+              <ProductPositionControls
+                selectedImageUrl={selectedImageUrl}
+                userImageDimensions={userImageDimensions}
+                product={product}
+                imagePosition={imagePosition}
+                isGeneratingMockup={isGeneratingMockup}
+                onOpenGallery={handleOpenGallery}
+                onAdjustPosition={(position) => handleAdjustment('position', position)}
+                positionType="horizontal"
+                className="mt-6 px-4 lg:px-0"
+              />
+              
+              {!userInfo && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1227,36 +972,27 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     userInfo={userInfo}
                   />
 
-                  {/* 🛡️ 8. GRID DE GARANTIAS MOBILE-OPTIMIZED */}
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-3 sm:pt-4">
-                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
-                      </div>
-                      <span className="text-xs font-bold text-ghibli-earth">Proteção Premium</span>
-                    </div>
-                    
-                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
-                      </div>
-                      <span className="text-xs font-bold text-ghibli-earth">Impressão HD</span>
-                    </div>
-                    
-                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Truck className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
-                      </div>
-                      <span className="text-xs font-bold text-ghibli-earth">~1 semana</span>
-                    </div>
-                    
-                    <div className="group p-3 sm:p-4 bg-gradient-to-br from-ghibli-cream/40 to-ghibli-cream/20 rounded-lg sm:rounded-xl hover:from-ghibli-cream/60 hover:to-ghibli-cream/30 transition-all duration-300 text-center border border-ghibli-sand/30">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 rounded-full bg-ghibli-moss/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Award className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />
-                      </div>
-                      <span className="text-xs font-bold text-ghibli-earth">Garantia Total</span>
-                    </div>
-                  </div>
+                  {/* 🛡️ 8. GRID DE GARANTIAS - COMPONENTE GENÉRICO */}
+                  <ProductGuarantees 
+                    guarantees={[
+                      {
+                        icon: <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
+                        title: 'Proteção Premium'
+                      },
+                      {
+                        icon: <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
+                        title: 'Impressão HD'
+                      },
+                      {
+                        icon: <Truck className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
+                        title: '~1 semana'
+                      },
+                      {
+                        icon: <Award className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
+                        title: 'Garantia Total'
+                      }
+                    ]}
+                  />
                 </CardContent>
               </Card>
             </motion.div>
