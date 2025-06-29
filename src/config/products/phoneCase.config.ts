@@ -31,13 +31,13 @@ export const phoneCaseConfig = {
     { icon: Award, title: 'Satisfação 100%' }
   ],
 
-  // ✅ COORDENADAS: Lógica de "cover" para preencher totalmente a área
-  coordinateConfig: {
-    positionType: 'manual', // Capas usam ajuste manual completo (zoom, posição, rotação)
-    positions: ['manual'] as const
+  // ✅ COORDENADAS: Configuração para movimento horizontal
+  coordinateConfig: { 
+    positionType: 'horizontal' as const, 
+    positions: ['left', 'center', 'right'] as const 
   },
 
-  // ✅ CÁLCULO DE COORDENADAS: Cover completo com ajuste manual
+  // ✅ CÁLCULO DE COORDENADAS: Cover completo com movimento horizontal
   calculatePrintifyCoords: (
     position: string,
     variantId: number,
@@ -51,23 +51,38 @@ export const phoneCaseConfig = {
     }
 
     // PASSO 2: DIMENSÕES DA ÁREA DE IMPRESSÃO (placeholder da variante)
-    const printAreaWidth = selectedVariant.placeholderWidth;
-    const printAreaHeight = selectedVariant.placeholderHeight;
+    const { placeholderWidth, placeholderHeight } = selectedVariant;
+    const userImageWidth = imageDimensions.width;
+    const userImageHeight = imageDimensions.height;
 
     // PASSO 3: CALCULAR SCALE PARA "COVER" (preencher completamente)
-    const scaleX = printAreaWidth / imageDimensions.width;
-    const scaleY = printAreaHeight / imageDimensions.height;
-    const coverScale = Math.max(scaleX, scaleY); // Usa o maior para garantir cobertura total
+    const scaleToCover = Math.max(
+      placeholderWidth / userImageWidth,
+      placeholderHeight / userImageHeight
+    );
 
-    // PASSO 4: POSIÇÃO SEMPRE CENTRADA (capas usam ajuste manual)
-    const finalX = 0.5; // Centro horizontal
-    const finalY = 0.5; // Centro vertical
+    // PASSO 4: CALCULAR LARGURA FINAL DA IMAGEM
+    const finalImageWidth = userImageWidth * scaleToCover;
+
+    // PASSO 5: CONVERTER PARA ESCALA PRINTIFY
+    const printifyScale = finalImageWidth / placeholderWidth;
+
+    // PASSO 6: DEFINIR POSIÇÃO BASEADA NO MOVIMENTO HORIZONTAL
+    let finalX = 0.5; // Centro por defeito
+    const finalY = 0.5; // Y sempre centrado
+    const shiftAmount = 0.35;
+    
+    if (position === 'left') {
+      finalX = 0.5 - shiftAmount;
+    } else if (position === 'right') {
+      finalX = 0.5 + shiftAmount;
+    }
 
     return {
       x: finalX,
       y: finalY,
-      scale: coverScale,
-      rotation: 0 // Sem rotação inicial
+      scale: printifyScale,
+      rotation: 0
     };
   },
 

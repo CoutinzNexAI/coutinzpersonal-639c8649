@@ -42,6 +42,7 @@ interface GenericProductPageProps {
     descriptionItems: (product: PrintifyProductMapping) => Array<{ text: string; color?: 'moss' | 'wood'; emoji?: string; }>;
     guaranteeItems: () => Array<{ icon: React.ComponentType<{ className?: string }>; title: string; }>;
     coordinateConfig?: { positionType: string; positions: readonly string[]; };
+    getCoordinateConfig?: (product: PrintifyProductMapping) => { positionType: string; positions: readonly string[]; };
     calculatePrintifyCoords?: (position: string, variantId: number, imageDimensions: { width: number; height: number }, product: PrintifyProductMapping) => ImageAdjustments;
     validatePurchase: (selectedImageUrl: string, selectedImageId: string | null, userInfo: unknown, selectedPrintifyVariantId: number | null, printifyProductId: string, printifyImageId: string) => string | null;
     variantSelectorConfig: { label: string; emoji: string; getCustomSingleVariantText?: (product: PrintifyProductMapping) => string | undefined; getCustomSingleVariantSubtext?: (product: PrintifyProductMapping) => string | undefined; };
@@ -53,6 +54,9 @@ interface GenericProductPageProps {
 const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config }) => {
   const router = useRouter();
   const { userInfo } = useAuth();
+  
+  // Resolver coordinateConfig dinamicamente
+  const coordinateConfig = config.getCoordinateConfig ? config.getCoordinateConfig(product) : config.coordinateConfig;
   
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
@@ -70,7 +74,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const [imagePosition, setImagePosition] = useState<'top' | 'center' | 'bottom' | 'left' | 'right'>('center');
   const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
-  const [isGeneratingMockup] = useState<boolean>(false);
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
   const [quantity, setQuantity] = useState(1);
 
   // Cálculos de preço usando a configuração
@@ -233,7 +237,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   };
 
   // Função para gerar novos mockups quando a posição muda
-  const generateNewMockup = async (position: 'top' | 'center' | 'bottom' | 'left' | 'right', variantId: number) => {
+  const generateNewMockup = async (position: 'top' | 'center' | 'bottom' | 'left' | 'right', variantId: number, isPositionChange: boolean = false) => {
     if (!selectedImageUrl || !userInfo?.id || !userImageDimensions) return;
 
     // Calcular novas coordenadas baseadas na posição
@@ -248,6 +252,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       setImageAdjustments(newAdjustments);
     }
 
+    setIsGeneratingMockup(true);
+    
     try {
       const response = await fetch('/api/printify/mockups/generate', {
         method: 'POST',
@@ -278,11 +284,17 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         setPrintifyImageId(data.printifyImageId || '');
         setPrintifyProductId(data.printifyProductId);
         setCurrentMockupUrls(data.previewUrls);
-        toast.success('Mockup atualizado com sucesso!');
+        
+        // Só mostrar notificação se não for mudança de posição
+        if (!isPositionChange) {
+          toast.success('Mockup atualizado com sucesso!');
+        }
       }
     } catch (error) {
       console.error('Error generating new mockup:', error);
       toast.error('Erro ao gerar novo mockup. Tente novamente.');
+    } finally {
+      setIsGeneratingMockup(false);
     }
   };
 
@@ -308,6 +320,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     } else if (type === 'size' && typeof value === 'number') {
       newVariantId = value;
       setSelectedPrintifyVariantId(newVariantId);
+      // Resetar posição para centro quando muda variante
+      setImagePosition('center');
+      newPosition = 'center';
     }
 
     // 2. Se for permitido, regista o pedido
@@ -316,7 +331,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     // 3. E SÓ DEPOIS CHAMA A FUNÇÃO PARA GERAR A MOCKUP (O ATAQUE)
     // Garante que newVariantId não é nulo antes de chamar
     if (newVariantId !== null) {
-      await generateNewMockup(newPosition, newVariantId);
+      const isPositionChange = type === 'position';
+      await generateNewMockup(newPosition, newVariantId, isPositionChange);
     }
   };
 
@@ -388,8 +404,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 userInfo={userInfo}
                 onOpenGallery={handleOpenGallery}
                 onAdjustPosition={(position) => handleAdjustment('position', position)}
-                positionType={(config.coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
-                showPositionControls={!!config.coordinateConfig}
+                            positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
+            showPositionControls={!!coordinateConfig}
               />
               
               {!userInfo && (
@@ -546,9 +562,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 </Button>
 
                 {/* Controlos de Posição lado a lado com Trocar Arte - APENAS SE EXISTIR coordinateConfig */}
-                {userInfo && selectedImageUrl && config.coordinateConfig && (
+                {userInfo && selectedImageUrl && coordinateConfig && (
                   <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-ghibli-sand/30">
-                    {(config.coordinateConfig.positionType === 'vertical' ? [
+                    {(coordinateConfig.positionType === 'vertical' ? [
                       { key: 'top' as const, title: 'Cima', icon: 'M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z' },
                       { key: 'center' as const, title: 'Centro', icon: 'circle' },
                       { key: 'bottom' as const, title: 'Baixo', icon: 'M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z' }
