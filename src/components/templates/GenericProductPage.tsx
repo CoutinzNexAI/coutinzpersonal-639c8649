@@ -1,0 +1,602 @@
+// Template genérico para páginas de produto - Loja PicTuz
+// Este componente será usado como base para todas as páginas de produto específicas 
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/router';
+import Head from 'next/head';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Minus, Plus } from 'lucide-react';
+import { toast } from 'sonner';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
+import ProductCanvas from '@/components/printify/ProductCanvas';
+import { useAuth } from '@/hooks/useAuth';
+import { CartService } from '@/lib/cart/cartService';
+import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
+
+// Componentes compartilhados
+import ProductHeader from '@/components/shared/ProductHeader';
+import ProductPositionControls from '@/components/shared/ProductPositionControls';
+import ProductQuantityPricing from '@/components/shared/ProductQuantityPricing';
+import ProductArtStatus from '@/components/shared/ProductArtStatus';
+import ProductGuarantees from '@/components/shared/ProductGuarantees';
+import ProductDescription from '@/components/shared/ProductDescription';
+import ProductVariantSelector from '@/components/shared/ProductVariantSelector';
+import ProductAddToCartButton from '@/components/shared/ProductAddToCartButton';
+import ProductMobileControls from '@/components/shared/ProductMobileControls';
+import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
+
+interface GenericProductPageProps {
+  product: any;
+  config: any;
+}
+
+const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config }) => {
+  const router = useRouter();
+  const { userInfo } = useAuth();
+  
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [imageAdjustments, setImageAdjustments] = useState<ImageAdjustments | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  
+  // Estados para Printify
+  const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
+  const [printifyImageId, setPrintifyImageId] = useState<string>('');
+  const [printifyProductId, setPrintifyProductId] = useState<string>('');
+  const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
+
+  // Estados específicos do produto
+  const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [imagePosition, setImagePosition] = useState<'top' | 'center' | 'bottom'>('center');
+  const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
+  const [activeMockupIndex, setActiveMockupIndex] = useState<number>(0);
+  const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
+  const [quantity, setQuantity] = useState(1);
+
+  // Cálculos de preço usando a configuração
+  const calculateDiscount = (qty: number) => {
+    const tier = config.discountTiers?.find((tier: any) => qty >= tier.min);
+    return tier ? tier.discount : 0;
+  };
+
+  const basePrice = config.getBasePrice(product, selectedPrintifyVariantId);
+  const discount = calculateDiscount(quantity);
+  const discountedPrice = basePrice * (1 - discount / 100);
+  const totalPrice = discountedPrice * quantity;
+  const savings = (basePrice * quantity) - totalPrice;
+
+  // Setup inicial do produto
+  useEffect(() => {
+    if (product?.variants?.length) {
+      const firstVariant = product.variants[0];
+      setSelectedPrintifyVariantId(firstVariant.id);
+    }
+  }, [product]);
+
+  // Reset estados quando a variante muda
+  useEffect(() => {
+    if (selectedImageUrl && selectedPrintifyVariantId) {
+      setPrintifyPreviewUrls([]);
+      setPrintifyImageId('');
+      setPrintifyProductId('');
+    }
+  }, [selectedPrintifyVariantId]);
+
+  // Calcular imageAdjustments usando a configuração
+  useEffect(() => {
+    if (selectedImageUrl && product && selectedPrintifyVariantId) {
+      const selectedVariant = product.variants?.find((v: any) => v.id === selectedPrintifyVariantId);
+      if (!selectedVariant) return;
+
+      const { placeholderWidth, placeholderHeight } = selectedVariant;
+      const userImageWidth = 1016;
+      const userImageHeight = 1016;
+
+      const scaleToCover = Math.max(
+        placeholderWidth / userImageWidth,
+        placeholderHeight / userImageHeight
+      );
+
+      const finalImageWidth = userImageWidth * scaleToCover;
+      const printifyScale = finalImageWidth / placeholderWidth;
+      
+      setImageAdjustments({
+        x: 0.5,
+        y: 0.5,
+        scale: printifyScale,
+        rotation: 0
+      });
+    }
+  }, [selectedImageUrl, product, selectedPrintifyVariantId]);
+
+  // Detectar dimensões da imagem
+  useEffect(() => {
+    if (selectedImageUrl) {
+      const img = new Image();
+      img.onload = () => {
+        setUserImageDimensions({ width: img.width, height: img.height });
+      };
+      img.onerror = () => {
+        setUserImageDimensions({ width: 1016, height: 1016 });
+      };
+      img.src = selectedImageUrl;
+    } else {
+      setUserImageDimensions(null);
+    }
+  }, [selectedImageUrl]);
+
+  // Handlers
+  const handlePreviewReady = useCallback((data: {
+    previewUrls: string[];
+    printifyImageId: string;
+    printifyProductId: string;
+  }) => {
+    setPrintifyPreviewUrls(data.previewUrls);
+    setPrintifyImageId(data.printifyImageId);
+    setPrintifyProductId(data.printifyProductId);
+    
+    if (data.previewUrls.length > 0 && currentMockupUrls.length === 0) {
+      setCurrentMockupUrls(data.previewUrls);
+      setActiveMockupIndex(0);
+    }
+  }, [currentMockupUrls]);
+
+  const handleAddToCart = async () => {
+    const validationError = config.validatePurchase(
+      selectedImageUrl,
+      selectedImageId,
+      userInfo,
+      selectedPrintifyVariantId,
+      printifyProductId,
+      printifyImageId
+    );
+    
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const variant = product.variants?.find((v: any) => v.id === selectedPrintifyVariantId);
+
+      CartService.addToCart({
+        productId: product.id,
+        productName: product.name,
+        productCategory: product.category || config.productCategory,
+        userImageUrl: selectedImageUrl,
+        userImageId: selectedImageId!,
+        price: basePrice,
+        quantity: quantity,
+        customizations: {
+          variantId: selectedPrintifyVariantId!,
+          variant: variant?.title || 'Variante não encontrada',
+          scale: imageAdjustments?.scale || 1,
+          x: imageAdjustments?.x || 0.5,
+          y: imageAdjustments?.y || 0.5,
+          angle: imageAdjustments?.rotation || 0,
+        },
+        imageAdjustments,
+      });
+
+      toast.success(`${product.name} adicionado ao carrinho!`, {
+        description: 'Continue as compras ou vá para o checkout',
+        action: {
+          label: 'Ver Carrinho',
+          onClick: () => router.push('/checkout'),
+        },
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar ao carrinho:', error);
+      toast.error('Erro ao adicionar ao carrinho. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenGallery = () => setIsGalleryModalOpen(true);
+
+  const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
+    setSelectedImageUrl(imageUrl);
+    setSelectedImageId(imageId);
+    setIsGalleryModalOpen(false);
+    
+    setPrintifyPreviewUrls([]);
+    setPrintifyImageId('');
+    setPrintifyProductId('');
+    setImageAdjustments(undefined);
+    
+    toast.success('Arte aplicada com sucesso!');
+  };
+
+  const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
+    if (type === 'size' && typeof value === 'number') {
+      setSelectedPrintifyVariantId(value);
+    } else if (type === 'position' && typeof value === 'string') {
+      const position = value as 'top' | 'center' | 'bottom';
+      setImagePosition(position);
+      
+      if (userImageDimensions && selectedPrintifyVariantId) {
+        const newAdjustments = config.calculatePrintifyCoords(
+          position,
+          selectedPrintifyVariantId,
+          userImageDimensions,
+          product
+        );
+        setImageAdjustments(newAdjustments);
+      }
+    }
+  };
+
+  // Condições auxiliares
+  const isProcessingMockup = (!printifyProductId || !printifyImageId) && selectedImageUrl;
+  const canPurchase = selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo;
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-ghibli-moss border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-ghibli-earth">A carregar produto...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Head>
+        <title>{product.name} - Loja PicTuz</title>
+        <meta name="description" content={`Personalize a sua ${product.name} com as suas criações AI.`} />
+      </Head>
+
+      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
+        <Header />
+        
+        <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-12 sm:pb-8 lg:py-8">
+          {/* Layout Mobile */}
+          <div className="block lg:hidden">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-6 px-4"
+            >
+              <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight tracking-tight">
+                {product.name}
+              </h1>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-6"
+            >
+              <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20">
+                <ProductCanvas
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady}
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                />
+              </div>
+
+              <ProductMobileControls
+                selectedImageUrl={selectedImageUrl}
+                userImageDimensions={userImageDimensions}
+                product={product}
+                imagePosition={imagePosition}
+                isGeneratingMockup={isGeneratingMockup}
+                userInfo={userInfo}
+                onOpenGallery={handleOpenGallery}
+                onAdjustPosition={(position) => handleAdjustment('position', position)}
+                positionType={config.coordinateConfig?.positionType || 'vertical'}
+              />
+              
+              {!userInfo && (
+                <div className="px-4">
+                  <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-ghibli-earth text-sm mb-3 font-medium">
+                        🎨 Entre para personalizar o seu produto
+                      </p>
+                      <Button
+                        onClick={() => router.push('/')}
+                        className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0"
+                      >
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Quantidade e Preços Mobile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+              className="px-4 mb-4"
+            >
+              <ProductQuantityPricing
+                basePrice={basePrice}
+                quantity={quantity}
+                onQuantityChange={setQuantity}
+                discountTiers={config.discountTiers || []}
+              />
+            </motion.div>
+
+            {/* Botão Mobile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="px-4 mb-6"
+            >
+              <ProductAddToCartButton
+                canPurchase={!!canPurchase}
+                isProcessingMockup={!!isProcessingMockup}
+                loading={loading}
+                userInfo={userInfo}
+                selectedImageUrl={selectedImageUrl || ''}
+                selectedPrintifyVariantId={selectedPrintifyVariantId}
+                onAddToCart={handleAddToCart}
+                size="mobile"
+              />
+            </motion.div>
+
+            {/* Informações Mobile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="px-4 space-y-4"
+            >
+              <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
+                <ProductDescription items={config.descriptionItems(product)} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <ProductGuarantees guarantees={config.guaranteeItems()} />
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Layout Desktop */}
+          <div className="hidden lg:flex lg:grid lg:grid-cols-3 gap-8">
+            {/* Área de Visualização */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-2 order-1"
+            >
+              <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-ghibli-sand/20">
+                <ProductCanvas
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady}
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                />
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="flex justify-center"
+              >
+                <Button
+                  onClick={handleOpenGallery}
+                  disabled={!userInfo}
+                  className={`px-12 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-2xl ${
+                    userInfo 
+                      ? 'bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white' 
+                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
+                </Button>
+              </motion.div>
+
+              {!userInfo && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                  className="mt-6 flex justify-center"
+                >
+                  <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm max-w-md">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-ghibli-earth text-base mb-3 font-medium">
+                        🎨 Entre para personalizar o seu produto
+                      </p>
+                      <Button
+                        onClick={() => router.push('/')}
+                        className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0"
+                      >
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </motion.div>
+
+            {/* Painel de Controlo Desktop */}
+            <motion.div
+              {...PRODUCT_ANIMATIONS.sidebar}
+              className="lg:col-span-1 order-2"
+            >
+              <Card className={PRODUCT_STYLES.card}>
+                <ProductCardDecorations />
+                
+                <CardContent className="relative z-10 p-6 space-y-4">
+                  {/* Título + Preço + Quantidade */}
+                  <div className="pb-4 border-b border-ghibli-sand/30 space-y-4">
+                    <div className="text-center">
+                      <h1 className="text-2xl font-extrabold bg-gradient-to-r from-ghibli-earth to-ghibli-wood bg-clip-text text-transparent leading-tight mb-2">
+                        {product.name}
+                      </h1>
+                    </div>
+
+                    {/* Preço e Quantidade */}
+                    <div className="space-y-3">
+                      <div className="text-center">
+                        <div className="flex items-baseline justify-center gap-2 mb-1">
+                          <span className="text-4xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
+                          {discount > 0 && (
+                            <span className="text-lg text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
+                          )}
+                          {discount > 0 && (
+                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                              -{discount}%
+                            </div>
+                          )}
+                        </div>
+                        {discount > 0 && (
+                          <p className="text-sm text-green-600 font-medium">
+                            Poupa €{savings.toFixed(2)} com {discount}% desconto!
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Seletor de Quantidade */}
+                      <div className="bg-ghibli-cream/30 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-ghibli-earth">Quantidade:</span>
+                          <div className="flex items-center gap-2 bg-white/80 rounded-lg p-1">
+                            <Button
+                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                              disabled={quantity <= 1}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10 disabled:opacity-50"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                            
+                            <span className="min-w-[2.5rem] text-center font-bold text-ghibli-earth">
+                              {quantity}
+                            </span>
+                            
+                            <Button
+                              onClick={() => setQuantity(quantity + 1)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 rounded-md hover:bg-ghibli-moss/10"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Destaques de desconto */}
+                        {config.discountTiers && (
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {config.discountTiers.map((tier: any, index: number) => (
+                              <div key={index} className={`text-center p-2 rounded-md transition-all ${
+                                quantity >= tier.min 
+                                  ? 'bg-green-100 border border-green-300 text-green-800' 
+                                  : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                <div className="font-bold">{tier.min}+ {tier.label}</div>
+                                <div>{tier.discount}% OFF</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Total */}
+                        {quantity > 1 && (
+                          <div className="border-t border-ghibli-sand/30 pt-2 mt-3">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-ghibli-earth">Total:</span>
+                              <div className="text-right">
+                                <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
+                                <div className="text-xs text-ghibli-earth/70">
+                                  {quantity} × €{discountedPrice.toFixed(2)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status Arte */}
+                  <ProductArtStatus 
+                    selectedImageUrl={selectedImageUrl}
+                    onOpenGallery={handleOpenGallery}
+                  />
+
+                  {/* Descrição */}
+                  <ProductDescription items={config.descriptionItems(product)} />
+
+                  {/* Seletor de Variantes */}
+                  <ProductVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                    label={config.variantSelectorConfig?.label || "Variante"}
+                    emoji={config.variantSelectorConfig?.emoji || "🎯"}
+                    customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                    customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                  />
+
+                  {/* Botão Principal */}
+                  <div className="pt-3">
+                    <ProductAddToCartButton
+                      canPurchase={!!canPurchase}
+                      isProcessingMockup={!!isProcessingMockup}
+                      loading={loading}
+                      userInfo={userInfo}
+                      selectedImageUrl={selectedImageUrl || ''}
+                      selectedPrintifyVariantId={selectedPrintifyVariantId}
+                      onAddToCart={handleAddToCart}
+                      size="desktop"
+                    />
+                  </div>
+
+                  {/* Garantias */}
+                  <ProductGuarantees 
+                    guarantees={config.guaranteeItems()}
+                    className="pt-4" 
+                  />
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+
+      <TransformationGalleryModal
+        isOpen={isGalleryModalOpen}
+        onClose={() => setIsGalleryModalOpen(false)}
+        onSelectImage={handleSelectImageFromGallery}
+      />
+    </>
+  );
+};
+
+export default GenericProductPage; 
