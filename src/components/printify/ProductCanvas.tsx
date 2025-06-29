@@ -151,14 +151,21 @@ export default function ProductCanvas({
     }
   }, [printifyGeneratedPreviewUrls, preloadedImages]);
 
-  const handleGenerateMockup = useCallback(async () => {
-    if (!userImageUrl || !userId || isLoadingMockups) return;
+  // PASSO 1: Mantém a tua função de chamada à API, mas vamos simplificar o seu wrapper
+  const generateMockupApiCall = useCallback(async () => {
+    // A condição de guarda principal: não fazer nada se não tivermos os dados essenciais ou se já estiver a carregar
+    if (!userImageUrl || !userId || isLoadingMockups) {
+      console.log('🔇 [generateMockupApiCall] Abortado: Faltam dados ou já está a carregar.');
+      return;
+    }
 
+    console.log('🚀 [generateMockupApiCall] INICIANDO GERAÇÃO DE MOCKUP...');
     setIsLoadingMockups(true);
     setError(null);
 
     try {
-      // Construir payload baseado no tipo de produto
+      // A tua lógica para construir o requestBody continua igual.
+      // O React garante que as variáveis usadas aqui (de props e state) estão atualizadas.
       let requestBody: Record<string, unknown>;
 
       if (selectedProduct.id === 'custom_youth_hoodie') {
@@ -181,19 +188,14 @@ export default function ProductCanvas({
           productId: selectedProduct.id,
           userImageUrl: userImageUrl,
           userId: userId,
-          // ✅ CORREÇÃO: Enviar imageAdjustments para produtos que suportam ajustes manuais OU posters
           imageAdjustments: (selectedProduct.supportsManualAdjustment || selectedProduct.id.includes('poster_')) ? imageAdjustments : undefined,
           selectedPrintifyVariantId: selectedPrintifyVariantId,
         };
 
         // Para Canvas products - SEMPRE carregar a imagem primeiro
         if ((selectedProduct.id === 'custom_canvas' || selectedProduct.id === 'framed_canvas')) {
-          // Para Canvas, não passar printifyImageId - deixar a API carregar a imagem
-          // O backend irá primeiro fazer upload da imagem para Printify e depois usar o ID
           requestBody.forceImageUpload = true; // Flag para forçar re-upload
-
-          // *** ADICIONAR PRINTDETAILS PARA CANVAS (CUSTOM E FRAMED) ***
-            requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
+          requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
         }
 
         // Para Poster products, adicionar printifyImageId
@@ -211,27 +213,22 @@ export default function ProductCanvas({
         }
       }
 
-      console.log('🔍 [ProductCanvas DEBUG] generateMockups chamado com:', { requestBody });
+      console.log('🔍 [generateMockupApiCall] Payload a ser enviado:', requestBody);
 
       const response = await fetch('/api/printify/mockups/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`Erro na API: ${response.status} ${response.statusText}`);
       }
 
       const data: GenerateMockupResponse = await response.json();
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate mockup');
-      }
-
-      if (data.previewUrls && data.printifyProductId) {
+      if (data.success && data.previewUrls && data.printifyProductId) {
+        console.log('✅ [generateMockupApiCall] SUCESSO! Mockups recebidos.');
         if (selectedProduct.id === 'custom_youth_hoodie') {
           // Para sweat de criança
           if (data.customerPrintifyImageId && data.dynamicPhrasePrintifyImageId) {
@@ -244,52 +241,80 @@ export default function ProductCanvas({
           }
         } else {
           // Para outros produtos - aceitar mesmo sem printifyImageId
-            onPreviewReady({
-              previewUrls: data.previewUrls,
+          onPreviewReady({
+            previewUrls: data.previewUrls,
             printifyImageId: data.printifyImageId || '', // Pode ser null/undefined para alguns produtos
-              printifyProductId: data.printifyProductId,
-            });
+            printifyProductId: data.printifyProductId,
+          });
         }
-        setHasGenerated(true);
+        setHasGenerated(true); // Marca como gerado com sucesso
+      } else {
+        throw new Error(data.error || 'A API retornou um erro inesperado.');
       }
     } catch (err) {
-      console.error('Error generating mockup:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      console.error('❌ [generateMockupApiCall] Falha na geração de mockup:', err);
+      setError(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido');
     } finally {
+      console.log('🏁 [generateMockupApiCall] FIM DA GERAÇÃO.');
       setIsLoadingMockups(false);
     }
   }, [
+    // A lista de dependências do useCallback agora é MAIS ESTÁVEL.
+    // Inclui apenas o que é realmente necessário para a função existir.
     userImageUrl, 
     userId, 
     isLoadingMockups, 
     selectedProduct, 
     imageAdjustments, 
-    selectedPrintifyVariantId, 
-    onPreviewReady,
+    selectedPrintifyVariantId,
     allImageAdjustments,
     selectedPhraseText,
-    selectedImageId
+    selectedImageId,
+    onPreviewReady // onPreviewReady deve ser envolvida em useCallback no componente pai para ser estável
   ]);
 
-  // Auto-generate mockup when component mounts (if not already generated)
+  // PASSO 2: Este é o NOVO useEffect que vai controlar TUDO.
+  // Ele observa as mudanças e usa um "debounce" para não disparar a API a cada milissegundo.
   useEffect(() => {
-    let shouldGenerate = false;
-
+    // Verifica se temos os dados mínimos necessários para sequer considerar uma chamada
+    let canGenerate = false;
     if (selectedProduct.id === 'custom_youth_hoodie') {
-      // Para sweat de criança, precisamos de imagem, variante e frase
-      shouldGenerate = !!(userImageUrl && userId && selectedProduct && selectedPrintifyVariantId && selectedPhraseText);
+      canGenerate = !!(userImageUrl && userId && selectedPrintifyVariantId && selectedPhraseText);
     } else if (selectedProduct.id === 'custom_phone_case' || selectedProduct.id === 'tote_bag') {
-      // Para capas de telemóvel e sacos, só gera se uma variante foi selecionada
-      shouldGenerate = !!(userImageUrl && userId && selectedProduct && selectedPrintifyVariantId);
+      canGenerate = !!(userImageUrl && userId && selectedPrintifyVariantId);
     } else {
-      // Para outros produtos
-      shouldGenerate = !!(userImageUrl && userId && selectedProduct);
+      canGenerate = !!(userImageUrl && userId);
+    }
+    
+    // Se não podemos gerar, não fazemos nada.
+    if (!canGenerate) {
+      console.log("🤔 [DebounceEffect] Condições para gerar não cumpridas. A aguardar...");
+      return;
     }
 
-    if (!hasGenerated && shouldGenerate) {
-      handleGenerateMockup();
+    // Se já foi gerado e não houve mudanças relevantes, não gerar novamente
+    if (hasGenerated) {
+      console.log("✅ [DebounceEffect] Mockup já foi gerado. Não é necessário gerar novamente.");
+      return;
     }
-  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup]);
+
+    console.log('⏳ [DebounceEffect] Mudança detetada. A iniciar temporizador de debounce (800ms)...');
+    
+    // Lógica de Debounce: espera 800ms após a última mudança antes de chamar a API.
+    // Isto evita chamadas múltiplas enquanto o utilizador arrasta a imagem ou muda opções rapidamente.
+    const handler = setTimeout(() => {
+      console.log('⏰ [DebounceEffect] Temporizador concluído. A executar chamada à API.');
+      generateMockupApiCall();
+    }, 800); // 800ms de espera
+
+    // Função de limpeza: se o useEffect for executado novamente (porque outra prop mudou),
+    // cancela o temporizador anterior. Isto garante que a API só é chamada uma vez, no final de todas as mudanças.
+    return () => {
+      console.log('🧹 [DebounceEffect] Limpeza. A cancelar temporizador anterior.');
+      clearTimeout(handler);
+    };
+
+  }, [userImageUrl, selectedPrintifyVariantId, imageAdjustments, selectedPhraseText, allImageAdjustments, generateMockupApiCall, selectedProduct, hasGenerated, userId]);
 
   // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
   const handlePreviousPreview = useCallback(() => {
@@ -754,7 +779,7 @@ export default function ProductCanvas({
           {error}
         </p>
         <Button
-          onClick={handleGenerateMockup}
+          onClick={generateMockupApiCall}
           disabled={isLoadingMockups}
           className="bg-red-600 hover:bg-red-700 text-white"
         >
