@@ -524,6 +524,32 @@ export default function ProductCanvas({
       );
     }
 
+    // Para saco, mostrar placeholder específico
+    if (selectedProduct.id === 'tote_bag') {
+      return (
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder image do saco */}
+          <div className="mb-6">
+            <img
+              src="/assets/mockups/bag/saco.png"
+              alt="Saco Personalizado"
+              className="w-64 h-64 object-contain opacity-60"
+            />
+          </div>
+          
+          {/* Call to action específico para saco */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Saco Personalizado
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Escolha uma arte e veja o seu saco sustentável ganhar vida.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     // Para outros produtos, mostrar estado vazio genérico
     return (
       <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">

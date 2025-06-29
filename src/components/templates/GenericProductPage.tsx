@@ -39,8 +39,8 @@ interface GenericProductPageProps {
     discountTiers: Array<{ min: number; discount: number; label: string; emoji: string; }>;
     descriptionItems: (product: PrintifyProductMapping) => Array<{ text: string; color?: 'moss' | 'wood'; emoji?: string; }>;
     guaranteeItems: () => Array<{ icon: React.ComponentType<{ className?: string }>; title: string; }>;
-    coordinateConfig: { positionType: string; positions: readonly string[]; };
-    calculatePrintifyCoords: (position: string, variantId: number, imageDimensions: { width: number; height: number }, product: PrintifyProductMapping) => ImageAdjustments;
+    coordinateConfig?: { positionType: string; positions: readonly string[]; };
+    calculatePrintifyCoords?: (position: string, variantId: number, imageDimensions: { width: number; height: number }, product: PrintifyProductMapping) => ImageAdjustments;
     validatePurchase: (selectedImageUrl: string, selectedImageId: string | null, userInfo: unknown, selectedPrintifyVariantId: number | null, printifyProductId: string, printifyImageId: string) => string | null;
     variantSelectorConfig: { label: string; emoji: string; getCustomSingleVariantText?: (product: PrintifyProductMapping) => string | undefined; getCustomSingleVariantSubtext?: (product: PrintifyProductMapping) => string | undefined; };
     VariantSelectorComponent: string;
@@ -236,7 +236,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       const position = value as 'top' | 'center' | 'bottom';
       setImagePosition(position);
       
-      if (userImageDimensions && selectedPrintifyVariantId) {
+      // APENAS calcular coordenadas se o produto suporta ajustes de posição
+      if (userImageDimensions && selectedPrintifyVariantId && config.calculatePrintifyCoords) {
         const newAdjustments = config.calculatePrintifyCoords(
           position,
           selectedPrintifyVariantId,
@@ -317,6 +318,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 onOpenGallery={handleOpenGallery}
                 onAdjustPosition={(position) => handleAdjustment('position', position)}
                 positionType={(config.coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
+                showPositionControls={!!config.coordinateConfig}
               />
               
               {!userInfo && (
@@ -454,10 +456,10 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
                 </Button>
 
-                {/* Controlos de Posição lado a lado com Trocar Arte */}
-                {userInfo && selectedImageUrl && (
+                {/* Controlos de Posição lado a lado com Trocar Arte - APENAS SE EXISTIR coordinateConfig */}
+                {userInfo && selectedImageUrl && config.coordinateConfig && (
                   <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-ghibli-sand/30">
-                    {(config.coordinateConfig?.positionType === 'vertical' ? [
+                    {(config.coordinateConfig.positionType === 'vertical' ? [
                       { key: 'top' as const, title: 'Cima', icon: 'M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z' },
                       { key: 'center' as const, title: 'Centro', icon: 'circle' },
                       { key: 'bottom' as const, title: 'Baixo', icon: 'M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z' }
