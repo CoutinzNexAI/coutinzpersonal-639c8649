@@ -5,7 +5,7 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, Minus, Plus, Shield } from 'lucide-react';
+import { Sparkles, Minus, Plus, Shield, Truck, Award } from 'lucide-react';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -941,7 +941,27 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                   </div>
 
                   {/* Grid de Garantias */}
-                  <ProductGuarantees className="pt-3 sm:pt-4" />
+                  <ProductGuarantees 
+                    guarantees={[
+                      {
+                        icon: <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
+                        title: 'Cerâmica Premium'
+                      },
+                      {
+                        icon: <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
+                        title: 'Impressão HD'
+                      },
+                      {
+                        icon: <Truck className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
+                        title: '~1 semana'
+                      },
+                      {
+                        icon: <Award className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
+                        title: 'Garantia Total'
+                      }
+                    ]}
+                    className="pt-3 sm:pt-4" 
+                  />
                 </CardContent>
               </Card>
             </motion.div>

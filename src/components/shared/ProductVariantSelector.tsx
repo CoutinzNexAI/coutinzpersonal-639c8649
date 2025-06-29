@@ -24,7 +24,6 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
   // Se há apenas 1 variante, mostra apenas informação (sem dropdown)
   if (!product.variants || product.variants.length <= 1) {
     const singleVariant = product.variants?.[0];
-    const isHeartMug = product.id === 'heart_mug';
     
     return (
       <motion.div
@@ -37,11 +36,11 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
           <div className="flex items-center justify-center gap-3">
             <div className="w-3 h-3 rounded-full bg-ghibli-moss"></div>
             <span className="text-ghibli-earth font-semibold">
-              {isHeartMug ? '💝 Tamanho: 330 ml' : `${emoji} ${singleVariant?.title || 'Tamanho único'}`}
+              {emoji} {singleVariant?.title || 'Tamanho único'}
             </span>
           </div>
           <p className="text-center text-xs text-ghibli-earth/70 mt-1">
-            {isHeartMug ? 'Formato especial de coração' : 'Produto com tamanho único'}
+            Produto com tamanho único
           </p>
         </div>
       </motion.div>

@@ -22,8 +22,8 @@ export const ProductQuantityPricing: React.FC<ProductQuantityPricingProps> = ({
   quantity,
   onQuantityChange,
   discountTiers = [
-    { min: 2, discount: 10, label: 'canecas', emoji: '💡' },
-    { min: 3, discount: 15, label: 'canecas', emoji: '🔥' }
+    { min: 2, discount: 10, label: 'produtos', emoji: '💡' },
+    { min: 3, discount: 15, label: 'produtos', emoji: '🔥' }
   ],
   className = ''
 }) => {

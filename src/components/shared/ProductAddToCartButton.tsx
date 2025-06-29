@@ -43,7 +43,7 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
             <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
           </div>
           <span className={`text-ghibli-moss font-medium ${size === 'mobile' ? 'text-sm' : 'text-sm sm:text-base'}`}>
-            Criando a sua caneca mágica...
+            Criando o seu produto...
           </span>
         </div>
         {size === 'desktop' && (

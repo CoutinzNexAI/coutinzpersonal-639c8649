@@ -7,27 +7,12 @@ interface DescriptionItem {
 }
 
 interface ProductDescriptionProps {
-  items?: DescriptionItem[];
+  items: DescriptionItem[]; // Agora obrigatório - cada produto define seus próprios items
   className?: string;
 }
 
-const defaultMugDescription: DescriptionItem[] = [
-  { 
-    text: 'Caneca de <span class="font-bold text-ghibli-moss">cerâmica premium</span> resistente',
-    color: 'moss'
-  },
-  { 
-    text: 'Impressão duradoura e <span class="font-bold">resistente à lavagem</span>',
-    color: 'moss'
-  },
-  { 
-    text: '<span class="font-bold text-ghibli-wood">Perfeita para todas as ocasiões</span>',
-    color: 'wood'
-  }
-];
-
 export const ProductDescription: React.FC<ProductDescriptionProps> = ({
-  items = defaultMugDescription,
+  items,
   className = ''
 }) => {
   return (

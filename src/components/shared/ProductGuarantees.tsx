@@ -14,7 +14,7 @@ interface ProductGuaranteesProps {
 const defaultGuarantees: GuaranteeItem[] = [
   {
     icon: <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
-    title: 'Cerâmica Premium'
+    title: 'Material Premium'
   },
   {
     icon: <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
