@@ -382,6 +382,19 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 <ProductDescription items={config.descriptionItems(product)} />
               </div>
 
+              {/* Seletor de Variantes Mobile */}
+              <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
+                <ProductVariantSelector
+                  product={product}
+                  selectedVariantId={selectedPrintifyVariantId}
+                  onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                  label={config.variantSelectorConfig?.label || "Variante"}
+                  emoji={config.variantSelectorConfig?.emoji || "🎯"}
+                  customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                  customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                />
+              </div>
+
               <ProductGuarantees guarantees={config.guaranteeItems()} />
             </motion.div>
           </div>
@@ -413,8 +426,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
-                className="flex justify-center"
+                className="flex flex-col items-center gap-4"
               >
+                {/* Botão Trocar Arte */}
                 <Button
                   onClick={handleOpenGallery}
                   disabled={!userInfo}
@@ -426,16 +440,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 >
                   {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
                 </Button>
-              </motion.div>
 
-              {/* Controlos de Posição Desktop */}
-              {userInfo && selectedImageUrl && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.4 }}
-                  className="mt-4 flex justify-center"
-                >
+                {/* Controlos de Posição lado a lado com Trocar Arte */}
+                {userInfo && selectedImageUrl && (
                   <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-ghibli-sand/30">
                     {(config.coordinateConfig?.positionType === 'vertical' ? [
                       { key: 'top' as const, title: 'Cima', icon: 'M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z' },
@@ -470,8 +477,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                       </Button>
                     ))}
                   </div>
-                </motion.div>
-              )}
+                )}
+              </motion.div>
 
               {!userInfo && (
                 <motion.div
@@ -605,48 +612,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     onOpenGallery={handleOpenGallery}
                   />
 
-                  {/* Controlos de Posição */}
-                  {userInfo && selectedImageUrl && (
-                    <div className="bg-ghibli-cream/30 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-ghibli-earth">Posição da Arte:</span>
-                      </div>
-                      <div className="flex items-center gap-1 justify-center">
-                        {(config.coordinateConfig?.positionType === 'vertical' ? [
-                          { key: 'top' as const, title: 'Cima', icon: 'M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z' },
-                          { key: 'center' as const, title: 'Centro', icon: 'circle' },
-                          { key: 'bottom' as const, title: 'Baixo', icon: 'M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z' }
-                        ] : [
-                          { key: 'left' as const, title: 'Esquerda', icon: 'M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z' },
-                          { key: 'center' as const, title: 'Centro', icon: 'circle' },
-                          { key: 'right' as const, title: 'Direita', icon: 'M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z' }
-                        ]).map(({ key, title, icon }) => (
-                          <Button 
-                            key={key}
-                            onClick={() => handleAdjustment('position', key)} 
-                            variant="ghost"
-                            size="sm"
-                            className={`h-10 w-10 rounded-full transition-all duration-200 ${imagePosition === key 
-                              ? 'bg-ghibli-moss text-white shadow-md scale-110' 
-                              : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
-                            }`}
-                            disabled={isGeneratingMockup}
-                            title={title}
-                          >
-                            {icon === 'circle' ? (
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="3"/>
-                              </svg>
-                            ) : (
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d={icon}/>
-                              </svg>
-                            )}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+
 
                   {/* Descrição */}
                   <ProductDescription items={config.descriptionItems(product)} />

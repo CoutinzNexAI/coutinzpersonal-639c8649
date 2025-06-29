@@ -109,18 +109,13 @@ export const mugConfig = {
     // PASSO 4: DEFINIR A POSIÇÃO FINAL COM BASE NO BOTÃO
     const finalX = 0.5; // Para canecas, X fica sempre centrado
     let finalY = 0.5;
-    
-    // Movimento de 35% da altura total da área de impressão
-    const movementPercent = 0.35;
+    const shiftAmount = 0.35; // Reduzido para um ajuste mais suave
 
     if (position === 'top') {
-      finalY = 0.5 - movementPercent;
+      finalY = 0.5 - (maxOffsetY * shiftAmount);
     } else if (position === 'bottom') {
-      finalY = 0.5 + movementPercent;
+      finalY = 0.5 + (maxOffsetY * shiftAmount);
     }
-    
-    // Garantir que não sai dos limites
-    finalY = Math.max(0, Math.min(1, finalY));
     
     return {
       x: finalX,
