@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight, Minus, Plus, Upload, ArrowRight } from 'lucide-react';
+import { Sparkles, Minus, Plus, ChevronRight, Shield, Truck, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,10 +16,19 @@ import ProductCanvas from '@/components/printify/ProductCanvas';
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
-import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
+import { ImageAdjustments } from '@/types/product';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
-import { validatePurchase } from '@/utils/productValidation';
 import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
+
+// ✅ COMPONENTES E HOOKS GENÉRICOS
+import ProductArtStatus from '@/components/shared/ProductArtStatus';
+import ProductDescription from '@/components/shared/ProductDescription';
+import ProductVariantSelector from '@/components/shared/ProductVariantSelector';
+import ProductAddToCartButton from '@/components/shared/ProductAddToCartButton';
+import ProductLoadingState from '@/components/shared/ProductLoadingState';
+import { useProductPricing } from '@/hooks/useProductPricing';
+import { useProductValidation } from '@/hooks/useProductValidation';
+import { useProductCoordinates } from '@/hooks/useProductCoordinates';
 
 interface PhoneCaseDetailPageProps {
   product: PrintifyProductMapping;
@@ -63,38 +72,15 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   // ✅ QUANTIDADE: Estado para a quantidade de capas
   const [quantity, setQuantity] = useState(1);
 
-  // Get correct mockup image for product (igual às canecas)
-  const getMockupImage = () => {
-    return '/mockupproduto/telemovel.png'; // Imagem padrão das capas
-  };
+  // ✅ HOOKS GENÉRICOS: Substituem as funções duplicadas
+  const { discountedPrice, totalPrice, discount, savings, calculateDiscount } = useProductPricing({
+    basePrice: 25.00, // Preço base das capas
+    quantity: quantity
+  });
 
-  // Calculate discount and prices
-  const calculateDiscount = (qty: number) => {
-    if (qty >= 3) return 15;
-    if (qty >= 2) return 10;
-    return 0;
-  };
+  const { validatePurchase, validateAndShowError } = useProductValidation();
 
-  // ✅ PREÇO BASE PARA CAPAS: €25.00
-  const getBasePrice = () => {
-    return 25.00; // Capa sempre €25.00
-  };
-
-  const basePrice = getBasePrice();
-  const discount = calculateDiscount(quantity);
-  const discountedPrice = basePrice * (1 - discount / 100);
-  const totalPrice = discountedPrice * quantity;
-  const savings = (basePrice * quantity) - totalPrice;
-
-  // Função utilitária: Validação consolidada
-  const validatePurchase = () => {
-    if (!selectedImageUrl) return 'Escolha uma arte primeiro para personalizar a sua capa!';
-    if (!selectedImageId) return 'ID da transformação não encontrado. Selecione a imagem novamente.';
-    if (!userInfo) return 'Faça login para adicionar ao carrinho';
-    if (selectedPrintifyVariantId === null) return 'Por favor, selecione o modelo do telemóvel.';
-    if (!printifyProductId || !printifyImageId) return 'Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.';
-    return null;
-  };
+  const { calculatePrintifyCoords } = useProductCoordinates();
 
   // Setup inicial do produto
   useEffect(() => {
@@ -197,69 +183,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     }
   }, [selectedImageUrl]);
 
-  // ✅ FUNÇÃO PARA CALCULAR COORDENADAS HORIZONTAIS (CAPAS)
-  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
-    console.log('🧮 [CAPA] Calculando coordenadas:', { position, variantId, imageDimensions });
-
-    if (!product || !product.variants) {
-      throw new Error('Produto ou variantes não encontrados');
-    }
-
-    // Encontrar a variante selecionada
-    const selectedVariant = product.variants.find(v => v.id === variantId);
-    if (!selectedVariant) {
-      throw new Error(`Variante ${variantId} não encontrada`);
-    }
-
-    const { placeholderWidth, placeholderHeight } = selectedVariant;
-    const { width: userImageWidth, height: userImageHeight } = imageDimensions;
-
-    console.log('📐 [CAPA] Dimensões:', { 
-      placeholder: { placeholderWidth, placeholderHeight }, 
-      userImage: { userImageWidth, userImageHeight } 
-    });
-
-    // PASSO A: Calcular escala "FILL" para cobertura completa (Math.max)
-    const scaleToCover = Math.max(
-      placeholderWidth / userImageWidth,
-      placeholderHeight / userImageHeight
-    );
-
-    // PASSO B: Traduzir para escala Printify
-    const finalImageWidth = userImageWidth * scaleToCover;
-    const printifyScale = finalImageWidth / placeholderWidth;
-
-    console.log('🔍 [CAPA] Escala calculada:', { scaleToCover, finalImageWidth, printifyScale });
-
-    // PASSO C: Calcular movimento horizontal
-    const scaledImageWidth = userImageWidth * scaleToCover;
-    const overflowX = Math.max(0, scaledImageWidth - placeholderWidth);
-    const maxOffsetX = (overflowX / 2) / placeholderWidth;
-
-    let printifyX = 0.5; // Centro padrão
-
-    if (overflowX > 0) {
-      if (position === 'left') {
-        const movementX = -maxOffsetX * 0.7; // 70% do movimento máximo
-        printifyX = 0.5 + movementX;
-      } else if (position === 'right') {
-        const movementX = maxOffsetX * 0.7; // 70% do movimento máximo
-        printifyX = 0.5 + movementX;
-      }
-      // 'center' fica com printifyX = 0.5
-    }
-
-    const finalAdjustments = {
-      x: printifyX,
-      y: 0.5,
-      scale: printifyScale,
-      rotation: 0
-    };
-
-    console.log('✅ [CAPA] Coordenadas finais:', finalAdjustments);
-
-    return finalAdjustments;
-  };
+  // ✅ COORDENADAS: Agora usamos o hook genérico
 
   // ✅ CONTROLADOR DE TRÁFEGO MESTRE: Único useEffect responsável por gerar mockups
   // Só executa quando TODOS os dados necessários estão prontos (evita a "corrida")
@@ -354,7 +278,14 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
     setIsGeneratingMockup(true);
 
     // ✅ CALCULAR AJUSTES AUTOMATICAMENTE baseados na posição e variante
-    const adjustments = calculatePrintifyCoords(currentPosition, currentVariantId, userImageDimensions);
+    const adjustments = calculatePrintifyCoords({
+      position: currentPosition,
+      variantId: currentVariantId,
+      imageDimensions: userImageDimensions,
+      product: product!,
+      positionType: 'horizontal', // Capas usam movimento horizontal (esquerda/direita)
+      shiftAmount: 0.35 // 35% como no poster
+    });
     
     // ✅ APLICAR AJUSTES IMEDIATAMENTE para evitar bordas brancas
     setImageAdjustments(adjustments);
@@ -397,7 +328,16 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
 
   const handleAddToCart = async () => {
     // Validar com a função consolidada
-    const validationError = validatePurchase();
+    const validationError = validatePurchase({
+      selectedImageUrl,
+      selectedImageId,
+      userInfo,
+      selectedPrintifyVariantId,
+      printifyProductId,
+      printifyImageId,
+      productName: 'Capa',
+      customValidationMessage: 'Escolha uma arte primeiro para personalizar a sua capa!'
+    });
     if (validationError) {
       toast.error(validationError);
       return;
@@ -518,8 +458,8 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
   };
 
   // Condições auxiliares para botão (igual às canecas)
-  const isProcessingMockup = (!printifyProductId || !printifyImageId) && selectedImageUrl;
-  const canPurchase = selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo;
+  const isProcessingMockup = Boolean((!printifyProductId || !printifyImageId) && selectedImageUrl);
+  const canPurchase = Boolean(selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo);
 
   if (!product) {
     return (
@@ -557,7 +497,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                 📱 Capa Personalizada
               </h1>
               <div className="text-4xl sm:text-5xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
-                €{basePrice.toFixed(2)}
+                €25.00
               </div>
             </motion.div>
 
@@ -701,7 +641,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
                       {discount > 0 && (
-                        <span className="text-sm text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
+                        <span className="text-sm text-gray-500 line-through">€25.00</span>
                       )}
                     </div>
                     {discount > 0 && (
@@ -1186,7 +1126,7 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                       </div>
                         {discount > 0 && (
                           <div className="flex items-center justify-center gap-2 text-xs">
-                            <span className="line-through text-ghibli-earth/50">€{basePrice.toFixed(2)}</span>
+                            <span className="line-through text-ghibli-earth/50">€25.00</span>
                             <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">
                               -{discount}%
                             </span>
@@ -1239,24 +1179,11 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     )}
                   </div>
 
-                  {/* 🎨 2. STATUS ARTE MOBILE-OPTIMIZED */}
-                  {selectedImageUrl && (
-                    <div className="flex items-center gap-2 sm:gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                      <img src={selectedImageUrl} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover border border-green-300" alt="Arte selecionada" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-green-800 text-sm">✅ Arte Aplicada</p>
-                        <p className="text-xs text-green-600 truncate">Transformação AI pronta</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={handleOpenGallery}
-                        variant="outline"
-                        className="text-xs px-3 py-1 border-green-300 text-green-700 hover:bg-green-100 shrink-0"
-                      >
-                        Trocar
-                      </Button>
-                    </div>
-                  )}
+                  {/* 🎨 2. STATUS ARTE - COMPONENTE GENÉRICO */}
+                  <ProductArtStatus
+                    selectedImageUrl={selectedImageUrl}
+                    onOpenGallery={handleOpenGallery}
+                  />
 
                   {/* 🚀 3. INCENTIVO DE ENTREGA MOBILE-OPTIMIZED */}
                   <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gradient-to-r from-emerald-50 via-green-50 to-emerald-50 rounded-xl border-l-4 border-emerald-400">
@@ -1270,100 +1197,35 @@ const PhoneCaseDetailPage: React.FC<PhoneCaseDetailPageProps> = ({ product: init
                     <div className="text-xl sm:text-2xl shrink-0">🎁</div>
                   </div>
 
-                  {/* 📝 4. DESCRIÇÃO MOBILE-OPTIMIZED */}
-                  <div className="px-1">
-                    <p className="text-sm leading-relaxed font-medium text-ghibli-earth/80">
-                      Proteja o seu telemóvel com <span className="font-bold text-ghibli-moss">estilo único</span>! 
-                      Proteção premium com as suas criações AI em <span className="font-bold">alta qualidade</span>.
-                    </p>
-                  </div>
+                  {/* 📝 4. DESCRIÇÃO - COMPONENTE GENÉRICO */}
+                  <ProductDescription
+                    items={[
+                      { text: "📱 <strong>Proteção premium</strong> para o seu telemóvel", color: 'moss' },
+                      { text: "🎨 <strong>Impressão HD</strong> com qualidade superior", color: 'moss' },
+                      { text: "💪 <strong>Material durável</strong> e resistente", color: 'moss' },
+                      { text: "✨ <strong>Compatibilidade perfeita</strong> com o seu modelo", color: 'moss' }
+                    ]}
+                  />
 
-                  {/* 🎯 5. SELETOR DE MODELO MOBILE-FIRST */}
-                  <div className="relative">
-                    <Select
-                      onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
-                      value={selectedPrintifyVariantId?.toString() || ''}
-                    >
-                      <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
-                          <SelectValue placeholder="Escolha o seu modelo">
-                            <span className="truncate">
-                              {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o seu modelo'}
-                            </span>
-                        </SelectValue>
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
-                        {product.variants?.map((variant) => (
-                          <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
-                            {variant.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    
-                    {/* Label mobile-optimized */}
-                    <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
-                      📱 Modelo do Telemóvel
-                    </label>
-                  </div>
+                  {/* 🎯 5. SELETOR DE MODELO - COMPONENTE GENÉRICO */}
+                  <ProductVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantChange={setSelectedPrintifyVariantId}
+                    label="Modelo do Telemóvel"
+                    emoji="📱"
+                  />
 
-                  {/* 🛒 7. BOTÃO PRINCIPAL MOBILE-FIRST (IGUAL ÀS CANECAS) */}
-                  <div className="pt-3">
-                    {isProcessingMockup ? (
-                      <div className="w-full py-5 sm:py-6 bg-gradient-to-r from-ghibli-moss/50 to-ghibli-moss-light/50 rounded-xl lg:rounded-2xl text-center">
-                        <div className="flex items-center justify-center space-x-2">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                            <div className="w-2 h-2 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                          </div>
-                          <span className="text-ghibli-moss font-medium text-sm sm:text-base">Criando a sua capa mágica...</span>
-                        </div>
-                        <div className="mt-2 text-xs text-ghibli-earth/70">✨ Aplicando transformação AI</div>
-                      </div>
-                    ) : (
-                    <Button
-                      onClick={handleAddToCart}
-                      disabled={!canPurchase || loading}
-                        className={`group relative w-full py-5 sm:py-6 text-base sm:text-lg font-bold rounded-xl lg:rounded-2xl shadow-lg sm:shadow-xl hover:shadow-xl sm:hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0 ${
-                        canPurchase
-                            ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white' 
-                          : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
-                      }`}
-                      >
-                        {/* Shimmer effect */}
-                        {canPurchase && (
-                          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
-                        )}
-                        
-                        <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
-                      {loading ? (
-                        <>
-                              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              <span>A adicionar...</span>
-                        </>
-                      ) : !userInfo ? (
-                            <span className="text-center">Faça Login para Continuar</span>
-                      ) : !selectedImageUrl ? (
-                            <span className="text-center">Escolha uma Arte Primeiro</span>
-                      ) : !selectedPrintifyVariantId ? (
-                            <span className="text-center">Selecione o Modelo</span>
-                      ) : (
-                        <>
-                              <span className="text-lg sm:text-xl">📱</span>
-                              <span className="hidden sm:inline">Adicionar ao Carrinho</span>
-                              <span className="sm:hidden">Adicionar</span>
-                              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 flex items-center justify-center">
-                                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                              </div>
-                        </>
-                      )}
-                        </span>
-                          </Button>
-                    )}
-                  </div>
+                  {/* 🛒 7. BOTÃO ADICIONAR AO CARRINHO - COMPONENTE GENÉRICO */}
+                  <ProductAddToCartButton
+                    onAddToCart={handleAddToCart}
+                    loading={loading}
+                    isProcessingMockup={isProcessingMockup}
+                    canPurchase={canPurchase}
+                    selectedImageUrl={selectedImageUrl}
+                    selectedPrintifyVariantId={selectedPrintifyVariantId}
+                    userInfo={userInfo}
+                  />
 
                   {/* 🛡️ 8. GRID DE GARANTIAS MOBILE-OPTIMIZED */}
                   <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-3 sm:pt-4">
