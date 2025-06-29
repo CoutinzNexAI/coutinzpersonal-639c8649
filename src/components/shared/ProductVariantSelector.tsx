@@ -11,6 +11,8 @@ interface ProductVariantSelectorProps {
   label?: string;
   emoji?: string;
   className?: string;
+  customSingleVariantText?: string;
+  customSingleVariantSubtext?: string;
 }
 
 export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
@@ -19,7 +21,9 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
   onVariantChange,
   label = 'Tamanho do Produto',
   emoji = '📏',
-  className = ''
+  className = '',
+  customSingleVariantText,
+  customSingleVariantSubtext
 }) => {
   // Se há apenas 1 variante, mostra apenas informação (sem dropdown)
   if (!product.variants || product.variants.length <= 1) {
@@ -36,11 +40,11 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
           <div className="flex items-center justify-center gap-3">
             <div className="w-3 h-3 rounded-full bg-ghibli-moss"></div>
             <span className="text-ghibli-earth font-semibold">
-              {emoji} {singleVariant?.title || 'Tamanho único'}
+              {emoji} {customSingleVariantText || singleVariant?.title || 'Tamanho único'}
             </span>
           </div>
           <p className="text-center text-xs text-ghibli-earth/70 mt-1">
-            Produto com tamanho único
+            {customSingleVariantSubtext || 'Produto com tamanho único'}
           </p>
         </div>
       </motion.div>

@@ -554,12 +554,9 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               transition={{ duration: 0.5 }}
               className="text-center mb-6 px-4"
             >
-              <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight mb-4 tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight tracking-tight">
                 {product.id === 'heart_mug' ? 'Caneca Coração ❤️' : 'Caneca Personalizada'}
               </h1>
-              <div className="text-4xl sm:text-5xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
-                €{currentPrice.toFixed(2)}
-              </div>
             </motion.div>
 
             {/* Mockup Mobile */}
@@ -659,16 +656,7 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
               transition={{ duration: 0.6, delay: 0.6 }}
               className="px-4 space-y-4"
             >
-              {/* Informações do Produto Mobile */}
-              <ProductMobileInfo
-                selectedImageUrl={selectedImageUrl}
-                product={product}
-                selectedVariantId={selectedPrintifyVariantId}
-                onOpenGallery={handleOpenGallery}
-                onVariantChange={(variantId) => handleAdjustment('size', variantId)}
-                variantLabel="Tamanho da Caneca"
-                variantEmoji="☕"
-              />
+
 
               {/* Preço e Desconto Mobile */}
               <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
@@ -924,6 +912,8 @@ const MugDetailPage: React.FC<MugDetailPageProps> = ({ product: initialProduct }
                     onVariantChange={(variantId) => handleAdjustment('size', variantId)}
                     label="Tamanho da Caneca"
                     emoji="☕"
+                    customSingleVariantText={product.id === 'heart_mug' ? 'Tamanho 330ml' : undefined}
+                    customSingleVariantSubtext={product.id === 'heart_mug' ? 'Formato especial de coração' : undefined}
                   />
 
                   {/* Botão Principal */}

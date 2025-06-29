@@ -9,4 +9,9 @@ export { useAccountSettingsModal } from './useAccountSettingsModal';
 export type { AccountSettingsModalContextType } from './accountSettingsModalTypes';
 
 // Orders Modal
-export { OrdersModalProvider, useOrdersModal } from './ordersModalContext'; 
+export { OrdersModalProvider, useOrdersModal } from './ordersModalContext';
+
+// Novos hooks genéricos para produtos  
+export * from './useProductPricing';
+export * from './useProductValidation';
+export * from './useProductCoordinates'; 
