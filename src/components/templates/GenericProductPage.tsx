@@ -16,6 +16,7 @@ import ProductCanvas from '@/components/printify/ProductCanvas';
 import { useAuth } from '@/hooks/useAuth';
 import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
+import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 
 // Componentes compartilhados
 import ProductHeader from '@/components/shared/ProductHeader';
@@ -30,8 +31,19 @@ import ProductMobileControls from '@/components/shared/ProductMobileControls';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
 
 interface GenericProductPageProps {
-  product: any;
-  config: any;
+  product: PrintifyProductMapping;
+  config: {
+    productCategory: string;
+    getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => number;
+    discountTiers: Array<{ min: number; discount: number; label: string; emoji: string; }>;
+    descriptionItems: (product: PrintifyProductMapping) => Array<{ text: string; color?: 'moss' | 'wood'; emoji?: string; }>;
+    guaranteeItems: () => Array<{ icon: string; title: string; }>;
+    coordinateConfig: { positionType: string; positions: readonly string[]; };
+    calculatePrintifyCoords: (position: string, variantId: number, imageDimensions: { width: number; height: number }, product: PrintifyProductMapping) => ImageAdjustments;
+    validatePurchase: (selectedImageUrl: string, selectedImageId: string | null, userInfo: unknown, selectedPrintifyVariantId: number | null, printifyProductId: string, printifyImageId: string) => string | null;
+    variantSelectorConfig: { label: string; emoji: string; getCustomSingleVariantText?: (product: PrintifyProductMapping) => string | undefined; getCustomSingleVariantSubtext?: (product: PrintifyProductMapping) => string | undefined; };
+    VariantSelectorComponent: string;
+  };
 }
 
 const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config }) => {
@@ -54,13 +66,12 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const [imagePosition, setImagePosition] = useState<'top' | 'center' | 'bottom'>('center');
   const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
-  const [activeMockupIndex, setActiveMockupIndex] = useState<number>(0);
-  const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
+  const [isGeneratingMockup] = useState<boolean>(false);
   const [quantity, setQuantity] = useState(1);
 
   // Cálculos de preço usando a configuração
   const calculateDiscount = (qty: number) => {
-    const tier = config.discountTiers?.find((tier: any) => qty >= tier.min);
+    const tier = config.discountTiers?.find((tier) => qty >= tier.min);
     return tier ? tier.discount : 0;
   };
 
@@ -90,7 +101,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   // Calcular imageAdjustments usando a configuração
   useEffect(() => {
     if (selectedImageUrl && product && selectedPrintifyVariantId) {
-      const selectedVariant = product.variants?.find((v: any) => v.id === selectedPrintifyVariantId);
+      const selectedVariant = product.variants?.find((v) => v.id === selectedPrintifyVariantId);
       if (!selectedVariant) return;
 
       const { placeholderWidth, placeholderHeight } = selectedVariant;
@@ -142,7 +153,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     
     if (data.previewUrls.length > 0 && currentMockupUrls.length === 0) {
       setCurrentMockupUrls(data.previewUrls);
-      setActiveMockupIndex(0);
     }
   }, [currentMockupUrls]);
 
@@ -163,7 +173,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
     setLoading(true);
     try {
-      const variant = product.variants?.find((v: any) => v.id === selectedPrintifyVariantId);
+      const variant = product.variants?.find((v) => v.id === selectedPrintifyVariantId);
 
       CartService.addToCart({
         productId: product.id,
@@ -301,7 +311,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 userInfo={userInfo}
                 onOpenGallery={handleOpenGallery}
                 onAdjustPosition={(position) => handleAdjustment('position', position)}
-                positionType={config.coordinateConfig?.positionType || 'vertical'}
+                positionType={(config.coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
               />
               
               {!userInfo && (
@@ -509,9 +519,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                         </div>
 
                         {/* Destaques de desconto */}
-                        {config.discountTiers && (
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            {config.discountTiers.map((tier: any, index: number) => (
+                                                 {config.discountTiers && (
+                           <div className="grid grid-cols-2 gap-2 text-xs">
+                             {config.discountTiers.map((tier, index: number) => (
                               <div key={index} className={`text-center p-2 rounded-md transition-all ${
                                 quantity >= tier.min 
                                   ? 'bg-green-100 border border-green-300 text-green-800' 

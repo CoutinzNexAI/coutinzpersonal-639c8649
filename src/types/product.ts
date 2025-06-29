@@ -1,3 +1,5 @@
+import React from 'react';
+
 // Tipos compartilhados para produtos
 export interface ImageAdjustments {
   x: number;          // Posição X da imagem dentro da área de impressão (0-1, percentagem)
@@ -12,9 +14,139 @@ export interface ImageAdjustments {
   };
 }
 
-// Props comuns para páginas de produtos
+// Estrutura de uma variante de produto
+export interface ProductVariant {
+  id: number;
+  title: string;
+  priceAdjustment?: number;
+  placeholderWidth: number;
+  placeholderHeight: number;
+  enabled?: boolean;
+}
+
+// Estrutura completa de um produto Printify
+export interface PrintifyProductMapping {
+  id: string;
+  name: string;
+  category: string;
+  basePrice?: number;
+  price?: number;
+  variants?: ProductVariant[];
+  printAreasConfig?: Array<{
+    defaultAngle?: number;
+    [key: string]: unknown;
+  }>;
+  defaultDesign?: {
+    scale: number;
+    x: number;
+    y: number;
+    angle: number;
+    print_on_side?: string;
+  };
+  [key: string]: unknown;
+}
+
+// Props para componentes seletores de variantes
+export interface VariantSelectorProps {
+  product: PrintifyProductMapping;
+  selectedVariantId: number | null;
+  onVariantChange: (variantId: number) => void;
+}
+
+// Estrutura de um item de descrição
+export interface DescriptionItem {
+  text: string;
+  color?: string;
+  emoji?: string;
+}
+
+// Estrutura de um item de garantia
+export interface GuaranteeItem {
+  icon: string;
+  title: string;
+}
+
+// Estrutura de um tier de desconto
+export interface DiscountTier {
+  min: number;
+  discount: number;
+  label: string;
+  emoji?: string;
+}
+
+// Configuração de coordenadas/posicionamento
+export interface CoordinateConfig {
+  positionType: 'vertical' | 'horizontal';
+  positions: readonly ['top', 'center', 'bottom'] | readonly ['left', 'center', 'right'];
+}
+
+// Configuração do seletor de variantes
+export interface VariantSelectorConfig {
+  label: string;
+  emoji: string;
+  getCustomSingleVariantText?: (product: PrintifyProductMapping) => string | undefined;
+  getCustomSingleVariantSubtext?: (product: PrintifyProductMapping) => string | undefined;
+}
+
+// Dimensões de imagem
+export interface ImageDimensions {
+  width: number;
+  height: number;
+}
+
+// Interface principal de configuração de produto
+export interface ProductConfig {
+  productCategory: string;
+  
+  // Função para calcular preço base
+  getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => number;
+  
+  // Regras de desconto
+  discountTiers: DiscountTier[];
+  
+  // Itens de descrição (função que recebe produto e retorna array)
+  descriptionItems: (product: PrintifyProductMapping) => DescriptionItem[];
+  
+  // Itens de garantias (função que retorna array)
+  guaranteeItems: () => GuaranteeItem[];
+  
+  // Configuração de coordenadas/posicionamento
+  coordinateConfig: CoordinateConfig;
+  
+  // Função para calcular coordenadas Printify
+  calculatePrintifyCoords: (
+    position: 'top' | 'center' | 'bottom',
+    variantId: number,
+    imageDimensions: ImageDimensions,
+    product: PrintifyProductMapping
+  ) => ImageAdjustments;
+  
+  // Função de validação de compra
+  validatePurchase: (
+    selectedImageUrl: string,
+    selectedImageId: string | null,
+    userInfo: unknown,
+    selectedPrintifyVariantId: number | null,
+    printifyProductId: string,
+    printifyImageId: string
+  ) => string | null;
+  
+  // Configuração do seletor de variantes
+  variantSelectorConfig: VariantSelectorConfig;
+  
+  // Componente de seleção de variantes (referência por string para evitar imports circulares)
+  VariantSelectorComponent: string;
+}
+
+// Props para o GenericProductPage
+export interface GenericProductPageProps {
+  product: PrintifyProductMapping;
+  config: ProductConfig;
+}
+
+// Props comuns para páginas de produtos (mantido para compatibilidade)
 export interface BaseProductPageProps {
-  product: Record<string, unknown>; // Tipo genérico mais seguro
+  product: PrintifyProductMapping;
 }
 
 // Configuração de animações padronizada

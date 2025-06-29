@@ -1,14 +1,15 @@
-import { Shield, Sparkles, Truck, Award } from 'lucide-react';
+import { ImageAdjustments } from '@/types/product';
+import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 
 // Ficheiro de configuração para produtos do tipo Caneca
-// Define configurações específicas, variantes e comportamentos para canecas 
+// Define configurações específicas, variantes e comportamentos para canecas
 
 // Configuração específica para produtos do tipo Caneca
 export const mugConfig = {
   productCategory: 'mug',
   
   // Função para calcular preço base baseado na variante
-  getBasePrice: (product: any, selectedPrintifyVariantId: number | null) => {
+  getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => {
     if (product?.id === 'heart_mug') {
       return 30.00; // Heart mug sempre €30.00
     }
@@ -28,18 +29,18 @@ export const mugConfig = {
   ],
 
   // Itens de descrição do produto
-  descriptionItems: (product: any) => [
+  descriptionItems: (product: PrintifyProductMapping) => [
     { 
       text: `Caneca de <span class="font-bold text-ghibli-moss">cerâmica premium</span> ${product.id === 'heart_mug' ? 'em formato de coração' : 'resistente'}`,
-      color: 'moss'
+      color: 'moss' as const
     },
     { 
       text: 'Impressão duradoura e <span class="font-bold">resistente à lavagem</span>',
-      color: 'moss'
+      color: 'moss' as const
     },
     { 
       text: `<span class="font-bold text-ghibli-wood">${product.id === 'heart_mug' ? 'Perfeita para oferecer a quem mais gosta' : 'Perfeita para todas as ocasiões'}</span>`,
-      color: 'wood',
+      color: 'wood' as const,
       emoji: product.id === 'heart_mug' ? '❤️' : undefined
     }
   ],
@@ -71,12 +72,12 @@ export const mugConfig = {
   },
 
   // Configuração específica para cálculo de coordenadas das canecas
-  calculatePrintifyCoords: (position: 'top' | 'center' | 'bottom', variantId: number, imageDimensions: { width: number; height: number }, product: any): any => {
+  calculatePrintifyCoords: (position: 'top' | 'center' | 'bottom', variantId: number, imageDimensions: { width: number; height: number }, product: PrintifyProductMapping): ImageAdjustments => {
     if (!product || !imageDimensions) {
       return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
     }
     
-    const selectedVariant = product.variants?.find((v: any) => v.id === variantId);
+    const selectedVariant = product.variants?.find((v) => v.id === variantId);
     if (!selectedVariant) {
       return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
     }
@@ -124,7 +125,7 @@ export const mugConfig = {
   },
 
   // Função de validação específica para canecas
-  validatePurchase: (selectedImageUrl: string, selectedImageId: string | null, userInfo: any, selectedPrintifyVariantId: number | null, printifyProductId: string, printifyImageId: string) => {
+  validatePurchase: (selectedImageUrl: string, selectedImageId: string | null, userInfo: unknown, selectedPrintifyVariantId: number | null, printifyProductId: string, printifyImageId: string) => {
     if (!selectedImageUrl) return 'Escolha uma arte primeiro para personalizar a sua caneca!';
     if (!selectedImageId) return 'ID da transformação não encontrado. Selecione a imagem novamente.';
     if (!userInfo) return 'Faça login para adicionar ao carrinho';
@@ -137,8 +138,8 @@ export const mugConfig = {
   variantSelectorConfig: {
     label: "Tamanho da Caneca",
     emoji: "☕",
-    getCustomSingleVariantText: (product: any) => product.id === 'heart_mug' ? 'Tamanho 330ml' : undefined,
-    getCustomSingleVariantSubtext: (product: any) => product.id === 'heart_mug' ? 'Formato especial de coração' : undefined
+    getCustomSingleVariantText: (product: PrintifyProductMapping) => product.id === 'heart_mug' ? 'Tamanho 330ml' : undefined,
+    getCustomSingleVariantSubtext: (product: PrintifyProductMapping) => product.id === 'heart_mug' ? 'Formato especial de coração' : undefined
   },
 
   // Componente de seleção de variantes (será importado dinamicamente)

@@ -1,8 +1,9 @@
 import React from 'react';
 import ProductVariantSelector from '@/components/shared/ProductVariantSelector';
+import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 
 interface MugVariantSelectorProps {
-  product: any;
+  product: PrintifyProductMapping;
   selectedVariantId: number | null;
   onVariantChange: (variantId: number) => void;
 }
