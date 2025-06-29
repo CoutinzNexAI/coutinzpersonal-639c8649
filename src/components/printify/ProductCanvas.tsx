@@ -75,6 +75,9 @@ export default function ProductCanvas({
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
+  
+  // ✅ NOVO LOG #1: Adiciona esta linha logo após declarar o state
+  console.log(`🔵 [ProductCanvas] COMPONENTE A RENDERIZAR - isLoadingMockups: ${isLoadingMockups}, hasGenerated: ${hasGenerated}`);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
 
   // ✅ OTIMIZAÇÃO: Estado consolidado do Printify
@@ -276,6 +279,9 @@ export default function ProductCanvas({
   // PASSO 2: Este é o NOVO useEffect que vai controlar TUDO.
   // Ele observa as mudanças e usa um "debounce" para não disparar a API a cada milissegundo.
   useEffect(() => {
+    // ✅ NOVO LOG #2: Adiciona esta linha dentro do useEffect
+    console.log(`🟢 [ProductCanvas] useEffect de GERAÇÃO EXECUTADO`);
+    
     // Verifica se temos os dados mínimos necessários para sequer considerar uma chamada
     let canGenerate = false;
     if (selectedProduct.id === 'custom_youth_hoodie') {
@@ -307,10 +313,11 @@ export default function ProductCanvas({
       generateMockupApiCall();
     }, 800); // 800ms de espera
 
-    // Função de limpeza: se o useEffect for executado novamente (porque outra prop mudou),
-    // cancela o temporizador anterior. Isto garante que a API só é chamada uma vez, no final de todas as mudanças.
+    // ✅ NOVO LOG #3: Esta é a função de limpeza do useEffect.
+    // Ela SÓ é executada quando o componente está prestes a ser desmontado
+    // ou antes de o efeito ser re-executado.
     return () => {
-      console.log('🧹 [DebounceEffect] Limpeza. A cancelar temporizador anterior.');
+      console.log(`🔴 [ProductCanvas] COMPONENTE A DESMONTAR (CLEANUP)`);
       clearTimeout(handler);
     };
 
