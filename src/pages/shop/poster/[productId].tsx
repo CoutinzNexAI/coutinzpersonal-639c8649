@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Sparkles, Truck, Award, ChevronDown, RotateCw, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react';
+import { ChevronRight, Sparkles, Minus, Plus, Shield, Truck, Award } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +13,26 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
+
+// 🔥 COMPONENTES GENÉRICOS IMPORTADOS
+import ProductHeader from '@/components/shared/ProductHeader';
+import ProductPositionControls from '@/components/shared/ProductPositionControls';
+import ProductQuantityPricing from '@/components/shared/ProductQuantityPricing';
+import ProductArtStatus from '@/components/shared/ProductArtStatus';
+import ProductDescription from '@/components/shared/ProductDescription';
+import ProductGuarantees from '@/components/shared/ProductGuarantees';
+import ProductVariantSelector from '@/components/shared/ProductVariantSelector';
+import ProductAddToCartButton from '@/components/shared/ProductAddToCartButton';
+import ProductMobileControls from '@/components/shared/ProductMobileControls';
+import ProductMobileInfo from '@/components/shared/ProductMobileInfo';
+import ProductLoadingState from '@/components/shared/ProductLoadingState';
+
+// 🔥 HOOKS GENÉRICOS IMPORTADOS
+import { 
+  useProductPricing, 
+  useProductValidation, 
+  useProductCoordinates 
+} from '@/hooks';
 
 import { getPrintifyProduct, getPrintifyProductsByCategory, PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { useAuth } from '@/hooks/useAuth';
@@ -63,34 +83,29 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   // ✅ QUANTIDADE: Estado para a quantidade de posters
   const [quantity, setQuantity] = useState(1);
 
-  // Calculate discount and prices
-  const calculateDiscount = (qty: number) => {
-    if (qty >= 3) return 15;
-    if (qty >= 2) return 10;
-    return 0;
-  };
-
   // ✅ PREÇOS PARA POSTERS: baseado na variante selecionada
   const getBasePrice = () => {
-  const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
+    const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
     return selectedVariant?.priceAdjustment || 20; // Preço por poster baseado na variante
   };
 
-  const basePrice = getBasePrice();
-  const discount = calculateDiscount(quantity);
-  const discountedPrice = basePrice * (1 - discount / 100);
-  const totalPrice = discountedPrice * quantity;
-  const savings = (basePrice * quantity) - totalPrice;
+  // 🔥 USAR HOOK GENÉRICO PARA PREÇOS
+  const { 
+    discount, 
+    discountedPrice, 
+    totalPrice, 
+    savings 
+  } = useProductPricing({
+    basePrice: getBasePrice(),
+    quantity,
+    discountTiers: [
+      { min: 2, discount: 10, label: 'posters', emoji: '🖼️' },
+      { min: 3, discount: 15, label: 'posters', emoji: '🔥' }
+    ]
+  });
 
-  // Função utilitária: Validação consolidada
-  const validatePurchase = () => {
-    if (!selectedImageUrl) return 'Escolha uma arte primeiro para personalizar o seu poster!';
-    if (!selectedImageId) return 'ID da transformação não encontrado. Selecione a imagem novamente.';
-    if (!userInfo) return 'Faça login para adicionar ao carrinho';
-    if (selectedPrintifyVariantId === null) return 'Por favor, selecione o tamanho do poster.';
-    if (!printifyProductId || !printifyImageId) return 'Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.';
-    return null;
-  };
+  // 🔥 USAR HOOK GENÉRICO PARA VALIDAÇÃO
+  const { validateAndShowError } = useProductValidation();
 
   // Condições auxiliares para botão
   const isProcessingMockup = (!printifyProductId || !printifyImageId) && selectedImageUrl;
@@ -393,90 +408,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     return sizeText;
   };
 
-  // ✅ FUNÇÃO PRINCIPAL: Calcular coordenadas finais baseado na posição definida
-  // Para poster vertical: left/center/right (ajusta X)
-  // Para poster horizontal: top/center/bottom (ajusta Y)
-  const calculatePrintifyCoords = (position: 'left' | 'center' | 'right' | 'top' | 'bottom', variantId: number, imageDimensions: { width: number; height: number }): ImageAdjustments => {
-    if (!product) {
-      console.log('❌ Produto não encontrado');
-      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
-    }
-
-    const selectedVariant = product.variants?.find(v => v.id === variantId);
-    if (!selectedVariant) {
-      console.log('❌ Variante não encontrada');
-      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
-    }
-
-    const { placeholderWidth, placeholderHeight } = selectedVariant;
-    const { width: userImageWidth, height: userImageHeight } = imageDimensions;
-
-    // PASSO A: Calcular escala
-    const scaleToCover = Math.max(
-      placeholderWidth / userImageWidth,
-      placeholderHeight / userImageHeight
-    );
-    const finalImageWidth = userImageWidth * scaleToCover;
-    const printifyScale = finalImageWidth / placeholderWidth;
-
-    // ✅ NOVO: Determinar se é poster horizontal ou vertical
-    const isHorizontalPoster = product.id === 'poster_horizontal_semi_glossy';
-    
-    let printifyX = 0.5; // Centro padrão
-    let printifyY = 0.5; // Centro padrão
-
-    if (isHorizontalPoster) {
-      // ✅ POSTER HORIZONTAL: Ajustar coordenada Y baseada na posição (top/center/bottom)
-      const scaledImageHeight = userImageHeight * scaleToCover;
-      const maxMovementY = Math.max(0, (scaledImageHeight - placeholderHeight) / 2);
-
-      if (maxMovementY > 0) {
-        if (position === 'top') {
-          const movementY = -maxMovementY * 0.7; // 70% para cima
-          printifyY = 0.5 + (movementY / placeholderHeight);
-        } else if (position === 'bottom') {
-          const movementY = maxMovementY * 0.7; // 70% para baixo
-          printifyY = 0.5 + (movementY / placeholderHeight);
-        }
-        // 'center' fica com printifyY = 0.5
-      }
-    } else {
-      // ✅ POSTER VERTICAL: Ajustar coordenada X baseada na posição (left/center/right)
-      const scaledImageWidth = userImageWidth * scaleToCover;
-      const maxMovementX = Math.max(0, (scaledImageWidth - placeholderWidth) / 2);
-
-      if (maxMovementX > 0) {
-        if (position === 'left') {
-          const movementX = -maxMovementX * 0.7; // 70% para a esquerda
-          printifyX = 0.5 + (movementX / placeholderWidth);
-        } else if (position === 'right') {
-          const movementX = maxMovementX * 0.7; // 70% para a direita
-          printifyX = 0.5 + (movementX / placeholderWidth);
-        }
-        // 'center' fica com printifyX = 0.5
-      }
-    }
-
-    const finalAdjustments = {
-      x: printifyX,
-      y: printifyY,
-      scale: printifyScale,
-      rotation: 0
-    };
-
-    console.log('🎯 Coordenadas calculadas:', {
-      position,
-      variantId,
-      isHorizontalPoster,
-      scaleToCover,
-      printifyScale,
-      printifyX,
-      printifyY,
-      finalAdjustments
-    });
-
-    return finalAdjustments;
-  };
+  // 🔥 USAR HOOK GENÉRICO PARA COORDENADAS  
+  const { calculatePrintifyCoords } = useProductCoordinates();
 
   const handleImageAdjustmentChange = (adjustments: Partial<ImageAdjustments>) => {
     setImageAdjustments(prev => ({
@@ -533,8 +466,14 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
     console.log('🔄 Iniciando geração de nova mockup...', { currentPosition, currentVariantId });
     setIsGeneratingMockup(true);
 
-    // Calcula as coordenadas baseadas na posição e variante
-    const adjustments = calculatePrintifyCoords(currentPosition, currentVariantId, userImageDimensions);
+    // Calcula as coordenadas baseadas na posição e variante usando hook genérico
+    const adjustments = calculatePrintifyCoords({
+      position: currentPosition,
+      variantId: currentVariantId,
+      imageDimensions: userImageDimensions,
+      product: product!,
+      positionType: product!.id === 'poster_horizontal_semi_glossy' ? 'horizontal' : 'vertical'
+    });
 
     const requestBody = {
       productId: product?.id,
@@ -572,17 +511,10 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
   };
 
   if (!product) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-ghibli-moss border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-ghibli-earth">A carregar produto...</p>
-        </div>
-      </div>
-    );
+    return <ProductLoadingState message="A carregar poster..." />;
   }
 
-  const currentPrice = basePrice;
+  const currentPrice = getBasePrice();
 
   return (
     <>
@@ -811,7 +743,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
                       {discount > 0 && (
-                        <span className="text-sm text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
+                        <span className="text-sm text-gray-500 line-through">€{getBasePrice().toFixed(2)}</span>
                       )}
                     </div>
                     {discount > 0 && (
@@ -1321,7 +1253,7 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                         <div className="flex items-baseline justify-center gap-2 mb-1">
                           <span className="text-3xl sm:text-4xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
                           {discount > 0 && (
-                            <span className="text-lg text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
+                            <span className="text-lg text-gray-500 line-through">€{getBasePrice().toFixed(2)}</span>
                           )}
                           {discount > 0 && (
                             <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -1404,88 +1336,31 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
                     </div>
                   </div>
 
-                  {/* Status Arte */}
-                  {selectedImageUrl && (
-                    <div className="flex items-center gap-2 sm:gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                      <img src={selectedImageUrl} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover border border-green-300" alt="Arte selecionada" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-green-800 text-sm">✅ Arte Aplicada</p>
-                        <p className="text-xs text-green-600 truncate">Transformação AI pronta</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={handleOpenGallery}
-                        variant="outline"
-                        className="text-xs px-3 py-1 border-green-300 text-green-700 hover:bg-green-100 shrink-0"
-                      >
-                        Trocar
-                      </Button>
-                    </div>
-                  )}
+                  {/* 🔥 COMPONENTE GENÉRICO - Status Arte */}
+                  <ProductArtStatus
+                    selectedImageUrl={selectedImageUrl}
+                    onOpenGallery={handleOpenGallery}
+                  />
 
-                  {/* Descrição em Tópicos */}
-                  <div className="space-y-2">
-                    <ul className="text-sm space-y-1 text-ghibli-earth/80">
-                      <li className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
-                        <span>Poster de <span className="font-bold text-ghibli-moss">máxima qualidade</span> em papel premium</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full shrink-0"></div>
-                        <span>Impressão de <span className="font-bold">altíssima resolução</span> resistente</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-ghibli-wood rounded-full shrink-0"></div>
-                        <span className="font-bold text-ghibli-wood">Perfeito para decorar qualquer espaço</span>
-                      </li>
-                    </ul>
-                    </div>
+                  {/* 🔥 COMPONENTE GENÉRICO - Descrição */}
+                  <ProductDescription
+                    items={[
+                      { text: 'Poster de <span class="font-bold text-ghibli-moss">máxima qualidade</span> em papel premium' },
+                      { text: 'Impressão de <span class="font-bold">altíssima resolução</span> resistente' },
+                      { text: '<span class="font-bold text-ghibli-wood">Perfeito para decorar qualquer espaço</span>', color: 'wood' }
+                    ]}
+                  />
 
-                  {/* Seletor/Display de Tamanho */}
-                  {product.variants && product.variants.length > 1 ? (
-                    // Se há múltiplas variantes, mostrar dropdown
-                    <div className="relative">
-                      <Select
-                        onValueChange={(value) => setSelectedPrintifyVariantId(parseInt(value))}
-                        value={selectedPrintifyVariantId?.toString() || ''}
-                      >
-                        <SelectTrigger className="w-full h-12 sm:h-14 bg-white/80 backdrop-blur-sm border-2 border-ghibli-sand/40 rounded-xl text-ghibli-earth font-medium hover:border-ghibli-moss/60 focus:border-ghibli-moss transition-all duration-200 shadow-sm hover:shadow-md pl-3 sm:pl-4 pr-8 sm:pr-10">
-                          <div className="flex items-center gap-2 sm:gap-3">
-                            <div className="w-2 h-2 rounded-full bg-ghibli-moss shrink-0"></div>
-                            <SelectValue placeholder="Escolha o tamanho">
-                              <span className="truncate">
-                                {product.variants?.find(v => v.id === selectedPrintifyVariantId)?.title || 'Escolha o tamanho'}
-                              </span>
-                            </SelectValue>
-                          </div>
-                      </SelectTrigger>
-                        <SelectContent className="bg-white text-ghibli-earth border-ghibli-sand max-h-60 shadow-xl">
-                        {product.variants?.map((variant) => (
-                            <SelectItem key={variant.id} value={variant.id.toString()} className="hover:bg-ghibli-cream/50">
-                              {variant.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                      
-                      <label className="absolute -top-2 left-2 sm:left-3 px-2 bg-white text-xs font-bold text-ghibli-moss">
-                        📋 Tamanho do Poster
-                      </label>
-                  </div>
-                  ) : (
-                    // Se há apenas 1 variante, apenas mostrar o tamanho (sem dropdown)
-                    <div className="relative p-4 bg-ghibli-cream/30 rounded-xl border border-ghibli-sand/40">
-                      <div className="flex items-center justify-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-ghibli-moss"></div>
-                        <span className="text-ghibli-earth font-semibold">
-                          📋 Tamanhos disponíveis
-                        </span>
-                    </div>
-                                             <p className="text-center text-xs text-ghibli-earth/70 mt-1">
-                         Desde 5"x7" até 24"x36"
-                       </p>
-                      </div>
-                   )}
+                  {/* 🔥 COMPONENTE GENÉRICO - Seletor de Variante */}
+                  <ProductVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantChange={(variantId) => setSelectedPrintifyVariantId(variantId)}
+                    label="Tamanho do Poster"
+                    emoji="📋"
+                    customSingleVariantText="Tamanhos disponíveis"
+                    customSingleVariantSubtext='Desde 5"x7" até 24"x36"'
+                  />
 
                   {/* Botão Principal */}
                   <div className="pt-3">
