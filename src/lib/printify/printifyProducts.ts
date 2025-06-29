@@ -504,7 +504,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       fitMethod: 'slice',
     }],
     allowsPrintDetails: false,
-    supportsManualAdjustment: false,
+    supportsManualAdjustment: true, // ✅ CORRIGIDO: Ativar movimento top/center/bottom
   },
 
   // POSTER VERTICAL (SEMI BRILHO)
@@ -545,7 +545,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       fitMethod: 'slice', // Alterado para 'slice' para Posters Verticais
     }],
     allowsPrintDetails: false,
-    supportsManualAdjustment: false,
+    supportsManualAdjustment: true, // ✅ CORRIGIDO: Ativar movimento left/center/right
   },
 };
 

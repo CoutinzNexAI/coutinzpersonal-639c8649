@@ -472,7 +472,8 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
       variantId: currentVariantId,
       imageDimensions: userImageDimensions,
       product: product!,
-      positionType: product!.id === 'poster_horizontal_semi_glossy' ? 'horizontal' : 'vertical'
+      // POSTER VERTICAL move left/right (horizontal), POSTER HORIZONTAL move top/bottom (vertical)
+      positionType: product!.id === 'poster_vertical_semi_glossy' ? 'horizontal' : 'vertical'
     });
 
     const requestBody = {
@@ -536,12 +537,9 @@ const PosterDetailPage: React.FC<PosterDetailPageProps> = ({ product: initialPro
               transition={{ duration: 0.5 }}
               className="text-center mb-6 px-4"
             >
-              <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight mb-4 tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight tracking-tight">
                 {product.id === 'poster_vertical_semi_glossy' ? '📋 Poster Vertical' : '📄 Poster Horizontal'}
               </h1>
-              <div className="text-4xl sm:text-5xl font-black text-ghibli-moss drop-shadow-lg tracking-tight">
-                €{currentPrice.toFixed(2)}
-                    </div>
             </motion.div>
 
             {/* Mockup Mobile */}

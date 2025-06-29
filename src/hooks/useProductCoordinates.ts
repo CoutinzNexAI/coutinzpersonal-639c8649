@@ -6,6 +6,11 @@ export interface CoordinateCalculationOptions {
   variantId: number;
   imageDimensions: { width: number; height: number };
   product: PrintifyProductMapping;
+  /** 
+   * Tipo de movimento da imagem:
+   * - 'vertical': move top/center/bottom (ex: canecas, posters horizontais)
+   * - 'horizontal': move left/center/right (ex: capas, posters verticais)
+   */
   positionType: 'vertical' | 'horizontal';
   shiftAmount?: number;
 }
@@ -63,7 +68,7 @@ export const useProductCoordinates = () => {
     let finalY = 0.5;
 
     if (positionType === 'vertical') {
-      // Para canecas (movimento vertical)
+      // Para canecas, posters horizontais (movimento vertical - cima/baixo)
       finalX = 0.5; // X sempre centrado
       if (position === 'top') {
         finalY = 0.5 - (maxOffsetY * shiftAmount);
@@ -71,7 +76,7 @@ export const useProductCoordinates = () => {
         finalY = 0.5 + (maxOffsetY * shiftAmount);
       }
     } else if (positionType === 'horizontal') {
-      // Para capas (movimento horizontal)
+      // Para capas, posters verticais (movimento horizontal - esquerda/direita)
       finalY = 0.5; // Y sempre centrado
       if (position === 'left') {
         finalX = 0.5 - (maxOffsetX * shiftAmount);
