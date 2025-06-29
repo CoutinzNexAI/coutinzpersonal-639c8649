@@ -498,6 +498,32 @@ export default function ProductCanvas({
       );
     }
 
+    // Para capa de telemóvel, mostrar placeholder específico
+    if (selectedProduct.id === 'custom_phone_case') {
+      return (
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder image da capa */}
+          <div className="mb-6">
+            <img
+              src="/mockupproduto/telemovel.png"
+              alt="Capa de Telemóvel Personalizada"
+              className="w-64 h-64 object-contain opacity-60"
+            />
+          </div>
+          
+          {/* Call to action específico para capa */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Capa de Telemóvel Personalizada
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Escolha uma arte e veja a sua capa personalizada ganhar vida.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     // Para outros produtos, mostrar estado vazio genérico
     return (
       <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
@@ -540,6 +566,8 @@ export default function ProductCanvas({
         <p className="text-sm text-ghibli-earth/70">
           {selectedProduct.id === 'custom_youth_hoodie' 
             ? 'A criar a sua hoodie única com logo, arte e frase...' 
+            : selectedProduct.id === 'custom_phone_case'
+            ? 'A criar a sua capa personalizada...'
             : 'A aplicar a sua transformação AI...'
           }
         </p>
@@ -581,8 +609,10 @@ export default function ProductCanvas({
   // Previews gerados pela Printify
   const renderGeneratedPreviews = () => (
     <div className="relative w-full h-full">
-      {/* Imagem principal */}
-      <div className="relative w-full h-full flex items-center justify-center">
+      {/* Imagem principal com fundo branco para capas */}
+      <div className={`relative w-full h-full flex items-center justify-center ${
+        selectedProduct.id === 'custom_phone_case' ? 'bg-white' : ''
+      }`}>
         <img
           src={printifyGeneratedPreviewUrls[currentPreviewIndex]}
           alt={`Preview ${currentPreviewIndex + 1}`}

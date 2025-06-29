@@ -16,13 +16,11 @@ export const phoneCaseConfig = {
     { min: 3, discount: 15, label: 'capas', emoji: '🔥' }
   ],
 
-  // ✅ DESCRIÇÃO: Específica para capas de telemóvel
+  // ✅ DESCRIÇÃO: Específica para capas de telemóvel - 3 tópicos diretos
   descriptionItems: (product: PrintifyProductMapping) => [
-    { text: 'Compatível com carregamento wireless', color: 'moss' as const, emoji: '⚡' },
-    { text: 'Material TPU flexível e resistente', color: 'moss' as const, emoji: '🛡️' },
-    { text: 'Impressão HD com cores vibrantes', color: 'moss' as const, emoji: '🎨' },
-    { text: 'Proteção total para câmara e ecrã', color: 'moss' as const, emoji: '📸' },
-    { text: 'Acabamento mate anti-impressões digitais', color: 'wood' as const, emoji: '✨' }
+    { text: 'Proteção premium com material TPU resistente', color: 'moss' as const, emoji: '🛡️' },
+    { text: 'Impressão HD de alta qualidade', color: 'moss' as const, emoji: '🎨' },
+    { text: 'Compatible com carregamento wireless', color: 'wood' as const, emoji: '⚡' }
   ],
 
   // ✅ GARANTIAS: Ícones de confiança para capas

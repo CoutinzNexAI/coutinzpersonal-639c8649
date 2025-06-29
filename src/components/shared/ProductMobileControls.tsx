@@ -37,9 +37,19 @@ export const ProductMobileControls: React.FC<ProductMobileControlsProps> = ({
     return null;
   }
 
-  // Se não há imagem selecionada, não mostra nada (botão está no topo)
+  // Se não há imagem selecionada, mostra apenas botão de escolher arte
   if (!selectedImageUrl || !userImageDimensions || !product) {
-    return null;
+    return (
+      <div className={`px-4 text-center ${className}`}>
+        <Button
+          onClick={onOpenGallery}
+          className="px-6 py-3 text-base font-semibold shadow-lg transition-all duration-300 rounded-xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 text-white"
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Escolher Arte
+        </Button>
+      </div>
+    );
   }
 
   // Configura posições baseado no tipo
