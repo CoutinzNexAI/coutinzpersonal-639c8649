@@ -238,11 +238,17 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   // Função para gerar novos mockups quando a posição muda
   const generateNewMockup = async (position: 'top' | 'center' | 'bottom' | 'left' | 'right', variantId: number, isPositionChange: boolean = false) => {
-    if (!selectedImageUrl || !userInfo?.id || !userImageDimensions) return;
+    if (!selectedImageUrl || !userInfo?.id) {
+      console.warn('Cannot generate mockup: missing image or user');
+      return;
+    }
 
-    // Calcular novas coordenadas baseadas na posição
+    console.log(`[GenericProductPage] 🎯 Generating mockup for ${product.id} with position=${position}, variantId=${variantId}, isPositionChange=${isPositionChange}`);
+
+    // Calcular novos ajustes se o produto suporta ajuste manual
     let newAdjustments = imageAdjustments;
-    if (config.calculatePrintifyCoords) {
+    
+    if (product.supportsManualAdjustment && config.calculatePrintifyCoords && userImageDimensions) {
       newAdjustments = config.calculatePrintifyCoords(
         position,
         variantId,
@@ -392,6 +398,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   imageAdjustments={imageAdjustments}
                   onImageAdjust={setImageAdjustments}
                   selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  disableAutoGenerate={true}
                 />
               </div>
 
@@ -539,6 +546,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   imageAdjustments={imageAdjustments}
                   onImageAdjust={setImageAdjustments}
                   selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  disableAutoGenerate={true}
                 />
               </div>
 

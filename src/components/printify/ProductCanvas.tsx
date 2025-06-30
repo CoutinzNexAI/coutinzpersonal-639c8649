@@ -43,6 +43,7 @@ interface ProductCanvasProps {
   selectedPhraseText?: string;
   mockupUrl?: string;
   selectedImageId?: string | null; // Para Canvas products
+  disableAutoGenerate?: boolean; // Nova prop para desabilitar auto-geração
 }
 
 interface GenerateMockupResponse {
@@ -69,7 +70,8 @@ export default function ProductCanvas({
   allImageAdjustments,
   selectedPhraseText,
   mockupUrl,
-  selectedImageId
+  selectedImageId,
+  disableAutoGenerate
 }: ProductCanvasProps) {
   const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
@@ -286,10 +288,15 @@ export default function ProductCanvas({
       shouldGenerate = !!(userImageUrl && userId && selectedProduct);
     }
 
-    if (!hasGenerated && shouldGenerate) {
+    console.log(`[ProductCanvas] Auto-generate check: shouldGenerate=${shouldGenerate}, disableAutoGenerate=${disableAutoGenerate}, hasGenerated=${hasGenerated}`);
+
+    if (!hasGenerated && shouldGenerate && !disableAutoGenerate) {
+      console.log(`[ProductCanvas] 🚀 Auto-generating mockup for ${selectedProduct.id}`);
       handleGenerateMockup();
+    } else if (disableAutoGenerate) {
+      console.log(`[ProductCanvas] ⏸️ Auto-generation disabled for ${selectedProduct.id}`);
     }
-  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup]);
+  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup, disableAutoGenerate]);
 
   // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
   const handlePreviousPreview = useCallback(() => {
