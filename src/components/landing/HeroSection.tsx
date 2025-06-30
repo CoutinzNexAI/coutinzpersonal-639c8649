@@ -60,24 +60,23 @@ const HeroSection: React.FC = () => {
     <section className="relative py-8 md:py-12 overflow-hidden bg-gradient-to-br from-ghibli-cream via-white to-ghibli-paper">
       <div className="container mx-auto px-4">
         {/* Mobile Layout */}
-        <div className="block lg:hidden">
-          <motion.div
+        <div className="lg:hidden">
+          <motion.div 
+            className="flex flex-col space-y-6 pt-8"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-6 pt-6"
           >
             {/* Mobile Images Grid */}
             <motion.div 
-              className="grid grid-cols-2 gap-3"
+              className="grid grid-cols-4 gap-2 items-start mb-6" 
               variants={itemVariants}
             >
-              {/* Imagem grande 9:16 - Canvas */}
-              <Link href="/shop/canvas/custom_canvas">
+              {/* Canvas 9:16 - 2 colunas */}
+              <Link href="/shop/canvas/custom_canvas" className="col-span-2">
                 <motion.div 
-                  className="relative rounded-2xl overflow-hidden shadow-xl group cursor-pointer"
-                  style={{ aspectRatio: '9/16' }}
-                  whileHover={{ scale: 1.01 }}
+                  className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer w-full aspect-[9/16]"
+                  whileHover={{ scale: 1.02, rotate: 1 }}
                   transition={{ duration: 0.3 }}
                 >
                   <Image
@@ -87,55 +86,53 @@ const HeroSection: React.FC = () => {
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     priority
                     quality={95}
-                    sizes="(max-width: 768px) 50vw, 33vw"
+                    sizes="50vw"
                   />
-                  <div className="absolute top-3 left-3">
-                    <span className="bg-gradient-to-r from-ghibli-moss to-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">
-                      🖼️ Popular
+                  <div className="absolute top-1 left-1">
+                    <span className="bg-gradient-to-r from-ghibli-moss to-green-600 text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
+                      🖼️ TOP
                     </span>
                   </div>
                 </motion.div>
               </Link>
 
-              {/* Coluna com 2 quadrados pequenos */}
-              <div className="space-y-3">
-                {/* Quadrado 1 - Capa */}
-                <Link href="/shop/tecnologia/custom_phonecase">
+              {/* Imagens menores lado a lado */}
+              <div className="col-span-2 flex flex-col gap-2">
+                <Link href="/shop/tecnologia/custom_phonecase" className="flex-1">
                   <motion.div 
-                    className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer"
-                    whileHover={{ scale: 1.02 }}
+                    className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer w-full aspect-square"
+                    whileHover={{ scale: 1.02, rotate: -1 }}
                     transition={{ duration: 0.3 }}
                   >
                     <Image
-                      src="/landing/capatele.png"
-                      alt="Capa telemóvel"
+                      src="/Bestseller/capatelemovelfoto.png"
+                      alt="Capa de telemóvel personalizada"
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                       quality={95}
-                      sizes="(max-width: 768px) 25vw, 20vw"
+                      sizes="25vw"
                     />
                     <div className="absolute top-1 right-1">
-                      <span className="bg-ghibli-poppy text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
-                        TOP
+                      <span className="bg-blue-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
+                        📱
                       </span>
                     </div>
                   </motion.div>
                 </Link>
 
-                {/* Quadrado 2 - Caneca */}
-                <Link href="/shop/mug/custom_heartmug">
+                <Link href="/shop/mug/heart_mug" className="flex-1">
                   <motion.div 
-                    className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer"
-                    whileHover={{ scale: 1.02 }}
+                    className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer w-full aspect-square"
+                    whileHover={{ scale: 1.02, rotate: 1 }}
                     transition={{ duration: 0.3 }}
                   >
                     <Image
-                      src="/landing/canecacoracao.png"
-                      alt="Caneca coração"
+                      src="/Bestseller/canecacoracaofoto.png"
+                      alt="Caneca de coração personalizada"
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                       quality={95}
-                      sizes="(max-width: 768px) 25vw, 20vw"
+                      sizes="25vw"
                     />
                     <div className="absolute top-1 right-1">
                       <span className="bg-pink-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
@@ -147,14 +144,40 @@ const HeroSection: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Mobile Title - Agrupado */}
-            <motion.h1 
-              className="text-2xl md:text-3xl font-bold text-ghibli-wood leading-tight text-center"
-              variants={titleVariants}
+            {/* Mobile Logo + Title Layout - Centrados em suas metades */}
+            <motion.div 
+              className="grid grid-cols-2 gap-4 mb-2"
+              variants={itemVariants}
             >
-              More Than a Frame.<br/>
-              It's a Feeling
-            </motion.h1>
+              {/* Logo centrado na metade esquerda */}
+              <motion.div 
+                className="flex items-center justify-center"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              >
+                <Image
+                  src="/pictuzlogooficial.png"
+                  alt="PicTuz Logo"
+                  width={80}
+                  height={25}
+                  className="object-contain"
+                  priority
+                  quality={95}
+                />
+              </motion.div>
+
+              {/* Título centrado na metade direita */}
+              <motion.div className="flex items-center justify-center">
+                <motion.h1 
+                  className="text-2xl md:text-3xl font-bold text-ghibli-wood leading-tight text-center"
+                  variants={titleVariants}
+                >
+                  More Than a Frame.<br/>
+                  It's a Feeling
+                </motion.h1>
+              </motion.div>
+            </motion.div>
 
             {/* Mobile CTA Buttons - Side by Side */}
             <motion.div 
@@ -203,6 +226,42 @@ const HeroSection: React.FC = () => {
                 <span className="text-ghibli-earth font-medium text-sm">5⭐ Reviews</span>
               </div>
             </motion.div>
+
+            {/* Welcome Message - Mini Animação */}
+            <motion.div
+              className="relative mb-4"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ 
+                duration: 0.8, 
+                delay: 0.6,
+                type: "spring",
+                bounce: 0.3 
+              }}
+            >
+              <motion.div
+                className="inline-block relative"
+              >
+                {/* Background Effect - só o fundo se move */}
+                <motion.div
+                  className="absolute -inset-4 bg-gradient-to-r from-ghibli-sky/30 via-ghibli-sunflower/20 to-ghibli-sky/30 rounded-full blur-sm"
+                  animate={{
+                    opacity: [0.4, 0.7, 0.4],
+                    scale: [0.9, 1.1, 0.9],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+                
+                {/* Welcome Text - estático, maior, cor diferente */}
+                <span className="relative text-lg font-semibold text-ghibli-sky-deep">
+                  ✨ Bem-vindo ao Pictuz ✨
+                </span>
+              </motion.div>
+            </motion.div>
           </motion.div>
         </div>
 
@@ -243,12 +302,48 @@ const HeroSection: React.FC = () => {
               It's a Feeling
             </motion.h1>
 
+            {/* Welcome Message - Mini Animação */}
+            <motion.div
+              className="relative mb-4"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ 
+                duration: 0.8, 
+                delay: 0.6,
+                type: "spring",
+                bounce: 0.3 
+              }}
+            >
+              <motion.div
+                className="inline-block relative"
+              >
+                {/* Background Effect - só o fundo se move */}
+                <motion.div
+                  className="absolute -inset-4 bg-gradient-to-r from-ghibli-sky/30 via-ghibli-sunflower/20 to-ghibli-sky/30 rounded-full blur-sm"
+                  animate={{
+                    opacity: [0.4, 0.7, 0.4],
+                    scale: [0.9, 1.1, 0.9],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+                
+                {/* Welcome Text - estático, maior, cor diferente */}
+                <span className="relative text-lg font-semibold text-ghibli-sky-deep">
+                  ✨ Bem-vindo ao Pictuz ✨
+                </span>
+              </motion.div>
+            </motion.div>
+
             {/* Subtitle with Simplified Animation */}
             <motion.p 
               className="text-lg md:text-xl text-ghibli-earth mb-6 leading-relaxed max-w-3xl"
               variants={subtitleVariants}
             >
-              Porque memórias não foram feitas para ficar no ecrã. Bem-vindo ao Pictuz
+              Porque memórias não foram feitas para ficar no ecrã.
             </motion.p>
 
             {/* Benefits */}

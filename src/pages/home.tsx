@@ -3,7 +3,6 @@ import Head from 'next/head';
 import Header from '@/components/Header';
 import GhibliHero from '@/components/GhibliHero'; // Componente principal com texto e área interativa
 import InteractiveGallery from '@/components/InteractiveGallery'; // Secção da galeria de exemplos
-import HowItWorks from '@/components/HowItWorks'; // Secção "Como Funciona"
 import Footer from '@/components/Footer'; // Rodapé
 
 import { FirstPurchasePromoModal } from '@/components/FirstPurchasePromoModal';
@@ -323,17 +322,11 @@ export default function HomePage() {
 
         {/* Renderiza as secções inferiores da página */}
 
-        {/* Separador visual customizado (assume que a classe ghibli-divider está definida no CSS global) */}
-        <div className="ghibli-divider my-12 md:my-16 lg:my-20" />
-
         {/* Renderiza a secção da galeria interativa */}
         <InteractiveGallery />
 
-        {/* Outro separador visual */}
+        {/* Separador visual para espaçamento antes do footer */}
         <div className="ghibli-divider my-12 md:my-16 lg:my-20" />
-
-        {/* Renderiza a secção "Como Funciona" */}
-        <HowItWorks />
 
       </main> {/* Fim do conteúdo principal */}
 

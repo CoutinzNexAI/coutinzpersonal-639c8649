@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import PromotionalBanner from '@/components/landing/PromotionalBanner';
 import HeroSection from '@/components/landing/HeroSection';
 import BestSellersSection from '@/components/landing/BestSellersSection';
+import HowItWorks from '@/components/HowItWorks';
 import { FAQSection } from '@/components/FAQSection';
 
 const LandingPage: React.FC = () => {
@@ -78,6 +79,9 @@ const LandingPage: React.FC = () => {
 
         {/* Best Sellers Section */}
         <BestSellersSection />
+
+        {/* How It Works Section */}
+        <HowItWorks />
 
         {/* FAQ Section */}
         <FAQSection />
