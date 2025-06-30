@@ -27,6 +27,7 @@ import ProductDescription from '@/components/shared/ProductDescription';
 import ProductVariantSelector from '@/components/shared/ProductVariantSelector';
 import ProductAddToCartButton from '@/components/shared/ProductAddToCartButton';
 import ProductMobileControls from '@/components/shared/ProductMobileControls';
+import ProductPositionControls from '@/components/shared/ProductPositionControls';
 import ProductCardDecorations from '@/components/shared/ProductCardDecorations';
 import PhoneCaseVariantSelector from '@/components/shared/product-customization/PhoneCaseVariantSelector';
 import FramedCanvasVariantSelector from '@/components/shared/product-customization/FramedCanvasVariantSelector';
@@ -538,13 +539,156 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="hidden lg:block lg:col-span-1 lg:order-2"
+              className="hidden lg:block lg:col-span-1 lg:order-2 space-y-6"
             >
-              {/* Conteúdo Desktop (será adicionado) */}
-              <div className="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 className="text-2xl font-bold text-ghibli-earth mb-4">{product.name}</h2>
-                <p className="text-ghibli-moss text-xl font-semibold">€{basePrice.toFixed(2)}</p>
+              {/* Título Desktop */}
+              <div className="text-center lg:text-left">
+                <h1 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-ghibli-earth via-ghibli-wood to-ghibli-moss bg-clip-text text-transparent leading-tight tracking-tight mb-2">
+                  {product.name}
+                </h1>
               </div>
+
+              {/* Controlo da Arte Desktop */}
+              {userInfo && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                >
+                  <ProductPositionControls
+                    selectedImageUrl={selectedImageUrl}
+                    userImageDimensions={userImageDimensions}
+                    product={product}
+                    imagePosition={imagePosition}
+                    isGeneratingMockup={isGeneratingMockup}
+                    onOpenGallery={handleOpenGallery}
+                    onAdjustPosition={(position) => handleAdjustment('position', position)}
+                    positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
+                  />
+                </motion.div>
+              )}
+
+              {/* Login Desktop */}
+              {!userInfo && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                >
+                  <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm">
+                    <CardContent className="p-6 text-center">
+                      <p className="text-ghibli-earth text-base mb-4 font-medium">
+                        🎨 Entre para personalizar o seu produto
+                      </p>
+                      <Button
+                        onClick={() => router.push('/')}
+                        className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0 py-3"
+                      >
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Descrição Desktop */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-ghibli-sand/30 shadow-lg"
+              >
+                <ProductDescription items={config.descriptionItems(product)} />
+              </motion.div>
+
+              {/* Seletor de Variantes Desktop */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-ghibli-sand/30 shadow-lg"
+              >
+                {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
+                  <PhoneCaseVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                    label={config.variantSelectorConfig?.label || "Modelo do Telemóvel"}
+                    emoji={config.variantSelectorConfig?.emoji || "📱"}
+                    customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                    customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                  />
+                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'FramedCanvasVariantSelector' ? (
+                  <FramedCanvasVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                  />
+                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'ToteBagVariantSelector' ? (
+                  <ToteBagVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                  />
+                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
+                  <NotebookVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                  />
+                ) : (
+                  <ProductVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                    label={config.variantSelectorConfig?.label || "Variante"}
+                    emoji={config.variantSelectorConfig?.emoji || "🎯"}
+                    customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                    customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                  />
+                )}
+              </motion.div>
+
+              {/* Quantidade e Preços Desktop */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <ProductQuantityPricing
+                  basePrice={basePrice}
+                  quantity={quantity}
+                  onQuantityChange={setQuantity}
+                  discountTiers={config.discountTiers || []}
+                />
+              </motion.div>
+
+              {/* Botão Desktop */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+              >
+                <ProductAddToCartButton
+                  canPurchase={!!canPurchase}
+                  isProcessingMockup={!!isProcessingMockup}
+                  loading={loading}
+                  userInfo={userInfo}
+                  selectedImageUrl={selectedImageUrl || ''}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  onAddToCart={handleAddToCart}
+                  size="desktop"
+                />
+              </motion.div>
+
+              {/* Garantias Desktop */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <ProductGuarantees guarantees={config.guaranteeItems()} />
+              </motion.div>
             </motion.div>
           </div>
         </main>
