@@ -299,41 +299,27 @@ const GhibliHero = () => {
 
             {/* Botões com design aprimorado (mantidos) */}
             <div className="flex flex-col space-y-6 items-center justify-center lg:justify-start w-full">
-              {/* Botão principal primeiro - desktop - design melhorado */}
+              {/* Botão principal primeiro - desktop - mais sóbrio */}
               <motion.div
                 className="w-auto relative group hidden md:block"
                 whileHover={{
-                  scale: 1.03,
-                  y: -3,
+                  scale: 1.02,
                   transition: { duration: 0.2 }
                 }}
-                whileTap={{ scale: 0.97 }}
-                animate={{
-                  y: [0, -8, 0],
-                  transition: { duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: titleParts.length * 0.1 + 1.3}
-                }}
+                whileTap={{ scale: 0.98 }}
               >
-                <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 rounded-2xl blur-lg opacity-60 group-hover:opacity-90 transition duration-500 group-hover:duration-200 animate-pulse"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-amber-300/40 via-yellow-300/40 to-amber-300/40 rounded-xl blur opacity-50 group-hover:opacity-70 transition duration-300"></div>
                 <Button
                   variant="ghost"
                   className={`relative inline-flex items-center justify-center
-                                  rounded-2xl border-2 border-orange-300/80 hover:border-orange-400 transition-all duration-300
-                                  shadow-2xl hover:shadow-orange-300/30 bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-400 hover:from-orange-500 hover:via-amber-500 hover:to-yellow-500 text-white font-black
+                                  rounded-xl border-2 border-amber-300/60 hover:border-amber-400/80 transition-all duration-300
+                                  shadow-lg hover:shadow-xl bg-gradient-to-br from-amber-200 via-yellow-200 to-amber-300 hover:from-amber-300 hover:via-yellow-300 hover:to-amber-400 text-amber-900 font-bold
                                   text-xl px-10 py-5 md:px-12 md:py-6 transform hover:scale-102 font-ghibli`}
                   onClick={handleTriggerStudio}
                   onMouseEnter={handleCTAHover}
                 >
-                  <motion.span
-                    animate={{ 
-                      rotate: [0, -5, 5, -5, 0],
-                      scale: [1, 1.2, 1, 1.2, 1]
-                    }}
-                    transition={{ duration: 2.5, repeat: Infinity, repeatType: "reverse" }}
-                    className="mr-3 text-2xl filter drop-shadow-lg"
-                  >
-                    🎨
-                  </motion.span>
-                  <span className="drop-shadow-sm">Transforme já a sua foto!</span>
+                  <span className="mr-3 text-2xl">🎨</span>
+                  <span>Transforme já a sua foto!</span>
                 </Button>
               </motion.div>
               

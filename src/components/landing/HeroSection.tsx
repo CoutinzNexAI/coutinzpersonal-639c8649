@@ -98,7 +98,7 @@ const HeroSection: React.FC = () => {
 
               {/* Imagens menores lado a lado */}
               <div className="col-span-2 flex flex-col gap-2">
-                <Link href="/shop/tecnologia/custom_phonecase" className="flex-1">
+                <Link href="/shop/tecnologia/custom_phone_case" className="flex-1">
                   <motion.div 
                     className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer w-full aspect-square"
                     whileHover={{ scale: 1.02, rotate: -1 }}
@@ -324,7 +324,7 @@ const HeroSection: React.FC = () => {
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button 
                     size="default" 
-                    className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-8 py-3 text-lg rounded-xl shadow-lg hover:shadow-green-500/30 transition-all duration-300 border border-white/20"
+                    className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-8 py-3 lg:py-6 text-lg rounded-xl shadow-lg hover:shadow-green-500/30 transition-all duration-300 border border-white/20"
                   >
                     <span className="mr-2 text-lg">🎨</span>
                     Transformar Foto Agora
@@ -338,7 +338,7 @@ const HeroSection: React.FC = () => {
                   <Button 
                     variant="outline" 
                     size="default"
-                    className="border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold px-8 py-3 text-lg rounded-xl transition-all duration-300 bg-white/80 backdrop-blur-sm shadow-md hover:shadow-lg"
+                    className="border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold px-8 py-3 lg:py-6 text-lg rounded-xl transition-all duration-300 bg-white/80 backdrop-blur-sm shadow-md hover:shadow-lg"
                   >
                     <span className="mr-2 text-lg">🛍️</span>
                     Ver Produtos
@@ -388,7 +388,7 @@ const HeroSection: React.FC = () => {
             {/* Sub-grelha para os 2 quadrados */}
             <div className="col-span-1 grid grid-rows-2 gap-3 h-full">
               {/* Quadrado 1:1 - Tecnologia */}
-              <Link href="/shop/tecnologia/custom_phonecase" className="row-span-1">
+              <Link href="/shop/tecnologia/custom_phone_case" className="row-span-1">
                 <motion.div 
                   className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer h-full w-full"
                   whileHover={{ scale: 1.02, rotate: 1 }}
@@ -416,7 +416,7 @@ const HeroSection: React.FC = () => {
               </Link>
 
               {/* Quadrado 1:1 - Caneca Coração */}
-              <Link href="/shop/mug/custom_heartmug" className="row-span-1">
+              <Link href="/shop/mug/heart_mug" className="row-span-1">
                 <motion.div 
                   className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer h-full w-full"
                   whileHover={{ scale: 1.02, rotate: 0 }}
