@@ -1,77 +1,169 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import ProductCard from './ProductCard';
+import Image from 'next/image';
 
 interface Product {
   id: string;
   name: string;
   category: string;
-  originalPrice: number;
-  salePrice: number;
-  discount: number;
-  rating: number;
-  reviewCount: number;
-  imageUrl: string;
+  price: number;
+  imagePersonalized: string; // Imagem com personalização
+  imageBlank: string; // Imagem em branco
   href: string;
   badge?: string;
 }
 
 const bestSellers: Product[] = [
   {
-    id: '1',
-    name: 'Caneca Personalizada Premium',
-    category: 'Canecas',
-    originalPrice: 24.99,
-    salePrice: 19.99,
-    discount: 20,
-    rating: 4.8,
-    reviewCount: 127,
-    imageUrl: '/placeholder-mug.jpg',
-    href: '/shop/mug',
-    badge: 'Mais Vendido'
-  },
-  {
-    id: '2',
-    name: 'Canvas com Moldura 30x40cm',
+    id: 'custom_canvas',
+    name: 'Canvas Personalizado',
     category: 'Canvas',
-    originalPrice: 49.99,
-    salePrice: 39.99,
-    discount: 20,
-    rating: 4.9,
-    reviewCount: 89,
-    imageUrl: '/placeholder-canvas.jpg',
-    href: '/shop/canvas',
-    badge: 'Novo'
+    price: 20.00,
+    imagePersonalized: '/Bestseller/canva16foto.png',
+    imageBlank: '/Bestseller/canva16.png',
+    href: '/shop/canvas/custom_canvas',
+    badge: 'Mais Popular'
   },
   {
-    id: '3',
-    name: 'Capa Telemóvel Personalizada',
+    id: 'heart_mug',
+    name: 'Caneca Coração',
+    category: 'Canecas',
+    price: 30.00,
+    imagePersonalized: '/Bestseller/canecacoracaofoto.png',
+    imageBlank: '/Bestseller/canecacoracao.png',
+    href: '/shop/mug/heart_mug',
+    badge: '❤️'
+  },
+  {
+    id: 'custom_phone_case',
+    name: 'Capa Telemóvel',
     category: 'Tecnologia',
-    originalPrice: 19.99,
-    salePrice: 15.99,
-    discount: 20,
-    rating: 4.7,
-    reviewCount: 203,
-    imageUrl: '/placeholder-phone-case.jpg',
-    href: '/shop/tecnologia'
+    price: 25.00,
+    imagePersonalized: '/Bestseller/capatelemovelfoto.png',
+    imageBlank: '/Bestseller/capatelemovel.png',
+    href: '/shop/tecnologia/custom_phone_case',
+    badge: 'TOP'
   },
   {
-    id: '4',
-    name: 'Poster A3 Arte Premium',
+    id: 'poster_horizontal',
+    name: 'Poster Personalizado',
     category: 'Posters',
-    originalPrice: 29.99,
-    salePrice: 24.99,
-    discount: 17,
-    rating: 4.6,
-    reviewCount: 156,
-    imageUrl: '/placeholder-poster.jpg',
+    price: 20.00,
+    imagePersonalized: '/Bestseller/poster1824foto.png',
+    imageBlank: '/Bestseller/poster1824.png',
     href: '/shop/poster',
-    badge: 'Limitado'
+    badge: 'Novo'
   }
 ];
+
+// Componente individual do produto com hover effect
+const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, index }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      whileHover={{ y: -4 }}
+    >
+      <Link href={product.href}>
+        <div 
+          className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/20 overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer h-full"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={() => setIsHovered(!isHovered)}
+        >
+          {/* Product Image com Efeito Hover */}
+          <div className="relative aspect-square bg-gradient-to-br from-ghibli-cream/30 to-ghibli-sand/20 p-4 overflow-hidden">
+            {/* Imagem Personalizada (padrão) */}
+            <motion.div
+              className="absolute inset-4"
+              animate={{ 
+                opacity: isHovered ? 0 : 1,
+                scale: isHovered ? 1.05 : 1
+              }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <Image
+                src={product.imagePersonalized}
+                alt={`${product.name} personalizado`}
+                fill
+                className="object-contain drop-shadow-lg"
+                quality={95}
+                sizes="(max-width: 768px) 50vw, 25vw"
+              />
+            </motion.div>
+
+            {/* Imagem em Branco (hover) */}
+            <motion.div
+              className="absolute inset-4"
+              animate={{ 
+                opacity: isHovered ? 1 : 0,
+                scale: isHovered ? 1 : 0.95
+              }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <Image
+                src={product.imageBlank}
+                alt={`${product.name} em branco`}
+                fill
+                className="object-contain drop-shadow-lg"
+                quality={95}
+                sizes="(max-width: 768px) 50vw, 25vw"
+              />
+            </motion.div>
+
+            {/* Badge */}
+            {product.badge && (
+              <div className="absolute top-3 right-3 z-10">
+                <span className={`
+                  px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-lg
+                  ${product.id === 'custom_canvas' ? 'bg-gradient-to-r from-ghibli-moss to-green-600' : ''}
+                  ${product.id === 'heart_mug' ? 'bg-pink-500' : ''}
+                  ${product.id === 'custom_phone_case' ? 'bg-ghibli-poppy' : ''}
+                  ${product.id === 'poster_horizontal' ? 'bg-purple-600' : ''}
+                `}>
+                  {product.badge}
+                </span>
+              </div>
+            )}
+
+            {/* Overlay de Hover */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"
+              animate={{ opacity: isHovered ? 1 : 0 }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
+          
+          {/* Product Info */}
+          <div className="p-4 lg:p-6">
+            <h3 className="text-lg lg:text-xl font-bold text-ghibli-wood mb-2 group-hover:text-ghibli-moss transition-colors line-clamp-2">
+              {product.name}
+            </h3>
+            
+            {/* Category */}
+            <p className="text-sm text-ghibli-earth/70 mb-3">
+              {product.category}
+            </p>
+            
+            {/* Price */}
+            <div className="flex items-center justify-center">
+              <div className="text-xl lg:text-2xl font-bold text-ghibli-moss">
+                €{product.price.toFixed(2)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+};
 
 const BestSellersSection: React.FC = () => {
   const containerVariants = {
@@ -85,53 +177,39 @@ const BestSellersSection: React.FC = () => {
     }
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    }
-  };
-
   return (
     <section className="py-12 md:py-16 bg-gradient-to-br from-white via-ghibli-cream/30 to-ghibli-paper/50 relative">
       <div className="container mx-auto px-4">
         
         {/* Section Header */}
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-8 lg:mb-12"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-ghibli-wood mb-8">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-ghibli-wood mb-4">
             <span className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent">
               Best Sellers
             </span>
           </h2>
         </motion.div>
 
-        {/* Products Grid */}
+        {/* Products Grid - 2x2 no Mobile, 4 colunas no Desktop */}
         <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8 lg:mb-12"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
         >
-          {bestSellers.map((product) => (
-            <motion.div key={product.id} variants={itemVariants}>
-              <ProductCard product={product} />
-            </motion.div>
+          {bestSellers.map((product, index) => (
+            <ProductCard key={product.id} product={product} index={index} />
           ))}
         </motion.div>
 
-        {/* CTA Section */}
+        {/* CTA Section - Botão Menor e Centrado */}
         <motion.div 
           className="text-center"
           initial={{ opacity: 0, y: 30 }}
@@ -142,12 +220,12 @@ const BestSellersSection: React.FC = () => {
           <Link href="/shop">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button 
-                size="lg"
-                className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-16 py-6 text-xl rounded-2xl shadow-2xl hover:shadow-green-500/30 transition-all duration-500 border-2 border-white/20"
+                size="default"
+                className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-8 py-3 text-base lg:text-lg rounded-xl shadow-lg hover:shadow-green-500/30 transition-all duration-300 border border-white/20"
               >
-                <ShoppingCart className="w-6 h-6 mr-3" />
+                <ShoppingCart className="w-5 h-5 mr-2" />
                 Ver Todos os Produtos
-                <span className="ml-3 text-lg animate-pulse">🚀</span>
+                <span className="ml-2 text-sm animate-pulse">🚀</span>
               </Button>
             </motion.div>
           </Link>
