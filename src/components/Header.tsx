@@ -17,12 +17,12 @@ interface NavLink {
   id: string;
 }
 
-// Navigation links including the new transformacoes page
+// Navigation links in the new order: Transformações, Loja, Preço, Comunidade
 const navLinks: NavLink[] = [
   { href: "/transformacoes", label: "Transformações", id: "transformacoes" },
-  { href: "/community", label: "Comunidade", id: "community" },
   { href: "/shop", label: "Loja", id: "shop" },
   { href: "/pricing", label: "Preço", id: "pricing" },
+  { href: "/community", label: "Comunidade", id: "community" },
 ];
 
 const Header: React.FC = () => {

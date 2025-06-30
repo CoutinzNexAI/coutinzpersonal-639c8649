@@ -402,7 +402,7 @@ const ShopPage: React.FC = () => {
                   Carrega a tua foto e vê a magia acontecer em segundos
                 </p>
                 
-                <Link href="/transformacao">
+                <Link href="/transformacoes">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}

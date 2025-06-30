@@ -180,15 +180,15 @@ const GhibliHero = () => {
     });
   };
 
-  const handleCommunityHover = () => {
-    trackHover('community_button', {
+  const handleShopHover = () => {
+    trackHover('shop_button', {
       location: 'hero',
       user_logged_in: !!userInfo
     });
   };
 
   return (
-    <section className="relative pt-2 md:pt-4 pb-16 md:pb-24 overflow-hidden">
+    <section className="relative pt-24 md:pt-28 pb-16 md:pb-24 overflow-hidden">
       {/* Elementos Decorativos Flutuantes (mantidos) */}
       <div className="leaf-decoration top-20 left-10 text-3xl">🍃</div>
       <div className="leaf-decoration bottom-28 right-16 text-2xl">🍂</div>
@@ -291,7 +291,7 @@ const GhibliHero = () => {
                 <div className="flex items-start">
                   <span className="text-2xl mr-3 mt-1">🖼️</span>
                   <p className="text-lg text-ghibli-earth leading-relaxed">
-                    Crie imagens <span className="font-semibold text-ghibli-wood">fantásticas</span>, prontas para partilhar onde quiser!
+                    Crie imagens <span className="font-semibold text-ghibli-wood">fantásticas</span>, perfeitas para transformar em produtos únicos!
                   </p>
                 </div>
               </motion.div>
@@ -299,40 +299,41 @@ const GhibliHero = () => {
 
             {/* Botões com design aprimorado (mantidos) */}
             <div className="flex flex-col space-y-6 items-center justify-center lg:justify-start w-full">
-              {/* Botão principal primeiro - desktop - com mais destaque */}
+              {/* Botão principal primeiro - desktop - design melhorado */}
               <motion.div
                 className="w-auto relative group hidden md:block"
                 whileHover={{
-                  scale: 1.05,
+                  scale: 1.03,
+                  y: -3,
                   transition: { duration: 0.2 }
                 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.97 }}
                 animate={{
-                  y: [0, -6, 0],
-                  transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: titleParts.length * 0.1 + 1.3}
+                  y: [0, -8, 0],
+                  transition: { duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: titleParts.length * 0.1 + 1.3}
                 }}
               >
-                <div className="absolute -inset-1 bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-300 rounded-xl blur-sm opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 rounded-2xl blur-lg opacity-60 group-hover:opacity-90 transition duration-500 group-hover:duration-200 animate-pulse"></div>
                 <Button
                   variant="ghost"
                   className={`relative inline-flex items-center justify-center
-                                  rounded-xl border-3 border-amber-200 hover:border-amber-300 transition-all duration-300
-                                  shadow-lg hover:shadow-xl bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50 text-ghibli-wood font-bold
-                                  text-xl px-8 py-4 md:px-10 md:py-5 transform hover:scale-102`}
+                                  rounded-2xl border-2 border-orange-300/80 hover:border-orange-400 transition-all duration-300
+                                  shadow-2xl hover:shadow-orange-300/30 bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-400 hover:from-orange-500 hover:via-amber-500 hover:to-yellow-500 text-white font-black
+                                  text-xl px-10 py-5 md:px-12 md:py-6 transform hover:scale-102 font-ghibli`}
                   onClick={handleTriggerStudio}
                   onMouseEnter={handleCTAHover}
                 >
                   <motion.span
                     animate={{ 
-                      rotate: [0, -2, 2, -2, 0],
-                      scale: [1, 1.1, 1, 1.1, 1]
+                      rotate: [0, -5, 5, -5, 0],
+                      scale: [1, 1.2, 1, 1.2, 1]
                     }}
-                    transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-                    className="mr-3 text-2xl"
+                    transition={{ duration: 2.5, repeat: Infinity, repeatType: "reverse" }}
+                    className="mr-3 text-2xl filter drop-shadow-lg"
                   >
-                    ✨
+                    🎨
                   </motion.span>
-                  Transforme já a sua foto!
+                  <span className="drop-shadow-sm">Transforme já a sua foto!</span>
                 </Button>
               </motion.div>
               
@@ -364,23 +365,35 @@ const GhibliHero = () => {
                 </Button>
               </motion.div>
 
-                {/* Botão "Ver Comunidade" */}
+                {/* Botão "Visite a Nossa Loja" */}
                 <motion.button
                   onClick={() => {
-                    // 🔥 TRACKING: Community button click
-                    trackEvent('community_button_click', {
+                    // 🔥 TRACKING: Shop button click
+                    trackEvent('shop_button_click', {
                       location: 'hero_desktop',
                       user_logged_in: !!userInfo
                     });
-                    window.location.href = '/community';
+                    window.location.href = '/shop';
                   }}
-                  onMouseEnter={handleCommunityHover}
-                  whileHover={{ scale: 1.05, y: -2 }}
+                  onMouseEnter={handleShopHover}
+                  whileHover={{ 
+                    scale: 1.05, 
+                    y: -2,
+                    boxShadow: "0 8px 25px -8px rgba(76, 175, 80, 0.4)"
+                  }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 py-2.5 bg-gradient-to-r from-ghibli-sky/80 to-ghibli-sky hover:from-ghibli-sky hover:to-ghibli-sky/90 text-white rounded-lg border border-ghibli-sky/60 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="px-5 py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white rounded-xl border border-emerald-400/60 inline-flex items-center transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
                 >
-                  <span className="mr-2">👥</span>
-                  <p className="text-sm font-medium">Ver Comunidade</p>
+                  <motion.span 
+                    className="mr-2 text-lg"
+                    animate={{ 
+                      rotate: [0, 5, -5, 0],
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    🛍️
+                  </motion.span>
+                  <p className="text-sm font-bold">Visite a Nossa Loja!</p>
                 </motion.button>
               </div>
               
@@ -412,16 +425,34 @@ const GhibliHero = () => {
                   </Button>
                 </motion.div>
 
-                {/* Botão "Ver Comunidade" - mobile */}
+                {/* Botão "Visite a Nossa Loja" - mobile */}
               <motion.button
-                onClick={() => window.location.href = '/community'}
-                onMouseEnter={handleCommunityHover}
-                whileHover={{ scale: 1.05, y: -2 }}
+                onClick={() => {
+                  trackEvent('shop_button_click', {
+                    location: 'hero_mobile',
+                    user_logged_in: !!userInfo
+                  });
+                  window.location.href = '/shop';
+                }}
+                onMouseEnter={handleShopHover}
+                whileHover={{ 
+                  scale: 1.05, 
+                  y: -2,
+                  boxShadow: "0 6px 20px -6px rgba(76, 175, 80, 0.4)"
+                }}
                 whileTap={{ scale: 0.95 }}
-                  className="px-4 py-2 bg-gradient-to-r from-ghibli-sky/80 to-ghibli-sky hover:from-ghibli-sky hover:to-ghibli-sky/90 text-white rounded-full border border-ghibli-sky/60 inline-flex items-center transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="px-5 py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white rounded-full border border-emerald-400/60 inline-flex items-center transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
               >
-                <span className="mr-2">👥</span>
-                <p className="text-sm font-medium">Ver Comunidade</p>
+                <motion.span 
+                  className="mr-2 text-lg"
+                  animate={{ 
+                    rotate: [0, 5, -5, 0],
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  🛍️
+                </motion.span>
+                <p className="text-sm font-bold">Visite a Nossa Loja!</p>
               </motion.button>
               </div>
             </div>
