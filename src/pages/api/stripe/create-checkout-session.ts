@@ -119,6 +119,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // Adicionar IVA como item separado para transparência
+    if (tax > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: 'IVA (23%)',
+            description: 'Imposto sobre o Valor Acrescentado'
+          },
+          unit_amount: Math.round(tax * 100)
+        },
+        quantity: 1
+      });
+    }
+
     // Criar sessão Stripe Checkout
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],

@@ -297,8 +297,8 @@ const CheckoutPage: React.FC = () => {
               >
                 <div className="text-6xl mb-2">🛒</div>
               </motion.div>
-              <h1 className="text-4xl md:text-5xl font-ghibli text-ghibli-wood mb-4">
-                🛒 Finalizar Compra
+              <h1 className="text-4xl md:text-5xl font-ghibli text-ghibli-wood mb-4 mt-8">
+                Finalizar Compra
               </h1>
               <p className="text-xl text-ghibli-earth max-w-2xl mx-auto">
                 Reveja o seu pedido e prossiga para o pagamento seguro
@@ -333,12 +333,6 @@ const CheckoutPage: React.FC = () => {
                           Desconto por Quantidade Aplicado!
                         </h3>
                       </div>
-                      <p className="text-green-600 text-sm">
-                        Está a poupar €{cartSummary.discountAmount.toFixed(2)} por comprar múltiplos produtos do mesmo tipo.
-                      </p>
-                      <div className="text-xs text-green-500 mt-1">
-                        ✨ 2 produtos iguais = 10% desconto | 3+ produtos iguais = 15% desconto
-                      </div>
                     </motion.div>
                   )}
                   
@@ -365,12 +359,46 @@ const CheckoutPage: React.FC = () => {
                           <h3 className="text-lg font-semibold text-ghibli-wood mb-1">
                             {item.productName}
                           </h3>
-                          <p className="text-sm text-ghibli-earth">
-                            {item.customizations?.size && `Tamanho: ${item.customizations.size}`}
-                          </p>
-                          <p className="text-sm text-ghibli-earth">
-                            Quantidade: {item.quantity}
-                          </p>
+                          <div className="space-y-1">
+                            {item.customizations?.size && (
+                              <p className="text-sm text-ghibli-earth">
+                                <span className="font-medium">Tamanho:</span> {item.customizations.size}
+                              </p>
+                            )}
+                            {item.customizations?.color && (
+                              <p className="text-sm text-ghibli-earth">
+                                <span className="font-medium">Cor:</span> {item.customizations.color}
+                              </p>
+                            )}
+                            {item.customizations?.phoneModel && (
+                              <p className="text-sm text-ghibli-earth">
+                                <span className="font-medium">Modelo:</span> {item.customizations.phoneModel}
+                              </p>
+                            )}
+                            {item.customizations?.paperType && (
+                              <p className="text-sm text-ghibli-earth">
+                                <span className="font-medium">Papel:</span> {item.customizations.paperType}
+                              </p>
+                            )}
+                            {item.customizations?.frameColor && (
+                              <p className="text-sm text-ghibli-earth">
+                                <span className="font-medium">Moldura:</span> {item.customizations.frameColor}
+                              </p>
+                            )}
+                            {item.customizations?.canvasEdgeType && (
+                              <p className="text-sm text-ghibli-earth">
+                                <span className="font-medium">Bordas:</span> {item.customizations.canvasEdgeType}
+                              </p>
+                            )}
+                            {item.customizations?.variant && (
+                              <p className="text-sm text-ghibli-earth">
+                                <span className="font-medium">Variante:</span> {item.customizations.variant}
+                              </p>
+                            )}
+                            <p className="text-sm text-ghibli-earth">
+                              <span className="font-medium">Quantidade:</span> {item.quantity}
+                            </p>
+                          </div>
                         </div>
                         
                         <div className="text-right w-full sm:w-auto">
@@ -422,47 +450,6 @@ const CheckoutPage: React.FC = () => {
 
               {/* Sidebar - Resumo Financeiro e Checkout */}
               <div className="space-y-6">
-                {/* Método de Envio */}
-                <motion.div 
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-ghibli-moss/10 p-6"
-                >
-                  <div className="flex items-center mb-4">
-                    <div className="text-2xl mr-2">🚚</div>
-                    <h2 className="text-xl font-ghibli text-ghibli-wood">Método de Envio</h2>
-                  </div>
-                  
-                  <div className="border border-ghibli-moss/30 rounded-xl p-4 bg-ghibli-moss/10">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-ghibli-wood">
-                          {isLoadingShipping ? 'A calcular...' : 'Envio Mais Barato'}
-                        </h3>
-                        <p className="text-sm text-ghibli-earth">
-                          {isLoadingShipping ? 'A determinar o método mais económico' : 'Método de envio mais económico da Printify'}
-                        </p>
-                        <p className="text-sm text-ghibli-earth mt-1">
-                          Entrega em ~1 semana
-                        </p>
-                        {shippingError && (
-                          <p className="text-sm text-red-500 mt-1">Erro: {shippingError}</p>
-                        )}
-                      </div>
-                      <span className="text-lg font-bold text-ghibli-moss">
-                        {isLoadingShipping ? (
-                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-ghibli-moss/30 border-t-ghibli-moss"></div>
-                        ) : shippingCost !== null ? (
-                          `€${(shippingCost / 100).toFixed(2)}`
-                        ) : (
-                          'N/A'
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-
                 {/* Resumo Financeiro */}
                 <motion.div 
                   initial={{ opacity: 0, x: 20 }}
@@ -503,39 +490,13 @@ const CheckoutPage: React.FC = () => {
                       <span className="text-ghibli-wood font-semibold">€{cartSummary.subtotal.toFixed(2)}</span>
                     </div>
                     
-                    {/* Envio com animação de corte */}
+                    {/* Envio */}
                     <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
-                      <span className="text-ghibli-earth">Envio</span>
-                      <div className="flex items-center space-x-2">
-                        {isLoadingShipping ? (
-                          <span className="text-ghibli-wood font-semibold">A calcular...</span>
-                        ) : shippingCost !== null ? (
-                          <>
-                            <motion.span 
-                              initial={{ opacity: 1 }}
-                              animate={{ 
-                                opacity: 0, 
-                                scale: 0.8,
-                                textDecoration: 'line-through' 
-                              }}
-                              transition={{ delay: 2, duration: 0.5 }}
-                              className="text-ghibli-earth"
-                            >
-                              €{(shippingCost / 100).toFixed(2)}
-                            </motion.span>
-                            <motion.span
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: 2.5, duration: 0.5 }}
-                              className="text-green-600 font-bold"
-                            >
-                              GRÁTIS! ✨
-                            </motion.span>
-                          </>
-                        ) : (
-                          <span className="text-ghibli-wood font-semibold">N/A</span>
-                        )}
+                      <div>
+                        <span className="text-ghibli-earth">Envio</span>
+                        <p className="text-xs text-ghibli-earth">Entrega em 5-8 dias úteis</p>
                       </div>
+                      <span className="text-green-600 font-bold">GRÁTIS! ✨</span>
                     </div>
                     
                     <div className="flex justify-between py-2 border-b border-ghibli-moss/20">

@@ -181,18 +181,18 @@ const ShopPage: React.FC = () => {
           </div>
 
           {/* Call to Action */}
-          <div className="text-center bg-gray-200/50 backdrop-blur-md rounded-3xl p-8 border border-gray-300">
-            <h2 className="text-3xl font-bold text-white mb-4">
+          <div className="text-center bg-transparent p-8 rounded-3xl"> {/* Removido o background-color e bordas */}
+            <h2 className="text-3xl font-bold text-[#2D5A27] mb-4"> {/* Cor do título "Loja PicTuz" */}
               Pronto para Criar?
             </h2>
-            <p className="text-[#E8F5E8] mb-6 text-lg">
+            <p className="text-[#4A6B5B] mb-6 text-lg"> {/* Cor mais escura para o parágrafo para legibilidade */}
               Carrega a tua foto e vê a magia acontecer em segundos
             </p>
             <button
               onClick={() => router.push('/')}
               className="px-8 py-4 bg-gradient-to-r from-[#B8E6B8] to-[#9FD7A0] text-[#2D5A27] 
-                        font-bold rounded-2xl hover:scale-105 transition-all duration-300 
-                        shadow-lg hover:shadow-xl"
+                          font-bold rounded-2xl hover:scale-105 transition-all duration-300 
+                          shadow-lg hover:shadow-xl"
             >
               Começar Agora
             </button>
