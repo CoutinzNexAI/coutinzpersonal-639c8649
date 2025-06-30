@@ -113,82 +113,10 @@ export class CartService {
     return {
       items,
       subtotal: Math.round(subtotal * 100) / 100,
-      totalDiscount: 0,
-      priceWithDiscount: Math.round(subtotal * 100) / 100,
-      shippingCost: Math.round(shipping * 100) / 100,
+      shipping: Math.round(shipping * 100) / 100,
       tax: Math.round(tax * 100) / 100,
-      finalTotal: Math.round(total * 100) / 100,
+      total: Math.round(total * 100) / 100,
       itemCount
-    };
-  }
-
-  // ✅ NOVA FUNÇÃO: O CÉREBRO DOS CÁLCULOS
-  static calculateCartTotals(items: CartItem[], shippingCost: number): CartSummary {
-    if (items.length === 0) {
-      return {
-        items: [],
-        subtotal: 0,
-        totalDiscount: 0,
-        priceWithDiscount: 0,
-        shippingCost: 0,
-        tax: 0,
-        finalTotal: 0,
-        itemCount: 0,
-      };
-    }
-
-    // PASSO 1: Agrupar itens pelo TIPO de produto (productId) para o desconto
-    const groupedByProduct = items.reduce((acc, item) => {
-      const key = item.productId;
-      if (!acc[key]) {
-        acc[key] = { quantity: 0, totalValue: 0 };
-      }
-      acc[key].quantity += item.quantity;
-      acc[key].totalValue += item.price * item.quantity;
-      return acc;
-    }, {} as Record<string, { quantity: number; totalValue: number }>);
-
-    // PASSO 2: Definir as tuas regras de desconto
-    const discountTiers = [
-      { min: 3, rate: 0.15 }, // 15% para 3 ou mais
-      { min: 2, rate: 0.10 }, // 10% para 2 ou mais
-    ];
-
-    let subtotal = 0;
-    let totalDiscount = 0;
-
-    // PASSO 3: Calcular o subtotal e o desconto para cada grupo
-    for (const productId in groupedByProduct) {
-      const group = groupedByProduct[productId];
-      subtotal += group.totalValue;
-
-      const applicableTier = discountTiers.find(tier => group.quantity >= tier.min);
-      if (applicableTier) {
-        const discountForGroup = group.totalValue * applicableTier.rate;
-        totalDiscount += discountForGroup;
-      }
-    }
-
-    // PASSO 4: Calcular todos os valores finais
-    const priceWithDiscount = subtotal - totalDiscount;
-    
-    // O preço que serve de base para o IVA agora INCLUI o envio
-    const taxableBasePrice = priceWithDiscount + shippingCost;
-    
-    const tax = taxableBasePrice * TAX_RATE;
-    const finalTotal = taxableBasePrice + tax;
-    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-
-    // PASSO 5: Retornar o objeto de sumário completo e pronto a usar
-    return {
-      items,
-      subtotal: Math.round(subtotal * 100) / 100, // Preço original sem descontos
-      totalDiscount: Math.round(totalDiscount * 100) / 100,
-      priceWithDiscount: Math.round(priceWithDiscount * 100) / 100,
-      shippingCost: Math.round(shippingCost * 100) / 100, // Guardamos o custo real
-      tax: Math.round(tax * 100) / 100,
-      finalTotal: Math.round(finalTotal * 100) / 100,
-      itemCount,
     };
   }
 

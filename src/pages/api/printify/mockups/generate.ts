@@ -15,9 +15,9 @@ async function getImageDimensions(imageUrl: string): Promise<{ width: number; he
   console.log(`[getImageDimensions] 🕵️  Iniciando a deteção para o URL: ${imageUrl}`);
   return new Promise((resolve, reject) => {
     // A parte do browser não é relevante aqui, pois isto só corre no servidor
-    const client = imageUrl.startsWith('https://') ? https : http;
-
-    client.get(imageUrl, (response) => {
+      const client = imageUrl.startsWith('https://') ? https : http;
+      
+      client.get(imageUrl, (response) => {
       // ✅ NOVO LOG: Vamos ver o status code e os headers!
       const { statusCode, headers } = response;
       console.log(`[getImageDimensions] 🕵️  Resposta do servidor da imagem - Status: ${statusCode}`);
@@ -43,62 +43,62 @@ async function getImageDimensions(imageUrl: string): Promise<{ width: number; he
         return;
       }
 
-      const chunks: Buffer[] = [];
-      response.on('data', (chunk: Buffer) => chunks.push(chunk));
-      response.on('end', () => {
-        const buffer = Buffer.concat(chunks);
+        const chunks: Buffer[] = [];
+        response.on('data', (chunk: Buffer) => chunks.push(chunk));
+        response.on('end', () => {
+          const buffer = Buffer.concat(chunks);
         console.log(`[getImageDimensions] 🕵️  Download da imagem concluído. Tamanho do buffer: ${buffer.length} bytes.`);
-        
-        // Detectar tipo de imagem e extrair dimensões
-        if (buffer.length >= 4) {
-          // PNG
-          if (buffer.toString('hex', 0, 8) === '89504e470d0a1a0a') {
-            const width = buffer.readUInt32BE(16);
-            const height = buffer.readUInt32BE(20);
+          
+          // Detectar tipo de imagem e extrair dimensões
+          if (buffer.length >= 4) {
+            // PNG
+            if (buffer.toString('hex', 0, 8) === '89504e470d0a1a0a') {
+              const width = buffer.readUInt32BE(16);
+              const height = buffer.readUInt32BE(20);
             console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como PNG (${width}x${height})`);
-            resolve({ width, height });
+              resolve({ width, height });
             return;
-          }
-          // JPEG
-          else if (buffer.toString('hex', 0, 4) === 'ffd8ffe0' || buffer.toString('hex', 0, 4) === 'ffd8ffe1') {
-            let offset = 2;
-            while (offset < buffer.length) {
-              const marker = buffer.readUInt16BE(offset);
-              if (marker === 0xffc0 || marker === 0xffc2) {
-                const height = buffer.readUInt16BE(offset + 5);
-                const width = buffer.readUInt16BE(offset + 7);
+            }
+            // JPEG
+            else if (buffer.toString('hex', 0, 4) === 'ffd8ffe0' || buffer.toString('hex', 0, 4) === 'ffd8ffe1') {
+              let offset = 2;
+              while (offset < buffer.length) {
+                const marker = buffer.readUInt16BE(offset);
+                if (marker === 0xffc0 || marker === 0xffc2) {
+                  const height = buffer.readUInt16BE(offset + 5);
+                  const width = buffer.readUInt16BE(offset + 7);
                 console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como JPEG (${width}x${height})`);
-                resolve({ width, height });
-                return;
+                  resolve({ width, height });
+                  return;
+                }
+                offset += 2 + buffer.readUInt16BE(offset + 2);
               }
-              offset += 2 + buffer.readUInt16BE(offset + 2);
             }
-          }
-          // WebP
-          else if (buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
-            // WebP simples (VP8)
-            if (buffer.toString('ascii', 12, 16) === 'VP8 ') {
-              const width = buffer.readUInt16LE(26) & 0x3fff;
-              const height = buffer.readUInt16LE(28) & 0x3fff;
+            // WebP
+            else if (buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
+              // WebP simples (VP8)
+              if (buffer.toString('ascii', 12, 16) === 'VP8 ') {
+                const width = buffer.readUInt16LE(26) & 0x3fff;
+                const height = buffer.readUInt16LE(28) & 0x3fff;
               console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como WebP VP8 (${width}x${height})`);
-              resolve({ width, height });
-            }
-            // WebP lossless (VP8L)
-            else if (buffer.toString('ascii', 12, 16) === 'VP8L') {
-              const bits = buffer.readUInt32LE(21);
-              const width = (bits & 0x3fff) + 1;
-              const height = ((bits >> 14) & 0x3fff) + 1;
+                resolve({ width, height });
+              }
+              // WebP lossless (VP8L)
+              else if (buffer.toString('ascii', 12, 16) === 'VP8L') {
+                const bits = buffer.readUInt32LE(21);
+                const width = (bits & 0x3fff) + 1;
+                const height = ((bits >> 14) & 0x3fff) + 1;
               console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como WebP VP8L (${width}x${height})`);
-              resolve({ width, height });
+                resolve({ width, height });
+              }
             }
           }
-        }
-        
+          
         console.warn('[getImageDimensions] ⚠️ O parsing manual do buffer falhou. Não foi detetado um formato conhecido.');
-        // Fallback: assumir dimensões padrão se não conseguir detectar
-        console.warn('⚠️ Could not detect image dimensions, using fallback 1024x1024');
-        resolve({ width: 1024, height: 1024 });
-      });
+          // Fallback: assumir dimensões padrão se não conseguir detectar
+          console.warn('⚠️ Could not detect image dimensions, using fallback 1024x1024');
+          resolve({ width: 1024, height: 1024 });
+        });
     }).on('error', (err) => {
       // ✅ NOVO LOG: Capturar erros de rede
       console.error('[getImageDimensions] ❌ ERRO DE REDE:', err.message);

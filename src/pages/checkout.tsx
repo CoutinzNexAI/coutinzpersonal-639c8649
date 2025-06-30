@@ -94,18 +94,10 @@ const CheckoutPage: React.FC = () => {
     }
   }, [router, calculateShippingDebounced]);
 
-  // ✅ NOVA LÓGICA: Usar calculateCartTotals para obter todos os valores
-  const getCartTotals = () => {
-    if (!cartSummary || shippingCost === null) return null;
-    
-    const shippingPrice = shippingCost / 100; // Converter de centavos para euros
-    return CartService.calculateCartTotals(cartSummary.items, shippingPrice);
-  };
-
-  const totals = getCartTotals();
-
   const calculateTotal = () => {
-    return totals ? totals.finalTotal : 0;
+    if (!cartSummary) return 0;
+    const shipping = shippingCost ? shippingCost / 100 : 0; // Converter de centavos para euros
+    return cartSummary.subtotal + shipping + cartSummary.tax;
   };
 
   const handleCheckout = async () => {
@@ -129,11 +121,9 @@ const CheckoutPage: React.FC = () => {
         return;
       }
 
-      // 2. Calcular totais finais com desconto
-      if (!totals) {
-        toast.error('Erro ao calcular totais. Tente novamente.');
-        return;
-      }
+      // 2. Calcular total final
+      const shippingPrice = shippingCost / 100; // Converter de centavos para euros
+      const finalTotal = calculateTotal();
 
       toast.info('A preparar sessão de pagamento...', { duration: 2000 });
 
@@ -148,7 +138,7 @@ const CheckoutPage: React.FC = () => {
           shippingMethod: {
             uid: 'cheapest_printify',
             name: 'Envio Mais Barato',
-            price: totals.shippingCost,
+            price: shippingPrice,
             deliveryDaysMin: 7,
             deliveryDaysMax: 14,
             description: 'Método de envio mais económico da Printify'
@@ -156,12 +146,10 @@ const CheckoutPage: React.FC = () => {
           userId: userInfo.id,
           userName: userData.full_name,
           userEmail: userData.email,
-          subtotal: totals.subtotal,
-          totalDiscount: totals.totalDiscount,
-          priceWithDiscount: totals.priceWithDiscount,
-          shipping: totals.shippingCost,
-          tax: totals.tax,
-          total: totals.finalTotal
+          subtotal: cartSummary.subtotal,
+          shipping: shippingPrice,
+          tax: cartSummary.tax,
+          total: finalTotal
         })
       });
 
@@ -308,7 +296,7 @@ const CheckoutPage: React.FC = () => {
                 <div className="text-6xl mb-2">🛒</div>
               </motion.div>
               <h1 className="text-4xl md:text-5xl font-ghibli text-ghibli-wood mb-4">
-                🛒 Finalizar Compra
+                Finalizar Compra
               </h1>
               <p className="text-xl text-ghibli-earth max-w-2xl mx-auto">
                 Reveja o seu pedido e prossiga para o pagamento seguro
@@ -466,46 +454,19 @@ const CheckoutPage: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
                       <span className="text-ghibli-earth">Subtotal</span>
+                      <span className="text-ghibli-wood font-semibold">€{cartSummary.subtotal.toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
+                      <span className="text-ghibli-earth">Envio</span>
                       <span className="text-ghibli-wood font-semibold">
-                        €{totals ? totals.subtotal.toFixed(2) : cartSummary.subtotal.toFixed(2)}
+                        {isLoadingShipping ? 'A calcular...' : shippingCost !== null ? `€${(shippingCost / 100).toFixed(2)}` : 'N/A'}
                       </span>
                     </div>
-
-                    {totals && totals.totalDiscount > 0 && (
-                      <motion.div 
-                        className="flex justify-between py-2 border-b border-ghibli-moss/20 text-green-600"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                      >
-                        <span className="flex items-center">
-                          <span className="mr-2">🎉</span>
-                          Desconto por Quantidade
-                        </span>
-                        <span className="font-semibold">- €{totals.totalDiscount.toFixed(2)}</span>
-                      </motion.div>
-                    )}
-                    
-                    <motion.div 
-                      className="flex justify-between py-2 border-b border-ghibli-moss/20 text-green-600"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: 0.4 }}
-                    >
-                      <span className="flex items-center">
-                        <span className="mr-2">🚚</span>
-                        Envio
-                      </span>
-                      <span className="font-semibold">
-                        {isLoadingShipping ? 'A calcular...' : 'Grátis'}
-                      </span>
-                    </motion.div>
                     
                     <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
                       <span className="text-ghibli-earth">IVA (23%)</span>
-                      <span className="text-ghibli-wood font-semibold">
-                        €{totals ? totals.tax.toFixed(2) : cartSummary.tax.toFixed(2)}
-                      </span>
+                      <span className="text-ghibli-wood font-semibold">€{cartSummary.tax.toFixed(2)}</span>
                     </div>
                     
                     <div className="bg-ghibli-moss/10 rounded-xl p-4 mt-4">
