@@ -279,6 +279,15 @@ export default function ProductCanvas({
   // PASSO 2: Este é o NOVO useEffect que vai controlar TUDO.
   // Ele observa as mudanças e usa um "debounce" para não disparar a API a cada milissegundo.
   useEffect(() => {
+    // ✅ NOVA CONDIÇÃO DE GUARDA: A SOLUÇÃO FINAL
+    // Esta linha verifica se o código está a correr na janela principal do browser
+    // ou se está a correr dentro de um iframe (usado por ferramentas de gravação como rrweb).
+    // Se self !== top, significa que é um clone de gravação e devemos parar imediatamente.
+    if (typeof window !== 'undefined' && window.self !== window.top) {
+      console.warn('👻 [ProductCanvas] Execução abortada: detetado ambiente de gravação de sessão (iframe).');
+      return; 
+    }
+
     // ✅ NOVO LOG #2: Adiciona esta linha dentro do useEffect
     console.log(`🟢 [ProductCanvas] useEffect de GERAÇÃO EXECUTADO`);
     
