@@ -47,6 +47,8 @@ interface ProductCanvasProps {
   selectedPhraseText?: string;
   mockupUrl?: string;
   selectedImageId?: string | null; // Para Canvas products
+  isGenerating: boolean; // <-- NOVA PROP
+  onLoadingChange: (isLoading: boolean) => void; // <-- NOVA PROP
 }
 
 interface GenerateMockupResponse {
@@ -73,15 +75,18 @@ export default function ProductCanvas({
   allImageAdjustments,
   selectedPhraseText,
   mockupUrl,
-  selectedImageId
+  selectedImageId,
+  isGenerating,
+  onLoadingChange
 }: ProductCanvasProps) {
-  const [isLoadingMockups, setIsLoadingMockups] = useState(false);
+  // APAGA O ESTADO INTERNO - AGORA É CONTROLADO PELO PAI
+  // const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
   
-  // ✅ NOVO LOG #1: Adiciona esta linha logo após declarar o state
-  console.log(`🔵 [ProductCanvas] COMPONENTE A RENDERIZAR - isLoadingMockups: ${isLoadingMockups}, hasGenerated: ${hasGenerated}`);
+  // ✅ NOVO LOG #1: Agora usa a prop isGenerating
+  console.log(`🔵 [ProductCanvas] COMPONENTE A RENDERIZAR - isGenerating: ${isGenerating}, hasGenerated: ${hasGenerated}`);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
 
   // ✅ OTIMIZAÇÃO: Estado consolidado do Printify
@@ -167,7 +172,7 @@ export default function ProductCanvas({
     }
 
     // A condição de guarda principal: não fazer nada se não tivermos os dados essenciais ou se já estiver a carregar
-    if (!userImageUrl || !userId || isLoadingMockups) {
+    if (!userImageUrl || !userId || isGenerating) {
       console.log('🔇 [generateMockupApiCall] Abortado: Faltam dados ou já está a carregar.');
       return;
     }
@@ -176,7 +181,7 @@ export default function ProductCanvas({
     
     // ✅ ATIVA A TRINCA GLOBAL
     isGeneratingGlobally = true;
-    setIsLoadingMockups(true);
+    onLoadingChange(true);
     setError(null);
 
     try {
@@ -272,7 +277,7 @@ export default function ProductCanvas({
       setError(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido');
     } finally {
       console.log('🏁 [generateMockupApiCall] FIM DA GERAÇÃO.');
-      setIsLoadingMockups(false);
+      onLoadingChange(false);
       
       // ✅ LIBERTA A TRINCA GLOBAL DEPOIS DE UM PEQUENO ATRASO
       // para dar tempo ao React para estabilizar e não iniciar outra chamada imediatamente
@@ -286,14 +291,15 @@ export default function ProductCanvas({
     // Inclui apenas o que é realmente necessário para a função existir.
     userImageUrl, 
     userId, 
-    isLoadingMockups, 
+    isGenerating, 
     selectedProduct, 
     imageAdjustments, 
     selectedPrintifyVariantId,
     allImageAdjustments,
     selectedPhraseText,
     selectedImageId,
-    onPreviewReady // onPreviewReady deve ser envolvida em useCallback no componente pai para ser estável
+    onPreviewReady, // onPreviewReady deve ser envolvida em useCallback no componente pai para ser estável
+    onLoadingChange // Nova dependência
   ]);
 
   // PASSO 2: Este é o NOVO useEffect que vai controlar TUDO.
@@ -816,7 +822,7 @@ export default function ProductCanvas({
         </p>
         <Button
           onClick={generateMockupApiCall}
-          disabled={isLoadingMockups}
+          disabled={isGenerating}
           className="bg-red-600 hover:bg-red-700 text-white"
         >
           <RotateCw className="w-4 h-4 mr-2" />
@@ -835,7 +841,7 @@ export default function ProductCanvas({
     return renderEmptyState();
   }
 
-  if (isLoadingMockups) {
+  if (isGenerating) {
     return (
       <div className="relative w-full h-full bg-white flex items-center justify-center">
         <div className="text-center">

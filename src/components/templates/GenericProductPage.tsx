@@ -415,6 +415,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   imageAdjustments={calculatedAdjustments}
                   onImageAdjust={(adjustments) => setProductState(prev => ({ ...prev, imageAdjustments: adjustments }))}
                   selectedPrintifyVariantId={productState.selectedPrintifyVariantId}
+                  isGenerating={isGeneratingMockup}
+                  onLoadingChange={setIsGeneratingMockup}
                 />
               </div>
 
@@ -563,6 +565,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   imageAdjustments={calculatedAdjustments}
                   onImageAdjust={(adjustments) => setProductState(prev => ({ ...prev, imageAdjustments: adjustments }))}
                   selectedPrintifyVariantId={productState.selectedPrintifyVariantId}
+                  isGenerating={isGeneratingMockup}
+                  onLoadingChange={setIsGeneratingMockup}
                 />
               </div>
 
