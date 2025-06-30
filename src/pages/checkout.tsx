@@ -35,7 +35,7 @@ const DEFAULT_SHIPPING_ADDRESS = {
 const CheckoutPage: React.FC = () => {
   const router = useRouter();
   const { userInfo } = useAuth();
-  const { shippingCost, isLoadingShipping, shippingError, calculateShipping, calculateShippingDebounced } = useShippingCalculation();
+
   
   const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -88,11 +88,8 @@ const CheckoutPage: React.FC = () => {
     
     setCartSummary(summary);
 
-    // Calcular shipping automaticamente usando endereço padrão
-    if (summary.items.length > 0) {
-      calculateShippingDebounced(summary.items, DEFAULT_SHIPPING_ADDRESS);
-    }
-  }, [router, calculateShippingDebounced]);
+    // Envio é sempre gratuito, não precisamos calcular
+  }, [router]);
 
   const calculateTotal = () => {
     if (!cartSummary) return 0;
@@ -106,10 +103,6 @@ const CheckoutPage: React.FC = () => {
       return;
     }
 
-    if (shippingCost === null) {
-      toast.error('Custo de envio não calculado. Tente novamente.');
-      return;
-    }
 
     setLoadingPayment(true);
 
@@ -136,12 +129,12 @@ const CheckoutPage: React.FC = () => {
         body: JSON.stringify({
           items: cartSummary.items,
           shippingMethod: {
-            uid: 'cheapest_printify',
-            name: 'Envio Mais Barato',
+            uid: 'free_shipping',
+            name: 'Envio Grátis',
             price: shippingPrice,
-            deliveryDaysMin: 7,
-            deliveryDaysMax: 14,
-            description: 'Método de envio mais económico da Printify'
+            deliveryDaysMin: 5,
+            deliveryDaysMax: 8,
+            description: 'Envio gratuito em 5-8 dias úteis'
           },
           userId: userInfo.id,
           userName: userData.full_name,
@@ -189,10 +182,7 @@ const CheckoutPage: React.FC = () => {
       toast.info('Carrinho vazio. Redirecionando para a loja...');
     } else {
       toast.success('Produto removido do carrinho');
-      // Recalcular shipping com novos itens
-      if (newSummary.items.length > 0) {
-        calculateShippingDebounced(newSummary.items, DEFAULT_SHIPPING_ADDRESS);
-      }
+      // Envio é sempre gratuito, não precisamos recalcular
     }
   };
 
