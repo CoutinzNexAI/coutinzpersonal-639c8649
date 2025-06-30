@@ -181,7 +181,7 @@ const ShopPage: React.FC = () => {
           </div>
 
           {/* Call to Action */}
-          <div className="text-center bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20">
+          <div className="text-center bg-gray-200/50 backdrop-blur-md rounded-3xl p-8 border border-gray-300">
             <h2 className="text-3xl font-bold text-white mb-4">
               Pronto para Criar?
             </h2>
