@@ -362,6 +362,29 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         <Header />
         
         <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-12 sm:pb-8 lg:pt-24 lg:pb-8">
+          
+          {/* ProductCanvas ÚNICO e RESPONSIVO - Fora dos layouts específicos */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-6 lg:mb-8"
+          >
+            <div className="relative w-full h-[350px] lg:h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20">
+              <ProductCanvas
+                selectedProduct={product}
+                userImageUrl={selectedImageUrl}
+                userId={userInfo?.id}
+                printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                onPreviewReady={handlePreviewReady}
+                onSelectImage={handleOpenGallery}
+                imageAdjustments={imageAdjustments}
+                onImageAdjust={setImageAdjustments}
+                selectedPrintifyVariantId={selectedPrintifyVariantId}
+              />
+            </div>
+          </motion.div>
+
           {/* Layout Mobile */}
           <div className="block lg:hidden">
             <motion.div
@@ -381,19 +404,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mb-6"
             >
-              <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20">
-                <ProductCanvas
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={imageAdjustments}
-                  onImageAdjust={setImageAdjustments}
-                  selectedPrintifyVariantId={selectedPrintifyVariantId}
-                />
-              </div>
 
               <ProductMobileControls
                 selectedImageUrl={selectedImageUrl}
@@ -521,26 +531,13 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
           {/* Layout Desktop */}
           <div className="hidden lg:flex lg:grid lg:grid-cols-3 gap-8">
-            {/* Área de Visualização */}
+            {/* Área de Controlo Desktop - ProductCanvas agora está acima */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               className="lg:col-span-2 order-1"
             >
-              <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-ghibli-sand/20">
-                <ProductCanvas
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={imageAdjustments}
-                  onImageAdjust={setImageAdjustments}
-                  selectedPrintifyVariantId={selectedPrintifyVariantId}
-                />
-              </div>
 
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -731,8 +728,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     selectedImageUrl={selectedImageUrl}
                     onOpenGallery={handleOpenGallery}
                   />
-
-
 
                   {/* Descrição */}
                   <ProductDescription items={config.descriptionItems(product)} />
