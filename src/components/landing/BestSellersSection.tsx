@@ -19,7 +19,7 @@ interface Product {
 const bestSellers: Product[] = [
   {
     id: 'custom_canvas',
-    name: 'Canvas Personalizado',
+    name: 'Canvas Premium',
     category: 'Canvas',
     price: 20.00,
     imagePersonalized: '/Bestseller/canva16foto.png',
@@ -48,8 +48,8 @@ const bestSellers: Product[] = [
     badge: 'TOP'
   },
   {
-    id: 'poster_horizontal',
-    name: 'Poster Personalizado',
+    id: 'poster_vertical',
+    name: 'Poster Vertical',
     category: 'Posters',
     price: 20.00,
     imagePersonalized: '/Bestseller/poster1824foto.png',
@@ -73,7 +73,7 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
     >
       <Link href={product.href}>
         <div 
-          className="group bg-white rounded-2xl shadow-lg border border-ghibli-sand/20 overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer h-full"
+          className="group bg-gradient-to-b from-white/90 via-ghibli-cream/70 to-white/90 rounded-2xl shadow-xl border border-ghibli-sand/30 overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer h-full hover:border-ghibli-moss/40"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onTouchStart={() => setIsHovered(!isHovered)}
@@ -141,18 +141,13 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
             />
           </div>
           
-          {/* Product Info */}
-          <div className="p-4 lg:p-6">
-            <h3 className="text-lg lg:text-xl font-bold text-ghibli-wood mb-2 group-hover:text-ghibli-moss transition-colors line-clamp-2">
+          {/* Product Info - Centralized like /shopfinal */}
+          <div className="p-4 lg:p-6 text-center">
+            <h3 className="text-lg lg:text-xl font-bold text-ghibli-wood mb-3 group-hover:text-ghibli-moss transition-colors line-clamp-2">
               {product.name}
             </h3>
             
-            {/* Category */}
-            <p className="text-sm text-ghibli-earth/70 mb-3">
-              {product.category}
-            </p>
-            
-            {/* Price */}
+            {/* Price - Centralized and prominent */}
             <div className="flex items-center justify-center">
               <div className="text-xl lg:text-2xl font-bold text-ghibli-moss">
                 €{product.price.toFixed(2)}

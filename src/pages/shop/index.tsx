@@ -100,7 +100,7 @@ const cardVariants = {
 
 const ShopPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-white to-ghibli-paper/30">
+    <div className="min-h-screen bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50">
       <Head>
         <title>Loja - Produtos Personalizados | PicTuz</title>
         <meta name="description" content="Descubra a nossa coleção completa de produtos personalizados: canvas, canecas, posters, capas e muito mais. Transforme as suas fotos em produtos únicos!" />

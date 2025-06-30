@@ -11,7 +11,7 @@ import { FAQSection } from '@/components/FAQSection';
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-white to-ghibli-paper/30 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50 relative overflow-hidden">
       <Head>
         <title>PicTuz - Produtos Personalizados com IA | Canecas, Canvas, Posters</title>
         <meta name="description" content="Transforma as tuas fotos em produtos únicos! Canecas, canvas, posters personalizados com arte gerada por IA. Entrega grátis em Portugal." />

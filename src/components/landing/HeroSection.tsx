@@ -57,7 +57,7 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="relative py-8 md:py-12 overflow-hidden bg-gradient-to-br from-ghibli-cream via-white to-ghibli-paper">
+    <section className="relative py-8 md:py-12 overflow-hidden bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50">
       <div className="container mx-auto px-4">
         {/* Mobile Layout */}
         <div className="lg:hidden">
@@ -105,7 +105,7 @@ const HeroSection: React.FC = () => {
                     transition={{ duration: 0.3 }}
                   >
                     <Image
-                      src="/Bestseller/capatelemovelfoto.png"
+                      src="/landing/capatele.png"
                       alt="Capa de telemóvel personalizada"
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -127,7 +127,7 @@ const HeroSection: React.FC = () => {
                     transition={{ duration: 0.3 }}
                   >
                     <Image
-                      src="/Bestseller/canecacoracaofoto.png"
+                      src="/landing/canecacoracao.png"
                       alt="Caneca de coração personalizada"
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -146,37 +146,39 @@ const HeroSection: React.FC = () => {
 
             {/* Mobile Logo + Title Layout - Centrados em suas metades */}
             <motion.div 
-              className="grid grid-cols-2 gap-4 mb-2"
+              className="text-center mb-2"
               variants={itemVariants}
             >
-              {/* Logo centrado na metade esquerda */}
-              <motion.div 
-                className="flex items-center justify-center"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+              {/* Frase completa centrada numa linha */}
+              <motion.h1 
+                className="text-xl md:text-2xl font-bold text-ghibli-wood leading-tight"
+                variants={titleVariants}
               >
-                <Image
-                  src="/pictuzlogooficial.png"
-                  alt="PicTuz Logo"
-                  width={80}
-                  height={25}
-                  className="object-contain"
-                  priority
-                  quality={95}
-                />
-              </motion.div>
+                More Than a Frame - It's a Feeling
+              </motion.h1>
+            </motion.div>
 
-              {/* Título centrado na metade direita */}
-              <motion.div className="flex items-center justify-center">
-                <motion.h1 
-                  className="text-2xl md:text-3xl font-bold text-ghibli-wood leading-tight text-center"
-                  variants={titleVariants}
-                >
-                  More Than a Frame.<br/>
-                  It's a Feeling
-                </motion.h1>
-              </motion.div>
+            {/* Mobile Benefits */}
+            <motion.div 
+              className="grid grid-cols-2 gap-3 mb-6"
+              variants={itemVariants}
+            >
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Zap className="w-5 h-5 text-ghibli-moss" />
+                <span className="text-ghibli-earth font-medium text-sm">Entrega Rápida</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Heart className="w-5 h-5 text-ghibli-poppy" />
+                <span className="text-ghibli-earth font-medium text-sm">Personalização Única</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Users className="w-5 h-5 text-ghibli-moss" />
+                <span className="text-ghibli-earth font-medium text-sm">+1K Clientes</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Star className="w-5 h-5 text-yellow-500" />
+                <span className="text-ghibli-earth font-medium text-sm">5⭐ Reviews</span>
+              </div>
             </motion.div>
 
             {/* Mobile CTA Buttons - Side by Side */}
@@ -202,65 +204,6 @@ const HeroSection: React.FC = () => {
                   Ver Produtos
                 </Button>
               </Link>
-            </motion.div>
-
-            {/* Mobile Benefits Grid */}
-            <motion.div 
-              className="grid grid-cols-2 gap-3"
-              variants={itemVariants}
-            >
-              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
-                <Zap className="w-5 h-5 text-ghibli-moss" />
-                <span className="text-ghibli-earth font-medium text-sm">Entrega Rápida</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
-                <Heart className="w-5 h-5 text-ghibli-poppy" />
-                <span className="text-ghibli-earth font-medium text-sm">Personalização Única</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
-                <Users className="w-5 h-5 text-ghibli-moss" />
-                <span className="text-ghibli-earth font-medium text-sm">+1K Clientes</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
-                <Star className="w-5 h-5 text-yellow-500" />
-                <span className="text-ghibli-earth font-medium text-sm">5⭐ Reviews</span>
-              </div>
-            </motion.div>
-
-            {/* Welcome Message - Mini Animação */}
-            <motion.div
-              className="relative mb-4"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ 
-                duration: 0.8, 
-                delay: 0.6,
-                type: "spring",
-                bounce: 0.3 
-              }}
-            >
-              <motion.div
-                className="inline-block relative"
-              >
-                {/* Background Effect - só o fundo se move */}
-                <motion.div
-                  className="absolute -inset-4 bg-gradient-to-r from-ghibli-sky/30 via-ghibli-sunflower/20 to-ghibli-sky/30 rounded-full blur-sm"
-                  animate={{
-                    opacity: [0.4, 0.7, 0.4],
-                    scale: [0.9, 1.1, 0.9],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-                
-                {/* Welcome Text - estático, maior, cor diferente */}
-                <span className="relative text-lg font-semibold text-ghibli-sky-deep">
-                  ✨ Bem-vindo ao Pictuz ✨
-                </span>
-              </motion.div>
             </motion.div>
           </motion.div>
         </div>
@@ -298,7 +241,7 @@ const HeroSection: React.FC = () => {
               className="text-3xl md:text-4xl lg:text-5xl font-bold text-ghibli-wood leading-[1.1] tracking-tight mb-4"
               variants={titleVariants}
             >
-              More Than a Frame<br/>
+              More Than a Frame - <br/>
               It's a Feeling
             </motion.h1>
 
@@ -343,7 +286,7 @@ const HeroSection: React.FC = () => {
               className="text-lg md:text-xl text-ghibli-earth mb-6 leading-relaxed max-w-3xl"
               variants={subtitleVariants}
             >
-              Porque memórias não foram feitas para ficar no ecrã.
+              Porque memórias não foram feitas para ficar no ecrã!
             </motion.p>
 
             {/* Benefits */}
