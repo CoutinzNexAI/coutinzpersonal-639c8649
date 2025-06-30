@@ -4,7 +4,7 @@ import { Style } from '../StyleSelectorModal';
 import Image from 'next/image';
 import { Download, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { RatingButtons } from '../RatingButtons';
+
 
 interface CompletedStateProps {
   transformedImageUrl: string;
@@ -81,24 +81,24 @@ const CompletedState: React.FC<CompletedStateProps> = ({
 
       {/* Rating e Botões na parte inferior */}
       <div className="px-4 pb-4 flex-shrink-0 space-y-3">
-        {/* Rating Buttons centralizados */}
-        {transformationId && (
-          <div className="flex flex-col items-center gap-2">
-            <div className="text-center">
-              <p className="text-sm font-medium text-ghibli-wood">
-                Gostaste?
-              </p>
-              <p className="text-xs text-muted-foreground">
-                O teu feedback ajuda-nos!
-              </p>
-            </div>
-            <RatingButtons 
-              transformationId={transformationId}
-              className="flex-row"
-              initialRating={initialRating}
-            />
+        {/* Botão para Loja - Criativo e Chamativo */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="text-center">
+            <p className="text-sm font-semibold text-ghibli-wood">
+              Agora transforma em algo real! 🎁
+            </p>
           </div>
-        )}
+          <button
+            onClick={() => window.location.href = '/shop'}
+            className="w-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] border border-emerald-400/60"
+          >
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-lg animate-pulse">🛍️</span>
+              <span>Ver Produtos Personalizados</span>
+              <span className="text-sm animate-bounce">✨</span>
+            </div>
+          </button>
+        </div>
         
         {/* Botão de Download */}
         <Button 

@@ -327,7 +327,7 @@ const HeroSection: React.FC = () => {
                     className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-8 py-3 lg:py-6 text-lg rounded-xl shadow-lg hover:shadow-green-500/30 transition-all duration-300 border border-white/20"
                   >
                     <span className="mr-2 text-lg">🎨</span>
-                    Transformar Foto Agora
+                    Transforma a tua Foto Grátis 
                     <span className="ml-2 text-sm animate-bounce">✨</span>
                   </Button>
                 </motion.div>
