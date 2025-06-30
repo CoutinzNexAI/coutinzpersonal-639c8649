@@ -77,7 +77,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   // Estados específicos do produto
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const [imagePosition, setImagePosition] = useState<'top' | 'center' | 'bottom' | 'left' | 'right'>('center');
-  const [currentMockupUrls, setCurrentMockupUrls] = useState<string[]>([]);
   const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
   const [quantity, setQuantity] = useState(1);
 
@@ -104,18 +103,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       setProductState(prev => ({ ...prev, selectedPrintifyVariantId: firstVariant.id }));
     }
   }, [product]);
-
-  // Reset estados quando a variante muda
-  useEffect(() => {
-    if (selectedImageUrl && productState.selectedPrintifyVariantId) {
-      setProductState(prev => ({ 
-        ...prev, 
-        printifyPreviewUrls: [],
-        printifyImageId: '',
-        printifyProductId: ''
-      }));
-    }
-  }, [productState.selectedPrintifyVariantId, selectedImageUrl]);
 
   // CALCULAR imageAdjustments usando useMemo em vez de useEffect para evitar re-renderizações
   const calculatedAdjustments = useMemo(() => {
@@ -145,6 +132,70 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     return undefined;
   }, [selectedImageUrl, product, productState.selectedPrintifyVariantId, userImageDimensions]);
 
+  // LÓGICA PRINCIPAL DE GERAÇÃO DE MOCKUPS (PAI CONTROLA TUDO)
+  useEffect(() => {
+    // Condições para gerar: ter imagem e variante selecionada
+    const shouldGenerate = selectedImageUrl && productState.selectedPrintifyVariantId && userInfo?.id;
+
+    if (!shouldGenerate || isGeneratingMockup) {
+      return;
+    }
+
+    // Lógica de Debounce
+    const handler = setTimeout(async () => {
+      console.log("🚀 [GenericProductPage] INICIANDO GERAÇÃO DE MOCKUP...");
+      setIsGeneratingMockup(true);
+      
+      try {
+        const response = await fetch('/api/printify/mockups/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: product.id,
+            userImageUrl: selectedImageUrl,
+            userId: userInfo.id,
+            imageAdjustments: calculatedAdjustments,
+            selectedPrintifyVariantId: productState.selectedPrintifyVariantId,
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          console.log("✅ [GenericProductPage] Mockups recebidos com sucesso.");
+          setProductState(prev => ({
+            ...prev,
+            printifyPreviewUrls: data.previewUrls,
+            printifyImageId: data.printifyImageId,
+            printifyProductId: data.printifyProductId
+          }));
+          // Mockups atualizado com sucesso
+        } else {
+          throw new Error(data.error || "Erro na API");
+        }
+      } catch (error) {
+        console.error("❌ [GenericProductPage] Erro ao gerar mockup:", error);
+        toast.error("Falha ao gerar o mockup.");
+      } finally {
+        console.log("🏁 [GenericProductPage] GERAÇÃO CONCLUÍDA.");
+        setIsGeneratingMockup(false);
+      }
+    }, 800);
+
+    return () => clearTimeout(handler);
+  }, [selectedImageUrl, productState.selectedPrintifyVariantId, calculatedAdjustments, userInfo?.id, isGeneratingMockup]);
+
+  // Reset estados quando a variante muda
+  useEffect(() => {
+    if (selectedImageUrl && productState.selectedPrintifyVariantId) {
+      setProductState(prev => ({ 
+        ...prev, 
+        printifyPreviewUrls: [],
+        printifyImageId: '',
+        printifyProductId: ''
+      }));
+    }
+  }, [productState.selectedPrintifyVariantId, selectedImageUrl]);
+
   // Detectar dimensões da imagem
   useEffect(() => {
     if (selectedImageUrl) {
@@ -161,24 +212,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     }
   }, [selectedImageUrl]);
 
-  // Handlers
-  const handlePreviewReady = useCallback((data: {
-    previewUrls: string[];
-    printifyImageId: string;
-    printifyProductId: string;
-  }) => {
-    console.log("✅ [GenericProductPage] handlePreviewReady chamado com novos mockups.");
-    setProductState(prev => ({
-      ...prev,
-      printifyPreviewUrls: data.previewUrls,
-      printifyImageId: data.printifyImageId || '',
-      printifyProductId: data.printifyProductId,
-    }));
-    
-    if (data.previewUrls.length > 0 && currentMockupUrls.length === 0) {
-      setCurrentMockupUrls(data.previewUrls);
-    }
-  }, [currentMockupUrls]);
+  // handlePreviewReady foi removido - já não é necessário porque o pai controla tudo
 
   const handleAddToCart = async () => {
     const validationError = config.validatePurchase(
@@ -305,7 +339,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           printifyImageId: data.printifyImageId || '',
           printifyProductId: data.printifyProductId,
         }));
-        setCurrentMockupUrls(data.previewUrls);
+        // Mockups atualizados
         
         // Só mostrar notificação se não for mudança de posição
         if (!isPositionChange) {
@@ -408,15 +442,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   key={selectedImageUrl || 'initial-canvas'}
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
                   printifyGeneratedPreviewUrls={productState.printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={calculatedAdjustments}
-                  onImageAdjust={(adjustments) => setProductState(prev => ({ ...prev, imageAdjustments: adjustments }))}
-                  selectedPrintifyVariantId={productState.selectedPrintifyVariantId}
                   isGenerating={isGeneratingMockup}
-                  onLoadingChange={setIsGeneratingMockup}
                 />
               </div>
 
@@ -558,15 +585,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   key={selectedImageUrl || 'initial-canvas'}
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
                   printifyGeneratedPreviewUrls={productState.printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={calculatedAdjustments}
-                  onImageAdjust={(adjustments) => setProductState(prev => ({ ...prev, imageAdjustments: adjustments }))}
-                  selectedPrintifyVariantId={productState.selectedPrintifyVariantId}
                   isGenerating={isGeneratingMockup}
-                  onLoadingChange={setIsGeneratingMockup}
                 />
               </div>
 
