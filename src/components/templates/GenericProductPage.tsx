@@ -235,20 +235,22 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   const handleOpenGallery = () => setIsGalleryModalOpen(true);
 
-  const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
-    console.log("🖼️ [GenericProductPage] Nova imagem selecionada da galeria.");
+  const handleSelectImageFromGallery = (imageUrl: string, imageId: string) => {
+    console.log("🖼️ [GenericProductPage] Nova imagem selecionada. A fazer reset ao estado de uma SÓ VEZ.");
+    
+    // Atualiza os estados que não fazem parte do objeto unificado
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
-    
-    // Faz reset a TUDO de uma só vez
-    setProductState(prev => ({
-      ...prev,
+
+    // Faz reset a TODO o estado do produto de uma só vez para causar apenas UMA re-renderização
+    setProductState({
+      selectedPrintifyVariantId: product?.variants?.[0]?.id || null, // Mantém a primeira variante como padrão
       printifyPreviewUrls: [],
       printifyImageId: '',
       printifyProductId: '',
-      imageAdjustments: undefined,
-    }));
+      imageAdjustments: undefined, 
+    });
     
     toast.success('Arte aplicada com sucesso!');
   };
