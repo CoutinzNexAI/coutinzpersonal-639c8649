@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 
+// ✅ BOMBA ATÓMICA: VARIÁVEL DE CONTROLO GLOBAL
+// Esta variável sobrevive a todas as destruições/recriações de componentes
+let isGeneratingGlobally = false;
+
 interface ImageAdjustments {
   x: number;
   y: number;
@@ -156,6 +160,12 @@ export default function ProductCanvas({
 
   // PASSO 1: Mantém a tua função de chamada à API, mas vamos simplificar o seu wrapper
   const generateMockupApiCall = useCallback(async () => {
+    // ✅ GUARDA-COSTAS GLOBAL
+    if (isGeneratingGlobally) {
+      console.error('💣 [GLOBAL LOCK] Geração já em curso. Abortando chamada duplicada.');
+      return;
+    }
+
     // A condição de guarda principal: não fazer nada se não tivermos os dados essenciais ou se já estiver a carregar
     if (!userImageUrl || !userId || isLoadingMockups) {
       console.log('🔇 [generateMockupApiCall] Abortado: Faltam dados ou já está a carregar.');
@@ -163,6 +173,9 @@ export default function ProductCanvas({
     }
 
     console.log('🚀 [generateMockupApiCall] INICIANDO GERAÇÃO DE MOCKUP...');
+    
+    // ✅ ATIVA A TRINCA GLOBAL
+    isGeneratingGlobally = true;
     setIsLoadingMockups(true);
     setError(null);
 
@@ -260,6 +273,13 @@ export default function ProductCanvas({
     } finally {
       console.log('🏁 [generateMockupApiCall] FIM DA GERAÇÃO.');
       setIsLoadingMockups(false);
+      
+      // ✅ LIBERTA A TRINCA GLOBAL DEPOIS DE UM PEQUENO ATRASO
+      // para dar tempo ao React para estabilizar e não iniciar outra chamada imediatamente
+      setTimeout(() => {
+        isGeneratingGlobally = false;
+        console.log('🔓 [GLOBAL LOCK] Trinca libertada.');
+      }, 1000); // 1 segundo de cooldown
     }
   }, [
     // A lista de dependências do useCallback agora é MAIS ESTÁVEL.
