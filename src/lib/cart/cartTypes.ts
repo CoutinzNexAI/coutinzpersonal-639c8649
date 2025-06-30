@@ -52,9 +52,11 @@ export interface CartItem {
 export interface CartSummary {
   items: CartItem[];
   subtotal: number;
-  shipping: number;
+  totalDiscount: number;       // NOVO - total de desconto aplicado
+  priceWithDiscount: number;   // NOVO - preço após desconto
+  shippingCost: number;        // Alterado de 'shipping' para 'shippingCost'
   tax: number;
-  total: number;
+  finalTotal: number;          // Alterado de 'total' para 'finalTotal'
   itemCount: number;
 }
 
