@@ -14,7 +14,6 @@ import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
 import { useAuth } from '@/hooks/useAuth';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { CartService } from '@/lib/cart/cartService';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
@@ -239,17 +238,11 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   // Função para gerar novos mockups quando a posição muda
   const generateNewMockup = async (position: 'top' | 'center' | 'bottom' | 'left' | 'right', variantId: number, isPositionChange: boolean = false) => {
-    if (!selectedImageUrl || !userInfo?.id) {
-      console.warn('Cannot generate mockup: missing image or user');
-      return;
-    }
+    if (!selectedImageUrl || !userInfo?.id || !userImageDimensions) return;
 
-    console.log(`[GenericProductPage] 🎯 Generating mockup for ${product.id} with position=${position}, variantId=${variantId}, isPositionChange=${isPositionChange}`);
-
-    // Calcular novos ajustes se o produto suporta ajuste manual
+    // Calcular novas coordenadas baseadas na posição
     let newAdjustments = imageAdjustments;
-    
-    if (product.supportsManualAdjustment && config.calculatePrintifyCoords && userImageDimensions) {
+    if (config.calculatePrintifyCoords) {
       newAdjustments = config.calculatePrintifyCoords(
         position,
         variantId,
