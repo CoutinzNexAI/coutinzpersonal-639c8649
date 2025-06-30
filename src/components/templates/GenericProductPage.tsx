@@ -1,7 +1,7 @@
 // Template genérico para páginas de produto - Loja PicTuz
 // Este componente será usado como base para todas as páginas de produto específicas 
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
@@ -439,7 +439,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
             >
               <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20">
                 <ProductCanvas
-                  key={selectedImageUrl || 'initial-canvas'}
+                  key={`${selectedImageUrl}-${productState.printifyPreviewUrls.length}`}
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
                   printifyGeneratedPreviewUrls={productState.printifyPreviewUrls}
