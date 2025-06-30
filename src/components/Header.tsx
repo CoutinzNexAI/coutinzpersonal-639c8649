@@ -17,8 +17,9 @@ interface NavLink {
   id: string;
 }
 
-// Simplified navigation - community, shop and pricing links
+// Navigation links including the new transformacoes page
 const navLinks: NavLink[] = [
+  { href: "/transformacoes", label: "Transformações", id: "transformacoes" },
   { href: "/community", label: "Comunidade", id: "community" },
   { href: "/shop", label: "Loja", id: "shop" },
   { href: "/pricing", label: "Preço", id: "pricing" },
@@ -32,8 +33,8 @@ const Header: React.FC = () => {
   const headerRef = useRef<HTMLElement>(null);
   const router = useRouter();
 
-  // Detecta se estamos na landing page para aplicar estilo específico
-  const isLandingPage = router.pathname === '/landing';
+  // Detecta se estamos na homepage para aplicar estilo específico
+  const isHomePage = router.pathname === '/';
 
   // Handle logo click
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -134,8 +135,8 @@ const Header: React.FC = () => {
       ref={headerRef} 
       className={cn(
         "fixed z-50 w-full",
-        // Aplica margin-top extra apenas na landing page
-        isLandingPage ? "top-8" : "top-0"
+        // Aplica margin-top extra apenas na homepage
+        isHomePage ? "top-8" : "top-0"
       )}
       initial={{ y: -100 }}
       animate={{ y: 0 }}

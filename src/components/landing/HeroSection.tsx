@@ -166,7 +166,7 @@ const HeroSection: React.FC = () => {
               className="flex gap-2 mb-6"
               variants={itemVariants}
             >
-              <Link href="/transformacao" className="flex-1">
+              <Link href="/transformacoes" className="flex-1">
                 <Button 
                   className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-3 text-sm rounded-xl shadow-lg"
                 >
@@ -320,7 +320,7 @@ const HeroSection: React.FC = () => {
               className="flex flex-col sm:flex-row gap-4 mb-6"
               variants={itemVariants}
             >
-              <Link href="/transformacao">
+              <Link href="/transformacoes">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button 
                     size="default" 
