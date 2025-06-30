@@ -106,6 +106,8 @@ interface CheckoutTempData {
   };
   financial_data: {
     subtotal: number;
+    originalSubtotal?: number;
+    discountAmount?: number;
     shipping: number;
     tax: number;
     total: number;

@@ -51,7 +51,9 @@ export interface CartItem {
 
 export interface CartSummary {
   items: CartItem[];
-  subtotal: number;
+  subtotal: number; // Subtotal final com desconto aplicado
+  originalSubtotal?: number; // Subtotal original antes do desconto
+  discountAmount?: number; // Valor do desconto aplicado
   shipping: number;
   tax: number;
   total: number;

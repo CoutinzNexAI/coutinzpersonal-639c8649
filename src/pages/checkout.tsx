@@ -96,8 +96,8 @@ const CheckoutPage: React.FC = () => {
 
   const calculateTotal = () => {
     if (!cartSummary) return 0;
-    const shipping = shippingCost ? shippingCost / 100 : 0; // Converter de centavos para euros
-    return cartSummary.subtotal + shipping + cartSummary.tax;
+    // Envio é grátis, então total = subtotal (com desconto) + IVA
+    return cartSummary.subtotal + cartSummary.tax;
   };
 
   const handleCheckout = async () => {
@@ -121,8 +121,8 @@ const CheckoutPage: React.FC = () => {
         return;
       }
 
-      // 2. Calcular total final
-      const shippingPrice = shippingCost / 100; // Converter de centavos para euros
+      // 2. Calcular total final (envio grátis)
+      const shippingPrice = 0; // Envio sempre grátis
       const finalTotal = calculateTotal();
 
       toast.info('A preparar sessão de pagamento...', { duration: 2000 });
@@ -147,6 +147,8 @@ const CheckoutPage: React.FC = () => {
           userName: userData.full_name,
           userEmail: userData.email,
           subtotal: cartSummary.subtotal,
+          originalSubtotal: cartSummary.originalSubtotal,
+          discountAmount: cartSummary.discountAmount,
           shipping: shippingPrice,
           tax: cartSummary.tax,
           total: finalTotal
@@ -296,7 +298,7 @@ const CheckoutPage: React.FC = () => {
                 <div className="text-6xl mb-2">🛒</div>
               </motion.div>
               <h1 className="text-4xl md:text-5xl font-ghibli text-ghibli-wood mb-4">
-                Finalizar Compra
+                🛒 Finalizar Compra
               </h1>
               <p className="text-xl text-ghibli-earth max-w-2xl mx-auto">
                 Reveja o seu pedido e prossiga para o pagamento seguro
@@ -317,6 +319,28 @@ const CheckoutPage: React.FC = () => {
                     <div className="text-3xl mr-3">📦</div>
                     <h2 className="text-2xl font-ghibli text-ghibli-wood">Resumo do Pedido</h2>
                   </div>
+                  
+                  {/* Informação sobre descontos */}
+                  {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6"
+                    >
+                      <div className="flex items-center mb-2">
+                        <span className="text-2xl mr-2">🎉</span>
+                        <h3 className="text-lg font-semibold text-green-700">
+                          Desconto por Quantidade Aplicado!
+                        </h3>
+                      </div>
+                      <p className="text-green-600 text-sm">
+                        Está a poupar €{cartSummary.discountAmount.toFixed(2)} por comprar múltiplos produtos do mesmo tipo.
+                      </p>
+                      <div className="text-xs text-green-500 mt-1">
+                        ✨ 2 produtos iguais = 10% desconto | 3+ produtos iguais = 15% desconto
+                      </div>
+                    </motion.div>
+                  )}
                   
                   <div className="space-y-4">
                     {cartSummary.items.map((item) => (
@@ -452,16 +476,66 @@ const CheckoutPage: React.FC = () => {
                   </div>
                   
                   <div className="space-y-4">
+                    {/* Subtotal Original */}
+                    {cartSummary.originalSubtotal && cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
+                      <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
+                        <span className="text-ghibli-earth">Subtotal (original)</span>
+                        <span className="text-ghibli-earth line-through">€{cartSummary.originalSubtotal.toFixed(2)}</span>
+                      </div>
+                    )}
+                    
+                    {/* Desconto */}
+                    {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex justify-between py-2 border-b border-green-200 bg-green-50 rounded-lg px-3"
+                      >
+                        <span className="text-green-700 font-medium">
+                          🎉 Desconto por quantidade
+                        </span>
+                        <span className="text-green-700 font-bold">-€{cartSummary.discountAmount.toFixed(2)}</span>
+                      </motion.div>
+                    )}
+                    
                     <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
                       <span className="text-ghibli-earth">Subtotal</span>
                       <span className="text-ghibli-wood font-semibold">€{cartSummary.subtotal.toFixed(2)}</span>
                     </div>
                     
+                    {/* Envio com animação de corte */}
                     <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
                       <span className="text-ghibli-earth">Envio</span>
-                      <span className="text-ghibli-wood font-semibold">
-                        {isLoadingShipping ? 'A calcular...' : shippingCost !== null ? `€${(shippingCost / 100).toFixed(2)}` : 'N/A'}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        {isLoadingShipping ? (
+                          <span className="text-ghibli-wood font-semibold">A calcular...</span>
+                        ) : shippingCost !== null ? (
+                          <>
+                            <motion.span 
+                              initial={{ opacity: 1 }}
+                              animate={{ 
+                                opacity: 0, 
+                                scale: 0.8,
+                                textDecoration: 'line-through' 
+                              }}
+                              transition={{ delay: 2, duration: 0.5 }}
+                              className="text-ghibli-earth"
+                            >
+                              €{(shippingCost / 100).toFixed(2)}
+                            </motion.span>
+                            <motion.span
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 2.5, duration: 0.5 }}
+                              className="text-green-600 font-bold"
+                            >
+                              GRÁTIS! ✨
+                            </motion.span>
+                          </>
+                        ) : (
+                          <span className="text-ghibli-wood font-semibold">N/A</span>
+                        )}
+                      </div>
                     </div>
                     
                     <div className="flex justify-between py-2 border-b border-ghibli-moss/20">
@@ -472,7 +546,7 @@ const CheckoutPage: React.FC = () => {
                     <div className="bg-ghibli-moss/10 rounded-xl p-4 mt-4">
                       <div className="flex justify-between text-xl font-bold">
                         <span className="text-ghibli-wood">Total</span>
-                        <span className="text-ghibli-moss">€{calculateTotal().toFixed(2)}</span>
+                        <span className="text-ghibli-moss">€{(cartSummary.subtotal + cartSummary.tax).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>

@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { items, shippingMethod, userId, userName, userEmail, subtotal, shipping, tax, total } = req.body;
+    const { items, shippingMethod, userId, userName, userEmail, subtotal, originalSubtotal, discountAmount, shipping, tax, total } = req.body;
 
     // Gerar referências únicas para este checkout e pedido
     const checkoutReference = `CHK-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
@@ -68,6 +68,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         shipping_method: shippingMethod,
         financial_data: {
           subtotal,
+          originalSubtotal,
+          discountAmount,
           shipping,
           tax,
           total
@@ -132,6 +134,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderReference, // Referência do pedido para guardar na DB
         orderType: 'gelato',
         subtotal: subtotal.toString(),
+        originalSubtotal: originalSubtotal?.toString() || subtotal.toString(),
+        discountAmount: discountAmount?.toString() || '0',
         shipping: shipping.toString(),
         tax: tax.toString(),
         total: total.toString(),
