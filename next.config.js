@@ -1,10 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb', // Limita requests a 10MB para evitar ataques de DoS
-    },
-  },
   images: {
     remotePatterns: [
       {
@@ -27,8 +22,12 @@ const nextConfig = {
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Melhora a qualidade das imagens
+    dangerouslyAllowSVG: true,
+    minimumCacheTTL: 60,
+    unoptimized: false,
   },
-  compress: true,
+  compress: false, // Desabilita compressão para melhor qualidade
   poweredByHeader: false,
   async headers() {
     return [

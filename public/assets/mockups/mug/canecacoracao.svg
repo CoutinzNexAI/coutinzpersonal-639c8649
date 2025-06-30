@@ -1,7 +1,0 @@
-<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
-  <rect width="400" height="400" fill="#f5f5f5"/>
-  <path d="M100 150 C100 130, 120 110, 150 110 C180 110, 200 130, 200 150 C200 130, 220 110, 250 110 C280 110, 300 130, 300 150 C300 180, 200 280, 200 280 C200 280, 100 180, 100 150 Z" fill="white" stroke="#ddd" stroke-width="2"/>
-  <rect x="320" y="180" width="30" height="80" rx="15" fill="none" stroke="#ddd" stroke-width="2"/>
-  <text x="200" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#666">Caneca Coração</text>
-  <text x="200" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#999">Placeholder</text>
-</svg> 

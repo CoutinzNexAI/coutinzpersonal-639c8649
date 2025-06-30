@@ -6,10 +6,11 @@ import Footer from '@/components/Footer';
 import PromotionalBanner from '@/components/landing/PromotionalBanner';
 import HeroSection from '@/components/landing/HeroSection';
 import BestSellersSection from '@/components/landing/BestSellersSection';
+import { FAQSection } from '@/components/FAQSection';
 
 const LandingPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-ghibli-cream">
+    <div className="min-h-screen bg-gradient-to-br from-ghibli-cream via-white to-ghibli-paper/30 relative overflow-hidden">
       <Head>
         <title>PicTuz - Produtos Personalizados com IA | Canecas, Canvas, Posters</title>
         <meta name="description" content="Transforma as tuas fotos em produtos únicos! Canecas, canvas, posters personalizados com arte gerada por IA. Entrega grátis em Portugal." />
@@ -29,14 +30,47 @@ const LandingPage: React.FC = () => {
       {/* Banner Promocional */}
       <PromotionalBanner />
 
-      {/* Header */}
-      <Header />
+      {/* Header com margem ajustada */}
+      <div className="relative z-40 mt-8">
+        <Header />
+      </div>
 
-      {/* Elementos decorativos de fundo */}
-      <div className="absolute top-32 left-10 text-2xl animate-leaf-float opacity-20">🍃</div>
-      <div className="absolute bottom-96 right-16 text-xl animate-leaf-float opacity-20">🍂</div>
-      <div className="absolute top-64 right-28 text-lg animate-star-twinkle opacity-30">✨</div>
-      <div className="absolute bottom-64 left-20 text-xl animate-star-twinkle opacity-30">⭐</div>
+      {/* Elementos decorativos de fundo melhorados */}
+      <motion.div 
+        className="absolute top-32 left-10 text-3xl opacity-20 z-10"
+        animate={{ y: [0, -20, 0], rotate: [0, 15, -15, 0] }}
+        transition={{ duration: 6, repeat: Infinity }}
+      >
+        🍃
+      </motion.div>
+      <motion.div 
+        className="absolute bottom-96 right-16 text-2xl opacity-20 z-10"
+        animate={{ y: [0, 20, 0], rotate: [0, -15, 15, 0] }}
+        transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+      >
+        🍂
+      </motion.div>
+      <motion.div 
+        className="absolute top-64 right-28 text-2xl opacity-30 z-10"
+        animate={{ scale: [1, 1.3, 1], rotate: [0, 180, 360] }}
+        transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+      >
+        ✨
+      </motion.div>
+      <motion.div 
+        className="absolute bottom-64 left-20 text-2xl opacity-30 z-10"
+        animate={{ scale: [1, 1.2, 1], rotate: [0, -180, -360] }}
+        transition={{ duration: 4, repeat: Infinity, delay: 2 }}
+      >
+        ⭐
+      </motion.div>
+      <motion.div 
+        className="absolute top-1/2 right-10 text-xl opacity-15 z-10"
+        animate={{ x: [0, 30, 0], y: [0, -30, 0] }}
+        transition={{ duration: 8, repeat: Infinity }}
+      >
+        🎨
+      </motion.div>
 
       <main>
         {/* Hero Section */}
@@ -44,6 +78,9 @@ const LandingPage: React.FC = () => {
 
         {/* Best Sellers Section */}
         <BestSellersSection />
+
+        {/* FAQ Section */}
+        <FAQSection />
       </main>
 
       <Footer />

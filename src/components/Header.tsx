@@ -32,6 +32,9 @@ const Header: React.FC = () => {
   const headerRef = useRef<HTMLElement>(null);
   const router = useRouter();
 
+  // Detecta se estamos na landing page para aplicar estilo específico
+  const isLandingPage = router.pathname === '/landing';
+
   // Handle logo click
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -129,7 +132,11 @@ const Header: React.FC = () => {
   return (
     <motion.header 
       ref={headerRef} 
-      className="fixed top-0 z-50 w-full"
+      className={cn(
+        "fixed z-50 w-full",
+        // Aplica margin-top extra apenas na landing page
+        isLandingPage ? "top-8" : "top-0"
+      )}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: [0.4, 0.0, 0.2, 1] }}

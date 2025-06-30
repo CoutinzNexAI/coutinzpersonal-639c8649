@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Star, Heart, Zap, Users } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const HeroSection: React.FC = () => {
   const containerVariants = {
@@ -28,11 +29,186 @@ const HeroSection: React.FC = () => {
     }
   };
 
+  // Variante especial para o título agrupado
+  const titleVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  // Variante simplificada para o subtítulo
+  const subtitleVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        delay: 0.2,
+        ease: "easeOut"
+      }
+    }
+  };
+
   return (
-    <section className="relative py-16 md:py-24 overflow-hidden">
+    <section className="relative py-8 md:py-12 overflow-hidden bg-gradient-to-br from-ghibli-cream via-white to-ghibli-paper">
       <div className="container mx-auto px-4">
+        {/* Mobile Layout */}
+        <div className="block lg:hidden">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-6 pt-6"
+          >
+            {/* Mobile Images Grid */}
+            <motion.div 
+              className="grid grid-cols-2 gap-3"
+              variants={itemVariants}
+            >
+              {/* Imagem grande 9:16 - Canvas */}
+              <Link href="/shop/canvas/custom_canvas">
+                <motion.div 
+                  className="relative rounded-2xl overflow-hidden shadow-xl group cursor-pointer"
+                  style={{ aspectRatio: '9/16' }}
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Image
+                    src="/landing/canvasgrande.png"
+                    alt="Canvas personalizado"
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    priority
+                    quality={95}
+                    sizes="(max-width: 768px) 50vw, 33vw"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="bg-gradient-to-r from-ghibli-moss to-green-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                      🖼️ Popular
+                    </span>
+                  </div>
+                </motion.div>
+              </Link>
+
+              {/* Coluna com 2 quadrados pequenos */}
+              <div className="space-y-3">
+                {/* Quadrado 1 - Capa */}
+                <Link href="/shop/tecnologia/custom_phonecase">
+                  <motion.div 
+                    className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Image
+                      src="/landing/capatele.png"
+                      alt="Capa telemóvel"
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      quality={95}
+                      sizes="(max-width: 768px) 25vw, 20vw"
+                    />
+                    <div className="absolute top-1 right-1">
+                      <span className="bg-ghibli-poppy text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
+                        TOP
+                      </span>
+                    </div>
+                  </motion.div>
+                </Link>
+
+                {/* Quadrado 2 - Caneca */}
+                <Link href="/shop/mug/custom_heartmug">
+                  <motion.div 
+                    className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Image
+                      src="/landing/canecacoracao.png"
+                      alt="Caneca coração"
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      quality={95}
+                      sizes="(max-width: 768px) 25vw, 20vw"
+                    />
+                    <div className="absolute top-1 right-1">
+                      <span className="bg-pink-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
+                        ❤️
+                      </span>
+                    </div>
+                  </motion.div>
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Mobile Title - Agrupado */}
+            <motion.h1 
+              className="text-2xl md:text-3xl font-bold text-ghibli-wood leading-tight text-center"
+              variants={titleVariants}
+            >
+              More Than a Frame.<br/>
+              It's a Feeling
+            </motion.h1>
+
+            {/* Mobile CTA Buttons - Side by Side */}
+            <motion.div 
+              className="flex gap-2"
+              variants={itemVariants}
+            >
+              <Link href="/transformacao" className="flex-1">
+                <Button 
+                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-3 text-sm rounded-xl shadow-lg"
+                >
+                  <span className="mr-1 text-sm">🎨</span>
+                  Transformar Foto
+                </Button>
+              </Link>
+              
+              <Link href="/shop" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-3 text-sm rounded-xl"
+                >
+                  <span className="mr-1 text-sm">🛍️</span>
+                  Ver Produtos
+                </Button>
+              </Link>
+            </motion.div>
+
+            {/* Mobile Benefits Grid */}
+            <motion.div 
+              className="grid grid-cols-2 gap-3"
+              variants={itemVariants}
+            >
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Zap className="w-5 h-5 text-ghibli-moss" />
+                <span className="text-ghibli-earth font-medium text-sm">Entrega Rápida</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Heart className="w-5 h-5 text-ghibli-poppy" />
+                <span className="text-ghibli-earth font-medium text-sm">Personalização Única</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Users className="w-5 h-5 text-ghibli-moss" />
+                <span className="text-ghibli-earth font-medium text-sm">+1K Clientes</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Star className="w-5 h-5 text-yellow-500" />
+                <span className="text-ghibli-earth font-medium text-sm">5⭐ Reviews</span>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Desktop Layout */}
         <motion.div 
-          className="grid lg:grid-cols-2 gap-12 items-center"
+          className="hidden lg:grid lg:grid-cols-2 gap-8 items-center"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -40,45 +216,44 @@ const HeroSection: React.FC = () => {
           
           {/* Left Column - Text Content */}
           <motion.div variants={itemVariants}>
-            {/* Badge/Social Proof */}
+            {/* Logo */}
             <motion.div 
-              className="inline-flex items-center bg-white/80 backdrop-blur-sm border border-ghibli-moss/20 rounded-full px-4 py-2 mb-6"
-              whileHover={{ scale: 1.05 }}
+              className="mb-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
             >
-              <div className="flex items-center mr-3">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <span className="text-sm font-semibold text-ghibli-wood">
-                +1,200 Clientes Satisfeitos
-              </span>
+              <Image
+                src="/pictuzlogooficial.png"
+                alt="PicTuz Logo"
+                width={160}
+                height={50}
+                className="object-contain"
+                priority
+                quality={95}
+              />
             </motion.div>
 
-            {/* Main Headline */}
+            {/* Main Headline - Agrupado */}
             <motion.h1 
-              className="text-4xl md:text-5xl lg:text-6xl font-ghibli text-ghibli-wood mb-6 leading-tight"
-              variants={itemVariants}
+              className="text-3xl md:text-4xl lg:text-5xl font-bold text-ghibli-wood leading-[1.1] tracking-tight mb-4"
+              variants={titleVariants}
             >
-              Produtos Únicos,<br/>
-              <span className="bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light bg-clip-text text-transparent">
-                Personalizados
-              </span>{" "}
-              com IA
+              More Than a Frame<br/>
+              It's a Feeling
             </motion.h1>
 
-            {/* Subtitle */}
+            {/* Subtitle with Simplified Animation */}
             <motion.p 
-              className="text-xl md:text-2xl text-ghibli-earth mb-8 leading-relaxed"
-              variants={itemVariants}
+              className="text-lg md:text-xl text-ghibli-earth mb-6 leading-relaxed max-w-3xl"
+              variants={subtitleVariants}
             >
-              Transforma as tuas fotos em <strong>arte incrível</strong> e recebe produtos personalizados únicos em casa. 
-              <span className="text-ghibli-moss font-semibold"> Entrega grátis!</span>
+              Porque memórias não foram feitas para ficar no ecrã. Bem-vindo ao Pictuz
             </motion.p>
 
             {/* Benefits */}
             <motion.div 
-              className="grid grid-cols-2 gap-4 mb-8"
+              className="grid grid-cols-2 gap-3 mb-6"
               variants={itemVariants}
             >
               <div className="flex items-center space-x-2">
@@ -87,7 +262,7 @@ const HeroSection: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Heart className="w-5 h-5 text-ghibli-poppy" />
-                <span className="text-ghibli-earth font-medium">Arte Única</span>
+                <span className="text-ghibli-earth font-medium">Personalização Única</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="w-5 h-5 text-ghibli-moss" />
@@ -101,131 +276,160 @@ const HeroSection: React.FC = () => {
 
             {/* Call to Action Buttons */}
             <motion.div 
-              className="flex flex-col sm:flex-row gap-4 mb-8"
+              className="flex flex-col sm:flex-row gap-4 mb-6"
               variants={itemVariants}
             >
               <Link href="/transformacao">
-                <Button 
-                  size="lg" 
-                  className="bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light hover:from-ghibli-moss-light hover:to-ghibli-moss text-white font-semibold px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  <span className="mr-2">🎨</span>
-                  Transformar Foto Agora
-                </Button>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    size="default" 
+                    className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-8 py-3 text-lg rounded-xl shadow-lg hover:shadow-green-500/30 transition-all duration-300 border border-white/20"
+                  >
+                    <span className="mr-2 text-lg">🎨</span>
+                    Transformar Foto Agora
+                    <span className="ml-2 text-sm animate-bounce">✨</span>
+                  </Button>
+                </motion.div>
               </Link>
               
               <Link href="/shop">
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-semibold px-8 py-4 text-lg rounded-xl transition-all duration-300"
-                >
-                  <span className="mr-2">🛍️</span>
-                  Ver Produtos
-                </Button>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    variant="outline" 
+                    size="default"
+                    className="border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold px-8 py-3 text-lg rounded-xl transition-all duration-300 bg-white/80 backdrop-blur-sm shadow-md hover:shadow-lg"
+                  >
+                    <span className="mr-2 text-lg">🛍️</span>
+                    Ver Produtos
+                  </Button>
+                </motion.div>
               </Link>
-            </motion.div>
-
-            {/* Trust Indicators */}
-            <motion.div 
-              className="flex items-center space-x-6 text-sm text-ghibli-earth"
-              variants={itemVariants}
-            >
-              <div className="flex items-center space-x-2">
-                <span className="text-green-500">✓</span>
-                <span>Entrega Grátis</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-green-500">✓</span>
-                <span>Garantia 30 dias</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-green-500">✓</span>
-                <span>Feito em Portugal</span>
-              </div>
             </motion.div>
           </motion.div>
 
           {/* Right Column - Product Images Grid */}
           <motion.div 
-            className="grid grid-cols-2 gap-4"
+            className="grid grid-cols-2 gap-3 items-start" 
             variants={itemVariants}
           >
-            {/* Placeholder para fotos de pessoas com produtos */}
-            <motion.div 
-              className="relative aspect-square rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-ghibli-sand to-ghibli-paper"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">📱</div>
-                  <div className="text-sm text-ghibli-earth font-medium">Capas Personalizadas</div>
+            {/* Imagem principal 9:16 - Canvas */}
+            <Link href="/shop/canvas/custom_canvas" className="col-span-1">
+              <motion.div 
+                className="relative rounded-3xl overflow-hidden shadow-2xl group cursor-pointer w-full aspect-[9/16]"
+                whileHover={{ scale: 1.01, y: -2 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <Image
+                  src="/landing/canvasgrande.png"
+                  alt="Canvas personalizado com arte AI na parede"
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  priority
+                  quality={95}
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                />
+              
+                {/* Overlays e texto */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute top-4 left-4 z-10">
+                  <span className="bg-gradient-to-r from-ghibli-moss to-green-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                    🖼️ Mais Popular
+                  </span>
                 </div>
-              </div>
-              {/* Placeholder para imagem real */}
-              <div className="absolute inset-0 bg-black/5 flex items-center justify-center">
-                <span className="text-xs text-ghibli-earth opacity-50">[Foto: Pessoa com capa]</span>
-              </div>
-            </motion.div>
+                <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                  <h3 className="text-lg font-bold mb-1">Canvas Personalizado</h3>
+                  <p className="text-xs opacity-90">Arte única na tua parede</p>
+                </div>
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-ghibli-moss/20 to-green-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10" />
+              </motion.div>
+            </Link>
 
-            <motion.div 
-              className="relative aspect-square rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-ghibli-moss/20 to-ghibli-moss/10"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">☕</div>
-                  <div className="text-sm text-ghibli-earth font-medium">Canecas Únicas</div>
-                </div>
-              </div>
-              <div className="absolute inset-0 bg-black/5 flex items-center justify-center">
-                <span className="text-xs text-ghibli-earth opacity-50">[Foto: Pessoa com caneca]</span>
-              </div>
-            </motion.div>
+            {/* Sub-grelha para os 2 quadrados */}
+            <div className="col-span-1 grid grid-rows-2 gap-3 h-full">
+              {/* Quadrado 1:1 - Tecnologia */}
+              <Link href="/shop/tecnologia/custom_phonecase" className="row-span-1">
+                <motion.div 
+                  className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer h-full w-full"
+                  whileHover={{ scale: 1.02, rotate: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Image
+                    src="/landing/capatele.png"
+                    alt="Capa de telemóvel personalizada"
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    quality={95}
+                    sizes="(max-width: 1024px) 25vw, 12.5vw"
+                  />
+                  {/* Overlays e texto */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute top-1 right-1">
+                    <span className="bg-ghibli-poppy text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
+                      TOP
+                    </span>
+                  </div>
+                  <div className="absolute bottom-1 left-1 right-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <h4 className="text-xs font-bold">Capa Telemóvel</h4>
+                  </div>
+                </motion.div>
+              </Link>
 
-            <motion.div 
-              className="relative aspect-square rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-ghibli-sky/30 to-ghibli-sky/10"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">🖼️</div>
-                  <div className="text-sm text-ghibli-earth font-medium">Canvas Art</div>
-                </div>
-              </div>
-              <div className="absolute inset-0 bg-black/5 flex items-center justify-center">
-                <span className="text-xs text-ghibli-earth opacity-50">[Foto: Canvas na parede]</span>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              className="relative aspect-square rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-ghibli-poppy/20 to-ghibli-poppy/10"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">👕</div>
-                  <div className="text-sm text-ghibli-earth font-medium">Roupa Custom</div>
-                </div>
-              </div>
-              <div className="absolute inset-0 bg-black/5 flex items-center justify-center">
-                <span className="text-xs text-ghibli-earth opacity-50">[Foto: Pessoa com hoodie]</span>
-              </div>
-            </motion.div>
+              {/* Quadrado 1:1 - Caneca Coração */}
+              <Link href="/shop/mug/custom_heartmug" className="row-span-1">
+                <motion.div 
+                  className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer h-full w-full"
+                  whileHover={{ scale: 1.02, rotate: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Image
+                    src="/landing/canecacoracao.png"
+                    alt="Caneca coração personalizada"
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    quality={95}
+                    sizes="(max-width: 1024px) 25vw, 12.5vw"
+                  />
+                  {/* Overlays e texto */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute top-1 right-1">
+                    <span className="bg-pink-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
+                      ❤️
+                    </span>
+                  </div>
+                  <div className="absolute bottom-1 left-1 right-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <h4 className="text-xs font-bold">Caneca Coração</h4>
+                  </div>
+                </motion.div>
+              </Link>
+            </div>
           </motion.div>
 
         </motion.div>
       </div>
 
       {/* Background decorative elements */}
-      <div className="absolute top-20 left-10 w-20 h-20 bg-ghibli-moss/5 rounded-full blur-xl"></div>
-      <div className="absolute bottom-20 right-10 w-32 h-32 bg-ghibli-sky/5 rounded-full blur-xl"></div>
+      <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-ghibli-moss/10 to-green-500/10 rounded-full blur-2xl animate-pulse"></div>
+      <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-ghibli-sky/10 to-blue-500/10 rounded-full blur-2xl animate-pulse"></div>
+      <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-ghibli-poppy/10 to-pink-500/10 rounded-full blur-xl animate-bounce"></div>
+      <div className="absolute bottom-40 left-20 w-28 h-28 bg-gradient-to-r from-yellow-400/10 to-orange-500/10 rounded-full blur-xl animate-pulse"></div>
+      
+      {/* Floating elements */}
+      <motion.div 
+        className="absolute top-32 right-32 text-4xl opacity-20"
+        animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+        transition={{ duration: 4, repeat: Infinity }}
+      >
+        🎨
+      </motion.div>
+      <motion.div 
+        className="absolute bottom-32 left-32 text-3xl opacity-20"
+        animate={{ y: [0, 10, 0], rotate: [0, -5, 5, 0] }}
+        transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+      >
+        ✨
+      </motion.div>
     </section>
   );
 };
 
-export default HeroSection; 
+export default HeroSection;

@@ -1,11 +1,70 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Componente para rotação de mensagens
+const MessageRotator: React.FC = () => {
+  const messages = [
+    { emoji: '🚚', text: 'ENTREGAS GRÁTIS', badge: 'NOVO' },
+    { emoji: '⚡', text: 'ENTREGA numa semana', badge: 'RÁPIDO' },
+    { emoji: '💎', text: 'QUALIDADE PREMIUM', badge: 'TOP' }
+  ];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % messages.length);
+    }, 5000); // 5 segundos
+
+    return () => clearInterval(interval);
+  }, [messages.length]);
+
+  const currentMessage = messages[currentIndex];
+
+  return (
+    <div className="relative h-6 flex items-center justify-center">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          initial={{ opacity: 0, y: 20, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -20, scale: 0.8 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="flex items-center space-x-3 text-sm font-bold"
+        >
+          <motion.span 
+            className="text-xl"
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            {currentMessage.emoji}
+          </motion.span>
+          
+          <span className="text-white tracking-wide">
+            {currentMessage.text}
+          </span>
+          
+          <motion.span 
+            className="bg-yellow-400 text-ghibli-wood px-3 py-1 rounded-full text-xs font-black shadow-md"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+          >
+            {currentMessage.badge}
+          </motion.span>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const PromotionalBanner: React.FC = () => {
   return (
-    <div className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-moss text-white py-2 relative overflow-hidden z-50">
-      {/* Animação de fundo */}
+    <div className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-moss text-white py-0.5 relative overflow-hidden z-50">
+      {/* Animação de fundo com partículas */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 animate-pulse"></div>
+      <div className="absolute top-1 left-10 w-1 h-1 bg-yellow-400 rounded-full animate-ping"></div>
+      <div className="absolute top-2 right-20 w-1 h-1 bg-white/60 rounded-full animate-bounce"></div>
       
       <div className="container mx-auto px-4">
         <motion.div 
@@ -14,46 +73,8 @@ const PromotionalBanner: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Texto principal com animação de scroll */}
-          <div className="relative overflow-hidden h-6 flex items-center">
-            <motion.div
-              className="flex items-center space-x-8 whitespace-nowrap"
-              animate={{ x: [0, -100] }}
-              transition={{
-                duration: 15,
-                repeat: Infinity,
-                ease: "linear"
-              }}
-            >
-              {/* Primeira mensagem */}
-              <div className="flex items-center space-x-2 text-sm font-semibold">
-                <span className="text-lg">🚚</span>
-                <span>ENTREGAS GRÁTIS - TEMPO LIMITADO!</span>
-                <span className="bg-white/20 px-2 py-1 rounded-full text-xs">NOVO</span>
-              </div>
-              
-              {/* Segunda mensagem */}
-              <div className="flex items-center space-x-2 text-sm font-semibold">
-                <span className="text-lg">🎁</span>
-                <span>COMPRA 2+ PRODUTOS = 15% DESCONTO</span>
-                <span className="bg-yellow-400 text-ghibli-wood px-2 py-1 rounded-full text-xs font-bold">POUPA!</span>
-              </div>
-              
-              {/* Terceira mensagem */}
-              <div className="flex items-center space-x-2 text-sm font-semibold">
-                <span className="text-lg">⚡</span>
-                <span>ENTREGA EM 3-5 DIAS ÚTEIS</span>
-                <span className="bg-white/20 px-2 py-1 rounded-full text-xs">RÁPIDO</span>
-              </div>
-              
-              {/* Repetir para continuidade */}
-              <div className="flex items-center space-x-2 text-sm font-semibold">
-                <span className="text-lg">🚚</span>
-                <span>ENTREGAS GRÁTIS - TEMPO LIMITADO!</span>
-                <span className="bg-white/20 px-2 py-1 rounded-full text-xs">NOVO</span>
-              </div>
-            </motion.div>
-          </div>
+          {/* Texto rotativo - máximo 5 palavras */}
+          <MessageRotator />
         </motion.div>
       </div>
       

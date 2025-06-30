@@ -5,7 +5,7 @@ import GhibliHero from '@/components/GhibliHero'; // Componente principal com te
 import InteractiveGallery from '@/components/InteractiveGallery'; // Secção da galeria de exemplos
 import HowItWorks from '@/components/HowItWorks'; // Secção "Como Funciona"
 import Footer from '@/components/Footer'; // Rodapé
-import { FAQSection } from '@/components/FAQSection'; // Ajusta o caminho se necessário
+
 import { FirstPurchasePromoModal } from '@/components/FirstPurchasePromoModal';
 import { TermsAcceptanceModal } from '@/components/TermsAcceptanceModal';
 import { useAuth } from '@/hooks/useAuth';
@@ -334,9 +334,6 @@ export default function HomePage() {
 
         {/* Renderiza a secção "Como Funciona" */}
         <HowItWorks />
-
-        {/* Renderiza a secção de Perguntas Frequentes */}
-        <FAQSection />
 
       </main> {/* Fim do conteúdo principal */}
 
