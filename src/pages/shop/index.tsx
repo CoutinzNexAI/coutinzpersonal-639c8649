@@ -2,204 +2,422 @@ import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Package, Coffee, Image, Briefcase, Smartphone, ShoppingBag } from 'lucide-react';
+import { Image, Coffee, Package, Smartphone, ShoppingBag, Briefcase, Sparkles } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-interface ProductCategory {
+// Interface para categorias
+interface Category {
   id: string;
   name: string;
-  description: string;
   href: string;
   icon: React.ElementType;
-  image: string;
-  productCount: number;
+  emoji: string;
+  color: string;
 }
 
-const productCategories: ProductCategory[] = [
+// Interface para produtos individuais
+interface IndividualProduct {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  href: string;
+  badge?: string;
+}
+
+// 6 Categorias - só com emojis, maiores e mais coloridas
+const categories: Category[] = [
   {
     id: 'canvas',
-    name: 'Canvas Personalizado',
-    description: 'Transforme as suas fotos em obras de arte para decorar a sua casa',
+    name: 'Canvas',
     href: '/shop/canvas',
     icon: Image,
-    image: '/landing/canvasgrande.png',
-    productCount: 3
-  },
-  {
-    id: 'mug',
-    name: 'Canecas',
-    description: 'Canecas personalizadas para o seu café matinal especial',
-    href: '/shop/mug',
-    icon: Coffee,
-    image: '/Bestseller/canecacoracao.png',
-    productCount: 2
+    emoji: '🖼️',
+    color: 'from-emerald-400 to-teal-500'
   },
   {
     id: 'poster',
     name: 'Posters',
-    description: 'Posters de alta qualidade para decorar qualquer espaço',
     href: '/shop/poster',
     icon: Package,
-    image: '/Bestseller/poster1824.png',
-    productCount: 2
+    emoji: '📋',
+    color: 'from-orange-400 to-red-500'
+  },
+  {
+    id: 'mug',
+    name: 'Canecas',
+    href: '/shop/mug',
+    icon: Coffee,
+    emoji: '☕',
+    color: 'from-yellow-400 to-orange-500'
   },
   {
     id: 'tecnologia',
     name: 'Tecnologia',
-    description: 'Capas de telemóvel e acessórios tech personalizados',
     href: '/shop/tecnologia',
     icon: Smartphone,
-    image: '/Bestseller/capatelemovel.png',
-    productCount: 1
+    emoji: '📱',
+    color: 'from-purple-400 to-pink-500'
   },
   {
     id: 'bag',
-    name: 'Tote Bags',
-    description: 'Sacos reutilizáveis com o seu design único',
+    name: 'Sacos',
     href: '/shop/bag',
     icon: ShoppingBag,
-    image: '/landing/totebag.png',
-    productCount: 1
+    emoji: '🎒',
+    color: 'from-green-400 to-emerald-500'
   },
   {
     id: 'escritorio',
     name: 'Escritório',
-    description: 'Mousepads e acessórios para o seu espaço de trabalho',
     href: '/shop/escritorio',
     icon: Briefcase,
-    image: '/mockupproduto/mousepad.png',
-    productCount: 1
+    emoji: '🏢',
+    color: 'from-gray-400 to-slate-500'
   }
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
+// 10 Produtos individuais - nova ordem especificada
+const individualProducts: IndividualProduct[] = [
+  // 1. Poster Vertical
+  {
+    id: 'poster_vertical',
+    name: 'Poster Vertical',
+    price: 20.00,
+    image: '/mockupproduto/postervertical.png',
+    href: '/shop/poster/poster_vertical_semi_glossy'
+  },
+  // 2. Caneca Coração
+  {
+    id: 'heart_mug',
+    name: 'Caneca Coração',
+    price: 30.00,
+    image: '/mockupproduto/canecacoracao.png',
+    href: '/shop/mug/heart_mug',
+    badge: '❤️'
+  },
+  // 3. Canvas (sem borda)
+  {
+    id: 'custom_canvas',
+    name: 'Canvas Sem Borda',
+    price: 20.00,
+    image: '/mockupproduto/canva.png',
+    href: '/shop/canvas/custom_canvas',
+    badge: 'Popular'
+  },
+  // 4. Capa Telemóvel
+  {
+    id: 'custom_phone_case',
+    name: 'Capa Telemóvel',
+    price: 25.00,
+    image: '/mockupproduto/telemovel.png',
+    href: '/shop/tecnologia/custom_phone_case',
+    badge: 'TOP'
+  },
+  // 5. Poster Horizontal
+  {
+    id: 'poster_horizontal',
+    name: 'Poster Horizontal',
+    price: 20.00,
+    image: '/mockupproduto/posterhorizontal.png',
+    href: '/shop/poster/poster_horizontal_semi_glossy'
+  },
+  // 6. Caneca (normal)
+  {
+    id: 'ceramic_mug',
+    name: 'Caneca',
+    price: 22.50,
+    image: '/mockupproduto/canecapersonalizada.png',
+    href: '/shop/mug/ceramic_mug'
+  },
+  // 7. Caderno
+  {
+    id: 'spiral_journal',
+    name: 'Caderno',
+    price: 20.00,
+    image: '/mockupproduto/caderno.png',
+    href: '/shop/escritorio/spiral_journal'
+  },
+  // 8. Saco
+  {
+    id: 'tote_bag',
+    name: 'Saco Tote Bag',
+    price: 25.00,
+    image: '/landing/totebag.png',
+    href: '/shop/bag/tote_bag'
+  },
+  // 9. Mousepad
+  {
+    id: 'mouse_pad',
+    name: 'Mouse Pad',
+    price: 30.00,
+    image: '/mockupproduto/mousepad.png',
+    href: '/shop/escritorio/mouse_pad'
+  },
+  // 10. Canvas com Moldura
+  {
+    id: 'framed_canvas',
+    name: 'Canvas com Moldura',
+    price: 40.00,
+    image: '/mockupproduto/canvamoldura.png',
+    href: '/shop/canvas/framed_canvas',
+    badge: 'Premium'
   }
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: 'spring',
-      stiffness: 80,
-      damping: 12
-    }
-  }
-};
+];
 
 const ShopPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50">
+    <div className="min-h-screen bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50 relative overflow-hidden">
       <Head>
-        <title>Loja - Produtos Personalizados | PicTuz</title>
-        <meta name="description" content="Descubra a nossa coleção completa de produtos personalizados: canvas, canecas, posters, capas e muito mais. Transforme as suas fotos em produtos únicos!" />
+        <title>Loja PicTuz - Produtos Personalizados com IA</title>
+        <meta name="description" content="Transforme as suas criações AI em produtos físicos únicos. Canvas, canecas, posters, capas e muito mais!" />
         <meta name="keywords" content="loja produtos personalizados, canvas personalizado, canecas personalizadas, posters personalizados, capas telemóvel, tote bags" />
       </Head>
 
+      {/* Elementos decorativos de fundo */}
+      <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-ghibli-moss/10 to-green-500/10 rounded-full blur-2xl animate-pulse"></div>
+      <div className="absolute bottom-20 right-20 w-40 h-40 bg-gradient-to-r from-ghibli-sky/10 to-blue-500/10 rounded-full blur-2xl animate-pulse"></div>
+      <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-gradient-to-r from-ghibli-sunflower/10 to-yellow-500/10 rounded-full blur-xl animate-pulse"></div>
+
       <Header />
 
-      <main className="pt-20 pb-16">
+      <main className="pt-20 pb-16 relative z-10">
         <div className="container mx-auto px-4">
+          
+          {/* TÍTULO PRINCIPAL - Maior, verde e destacado */}
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.h1 
+              className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <span className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent drop-shadow-sm">
+                Loja PicTuz
+              </span>
+            </motion.h1>
+            <motion.p 
+              className="text-xl md:text-2xl text-ghibli-earth max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              Transforme as suas criações AI em{' '}
+              <span className="font-semibold text-ghibli-wood">produtos físicos únicos</span>
+            </motion.p>
+          </motion.div>
+
+          {/* CATEGORIAS - Só emojis, maiores e mais coloridas */}
+          <motion.div
+            className="mb-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <h1 className="text-4xl lg:text-6xl font-bold text-ghibli-wood mb-6">
-              Loja de Produtos
-              <span className="block text-ghibli-moss">Personalizados</span>
-            </h1>
-            <p className="text-xl text-ghibli-earth max-w-2xl mx-auto mb-8">
-              Transforme as suas fotos em produtos únicos. Cada item é criado especialmente para si com a sua arte personalizada.
-            </p>
-            <div className="h-1 w-24 bg-ghibli-moss/60 rounded-full mx-auto"></div>
-          </motion.div>
-
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            {productCategories.map((category) => {
-              const IconComponent = category.icon;
-              
-              return (
-                <motion.div key={category.id} variants={cardVariants}>
-                  <Link href={category.href}>
-                    <Card className="h-full group cursor-pointer border-2 border-ghibli-sand/40 bg-white/70 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-ghibli-moss/50 hover:-translate-y-2">
-                      <CardContent className="p-0">
-                        <div className="relative h-48 bg-ghibli-cream/30 overflow-hidden">
-                          <img
-                            src={category.image}
-                            alt={category.name}
-                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <div className="absolute top-4 right-4 bg-ghibli-moss text-white text-sm px-3 py-1 rounded-full">
-                            {category.productCount} produto{category.productCount > 1 ? 's' : ''}
+            {/* Desktop - Grid normal */}
+            <div className="hidden md:flex justify-center">
+              <div className="grid grid-cols-6 gap-6 max-w-5xl">
+                {categories.map((category, index) => (
+                  <motion.div
+                    key={category.id}
+                    initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    transition={{ 
+                      duration: 0.5, 
+                      delay: 0.8 + (index * 0.1),
+                      type: "spring",
+                      bounce: 0.4
+                    }}
+                  >
+                    <Link href={category.href}>
+                      <div className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${category.color} p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 cursor-pointer`}>
+                        {/* Efeito brilho */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                        
+                        <div className="relative text-center">
+                          {/* Emoji grande */}
+                          <div className="text-4xl md:text-5xl mb-2 transform group-hover:scale-110 transition-transform duration-300">
+                            {category.emoji}
                           </div>
-                        </div>
-
-                        <div className="p-6">
-                          <div className="flex items-center mb-3">
-                            <div className="w-10 h-10 rounded-full bg-ghibli-moss/20 flex items-center justify-center mr-3">
-                              <IconComponent className="w-5 h-5 text-ghibli-moss-dark" />
-                            </div>
-                            <h3 className="text-xl font-bold text-ghibli-wood">{category.name}</h3>
-                          </div>
-                          
-                          <p className="text-ghibli-earth mb-4 leading-relaxed">
-                            {category.description}
+                          {/* Nome da categoria */}
+                          <p className="text-white font-bold text-sm md:text-base drop-shadow-sm group-hover:text-yellow-100 transition-colors">
+                            {category.name}
                           </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
 
-                          <div className="flex items-center text-ghibli-moss font-medium group-hover:text-ghibli-moss-dark transition-colors">
-                            Ver produtos
-                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            {/* Mobile - Scroll horizontal */}
+            <div className="md:hidden">
+              <div className="overflow-x-auto scrollbar-hide">
+                <div className="flex gap-4 pb-4 px-4 min-w-max">
+                  {categories.map((category, index) => (
+                    <motion.div
+                      key={category.id}
+                      initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      transition={{ 
+                        duration: 0.5, 
+                        delay: 0.8 + (index * 0.1),
+                        type: "spring",
+                        bounce: 0.4
+                      }}
+                      className="flex-shrink-0"
+                    >
+                      <Link href={category.href}>
+                        <div className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${category.color} p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer w-20`}>
+                          {/* Efeito brilho */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                          
+                          <div className="relative text-center">
+                            {/* Emoji grande */}
+                            <div className="text-3xl mb-1 transform group-hover:scale-110 transition-transform duration-300">
+                              {category.emoji}
+                            </div>
+                            {/* Nome da categoria */}
+                            <p className="text-white font-bold text-xs drop-shadow-sm group-hover:text-yellow-100 transition-colors">
+                              {category.name}
+                            </p>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-
-          <motion.div
-            className="text-center mt-16"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
-          >
-            <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-8 border border-ghibli-sand/30">
-              <h2 className="text-2xl font-bold text-ghibli-wood mb-4">
-                Não encontra o produto ideal?
-              </h2>
-              <p className="text-ghibli-earth mb-6">
-                Estamos sempre a adicionar novos produtos à nossa coleção. 
-                Contacte-nos se tem alguma sugestão!
-              </p>
-              <Link
-                href="/contact"
-                className="inline-flex items-center px-6 py-3 bg-ghibli-moss text-white rounded-lg hover:bg-ghibli-moss-dark transition-colors"
-              >
-                Contactar-nos
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
+
+          {/* TÍTULO DOS PRODUTOS */}
+          <motion.div
+            className="text-center mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.4 }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-ghibli-wood mb-3">
+              Todos os Produtos
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light rounded-full mx-auto"></div>
+          </motion.div>
+
+          {/* PRODUTOS INDIVIDUAIS - Cards melhorados */}
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 1.6 }}
+          >
+            {individualProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 1.8 + (index * 0.05) }}
+              >
+                <Link href={product.href}>
+                  <div className="group bg-gradient-to-br from-white/95 to-ghibli-cream/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-ghibli-sand/40 hover:shadow-2xl hover:border-ghibli-moss/50 transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden">
+                    
+                    {/* Imagem do produto */}
+                    <div className="aspect-square bg-gradient-to-br from-ghibli-cream/30 to-ghibli-sand/20 p-4 flex items-center justify-center relative">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-300"
+                      />
+                      
+                      {/* Badge se existir */}
+                      {product.badge && (
+                        <div className="absolute top-3 right-3">
+                          <span className="bg-gradient-to-r from-ghibli-moss to-green-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg">
+                            {product.badge}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Efeito hover */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-ghibli-moss/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+                    
+                    {/* Info do produto - centrada */}
+                    <div className="p-4 text-center">
+                      {/* Nome centrado */}
+                      <h3 className="font-bold text-base text-ghibli-wood group-hover:text-ghibli-moss transition-colors mb-3 line-clamp-2">
+                        {product.name}
+                      </h3>
+                      
+                      {/* Preço centrado e destacado */}
+                      <div className="flex items-center justify-center">
+                        <span className="text-2xl font-bold bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent">
+                          €{product.price.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* CALL TO ACTION FINAL - Novo texto */}
+          <motion.div
+            className="text-center mt-20"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 2.2, duration: 0.8 }}
+          >
+            <div className="relative bg-gradient-to-br from-white/90 to-ghibli-cream/70 backdrop-blur-md rounded-3xl p-8 md:p-12 border-2 border-ghibli-sand/30 shadow-2xl overflow-hidden">
+              {/* Efeito de brilho de fundo */}
+              <div className="absolute inset-0 bg-gradient-to-r from-ghibli-moss/5 via-ghibli-sunflower/5 to-ghibli-sky/5 rounded-3xl"></div>
+              
+              <div className="relative z-10">
+                <motion.div
+                  className="mb-6"
+                  animate={{ 
+                    rotate: [0, 5, -5, 0],
+                  }}
+                  transition={{ 
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <Sparkles className="w-12 h-12 text-ghibli-moss mx-auto" />
+                </motion.div>
+                
+                <h2 className="text-3xl md:text-4xl font-bold text-ghibli-wood mb-4">
+                  Pronto para Criar?
+                </h2>
+                <p className="text-ghibli-earth text-lg md:text-xl mb-8 max-w-2xl mx-auto">
+                  Carrega a tua foto e vê a magia acontecer em segundos
+                </p>
+                
+                <Link href="/transformacao">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-block"
+                  >
+                    <div className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:shadow-ghibli-moss/30 transition-all duration-300 text-lg border border-white/20">
+                      Começar Agora
+                      <span className="ml-2 text-xl">✨</span>
+                    </div>
+                  </motion.div>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+
         </div>
       </main>
 

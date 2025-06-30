@@ -141,7 +141,7 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
             />
           </div>
           
-          {/* Product Info - Centralized like /shopfinal */}
+          {/* Product Info - Centralized like new /shop */}
           <div className="p-4 lg:p-6 text-center">
             <h3 className="text-lg lg:text-xl font-bold text-ghibli-wood mb-3 group-hover:text-ghibli-moss transition-colors line-clamp-2">
               {product.name}
