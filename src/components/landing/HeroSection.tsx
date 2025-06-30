@@ -146,44 +146,24 @@ const HeroSection: React.FC = () => {
 
             {/* Mobile Logo + Title Layout - Centrados em suas metades */}
             <motion.div 
-              className="text-center mb-2"
+              className="text-center mb-6"
               variants={itemVariants}
             >
-              {/* Frase completa centrada numa linha */}
+              {/* Frase completa centrada numa linha - COM MAIS DESTAQUE */}
               <motion.h1 
-                className="text-xl md:text-2xl font-bold text-ghibli-wood leading-tight"
+                className="text-2xl font-black text-ghibli-wood leading-tight tracking-wide drop-shadow-sm"
                 variants={titleVariants}
+                style={{
+                  textShadow: '0 2px 4px rgba(139, 69, 19, 0.1)'
+                }}
               >
                 More Than a Frame - It's a Feeling
               </motion.h1>
             </motion.div>
 
-            {/* Mobile Benefits */}
+            {/* Mobile CTA Buttons - Side by Side - MOVIDOS PARA CIMA */}
             <motion.div 
-              className="grid grid-cols-2 gap-3 mb-6"
-              variants={itemVariants}
-            >
-              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
-                <Zap className="w-5 h-5 text-ghibli-moss" />
-                <span className="text-ghibli-earth font-medium text-sm">Entrega Rápida</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
-                <Heart className="w-5 h-5 text-ghibli-poppy" />
-                <span className="text-ghibli-earth font-medium text-sm">Personalização Única</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
-                <Users className="w-5 h-5 text-ghibli-moss" />
-                <span className="text-ghibli-earth font-medium text-sm">+1K Clientes</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
-                <Star className="w-5 h-5 text-yellow-500" />
-                <span className="text-ghibli-earth font-medium text-sm">5⭐ Reviews</span>
-              </div>
-            </motion.div>
-
-            {/* Mobile CTA Buttons - Side by Side */}
-            <motion.div 
-              className="flex gap-2"
+              className="flex gap-2 mb-6"
               variants={itemVariants}
             >
               <Link href="/transformacao" className="flex-1">
@@ -204,6 +184,29 @@ const HeroSection: React.FC = () => {
                   Ver Produtos
                 </Button>
               </Link>
+            </motion.div>
+
+            {/* Mobile Benefits - MOVIDOS PARA BAIXO DOS BOTÕES */}
+            <motion.div 
+              className="grid grid-cols-2 gap-3 mb-6"
+              variants={itemVariants}
+            >
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Zap className="w-5 h-5 text-ghibli-moss" />
+                <span className="text-ghibli-earth font-medium text-sm">Entrega Rápida</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Heart className="w-5 h-5 text-ghibli-poppy" />
+                <span className="text-ghibli-earth font-medium text-sm">Personalização Única</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Users className="w-5 h-5 text-ghibli-moss" />
+                <span className="text-ghibli-earth font-medium text-sm">+1K Clientes</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+                <Star className="w-5 h-5 text-yellow-500" />
+                <span className="text-ghibli-earth font-medium text-sm">5⭐ Reviews</span>
+              </div>
             </motion.div>
           </motion.div>
         </div>
