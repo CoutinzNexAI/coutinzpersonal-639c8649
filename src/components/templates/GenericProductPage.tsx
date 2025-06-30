@@ -405,6 +405,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
             >
               <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20">
                 <ProductCanvas
+                  key={selectedImageUrl || 'initial-canvas'}
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
                   userId={userInfo?.id}
@@ -552,6 +553,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
             >
               <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-ghibli-sand/20">
                 <ProductCanvas
+                  key={selectedImageUrl || 'initial-canvas'}
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
                   userId={userInfo?.id}
