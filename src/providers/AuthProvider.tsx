@@ -6,13 +6,13 @@ import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/lib/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js'; // Renomeado User para SupabaseUser para evitar conflito se UserInfo fosse chamado User
 import { AuthContext, AuthContextType, UserInfo } from '@/contexts/AuthContext'; // Importa do ficheiro separado
-// import { usePathname } from 'next/navigation'; // ← Removido: já não precisamos do pathname
+import { usePathname } from 'next/navigation';
 import { trackEvent, identifyUser, resetUser } from '@/lib/posthog'; // <<< NOVO: Import tracking
 import { posthog } from '@/lib/posthog'; // Import direto do posthog para session recording
 
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // const pathname = usePathname(); // ← Removido: já não precisamos do pathname
+  const pathname = usePathname();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [session, setSession] = useState<Session | null>(null); // Adicionado para guardar a sessão completa
   const [isLoading, setIsLoading] = useState(true);
@@ -146,15 +146,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [syncUserWithDatabase]);
 
   useEffect(() => {
-    // 🔧 SOLUÇÃO DEFINITIVA: Removemos completamente a dependência do pathname
-    // A sessão já é refrescada por:
-    // - visibilitychange (quando o user volta ao tab)
-    // - focus (quando a janela ganha foco)
-    // - periodicRefreshInterval (a cada 5 minutos)
-    // - onAuthStateChange (mudanças de auth do Supabase)
-    // Não há necessidade de refrescar em CADA mudança de pathname
-    // que estava a causar re-renderizações destrutivas de toda a aplicação
-  }, []); // ← Array de dependências VAZIO - corre apenas uma vez no mount
+    if (sessionChecked && pathname && !isLoading) { 
+      refreshSession(false);
+    }
+  }, [pathname, sessionChecked, refreshSession, isLoading]);
 
   useEffect(() => {
     const handleVisibilityOrFocus = async () => {
