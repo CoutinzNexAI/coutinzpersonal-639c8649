@@ -1,7 +1,7 @@
 // Template genérico para páginas de produto - Loja PicTuz
 // Este componente será usado como base para todas as páginas de produto específicas 
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
@@ -64,15 +64,11 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const [loading, setLoading] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
   
-  // Estado unificado do produto para evitar múltiplas re-renderizações
-  const [productState, setProductState] = useState({
-    selectedPrintifyVariantId: null as number | null,
-    printifyPreviewUrls: [] as string[],
-    printifyImageId: '',
-    printifyProductId: '',
-    // Centralizar também o imageAdjustments aqui
-    imageAdjustments: undefined as ImageAdjustments | undefined, 
-  });
+  // Estados para Printify
+  const [printifyPreviewUrls, setPrintifyPreviewUrls] = useState<string[]>([]);
+  const [printifyImageId, setPrintifyImageId] = useState<string>('');
+  const [printifyProductId, setPrintifyProductId] = useState<string>('');
+  const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState<number | null>(null);
 
   // Estados específicos do produto
   const [userImageDimensions, setUserImageDimensions] = useState<{ width: number; height: number } | null>(null);
@@ -91,7 +87,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     return bestTier.discount;
   };
 
-  const basePrice = config.getBasePrice(product, productState.selectedPrintifyVariantId);
+  const basePrice = config.getBasePrice(product, selectedPrintifyVariantId);
   const discount = calculateDiscount(quantity);
   const discountedPrice = basePrice * (1 - discount / 100);
   const totalPrice = discountedPrice * quantity;
@@ -101,31 +97,28 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   useEffect(() => {
     if (product?.variants?.length) {
       const firstVariant = product.variants[0];
-      setProductState(prev => ({ ...prev, selectedPrintifyVariantId: firstVariant.id }));
+      setSelectedPrintifyVariantId(firstVariant.id);
     }
   }, [product]);
 
   // Reset estados quando a variante muda
   useEffect(() => {
-    if (selectedImageUrl && productState.selectedPrintifyVariantId) {
-      setProductState(prev => ({ 
-        ...prev, 
-        printifyPreviewUrls: [],
-        printifyImageId: '',
-        printifyProductId: ''
-      }));
+    if (selectedImageUrl && selectedPrintifyVariantId) {
+      setPrintifyPreviewUrls([]);
+      setPrintifyImageId('');
+      setPrintifyProductId('');
     }
-  }, [productState.selectedPrintifyVariantId, selectedImageUrl]);
+  }, [selectedPrintifyVariantId]);
 
-  // CALCULAR imageAdjustments usando useMemo em vez de useEffect para evitar re-renderizações
-  const calculatedAdjustments = useMemo(() => {
-    if (selectedImageUrl && product && productState.selectedPrintifyVariantId) {
-      const selectedVariant = product.variants?.find((v) => v.id === productState.selectedPrintifyVariantId);
-      if (!selectedVariant) return undefined;
+  // Calcular imageAdjustments usando a configuração
+  useEffect(() => {
+    if (selectedImageUrl && product && selectedPrintifyVariantId) {
+      const selectedVariant = product.variants?.find((v) => v.id === selectedPrintifyVariantId);
+      if (!selectedVariant) return;
 
       const { placeholderWidth, placeholderHeight } = selectedVariant;
-      const userImageWidth = userImageDimensions?.width || 1016;
-      const userImageHeight = userImageDimensions?.height || 1016;
+      const userImageWidth = 1016;
+      const userImageHeight = 1016;
 
       const scaleToCover = Math.max(
         placeholderWidth / userImageWidth,
@@ -135,15 +128,14 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       const finalImageWidth = userImageWidth * scaleToCover;
       const printifyScale = finalImageWidth / placeholderWidth;
       
-      return {
+      setImageAdjustments({
         x: 0.5,
         y: 0.5,
         scale: printifyScale,
         rotation: 0
-      };
+      });
     }
-    return undefined;
-  }, [selectedImageUrl, product, productState.selectedPrintifyVariantId, userImageDimensions]);
+  }, [selectedImageUrl, product, selectedPrintifyVariantId]);
 
   // Detectar dimensões da imagem
   useEffect(() => {
@@ -167,13 +159,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     printifyImageId: string;
     printifyProductId: string;
   }) => {
-    console.log("✅ [GenericProductPage] handlePreviewReady chamado com novos mockups.");
-    setProductState(prev => ({
-      ...prev,
-      printifyPreviewUrls: data.previewUrls,
-      printifyImageId: data.printifyImageId || '',
-      printifyProductId: data.printifyProductId,
-    }));
+    setPrintifyPreviewUrls(data.previewUrls);
+    setPrintifyImageId(data.printifyImageId);
+    setPrintifyProductId(data.printifyProductId);
     
     if (data.previewUrls.length > 0 && currentMockupUrls.length === 0) {
       setCurrentMockupUrls(data.previewUrls);
@@ -185,9 +173,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       selectedImageUrl,
       selectedImageId,
       userInfo,
-      productState.selectedPrintifyVariantId,
-      productState.printifyProductId,
-      productState.printifyImageId
+      selectedPrintifyVariantId,
+      printifyProductId,
+      printifyImageId
     );
     
     if (validationError) {
@@ -197,7 +185,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
     setLoading(true);
     try {
-      const variant = product.variants?.find((v) => v.id === productState.selectedPrintifyVariantId);
+      const variant = product.variants?.find((v) => v.id === selectedPrintifyVariantId);
 
       CartService.addToCart({
         productId: product.id,
@@ -208,14 +196,14 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         price: basePrice,
         quantity: quantity,
         customizations: {
-          variantId: productState.selectedPrintifyVariantId!,
+          variantId: selectedPrintifyVariantId!,
           variant: variant?.title || 'Variante não encontrada',
-          scale: calculatedAdjustments?.scale || 1,
-          x: calculatedAdjustments?.x || 0.5,
-          y: calculatedAdjustments?.y || 0.5,
-          angle: calculatedAdjustments?.rotation || 0,
+          scale: imageAdjustments?.scale || 1,
+          x: imageAdjustments?.x || 0.5,
+          y: imageAdjustments?.y || 0.5,
+          angle: imageAdjustments?.rotation || 0,
         },
-        imageAdjustments: calculatedAdjustments,
+        imageAdjustments,
       });
 
       toast.success(`${product.name} adicionado ao carrinho!`, {
@@ -235,22 +223,15 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   const handleOpenGallery = () => setIsGalleryModalOpen(true);
 
-  const handleSelectImageFromGallery = (imageUrl: string, imageId: string) => {
-    console.log("🖼️ [GenericProductPage] Nova imagem selecionada. A fazer reset ao estado de uma SÓ VEZ.");
-    
-    // Atualiza os estados que não fazem parte do objeto unificado
+  const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
-
-    // Faz reset a TODO o estado do produto de uma só vez para causar apenas UMA re-renderização
-    setProductState({
-      selectedPrintifyVariantId: product?.variants?.[0]?.id || null, // Mantém a primeira variante como padrão
-      printifyPreviewUrls: [],
-      printifyImageId: '',
-      printifyProductId: '',
-      imageAdjustments: undefined, 
-    });
+    
+    setPrintifyPreviewUrls([]);
+    setPrintifyImageId('');
+    setPrintifyProductId('');
+    setImageAdjustments(undefined);
     
     toast.success('Arte aplicada com sucesso!');
   };
@@ -299,12 +280,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       }
 
       if (data.previewUrls && data.printifyProductId) {
-        setProductState(prev => ({
-          ...prev,
-          printifyPreviewUrls: data.previewUrls,
-          printifyImageId: data.printifyImageId || '',
-          printifyProductId: data.printifyProductId,
-        }));
+        setPrintifyPreviewUrls(data.previewUrls);
+        setPrintifyImageId(data.printifyImageId || '');
+        setPrintifyProductId(data.printifyProductId);
         setCurrentMockupUrls(data.previewUrls);
         
         // Só mostrar notificação se não for mudança de posição
@@ -334,14 +312,14 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     }
 
     let newPosition = imagePosition;
-    let newVariantId = productState.selectedPrintifyVariantId;
+    let newVariantId = selectedPrintifyVariantId;
 
     if (type === 'position' && typeof value === 'string') {
       newPosition = value as 'top' | 'center' | 'bottom' | 'left' | 'right';
       setImagePosition(newPosition);
     } else if (type === 'size' && typeof value === 'number') {
       newVariantId = value;
-      setProductState(prev => ({ ...prev, selectedPrintifyVariantId: newVariantId }));
+      setSelectedPrintifyVariantId(newVariantId);
       // Resetar posição para centro quando muda variante
       setImagePosition('center');
       newPosition = 'center';
@@ -359,8 +337,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   };
 
   // Condições auxiliares
-  const isProcessingMockup = (!productState.printifyProductId || !productState.printifyImageId) && selectedImageUrl;
-  const canPurchase = selectedImageUrl && productState.printifyProductId && productState.printifyImageId && productState.selectedPrintifyVariantId && userInfo;
+  const isProcessingMockup = (!printifyProductId || !printifyImageId) && selectedImageUrl;
+  const canPurchase = selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo;
 
   if (!product) {
     return (
@@ -405,16 +383,15 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
             >
               <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20">
                 <ProductCanvas
-                  key={selectedImageUrl || 'initial-canvas'}
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
                   userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={productState.printifyPreviewUrls}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
                   onPreviewReady={handlePreviewReady}
                   onSelectImage={handleOpenGallery}
-                  imageAdjustments={calculatedAdjustments}
-                  onImageAdjust={(adjustments) => setProductState(prev => ({ ...prev, imageAdjustments: adjustments }))}
-                  selectedPrintifyVariantId={productState.selectedPrintifyVariantId}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
                 />
               </div>
 
@@ -478,7 +455,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 loading={loading}
                 userInfo={userInfo}
                 selectedImageUrl={selectedImageUrl || ''}
-                selectedPrintifyVariantId={productState.selectedPrintifyVariantId}
+                selectedPrintifyVariantId={selectedPrintifyVariantId}
                 onAddToCart={handleAddToCart}
                 size="mobile"
               />
@@ -500,7 +477,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
                   <PhoneCaseVariantSelector
                     product={product}
-                    selectedVariantId={productState.selectedPrintifyVariantId}
+                    selectedVariantId={selectedPrintifyVariantId}
                     onVariantChange={(variantId) => handleAdjustment('size', variantId)}
                     label={config.variantSelectorConfig?.label || "Modelo do Telemóvel"}
                     emoji={config.variantSelectorConfig?.emoji || "📱"}
@@ -510,25 +487,25 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'FramedCanvasVariantSelector' ? (
                   <FramedCanvasVariantSelector
                     product={product}
-                    selectedVariantId={productState.selectedPrintifyVariantId}
+                    selectedVariantId={selectedPrintifyVariantId}
                     onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
                   />
                 ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'ToteBagVariantSelector' ? (
                   <ToteBagVariantSelector
                     product={product}
-                    selectedVariantId={productState.selectedPrintifyVariantId}
+                    selectedVariantId={selectedPrintifyVariantId}
                     onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
                   />
                 ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
                   <NotebookVariantSelector
                     product={product}
-                    selectedVariantId={productState.selectedPrintifyVariantId}
+                    selectedVariantId={selectedPrintifyVariantId}
                     onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
                   />
                 ) : (
                   <ProductVariantSelector
                     product={product}
-                    selectedVariantId={productState.selectedPrintifyVariantId}
+                    selectedVariantId={selectedPrintifyVariantId}
                     onVariantChange={(variantId) => handleAdjustment('size', variantId)}
                     label={config.variantSelectorConfig?.label || "Variante"}
                     emoji={config.variantSelectorConfig?.emoji || "🎯"}
@@ -553,16 +530,15 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
             >
               <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-6 border border-ghibli-sand/20">
                 <ProductCanvas
-                  key={selectedImageUrl || 'initial-canvas'}
                   selectedProduct={product}
                   userImageUrl={selectedImageUrl}
                   userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={productState.printifyPreviewUrls}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
                   onPreviewReady={handlePreviewReady}
                   onSelectImage={handleOpenGallery}
-                  imageAdjustments={calculatedAdjustments}
-                  onImageAdjust={(adjustments) => setProductState(prev => ({ ...prev, imageAdjustments: adjustments }))}
-                  selectedPrintifyVariantId={productState.selectedPrintifyVariantId}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
                 />
               </div>
 
@@ -765,7 +741,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
                     <PhoneCaseVariantSelector
                       product={product}
-                      selectedVariantId={productState.selectedPrintifyVariantId}
+                      selectedVariantId={selectedPrintifyVariantId}
                       onVariantChange={(variantId) => handleAdjustment('size', variantId)}
                       label={config.variantSelectorConfig?.label || "Modelo do Telemóvel"}
                       emoji={config.variantSelectorConfig?.emoji || "📱"}
@@ -775,25 +751,25 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'FramedCanvasVariantSelector' ? (
                     <FramedCanvasVariantSelector
                       product={product}
-                      selectedVariantId={productState.selectedPrintifyVariantId}
+                      selectedVariantId={selectedPrintifyVariantId}
                       onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
                     />
                   ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'ToteBagVariantSelector' ? (
                     <ToteBagVariantSelector
                       product={product}
-                      selectedVariantId={productState.selectedPrintifyVariantId}
+                      selectedVariantId={selectedPrintifyVariantId}
                       onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
                     />
                   ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
                     <NotebookVariantSelector
                       product={product}
-                      selectedVariantId={productState.selectedPrintifyVariantId}
+                      selectedVariantId={selectedPrintifyVariantId}
                       onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
                     />
                   ) : (
                     <ProductVariantSelector
                       product={product}
-                      selectedVariantId={productState.selectedPrintifyVariantId}
+                      selectedVariantId={selectedPrintifyVariantId}
                       onVariantChange={(variantId) => handleAdjustment('size', variantId)}
                       label={config.variantSelectorConfig?.label || "Variante"}
                       emoji={config.variantSelectorConfig?.emoji || "🎯"}
@@ -810,7 +786,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                       loading={loading}
                       userInfo={userInfo}
                       selectedImageUrl={selectedImageUrl || ''}
-                      selectedPrintifyVariantId={productState.selectedPrintifyVariantId}
+                      selectedPrintifyVariantId={selectedPrintifyVariantId}
                       onAddToCart={handleAddToCart}
                       size="desktop"
                     />
