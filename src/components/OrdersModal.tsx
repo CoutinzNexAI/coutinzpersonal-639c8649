@@ -5,7 +5,9 @@ import {
   Package, 
   Search,
   Loader2,
-  Package2
+  Package2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useOrdersModal } from '@/hooks/ordersModalContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -64,7 +66,7 @@ export const OrdersModal: React.FC = () => {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: '12'
+        limit: '3'
       });
 
       const response = await fetch(`/api/orders/my-orders?${params}`, {
@@ -199,16 +201,60 @@ export const OrdersModal: React.FC = () => {
           )}
         </div>
 
-        {/* Footer with count */}
-        <div className="border-t border-ghibli-stone/20 pt-4 flex justify-between items-center">
-          <p className="text-sm text-ghibli-earth/70">
-            {filteredOrders.length} encomenda{filteredOrders.length === 1 ? '' : 's'} 
-            {searchTerm && ` encontrada${filteredOrders.length === 1 ? '' : 's'}`}
-          </p>
+        {/* Footer with count and pagination */}
+        <div className="border-t border-ghibli-stone/20 pt-4">
+          {/* Pagination controls */}
+          {!searchTerm && totalOrders > 3 && (
+            <div className="flex justify-center items-center gap-2 mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const prevPage = currentPage - 1;
+                  setCurrentPage(prevPage);
+                  fetchOrders(prevPage, searchTerm);
+                }}
+                disabled={currentPage <= 1 || loading}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Anterior
+              </Button>
+              
+              <div className="flex items-center gap-1 text-sm text-ghibli-earth">
+                <span>Página {currentPage} de {Math.ceil(totalOrders / 3)}</span>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const nextPage = currentPage + 1;
+                  setCurrentPage(nextPage);
+                  fetchOrders(nextPage, searchTerm);
+                }}
+                disabled={currentPage >= Math.ceil(totalOrders / 3) || loading}
+                className="flex items-center gap-1"
+              >
+                Seguinte
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
           
-          <Button variant="outline" onClick={handleClose}>
-            Fechar
-          </Button>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-ghibli-earth/70">
+              {searchTerm ? (
+                `${filteredOrders.length} encomenda${filteredOrders.length === 1 ? '' : 's'} encontrada${filteredOrders.length === 1 ? '' : 's'}`
+              ) : (
+                `${totalOrders} encomenda${totalOrders === 1 ? '' : 's'} total`
+              )}
+            </p>
+            
+            <Button variant="outline" onClick={handleClose}>
+              Fechar
+            </Button>
+          </div>
         </div>
           </>
         )}

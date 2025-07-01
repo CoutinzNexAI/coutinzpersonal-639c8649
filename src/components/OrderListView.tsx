@@ -44,7 +44,7 @@ const getStatusInfo = (status: string, printifyStatus: string) => {
       return {
         color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
         icon: Clock,
-        label: printifyStatus === 'on-hold' ? 'Aguardar Pagamento' : 'Em Processamento'
+        label: 'Em Processamento'
       };
     case 'shipped':
       return {
@@ -86,6 +86,8 @@ const parseCustomizations = (customizations: Record<string, string | number | bo
   for (const [key, value] of Object.entries(customizations)) {
     switch (key) {
       case 'variantId':
+      case 'x': // Remove coordenadas
+      case 'y': // Remove coordenadas
         break;
       case 'size':
         readable.push(`Tamanho: ${value}`);
@@ -98,6 +100,9 @@ const parseCustomizations = (customizations: Record<string, string | number | bo
         break;
       case 'variant':
         readable.push(`Variante: ${value}`);
+        break;
+      case 'position':
+        readable.push(`Posição: ${value}`);
         break;
       case 'paperType':
         readable.push(`Papel: ${value}`);
@@ -146,7 +151,7 @@ Podem investigar o que aconteceu e ajudar-me?
 
 Obrigado!`;
 
-  return `mailto:suporte@pictuz.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  return `mailto:pictuzinfo@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 };
 
 export const OrderListView: React.FC<OrderListViewProps> = ({ orders, onOrderSelect }) => {

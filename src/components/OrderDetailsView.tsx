@@ -63,7 +63,7 @@ const getStatusInfo = (status: string, printifyStatus: string) => {
       return {
         color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
         icon: Clock,
-        label: printifyStatus === 'on-hold' ? 'Aguardar Pagamento' : 'Em Processamento'
+        label: 'Em Processamento'
       };
     case 'shipped':
       return {
@@ -236,12 +236,49 @@ Tenho uma pergunta sobre a minha encomenda:
   );
 };
 
+// Helper to parse product customizations 
+const parseProductCustomizations = (customizations: Record<string, string | number | boolean>): string[] => {
+  const readable: string[] = [];
+  
+  for (const [key, value] of Object.entries(customizations)) {
+    switch (key) {
+      case 'variantId':
+      case 'x': // Remove coordenadas
+      case 'y': // Remove coordenadas
+        break;
+      case 'size':
+        readable.push(`Tamanho: ${value}`);
+        break;
+      case 'variant':
+        readable.push(`Variante: ${value}`);
+        break;
+      case 'position':
+        readable.push(`Posição da foto: ${value}`);
+        break;
+      case 'paperType':
+        readable.push(`Papel: ${value}`);
+        break;
+      case 'frameColor':
+        if (value !== 'N/A') {
+          readable.push(`Moldura: ${value}`);
+        }
+        break;
+      default:
+        if (value && value !== 'N/A') {
+          readable.push(`${key}: ${value}`);
+        }
+    }
+  }
+  
+  return readable;
+};
+
 // ProductList Component - Mostra todos os produtos da encomenda
 const ProductList: React.FC<{ items: UserOrder['items']; fallbackOrder?: UserOrder }> = ({ items, fallbackOrder }) => {
   // Se não houver items array, usar os dados do fallbackOrder (compatibilidade)
   const productsToShow = items && items.length > 0 ? items : (fallbackOrder ? [{
     id: fallbackOrder.id,
-    productId: fallbackOrder.id, // Usando id como fallback
+    productId: fallbackOrder.id,
     productName: fallbackOrder.product_name,
     productCategory: fallbackOrder.product_category,
     userImageUrl: fallbackOrder.user_image_url,
@@ -250,10 +287,8 @@ const ProductList: React.FC<{ items: UserOrder['items']; fallbackOrder?: UserOrd
     customizations: fallbackOrder.customizations,
   }] : []);
 
-  console.log('🛍️ ProductList - produtos a mostrar:', productsToShow); // DEBUG LOG
-
   return (
-    <div className="bg-white rounded-lg border border-ghibli-stone/20 p-6 mb-6">
+    <div className="bg-white rounded-lg border border-ghibli-stone/20 p-4 md:p-6 mb-6">
       <h2 className="text-lg font-semibold text-ghibli-earth mb-4 flex items-center gap-2">
         <Package className="w-5 h-5" />
         {productsToShow.length === 1 ? 'Detalhes do Produto' : `Produtos da Encomenda (${productsToShow.length})`}
@@ -261,9 +296,11 @@ const ProductList: React.FC<{ items: UserOrder['items']; fallbackOrder?: UserOrd
       
       <div className="space-y-4">
         {productsToShow.map((item, index) => {
+          const customizations = parseProductCustomizations(item.customizations || {});
+          
           return (
-            <div key={item.id || index} className="flex gap-4 p-4 bg-ghibli-stone/5 rounded-lg">
-              <div className="w-24 h-24 rounded-lg overflow-hidden bg-ghibli-stone/10 flex-shrink-0">
+            <div key={item.id || index} className="flex flex-col md:flex-row gap-4 p-3 md:p-4 bg-ghibli-stone/5 rounded-lg">
+              <div className="w-full md:w-24 h-32 md:h-24 rounded-lg overflow-hidden bg-ghibli-stone/10 flex-shrink-0">
                 <img
                   src={item.userImageUrl}
                   alt={item.productName}
@@ -273,11 +310,24 @@ const ProductList: React.FC<{ items: UserOrder['items']; fallbackOrder?: UserOrd
               
               <div className="flex-1">
                 <h3 className="font-semibold text-ghibli-earth mb-1">{item.productName}</h3>
-                <p className="text-sm text-ghibli-earth/60 mb-4">Categoria: {item.productCategory}</p>
+                <p className="text-sm text-ghibli-earth/60 mb-2">Categoria: {item.productCategory}</p>
                 
-                <div className="flex items-center justify-between text-sm">
+                {/* Personalizações */}
+                {customizations.length > 0 && (
+                  <div className="mb-3">
+                    <div className="space-y-1">
+                      {customizations.map((custom, idx) => (
+                        <p key={idx} className="text-xs text-ghibli-earth/80">
+                          {custom}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex flex-col md:flex-row md:items-center justify-between text-sm">
                   <span className="text-ghibli-earth/60">Quantidade: {item.quantity}</span>
-                  <span className="font-semibold text-ghibli-moss">€{item.price.toFixed(2)}</span>
+                  <span className="font-semibold text-ghibli-moss mt-1 md:mt-0">€{item.price.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -298,24 +348,39 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
   console.log('📊 OrderDetailsView - Número de itens:', order.items ? order.items.length : 'Campo items não existe');
 
   return (
-    <div className="flex h-full gap-8">
-      {/* Coluna da Esquerda: Navegação e Ações */}
-      <aside className="w-1/4 border-r border-ghibli-stone/20 pr-6 flex flex-col">
+    <div className="flex flex-col lg:flex-row h-full gap-4 lg:gap-8">
+      {/* Mobile: Header com botão voltar */}
+      <div className="lg:hidden mb-4">
         <Button 
           variant="ghost" 
           onClick={onBack}
-          className="flex items-center gap-2 mb-6 p-0 text-ghibli-earth hover:text-ghibli-moss justify-start"
+          className="flex items-center gap-2 p-0 text-ghibli-earth hover:text-ghibli-moss justify-start"
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar à Lista
         </Button>
+      </div>
+
+      {/* Coluna da Esquerda: Navegação e Ações - Adaptada para mobile */}
+      <aside className="lg:w-1/4 lg:border-r border-ghibli-stone/20 lg:pr-6 flex flex-col">
+        {/* Desktop: Botão voltar */}
+        <div className="hidden lg:block">
+          <Button 
+            variant="ghost" 
+            onClick={onBack}
+            className="flex items-center gap-2 mb-6 p-0 text-ghibli-earth hover:text-ghibli-moss justify-start"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar à Lista
+          </Button>
+        </div>
 
         <StatusTimeline status={order.status} printifyStatus={order.printify_status} />
         
         {/* Tracking Button */}
         {order.tracking_url && (
           <Button 
-            className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="mt-4 lg:mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white"
             onClick={() => window.open(order.tracking_url, '_blank')}
           >
             <Truck className="h-4 w-4 mr-2" />
@@ -323,30 +388,30 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
           </Button>
         )}
 
-        {/* Support Button - Always at bottom */}
-        <div className="mt-auto pt-6">
+        {/* Support Button */}
+        <div className="mt-4 lg:mt-auto lg:pt-6">
           <SupportButton order={order} />
         </div>
       </aside>
 
       {/* Coluna da Direita: Conteúdo Principal */}
-      <main className="w-3/4 overflow-y-auto">
-        {/* Order Header */}
+      <main className="lg:w-3/4 overflow-y-auto">
+        {/* Order Header - Mobile optimized */}
         <div className="mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-ghibli-earth mb-2">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4 gap-4">
+            <div className="flex-1">
+              <h1 className="text-xl md:text-2xl font-bold text-ghibli-earth mb-2">
                 Encomenda #{order.order_reference || order.id.slice(0, 8)}
               </h1>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-2 md:mb-0">
                 <Badge className={`${statusInfo.color} flex items-center gap-1`}>
                   <StatusIcon className="w-3 h-3" />
                   {statusInfo.label}
                 </Badge>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-ghibli-moss">
+            <div className="text-left md:text-right">
+              <p className="text-xl md:text-2xl font-bold text-ghibli-moss">
                 €{(order.total_amount || order.price).toFixed(2)}
               </p>
               <p className="text-sm text-ghibli-earth/60">
@@ -359,23 +424,23 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
         {/* Product List */}
         <ProductList items={order.items} fallbackOrder={order} />
 
-        {/* Tracking Information */}
+        {/* Tracking Information - Mobile optimized */}
         {order.tracking_number && (
-          <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mb-6">
+          <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 md:p-6 mb-6">
             <h2 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
               <Truck className="w-5 h-5" />
               Informações de Envio
             </h2>
             
-            <div className="space-y-2">
-              <p className="text-blue-700">
+            <div className="space-y-3">
+              <p className="text-blue-700 text-sm md:text-base break-all">
                 <span className="font-medium">Número de Rastreamento:</span> {order.tracking_number}
               </p>
               {order.tracking_url && (
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                  className="w-full md:w-auto border-blue-300 text-blue-700 hover:bg-blue-100"
                   onClick={() => window.open(order.tracking_url, '_blank')}
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
@@ -386,31 +451,37 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
           </div>
         )}
 
-        {/* Order Timeline */}
-        <div className="bg-white rounded-lg border border-ghibli-stone/20 p-6">
+        {/* Order Timeline - Mobile optimized */}
+        <div className="bg-white rounded-lg border border-ghibli-stone/20 p-4 md:p-6">
           <h2 className="text-lg font-semibold text-ghibli-earth mb-4 flex items-center gap-2">
             <Calendar className="w-5 h-5" />
             Histórico da Encomenda
           </h2>
           
           <div className="space-y-3">
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 bg-ghibli-moss rounded-full"></div>
-              <span className="text-ghibli-earth/60">Criada em:</span>
-              <span className="text-ghibli-earth">{formatDate(order.created_at)}</span>
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-ghibli-moss rounded-full"></div>
+                <span className="text-ghibli-earth/60">Criada em:</span>
+              </div>
+              <span className="text-ghibli-earth ml-4 md:ml-0">{formatDate(order.created_at)}</span>
             </div>
             
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 bg-ghibli-moss rounded-full"></div>
-              <span className="text-ghibli-earth/60">Última atualização:</span>
-              <span className="text-ghibli-earth">{formatDate(order.updated_at)}</span>
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-ghibli-moss rounded-full"></div>
+                <span className="text-ghibli-earth/60">Última atualização:</span>
+              </div>
+              <span className="text-ghibli-earth ml-4 md:ml-0">{formatDate(order.updated_at)}</span>
             </div>
             
             {order.printify_status && (
-              <div className="flex items-center gap-3 text-sm">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span className="text-ghibli-earth/60">Estado Printify:</span>
-                <span className="text-ghibli-earth">{order.printify_status}</span>
+              <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <span className="text-ghibli-earth/60">Estado Printify:</span>
+                </div>
+                <span className="text-ghibli-earth ml-4 md:ml-0">{order.printify_status}</span>
               </div>
             )}
           </div>
