@@ -104,7 +104,7 @@ const CheckoutSuccessPage: React.FC = () => {
         
         <Header />
         
-        <main className="container mx-auto px-4 py-8 md:py-24 relative z-10">
+        <main className="container mx-auto px-4 py-20 md:py-24 relative z-10">
           <div className="max-w-md mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -139,7 +139,7 @@ const CheckoutSuccessPage: React.FC = () => {
         
         <Header />
         
-        <main className="container mx-auto px-4 py-8 md:py-24 relative z-10">
+        <main className="container mx-auto px-4 py-20 md:py-24 relative z-10">
           <div className="max-w-md mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -192,7 +192,7 @@ const CheckoutSuccessPage: React.FC = () => {
       
       <Header />
       
-      <main className="container mx-auto px-4 py-8 md:py-24 relative z-10">
+      <main className="container mx-auto px-4 py-20 md:py-24 relative z-10">
         <div className="max-w-md mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

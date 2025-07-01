@@ -7,7 +7,7 @@ const MessageRotator: React.FC = () => {
     { emoji: '🚚', text: 'ENTREGA GRÁTIS' },
     { emoji: '⚡', text: 'Produção e entrega em 3-6 dias úteis' },
     { emoji: '💎', text: 'Produtos de alta qualidade' },
-    { emoji: '💰', text: 'Poupa +10% comprando várias unidades!' } // ✅ NOVA MENSAGEM
+    { emoji: '💰', text: 'Até 15% de desconto comprando várias unidades!' } // ✅ NOVA MENSAGEM
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -62,7 +62,7 @@ const MessageRotator: React.FC = () => {
 
 const PromotionalBanner: React.FC = () => {
   return (
-    <div className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-moss text-white py-0.5 relative overflow-hidden z-50">
+    <div className="bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-moss text-white py-0.5 relative overflow-hidden z-40">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-center">
           <MessageRotator />
