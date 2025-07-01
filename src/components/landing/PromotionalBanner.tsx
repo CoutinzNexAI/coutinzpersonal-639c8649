@@ -23,40 +23,35 @@ const MessageRotator: React.FC = () => {
   const currentMessage = messages[currentIndex];
 
   return (
-    <div className="relative h-6 flex items-center justify-center overflow-hidden">
+    <div className="relative h-6 flex items-center justify-center">
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentIndex} // ✅ Key para re-trigger animation
-          className="flex items-center space-x-3 text-sm font-bold absolute"
+          key={currentIndex}
+          className="flex items-center space-x-2 text-sm font-bold"
           
-          // ✅ ANIMAÇÃO: Entra pela direita
+          // ✅ ANIMAÇÃO SIMPLES: Fade + Slide
           initial={{ 
-            x: 100, 
-            opacity: 0 
+            opacity: 0, 
+            x: 20 
           }}
-          
-          // ✅ ESTADO NORMAL: Centrado
           animate={{ 
-            x: 0, 
-            opacity: 1 
+            opacity: 1, 
+            x: 0 
           }}
-          
-          // ✅ ANIMAÇÃO: Sai pela esquerda
           exit={{ 
-            x: -100, 
-            opacity: 0 
+            opacity: 0, 
+            x: -20 
           }}
-          
           transition={{
-            duration: 0.5,
-            ease: "easeInOut"
+            duration: 0.3,
+            ease: "easeOut"
           }}
         >
-          <span className="text-xl">
+          <span className="text-base">
             {currentMessage.emoji}
           </span>
           
-          <span className="text-white tracking-wide">
+          <span className="text-white">
             {currentMessage.text}
           </span>
         </motion.div>
