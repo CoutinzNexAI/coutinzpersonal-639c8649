@@ -43,6 +43,9 @@ interface ProductCanvasProps {
   selectedPhraseText?: string;
   mockupUrl?: string;
   selectedImageId?: string | null; // Para Canvas products
+  hasGenerated?: boolean;
+  onMockupGenerated?: () => void;
+  mockupGenerationKey?: string; // Para prevenir duplicações
 }
 
 interface GenerateMockupResponse {
@@ -69,12 +72,14 @@ export default function ProductCanvas({
   allImageAdjustments,
   selectedPhraseText,
   mockupUrl,
-  selectedImageId
+  selectedImageId,
+  hasGenerated,
+  onMockupGenerated,
+  mockupGenerationKey
 }: ProductCanvasProps) {
   const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [hasGenerated, setHasGenerated] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
 
   // ✅ OTIMIZAÇÃO: Estado consolidado do Printify
@@ -113,28 +118,13 @@ export default function ProductCanvas({
     });
   }
 
-  // Reset hasGenerated when userImageUrl OR selectedPrintifyVariantId OR selectedPhraseText changes
+  // ✅ REMOVIDO: O reset agora é controlado pelo GenericProductPage através do estado partilhado
+  // Este useEffect causava a "falha de 0.1s" onde a imagem desaparecia e regenerava
   useEffect(() => {
-    setHasGenerated(false);
     setCurrentPreviewIndex(0);
-    // Clear existing preview URLs when image/variant/phrase changes
-    if (onPreviewReady) {
-      if (selectedProduct.id === 'custom_youth_hoodie') {
-        onPreviewReady({ 
-          previewUrls: [], 
-          customerPrintifyImageId: '', 
-          dynamicPhrasePrintifyImageId: '', 
-          printifyProductId: '' 
-        });
-      } else {
-        onPreviewReady({ 
-          previewUrls: [], 
-          printifyImageId: '', 
-          printifyProductId: '' 
-        });
-      }
-    }
-  }, [userImageUrl, selectedPrintifyVariantId, selectedPhraseText, onPreviewReady, selectedProduct.id]);
+    // Reset apenas o índice quando as dependências mudam, mas não limpar os previews
+    // O controlo de limpeza está agora centralizado no GenericProductPage
+  }, [userImageUrl, selectedPrintifyVariantId, selectedPhraseText, mockupGenerationKey]);
 
   // Preload images for instant navigation
   useEffect(() => {
@@ -250,7 +240,9 @@ export default function ProductCanvas({
               printifyProductId: data.printifyProductId,
             });
         }
-        setHasGenerated(true);
+        if (onMockupGenerated) {
+          onMockupGenerated();
+        }
       }
     } catch (err) {
       console.error('Error generating mockup:', err);
@@ -268,7 +260,8 @@ export default function ProductCanvas({
     onPreviewReady,
     allImageAdjustments,
     selectedPhraseText,
-    selectedImageId
+    selectedImageId,
+    onMockupGenerated
   ]);
 
   // Auto-generate mockup when component mounts (if not already generated)
@@ -286,10 +279,14 @@ export default function ProductCanvas({
       shouldGenerate = !!(userImageUrl && userId && selectedProduct);
     }
 
-    if (!hasGenerated && shouldGenerate) {
+    // ✅ USAR HASGENERATED EXTERNO OU FALLBACK PARA O COMPORTAMENTO ANTERIOR
+    const isGenerated = hasGenerated !== undefined ? hasGenerated : false;
+    
+    if (!isGenerated && shouldGenerate && mockupGenerationKey) {
+      console.log('🎯 [ProductCanvas] Auto-generating mockup with key:', mockupGenerationKey);
       handleGenerateMockup();
     }
-  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup]);
+  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup, mockupGenerationKey]);
 
   // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
   const handlePreviousPreview = useCallback(() => {
