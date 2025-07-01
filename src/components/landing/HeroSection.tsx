@@ -168,7 +168,7 @@ const HeroSection: React.FC = () => {
             >
               <Link href="/transformacoes" className="flex-1">
                 <Button 
-                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-4 text-sm rounded-xl shadow-lg touch-manipulation active:scale-95 transition-transform"
+                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-6 text-sm rounded-xl shadow-lg touch-manipulation active:scale-95 transition-transform"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <span className="mr-1 text-sm">🎨</span>
@@ -179,7 +179,7 @@ const HeroSection: React.FC = () => {
               <Link href="/shop" className="flex-1">
                 <Button 
                   variant="outline" 
-                  className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-4 text-sm rounded-xl touch-manipulation active:scale-95 transition-transform"
+                  className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-6 text-sm rounded-xl touch-manipulation active:scale-95 transition-transform"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <span className="mr-1 text-sm">🛍️</span>

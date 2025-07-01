@@ -215,7 +215,7 @@ const BestSellersSection: React.FC = () => {
           <Link href="/shop">
             <Button 
               size="default"
-              className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-8 py-4 text-base lg:text-lg rounded-xl shadow-lg hover:shadow-green-500/30 transition-all duration-300 border border-white/20 touch-manipulation active:scale-95"
+              className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-8 py-6 text-base lg:text-lg rounded-xl shadow-lg hover:shadow-green-500/30 transition-all duration-300 border border-white/20 touch-manipulation active:scale-95"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <ShoppingCart className="w-5 h-5 mr-2" />

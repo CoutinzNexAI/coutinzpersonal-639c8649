@@ -497,13 +497,117 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   </div>
                 </div>
               ) : (
-                <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
-                  <div className="mb-6">
-                    <div className="w-32 h-32 bg-ghibli-cream/50 rounded-xl border-2 border-dashed border-ghibli-sand flex items-center justify-center">
-                      <span className="text-4xl opacity-40">📷</span>
-                    </div>
+                <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
+                  {/* ✅ MOBILE: Layout igual ao desktop com imagem específica do produto */}
+                  <div className="mb-4">
+                    {/* Imagem específica baseada no produto */}
+                    {product.id === 'custom_phone_case' && (
+                      <img
+                        src="/mockupproduto/telemovel.png"
+                        alt="Capa de Telemóvel Personalizada"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
+                    {product.id === 'custom_canvas' && (
+                      <img
+                        src="/mockupproduto/canvaspersonalizada.png"
+                        alt="Canvas Personalizado"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
+                    {product.id === 'framed_canvas' && (
+                      <img
+                        src="/mockupproduto/canvasmoldura.png"
+                        alt="Canvas com Moldura"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
+                    {product.id === 'ceramic_mug' && (
+                      <img
+                        src="/mockupproduto/canecapersonalizada.png"
+                        alt="Caneca Personalizada"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
+                    {product.id === 'heart_mug' && (
+                      <img
+                        src="/mockupproduto/canecapersonalizada.png"
+                        alt="Caneca de Coração"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
+                    {product.id === 'poster_horizontal_semi_glossy' && (
+                      <img
+                        src="/mockupproduto/posterhorizontal.png"
+                        alt="Poster Horizontal"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
+                    {product.id === 'poster_vertical_semi_glossy' && (
+                      <img
+                        src="/mockupproduto/postervertical.png"
+                        alt="Poster Vertical"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
+                    {product.id === 'tote_bag' && (
+                      <img
+                        src="/assets/mockups/bag/saco.png"
+                        alt="Saco Personalizado"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
+                    {product.id === 'spiral_journal' && (
+                      <img
+                        src="/mockupproduto/caderno.png"
+                        alt="Caderno Personalizado"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
+                    {product.id === 'mouse_pad' && (
+                      <img
+                        src="/mockupproduto/mousepad.png"
+                        alt="Mouse Pad Personalizado"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
+                    {/* Fallback para produtos não especificados */}
+                    {!['custom_phone_case', 'custom_canvas', 'framed_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad'].includes(product.id) && (
+                      <div className="w-32 h-32 bg-ghibli-cream/50 rounded-xl border-2 border-dashed border-ghibli-sand flex items-center justify-center">
+                        <span className="text-4xl opacity-40">📷</span>
+                      </div>
+                    )}
                   </div>
-                  <h3 className="text-lg font-semibold text-ghibli-earth mb-3">Escolha uma Arte</h3>
+                  
+                  {/* Texto personalizado baseado no produto */}
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-ghibli-earth mb-2">
+                      {product.id === 'custom_phone_case' && 'Capa de Telemóvel Personalizada'}
+                      {product.id === 'custom_canvas' && 'Canvas Personalizável'}
+                      {product.id === 'framed_canvas' && 'Canvas com Moldura Personalizável'}
+                      {product.id === 'ceramic_mug' && 'Caneca Personalizada'}
+                      {product.id === 'heart_mug' && 'Caneca de Coração Personalizada'}
+                      {product.id === 'poster_horizontal_semi_glossy' && 'Poster Horizontal Personalizado'}
+                      {product.id === 'poster_vertical_semi_glossy' && 'Poster Vertical Personalizado'}
+                      {product.id === 'tote_bag' && 'Saco Personalizado'}
+                      {product.id === 'spiral_journal' && 'Caderno Personalizado'}
+                      {product.id === 'mouse_pad' && 'Mouse Pad Personalizado'}
+                      {!['custom_phone_case', 'custom_canvas', 'framed_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad'].includes(product.id) && 'Escolha uma Arte'}
+                    </h3>
+                    <p className="text-ghibli-earth/70 text-sm leading-relaxed">
+                      {product.id === 'custom_phone_case' && 'Escolha uma arte e veja a sua capa personalizada ganhar vida.'}
+                      {product.id === 'custom_canvas' && 'Escolha uma arte e veja o seu canvas personalizado ganhar vida.'}
+                      {product.id === 'framed_canvas' && 'Escolha uma arte e veja o seu canvas personalizado ganhar vida.'}
+                      {product.id === 'ceramic_mug' && 'Escolha uma arte e veja a sua caneca personalizada ganhar vida.'}
+                      {product.id === 'heart_mug' && 'Escolha uma arte e veja a sua caneca personalizada ganhar vida.'}
+                      {product.id === 'poster_horizontal_semi_glossy' && 'Escolha uma arte e veja o seu poster horizontal ganhar vida.'}
+                      {product.id === 'poster_vertical_semi_glossy' && 'Escolha uma arte e veja o seu poster vertical ganhar vida.'}
+                      {product.id === 'tote_bag' && 'Escolha uma arte e veja o seu saco sustentável ganhar vida.'}
+                      {product.id === 'spiral_journal' && 'Escolha uma arte e veja o seu caderno personalizado ganhar vida.'}
+                      {product.id === 'mouse_pad' && 'Escolha uma arte e veja o seu mouse pad personalizado ganhar vida.'}
+                      {!['custom_phone_case', 'custom_canvas', 'framed_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad'].includes(product.id) && 'Selecione uma das suas transformações AI para personalizar.'}
+                    </p>
+                  </div>
                 </div>
               )}
               
