@@ -291,7 +291,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] lg:hidden"
           />
           
           {/* Bottom Sheet */}
@@ -300,7 +300,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
             animate={{ y: '5%' }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 bg-white z-50 shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl overflow-hidden"
+            className="fixed bottom-0 left-0 right-0 bg-white z-[70] shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl overflow-hidden"
             style={{ height: '95vh' }}
           >
             {/* Header com handle */}
@@ -319,12 +319,10 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                   <div>
                     <h2 className="text-lg font-ghibli text-ghibli-wood">Carrinho</h2>
                     <p className="text-sm text-ghibli-earth">
-                      {cartSummary?.itemCount || 0} {(cartSummary?.itemCount || 0) === 1 ? 'item' : 'items'}
+                      {cartSummary?.itemCount ? `${cartSummary.itemCount} ${cartSummary.itemCount === 1 ? 'item' : 'items'}` : 'Vazio'}
                     </p>
                   </div>
                 </div>
-                
-
                 
                 <button
                   onClick={onClose}
@@ -365,16 +363,26 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                 )}
               </div>
               
-              {/* Footer fixo com preços e checkout */}
+              {/* Footer fixo com preços e checkout - Nova estrutura melhorada */}
               {cartSummary && cartSummary.itemCount > 0 && (
-                <div className="border-t border-ghibli-sand/30 p-6 bg-ghibli-cream/20">
-                  {/* Resumo de preços compacto */}
-                  <div className="space-y-2 mb-4">
-                    {/* Desconto em destaque se houver */}
-                    {cartSummary.discountAmount && cartSummary.discountAmount > 0 && cartSummary.originalSubtotal && cartSummary.originalSubtotal > cartSummary.subtotal && (
+                <div className="border-t border-ghibli-sand/30 bg-white">
+                  {/* Resumo de preços completo */}
+                  <div className="px-6 py-4 space-y-3">
+                    {/* Subtotal original (se houver desconto) */}
+                    {cartSummary.originalSubtotal && cartSummary.discountAmount && cartSummary.discountAmount > 0 && cartSummary.originalSubtotal > cartSummary.subtotal && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-ghibli-earth">Subtotal (original)</span>
+                        <span className="text-ghibli-earth line-through">
+                          €{cartSummary.originalSubtotal.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Desconto */}
+                    {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
                       <div className="flex justify-between text-sm bg-green-50 rounded-lg px-3 py-2">
                         <span className="text-green-700 font-medium">
-                          🎉 Desconto aplicado
+                          🎉 Desconto por quantidade
                         </span>
                         <span className="text-green-700 font-bold">
                           -€{cartSummary.discountAmount.toFixed(2)}
@@ -390,7 +398,10 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                     </div>
                     
                     <div className="flex justify-between text-sm">
-                      <span className="text-ghibli-earth">Envio</span>
+                      <div>
+                        <span className="text-ghibli-earth">Envio</span>
+                        <p className="text-xs text-ghibli-earth/70">Entrega em 4-7 dias úteis</p>
+                      </div>
                       <span className="text-green-600 font-bold text-sm">GRÁTIS! ✨</span>
                     </div>
                     
@@ -401,7 +412,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                       </span>
                     </div>
                     
-                    <div className="border-t border-ghibli-sand/50 pt-2">
+                    <div className="border-t border-ghibli-sand/50 pt-3">
                       <div className="flex justify-between text-lg font-bold">
                         <span className="text-ghibli-wood">Total</span>
                         <span className="text-ghibli-moss">
@@ -412,34 +423,36 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                   </div>
                   
                   {/* Botão de checkout */}
-                  <Button
-                    onClick={handleCheckout}
-                    disabled={isProcessingCheckout || !userInfo}
-                    className="w-full py-4 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light hover:from-ghibli-moss-light hover:to-ghibli-moss text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    {isProcessingCheckout ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white" />
-                        A processar...
-                      </div>
-                    ) : !userInfo ? (
-                      <>
-                        <span className="mr-2">🔐</span>
-                        Faça Login para Continuar
-                      </>
-                    ) : (
-                      <>
-                        <span className="mr-2">🌟</span>
-                        Finalizar Compra
-                      </>
+                  <div className="px-6 pb-6">
+                    <Button
+                      onClick={handleCheckout}
+                      disabled={isProcessingCheckout || !userInfo}
+                      className="w-full py-4 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light hover:from-ghibli-moss-light hover:to-ghibli-moss text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      {isProcessingCheckout ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white" />
+                          A processar...
+                        </div>
+                      ) : !userInfo ? (
+                        <>
+                          <span className="mr-2">🔐</span>
+                          Faça Login para Continuar
+                        </>
+                      ) : (
+                        <>
+                          <span className="mr-2">🌟</span>
+                          Finalizar Compra
+                        </>
+                      )}
+                    </Button>
+                    
+                    {userInfo && (
+                      <p className="text-xs text-ghibli-earth text-center mt-2">
+                        Será redirecionado para o Stripe para pagamento seguro
+                      </p>
                     )}
-                  </Button>
-                  
-                  {userInfo && (
-                    <p className="text-xs text-ghibli-earth text-center mt-2">
-                      Será redirecionado para o Stripe para pagamento seguro
-                    </p>
-                  )}
+                  </div>
                 </div>
               )}
             </div>

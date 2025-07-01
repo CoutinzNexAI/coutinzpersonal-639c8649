@@ -287,7 +287,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 hidden lg:block"
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] hidden lg:block"
             />
           
           {/* Sidebar */}
@@ -296,7 +296,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-[480px] bg-white z-50 shadow-2xl border-l border-ghibli-sand/20 hidden lg:flex flex-col"
+            className="fixed right-0 top-0 h-full w-[480px] bg-white z-[70] shadow-2xl border-l border-ghibli-sand/20 hidden lg:flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-ghibli-sand/30 bg-gradient-to-r from-ghibli-cream to-ghibli-paper">
@@ -307,7 +307,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 <div>
                   <h2 className="text-xl font-ghibli text-ghibli-wood">Carrinho</h2>
                   <p className="text-sm text-ghibli-earth">
-                    {cartSummary?.itemCount || 0} {(cartSummary?.itemCount || 0) === 1 ? 'item' : 'items'}
+                    {cartSummary?.itemCount ? `${cartSummary.itemCount} ${cartSummary.itemCount === 1 ? 'item' : 'items'}` : 'Vazio'}
                   </p>
                 </div>
               </div>
