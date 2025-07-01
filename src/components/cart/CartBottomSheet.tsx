@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, ShoppingCart, Trash2, ChevronDown } from 'lucide-react';
+import { X, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,7 +33,30 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
   const { userInfo } = useAuth();
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
+  // Sempre expandido quando aberto - sem estado médio
+  const isExpanded = true;
+
+  // Bloquear scroll do body quando carrinho está aberto no mobile
+  useEffect(() => {
+    if (isOpen) {
+      // Bloquear scroll
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      // Restaurar scroll
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+
+    // Cleanup quando componente desmonta
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [isOpen]);
 
   // Carregar dados do utilizador quando necessário
   const loadUserData = async () => {
@@ -274,21 +297,17 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
           {/* Bottom Sheet */}
           <motion.div
             initial={{ y: '100%' }}
-            animate={{ y: isExpanded ? '5%' : '50%' }}
+            animate={{ y: '5%' }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed bottom-0 left-0 right-0 bg-white z-50 shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl overflow-hidden"
-            style={{ height: isExpanded ? '95vh' : '50vh' }}
+            style={{ height: '95vh' }}
           >
             {/* Header com handle */}
             <div className="flex flex-col">
-              {/* Handle para arrastar */}
+              {/* Handle visual */}
               <div className="flex justify-center py-2">
-                <motion.div
-                  className="w-12 h-1 bg-ghibli-sand rounded-full cursor-pointer"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  whileTap={{ scale: 0.95 }}
-                />
+                <div className="w-12 h-1 bg-ghibli-sand rounded-full" />
               </div>
               
               {/* Cabeçalho */}
@@ -305,18 +324,11 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                   </div>
                 </div>
                 
-                {/* Botão de expandir/contrair */}
-                <motion.button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="w-8 h-8 rounded-full bg-ghibli-sand/20 hover:bg-ghibli-sand/40 flex items-center justify-center transition-colors"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <ChevronDown className={`w-5 h-5 text-ghibli-earth transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                </motion.button>
+
                 
                 <button
                   onClick={onClose}
-                  className="w-8 h-8 rounded-full bg-ghibli-sand/20 hover:bg-ghibli-sand/40 flex items-center justify-center transition-colors ml-2"
+                  className="w-8 h-8 rounded-full bg-ghibli-sand/20 hover:bg-ghibli-sand/40 flex items-center justify-center transition-colors"
                 >
                   <X className="w-4 h-4 text-ghibli-earth" />
                 </button>
