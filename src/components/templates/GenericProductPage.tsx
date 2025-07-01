@@ -118,8 +118,16 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       setPrintifyProductId('');
       setHasGenerated(false);
       setMockupGenerationKey(newKey);
+      setCurrentPreviewIndex(0); // ✅ Reset preview index
     }
   }, [selectedImageUrl, selectedPrintifyVariantId, selectedImageId]);
+
+  // ✅ RESET PREVIEW INDEX QUANDO URLS MUDAM
+  useEffect(() => {
+    if (printifyPreviewUrls.length > 0) {
+      setCurrentPreviewIndex(0);
+    }
+  }, [printifyPreviewUrls]);
 
   // Calcular imageAdjustments usando a configuração
   useEffect(() => {
@@ -317,15 +325,43 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         setPrintifyProductId(data.printifyProductId);
         setCurrentMockupUrls(data.previewUrls);
         
-        // Só mostrar notificação se não for mudança de posição
-        if (!isPositionChange) {
-          toast.success('Mockup atualizado com sucesso!');
+        // ✅ AGUARDAR IMAGEM CARREGAR ANTES DE REMOVER LOADING
+        if (data.previewUrls[0]) {
+          const img = new Image();
+          
+          const finishLoading = () => {
+            setIsGeneratingMockup(false);
+            if (!isPositionChange) {
+              toast.success('Mockup atualizado com sucesso!');
+            }
+          };
+          
+          img.onload = finishLoading;
+          img.onerror = finishLoading;
+          img.src = data.previewUrls[0];
+          
+          // ✅ TIMEOUT DE SEGURANÇA (máximo 5 segundos)
+          const timeoutId = setTimeout(finishLoading, 5000);
+          
+          // Cleanup timeout se imagem carregar primeiro
+          img.onload = () => {
+            clearTimeout(timeoutId);
+            finishLoading();
+          };
+          img.onerror = () => {
+            clearTimeout(timeoutId);
+            finishLoading();
+          };
+        } else {
+          setIsGeneratingMockup(false);
+          if (!isPositionChange) {
+            toast.success('Mockup atualizado com sucesso!');
+          }
         }
       }
     } catch (error) {
       console.error('Error generating new mockup:', error);
       toast.error('Erro ao gerar novo mockup. Tente novamente.');
-    } finally {
       setIsGeneratingMockup(false);
     }
   };
@@ -418,7 +454,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
             <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20">
               {/* ✅ MOBILE: SÓ MOSTRA IMAGENS (não gera) */}
               {printifyPreviewUrls.length > 0 ? (
-                <div className="relative w-full h-full">
+                <div className="relative w-full h-full flex items-center justify-center">
                   <img
                     src={printifyPreviewUrls[currentPreviewIndex] || printifyPreviewUrls[0]}
                     alt="Preview mockup"
