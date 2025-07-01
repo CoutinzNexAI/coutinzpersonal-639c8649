@@ -15,6 +15,7 @@ export interface CartItem {
     x: number; // Posição X da imagem (0.5 = centro)
     y: number; // Posição Y da imagem (0.5 = centro)
     angle: number; // Rotação da imagem (0 = sem rotação)
+    position?: string; // Posição da foto (ex: 'centro', 'esquerda', 'direita', 'cima', 'baixo')
     print_on_side?: 'mirror' | 'regular' | 'off'; // Para produtos que suportam print details (canvas)
     
     // Campos específicos de cada produto (mantidos para compatibilidade)

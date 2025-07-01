@@ -18,7 +18,16 @@ interface CartItem {
   productUid: string;
   userImageId?: string;
   userImageUrl?: string;
-  customizations?: { size?: string };
+  customizations?: { 
+    size?: string;
+    variant?: string;
+    position?: string;
+    variantId?: number;
+    scale?: number;
+    x?: number;
+    y?: number;
+    angle?: number;
+  };
   printifyProductId?: string;
   printifyVariantId?: number;
   printifyImageId?: string;
@@ -85,24 +94,60 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('✅ Dados do checkout salvos temporariamente:', checkoutReference);
 
+    // Calcular descontos por grupo de produtos
+    const productGroups = items.reduce((groups: Record<string, CartItem[]>, item: CartItem) => {
+      const key = item.productUid;
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(item);
+      return groups;
+    }, {});
+
     // Criar line items para o Stripe
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: CartItem) => ({
-      price_data: {
-        currency: 'eur',
-        product_data: {
-          name: item.productName,
-          description: `Produto personalizado com arte AI - ${item.customizations?.size || 'Tamanho padrão'}`,
-          images: item.userImageUrl ? [item.userImageUrl] : undefined,
-          metadata: {
-            productUid: item.productUid,
-            userImageId: item.userImageId || '',
-            transformationId: item.userImageId || ''
-          }
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: CartItem) => {
+      // Construir descrição com posição
+      const position = item.customizations?.position || 'Centro';
+      const variant = item.customizations?.variant || item.customizations?.size || 'Tamanho padrão';
+      const description = `Produto personalizado com arte PicTuz - ${variant} - Posição: ${position}`;
+      
+      // Calcular desconto para este item baseado no grupo do produto
+      const sameProductItems = productGroups[item.productUid] || [];
+      const totalSameProductQty = sameProductItems.reduce((sum, groupItem) => sum + groupItem.quantity, 0);
+      
+      let discountPercent = 0;
+      if (totalSameProductQty >= 3) {
+        discountPercent = 15;
+      } else if (totalSameProductQty >= 2) {
+        discountPercent = 10;
+      }
+      
+      // Aplicar desconto ao preço
+      const originalPrice = item.price;
+      const discountedPrice = originalPrice * (1 - discountPercent / 100);
+      
+      return {
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: item.productName,
+            description: description,
+            images: item.userImageUrl ? [item.userImageUrl] : undefined,
+            metadata: {
+              productUid: item.productUid,
+              userImageId: item.userImageId || '',
+              transformationId: item.userImageId || '',
+              position: position,
+              originalPrice: originalPrice.toString(),
+              discountPercent: discountPercent.toString(),
+              discountedPrice: discountedPrice.toString()
+            }
+          },
+          unit_amount: Math.round(discountedPrice * 100), // Usar preço com desconto
         },
-        unit_amount: Math.round(item.price * 100), // Stripe trabalha em cêntimos
-      },
-      quantity: item.quantity,
-    }));
+        quantity: item.quantity,
+      };
+    });
 
     // Adicionar envio como item separado
     if (shippingMethod && shipping > 0) {
@@ -111,7 +156,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           currency: 'eur',
           product_data: {
             name: shippingMethod.name,
-            description: `${shippingMethod.description} (${shippingMethod.deliveryDaysMin}-${shippingMethod.deliveryDaysMax} dias)`
+            description: `Envio gratuito em 4-7 dias úteis`
           },
           unit_amount: Math.round(shipping * 100)
         },
@@ -160,11 +205,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // ✅ DEBUG: Metadata para testar region se Stripe não a fornecer
         debug_region: 'Porto' // Fallback para teste - pode ser removido em produção
       },
-      // Configurar recolha obrigatória de endereço de envio
+      // Configurar recolha obrigatória de endereço de envio - APENAS PORTUGAL
       shipping_address_collection: {
-        allowed_countries: ['PT', 'ES', 'FR', 'DE', 'IT', 'NL', 'BE', 'AT', 'CH', 'US', 'CA', 'GB'],
-        // ✅ NOTA: O Stripe força automaticamente a recolha de line1, city, postal_code, state e country
-        // quando shipping_address_collection está ativo
+        allowed_countries: ['PT'],
+        // ✅ BLOQUEADO PARA PORTUGAL APENAS
       },
       phone_number_collection: {
         enabled: true // ✅ FORÇAR: Recolha obrigatória do telefone
@@ -183,11 +227,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             delivery_estimate: {
               minimum: {
                 unit: 'business_day',
-                value: shippingMethod.deliveryDaysMin,
+                value: 4,
               },
               maximum: {
                 unit: 'business_day',
-                value: shippingMethod.deliveryDaysMax,
+                value: 7,
               },
             },
           },

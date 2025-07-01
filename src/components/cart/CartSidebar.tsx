@@ -101,9 +101,9 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
             uid: 'free_shipping',
             name: 'Envio Grátis',
             price: shippingPrice,
-            deliveryDaysMin: 5,
-            deliveryDaysMax: 8,
-            description: 'Envio gratuito em 5-8 dias úteis'
+            deliveryDaysMin: 4,
+            deliveryDaysMax: 7,
+            description: 'Envio gratuito em 4-7 dias úteis'
           },
           userId: userInfo.id,
           userName: currentUserData.full_name,
@@ -176,6 +176,13 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
             </p>
           )}
           
+          {/* Posição da foto */}
+          {item.customizations?.position && (
+            <p className="text-xs text-ghibli-earth mb-1">
+              <span className="font-medium">Posição:</span> {item.customizations.position}
+            </p>
+          )}
+          
           {/* Controles de quantidade */}
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-2">
@@ -214,9 +221,44 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
         
         {/* Preço */}
         <div className="text-right">
-          <p className="font-bold text-ghibli-moss">
-            €{(item.price * item.quantity).toFixed(2)}
-          </p>
+          {/* Verificar se há desconto para este item */}
+          {(() => {
+            // Calcular desconto baseado na quantidade do mesmo produto
+            const sameProductItems = cartSummary?.items.filter(cartItem => cartItem.productId === item.productId) || [];
+            const totalSameProductQty = sameProductItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
+            
+            let discountPercent = 0;
+            if (totalSameProductQty >= 3) {
+              discountPercent = 15;
+            } else if (totalSameProductQty >= 2) {
+              discountPercent = 10;
+            }
+            
+            const originalPrice = item.price * item.quantity;
+            const discountedPrice = originalPrice * (1 - discountPercent / 100);
+            
+            if (discountPercent > 0) {
+              return (
+                <div>
+                  <p className="text-xs text-red-500 line-through">
+                    €{originalPrice.toFixed(2)}
+                  </p>
+                  <p className="font-bold text-ghibli-moss">
+                    €{discountedPrice.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-green-600">
+                    -{discountPercent}%
+                  </p>
+                </div>
+              );
+            } else {
+              return (
+                <p className="font-bold text-ghibli-moss">
+                  €{originalPrice.toFixed(2)}
+                </p>
+              );
+            }
+          })()}
         </div>
       </div>
     </motion.div>
@@ -301,7 +343,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                   {/* Breakdown de preços */}
                   <div className="space-y-3 mb-6">
                     {/* Subtotal original (se houver desconto) */}
-                    {cartSummary.originalSubtotal && cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
+                    {cartSummary.originalSubtotal && cartSummary.discountAmount && cartSummary.discountAmount > 0 && cartSummary.originalSubtotal > cartSummary.subtotal && (
                       <div className="flex justify-between text-sm">
                         <span className="text-ghibli-earth">Subtotal (original)</span>
                         <span className="text-ghibli-earth line-through">
@@ -332,7 +374,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                     <div className="flex justify-between text-sm">
                       <div>
                         <span className="text-ghibli-earth">Envio</span>
-                        <p className="text-xs text-ghibli-earth/70">Entrega em 5-8 dias úteis</p>
+                        <p className="text-xs text-ghibli-earth/70">Entrega em 4-7 dias úteis</p>
                       </div>
                       <span className="text-green-600 font-bold text-sm">GRÁTIS! ✨</span>
                     </div>

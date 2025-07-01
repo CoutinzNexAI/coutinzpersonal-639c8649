@@ -214,6 +214,18 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     try {
       const variant = product.variants?.find((v) => v.id === selectedPrintifyVariantId);
 
+      // Converter posição técnica para texto legível
+      const getPositionText = (position: string) => {
+        const positionMap: Record<string, string> = {
+          'center': 'Centro',
+          'top': 'Cima',
+          'bottom': 'Baixo',
+          'left': 'Esquerda',
+          'right': 'Direita'
+        };
+        return positionMap[position] || 'Centro';
+      };
+
       const success = addToCart({
         productId: product.id,
         productName: product.name,
@@ -229,6 +241,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           x: imageAdjustments?.x || 0.5,
           y: imageAdjustments?.y || 0.5,
           angle: imageAdjustments?.rotation || 0,
+          position: getPositionText(imagePosition),
         },
         imageAdjustments,
       });
