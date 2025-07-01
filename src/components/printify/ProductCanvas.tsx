@@ -46,6 +46,7 @@ interface ProductCanvasProps {
   hasGenerated?: boolean;
   onMockupGenerated?: () => void;
   mockupGenerationKey?: string; // Para prevenir duplicações
+  isGeneratingMockup?: boolean; // Para mostrar overlay de mudança de posição
 }
 
 interface GenerateMockupResponse {
@@ -75,7 +76,8 @@ export default function ProductCanvas({
   selectedImageId,
   hasGenerated,
   onMockupGenerated,
-  mockupGenerationKey
+  mockupGenerationKey,
+  isGeneratingMockup = false
 }: ProductCanvasProps) {
   const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
@@ -805,7 +807,23 @@ export default function ProductCanvas({
   }
 
   if (printifyGeneratedPreviewUrls.length > 0) {
-    return renderGeneratedPreviews();
+    return (
+      <div className="relative w-full h-full">
+        {renderGeneratedPreviews()}
+        {/* ✅ OVERLAY DE MUDANÇA DE POSIÇÃO sobre o mockup existente */}
+        {isGeneratingMockup && (
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Loader2 className="w-8 h-8 animate-spin text-ghibli-moss" />
+              </div>
+              <p className="text-ghibli-earth font-semibold text-lg">Gerar produto</p>
+              <p className="text-ghibli-earth/60 text-sm mt-1">A reposicionar arte...</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   }
 
   return renderInitialPreview();
