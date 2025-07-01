@@ -392,9 +392,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         <Header />
         
         <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-12 sm:pb-8 lg:pt-24 lg:pb-8">
-          {/* Layout Mobile */}
+          {/* ✅ TÍTULO - MOBILE ONLY */}
           <div className="block lg:hidden">
-            {/* ✅ TÍTULO MOBILE */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -405,33 +404,37 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 {product.name}
               </h1>
             </motion.div>
+          </div>
 
-            {/* ✅ MOCKUP MOBILE */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-6"
-            >
-              <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20">
-                <ProductCanvas
-                  key={mockupGenerationKey} // ✅ Chave única para evitar duplicações
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={imageAdjustments}
-                  onImageAdjust={setImageAdjustments}
-                  selectedPrintifyVariantId={selectedPrintifyVariantId}
-                  hasGenerated={hasGenerated}
-                  onMockupGenerated={handleMockupGenerated}
-                  mockupGenerationKey={mockupGenerationKey}
-                  isGeneratingMockup={isGeneratingMockup}
-                />
-              </div>
-            </motion.div>
+          {/* ✅ MOCKUP ÚNICO E RESPONSIVO - VISÍVEL EM AMBOS */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-6 lg:mb-8"
+          >
+            <div className="relative w-full h-[350px] lg:h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20">
+              <ProductCanvas
+                key={mockupGenerationKey} // ✅ Chave única para evitar duplicações
+                selectedProduct={product}
+                userImageUrl={selectedImageUrl}
+                userId={userInfo?.id}
+                printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                onPreviewReady={handlePreviewReady}
+                onSelectImage={handleOpenGallery}
+                imageAdjustments={imageAdjustments}
+                onImageAdjust={setImageAdjustments}
+                selectedPrintifyVariantId={selectedPrintifyVariantId}
+                hasGenerated={hasGenerated}
+                onMockupGenerated={handleMockupGenerated}
+                mockupGenerationKey={mockupGenerationKey}
+                isGeneratingMockup={isGeneratingMockup}
+              />
+            </div>
+          </motion.div>
+
+          {/* Layout Mobile */}
+          <div className="block lg:hidden">
 
             {/* ✅ CONTROLOS MOBILE */}
             <motion.div
@@ -567,40 +570,13 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
           {/* Layout Desktop */}
           <div className="hidden lg:flex lg:grid lg:grid-cols-3 gap-8">
-            {/* ✅ ÁREA ESQUERDA DESKTOP - MOCKUP + CONTROLOS */}
+            {/* ✅ ÁREA ESQUERDA DESKTOP - CONTROLOS (mockup já está acima como responsivo) */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               className="lg:col-span-2 order-1"
             >
-              {/* ✅ MOCKUP DESKTOP */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="mb-6"
-              >
-                <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20">
-                  <ProductCanvas
-                    key={mockupGenerationKey} // ✅ Chave única para evitar duplicações
-                    selectedProduct={product}
-                    userImageUrl={selectedImageUrl}
-                    userId={userInfo?.id}
-                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                    onPreviewReady={handlePreviewReady}
-                    onSelectImage={handleOpenGallery}
-                    imageAdjustments={imageAdjustments}
-                    onImageAdjust={setImageAdjustments}
-                    selectedPrintifyVariantId={selectedPrintifyVariantId}
-                    hasGenerated={hasGenerated}
-                    onMockupGenerated={handleMockupGenerated}
-                    mockupGenerationKey={mockupGenerationKey}
-                    isGeneratingMockup={isGeneratingMockup}
-                  />
-                </div>
-              </motion.div>
-
               {/* ✅ CONTROLOS DESKTOP */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}

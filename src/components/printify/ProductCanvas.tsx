@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 
 interface ImageAdjustments {
@@ -83,6 +82,7 @@ export default function ProductCanvas({
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
+  const [isGenerating, setIsGenerating] = useState(false); // ✅ Guard local anti-duplicação
 
   // ✅ OTIMIZAÇÃO: Estado consolidado do Printify
   const [printifyData, setPrintifyData] = useState({
@@ -124,6 +124,7 @@ export default function ProductCanvas({
   // Este useEffect causava a "falha de 0.1s" onde a imagem desaparecia e regenerava
   useEffect(() => {
     setCurrentPreviewIndex(0);
+    setIsGenerating(false); // ✅ Reset guard quando nova imagem/variante
     // Reset apenas o índice quando as dependências mudam, mas não limpar os previews
     // O controlo de limpeza está agora centralizado no GenericProductPage
   }, [userImageUrl, selectedPrintifyVariantId, selectedPhraseText, mockupGenerationKey]);
@@ -255,6 +256,7 @@ export default function ProductCanvas({
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
       setIsLoadingMockups(false);
+      setIsGenerating(false); // ✅ Reset guard local
     }
   }, [
     userImageUrl, 
@@ -271,7 +273,7 @@ export default function ProductCanvas({
     // ✅ Removido mockupGenerationKey para evitar re-creations do callback
   ]);
 
-  // ✅ DEBOUNCED AUTO-GENERATE com proteção contra duplos
+  // ✅ AUTO-GENERATE SIMPLIFICADO
   useEffect(() => {
     let shouldGenerate = false;
 
@@ -289,7 +291,7 @@ export default function ProductCanvas({
     // ✅ USAR HASGENERATED EXTERNO OU FALLBACK PARA O COMPORTAMENTO ANTERIOR
     const isGenerated = hasGenerated !== undefined ? hasGenerated : false;
     
-    if (!isGenerated && shouldGenerate && mockupGenerationKey && !isLoadingMockups) {
+    if (!isGenerated && shouldGenerate && mockupGenerationKey && !isLoadingMockups && !isGenerating) {
       console.log('🎯 [ProductCanvas] Auto-generating mockup with key:', mockupGenerationKey, {
         userImageUrl: !!userImageUrl,
         userId: !!userId,
@@ -298,19 +300,14 @@ export default function ProductCanvas({
         hasGenerated,
         shouldGenerate,
         isGenerated,
-        isLoadingMockups
+        isLoadingMockups,
+        isGenerating
       });
       
-      // ✅ PEQUENO DELAY para evitar calls simultâneos
-      const timer = setTimeout(() => {
-        if (!isLoadingMockups) { // Double-check antes de executar
-          handleGenerateMockup();
-        }
-      }, 100);
-      
-      return () => clearTimeout(timer);
+      setIsGenerating(true); // ✅ Bloquear outras chamadas
+      handleGenerateMockup();
     }
-  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup, mockupGenerationKey, isLoadingMockups]);
+  }, [userImageUrl, userId, selectedProduct.id, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup, mockupGenerationKey, isLoadingMockups, isGenerating]);
 
   // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
   const handlePreviousPreview = useCallback(() => {
