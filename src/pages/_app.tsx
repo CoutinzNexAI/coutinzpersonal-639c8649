@@ -18,6 +18,7 @@ import Script from 'next/script';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import PostHogProvider from '@/providers/PostHogProvider'; // <<< NOVO: Import PostHog Provider
+import { CartProvider } from '@/providers/CartProvider';
 
 const queryClient = new QueryClient();
 
@@ -96,10 +97,11 @@ function MyApp({ Component, pageProps }: AppProps) {
       />
       <TooltipProvider>
         <AuthProvider>
-          <PostHogProvider>
-            <TransformationsModalProvider>
-              <AccountSettingsModalProvider>
-                <OrdersModalProvider>
+          <CartProvider>
+            <PostHogProvider>
+              <TransformationsModalProvider>
+                <AccountSettingsModalProvider>
+                  <OrdersModalProvider>
                   
                   <FallingElements />
                   
@@ -116,6 +118,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               </AccountSettingsModalProvider>
             </TransformationsModalProvider>
           </PostHogProvider>
+          </CartProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

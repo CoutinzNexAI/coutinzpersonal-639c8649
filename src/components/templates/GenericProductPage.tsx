@@ -14,7 +14,7 @@ import Footer from '@/components/Footer';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
 import { useAuth } from '@/hooks/useAuth';
-import { CartService } from '@/lib/cart/cartService';
+import { useCart } from '@/providers/CartProvider';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
@@ -54,6 +54,7 @@ interface GenericProductPageProps {
 const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config }) => {
   const router = useRouter();
   const { userInfo } = useAuth();
+  const { addToCart, setIsCartOpen } = useCart();
   
   // Resolver coordinateConfig dinamicamente
   const coordinateConfig = config.getCoordinateConfig ? config.getCoordinateConfig(product) : config.coordinateConfig;
@@ -213,7 +214,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     try {
       const variant = product.variants?.find((v) => v.id === selectedPrintifyVariantId);
 
-      CartService.addToCart({
+      const success = addToCart({
         productId: product.id,
         productName: product.name,
         productCategory: product.category || config.productCategory,
@@ -232,13 +233,13 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         imageAdjustments,
       });
 
-      toast.success(`${product.name} adicionado ao carrinho!`, {
-        description: 'Continue as compras ou vá para o checkout',
-        action: {
-          label: 'Ver Carrinho',
-          onClick: () => router.push('/checkout'),
-        },
-      });
+      if (success) {
+        toast.success(`${product.name} adicionado ao carrinho!`, {
+          description: 'O carrinho foi aberto automaticamente'
+        });
+        // Abrir o carrinho sidebar automaticamente
+        setIsCartOpen(true);
+      }
     } catch (error) {
       console.error('Erro ao adicionar ao carrinho:', error);
       toast.error('Erro ao adicionar ao carrinho. Tente novamente.');

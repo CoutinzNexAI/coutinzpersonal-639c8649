@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, ShoppingCart } from "lucide-react";
 import UserMenu from "./UserMenu";
 import { PicCoinBalance } from './PicCoinBalance';
-import { CartService } from '@/lib/cart/cartService';
+import { CartButton } from './cart/CartButton';
+import { CartSidebar } from './cart/CartSidebar';
+import { useCart } from '@/providers/CartProvider';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/router';
 
@@ -28,10 +30,20 @@ const navLinks: NavLink[] = [
 const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const router = useRouter();
+
+  // Cart functionality
+  const {
+    isCartOpen,
+    setIsCartOpen,
+    cartSummary,
+    cartCount,
+    removeFromCart,
+    updateQuantity,
+    clearCart
+  } = useCart();
 
   // Detecta se estamos na homepage para aplicar estilo específico
   const isHomePage = router.pathname === '/';
@@ -49,24 +61,6 @@ const Header: React.FC = () => {
 
   // Close mobile menu
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
-
-  // Update cart count
-  const updateCartCount = useCallback(() => {
-    const count = CartService.getCartCount();
-    setCartCount(count);
-  }, []);
-
-  // Listen for cart updates
-  useEffect(() => {
-    updateCartCount(); // Initial load
-    
-    const handleCartUpdate = () => updateCartCount();
-    window.addEventListener('cartUpdated', handleCartUpdate);
-    
-    return () => {
-      window.removeEventListener('cartUpdated', handleCartUpdate);
-    };
-  }, [updateCartCount]);
 
   // Handle scroll effects
   useEffect(() => {
@@ -225,26 +219,11 @@ const Header: React.FC = () => {
             >
               <PicCoinBalance />
               
-              {/* Cart Button */}
-              <Link href="/checkout">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="relative border-ghibli-sand text-ghibli-earth hover:bg-ghibli-sand/30 transition-all duration-300"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  {cartCount > 0 && (
-                    <motion.span
-                      className="absolute -top-2 -right-2 bg-ghibli-moss text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    >
-                      {cartCount > 9 ? '9+' : cartCount}
-                    </motion.span>
-                  )}
-                </Button>
-              </Link>
+              {/* Cart Button - Desktop */}
+              <CartButton
+                cartCount={cartCount}
+                onClick={() => setIsCartOpen(true)}
+              />
               
               <UserMenu />
             </motion.div>
@@ -253,6 +232,14 @@ const Header: React.FC = () => {
           {/* Mobile controls */}
           <div className="md:hidden flex items-center space-x-3">
             <PicCoinBalance />
+            
+            {/* Cart Button - Mobile */}
+            <CartButton
+              cartCount={cartCount}
+              onClick={() => setIsCartOpen(true)}
+              className="p-2"
+            />
+            
             <UserMenu />
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -331,6 +318,16 @@ const Header: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* Cart Sidebar */}
+      <CartSidebar
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartSummary={cartSummary}
+        onRemoveItem={removeFromCart}
+        onUpdateQuantity={updateQuantity}
+        onClearCart={clearCart}
+      />
     </motion.header>
   );
 };
