@@ -105,24 +105,20 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     }
   }, [product]);
 
-  // Reset estados quando a variante muda
+  // ✅ CONTROLO ÚNICO DE MOCKUP GENERATION KEY
   useEffect(() => {
     if (selectedImageUrl && selectedPrintifyVariantId) {
+      const newKey = `${selectedImageId || 'no-id'}-${selectedPrintifyVariantId}-${Date.now()}`;
+      console.log('🔑 [GenericProductPage] Generating new mockup key:', newKey);
+      
+      // Reset estados
       setPrintifyPreviewUrls([]);
       setPrintifyImageId('');
       setPrintifyProductId('');
-      // ✅ RESET ESTADO PARTILHADO QUANDO VARIANTE MUDA
       setHasGenerated(false);
-      setMockupGenerationKey(`${selectedImageId}-${selectedPrintifyVariantId}-${Date.now()}`);
+      setMockupGenerationKey(newKey);
     }
-  }, [selectedPrintifyVariantId, selectedImageId]);
-
-  // ✅ GERAR CHAVE INICIAL QUANDO IMAGEM É SELECIONADA
-  useEffect(() => {
-    if (selectedImageUrl && selectedPrintifyVariantId && !mockupGenerationKey) {
-      setMockupGenerationKey(`${selectedImageId}-${selectedPrintifyVariantId}-${Date.now()}`);
-    }
-  }, [selectedImageUrl, selectedPrintifyVariantId, selectedImageId, mockupGenerationKey]);
+  }, [selectedImageUrl, selectedPrintifyVariantId, selectedImageId]);
 
   // Calcular imageAdjustments usando a configuração
   useEffect(() => {
@@ -187,7 +183,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         setCurrentMockupUrls(data.previewUrls);
       }
     }
-  }, [hasGenerated, currentMockupUrls, mockupGenerationKey]);
+  }, [hasGenerated, currentMockupUrls]); // ✅ Removido mockupGenerationKey para evitar re-creations
 
   const handleAddToCart = async () => {
     const validationError = config.validatePurchase(
@@ -245,6 +241,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const handleOpenGallery = () => setIsGalleryModalOpen(true);
 
   const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
+    console.log('🎨 [GenericProductPage] Selecting image from gallery:', { imageId, selectedPrintifyVariantId });
+    
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
@@ -255,7 +253,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     setPrintifyProductId('');
     setImageAdjustments(undefined);
     setHasGenerated(false);
-    setMockupGenerationKey(`${imageId}-${selectedPrintifyVariantId}-${Date.now()}`);
+    
+    // ✅ NOTA: mockupGenerationKey será gerado automaticamente pelo useEffect
+    console.log('🎨 [GenericProductPage] Image selection completed, waiting for useEffect to generate key');
     
     toast.success('Arte aplicada com sucesso!');
   };
@@ -392,6 +392,32 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         <Header />
         
         <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-12 sm:pb-8 lg:pt-24 lg:pb-8">
+          {/* ✅ PRODUCTCANVAS GLOBAL - VISÍVEL EM MOBILE E DESKTOP */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-6 lg:mb-8"
+          >
+            <div className="relative w-full h-[350px] lg:h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20">
+              <ProductCanvas
+                key={mockupGenerationKey} // ✅ Chave única para evitar duplicações
+                selectedProduct={product}
+                userImageUrl={selectedImageUrl}
+                userId={userInfo?.id}
+                printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                onPreviewReady={handlePreviewReady}
+                onSelectImage={handleOpenGallery}
+                imageAdjustments={imageAdjustments}
+                onImageAdjust={setImageAdjustments}
+                selectedPrintifyVariantId={selectedPrintifyVariantId}
+                hasGenerated={hasGenerated}
+                onMockupGenerated={handleMockupGenerated}
+                mockupGenerationKey={mockupGenerationKey}
+              />
+            </div>
+          </motion.div>
+
           {/* Layout Mobile */}
           <div className="block lg:hidden">
             <motion.div
@@ -408,27 +434,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
               className="mb-6"
             >
-              {/* ✅ PRODUCTCANVAS ÚNICO E RESPONSIVO */}
-              <div className="relative w-full h-[350px] lg:h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden mb-4 border border-ghibli-sand/20">
-                <ProductCanvas
-                  key={mockupGenerationKey} // ✅ Chave única para evitar duplicações
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={imageAdjustments}
-                  onImageAdjust={setImageAdjustments}
-                  selectedPrintifyVariantId={selectedPrintifyVariantId}
-                  hasGenerated={hasGenerated}
-                  onMockupGenerated={handleMockupGenerated}
-                  mockupGenerationKey={mockupGenerationKey}
-                />
-              </div>
 
               <ProductMobileControls
                 selectedImageUrl={selectedImageUrl}

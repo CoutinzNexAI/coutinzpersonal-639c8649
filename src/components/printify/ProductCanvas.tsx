@@ -142,8 +142,12 @@ export default function ProductCanvas({
   }, [printifyGeneratedPreviewUrls, preloadedImages]);
 
   const handleGenerateMockup = useCallback(async () => {
-    if (!userImageUrl || !userId || isLoadingMockups) return;
+    if (!userImageUrl || !userId || isLoadingMockups) {
+      console.log('🚫 [ProductCanvas] Blocking duplicate call:', { userImageUrl: !!userImageUrl, userId: !!userId, isLoadingMockups });
+      return;
+    }
 
+    console.log('🚀 [ProductCanvas] Starting mockup generation:', mockupGenerationKey);
     setIsLoadingMockups(true);
     setError(null);
 
@@ -254,7 +258,7 @@ export default function ProductCanvas({
     userImageUrl, 
     userId, 
     isLoadingMockups, 
-    selectedProduct, 
+    selectedProduct.id, // ✅ Só o ID em vez do objeto completo
     imageAdjustments, 
     selectedPrintifyVariantId, 
     onPreviewReady,
@@ -262,9 +266,10 @@ export default function ProductCanvas({
     selectedPhraseText,
     selectedImageId,
     onMockupGenerated
+    // ✅ Removido mockupGenerationKey para evitar re-creations do callback
   ]);
 
-  // Auto-generate mockup when component mounts (if not already generated)
+  // ✅ DEBOUNCED AUTO-GENERATE com proteção contra duplos
   useEffect(() => {
     let shouldGenerate = false;
 
@@ -282,11 +287,28 @@ export default function ProductCanvas({
     // ✅ USAR HASGENERATED EXTERNO OU FALLBACK PARA O COMPORTAMENTO ANTERIOR
     const isGenerated = hasGenerated !== undefined ? hasGenerated : false;
     
-    if (!isGenerated && shouldGenerate && mockupGenerationKey) {
-      console.log('🎯 [ProductCanvas] Auto-generating mockup with key:', mockupGenerationKey);
-      handleGenerateMockup();
+    if (!isGenerated && shouldGenerate && mockupGenerationKey && !isLoadingMockups) {
+      console.log('🎯 [ProductCanvas] Auto-generating mockup with key:', mockupGenerationKey, {
+        userImageUrl: !!userImageUrl,
+        userId: !!userId,
+        selectedProduct: !!selectedProduct,
+        selectedPrintifyVariantId,
+        hasGenerated,
+        shouldGenerate,
+        isGenerated,
+        isLoadingMockups
+      });
+      
+      // ✅ PEQUENO DELAY para evitar calls simultâneos
+      const timer = setTimeout(() => {
+        if (!isLoadingMockups) { // Double-check antes de executar
+          handleGenerateMockup();
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
-  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup, mockupGenerationKey]);
+  }, [userImageUrl, userId, selectedProduct, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup, mockupGenerationKey, isLoadingMockups]);
 
   // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
   const handlePreviousPreview = useCallback(() => {
