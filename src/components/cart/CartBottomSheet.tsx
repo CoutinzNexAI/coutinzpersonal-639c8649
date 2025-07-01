@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { X, Minus, Plus, ShoppingCart, Trash2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase/client';
 import { CartItem, CartSummary } from '@/lib/cart/cartTypes';
-import { CartBottomSheet } from './CartBottomSheet';
 import Image from 'next/image';
 
-interface CartSidebarProps {
+interface CartBottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
   cartSummary: CartSummary | null;
@@ -23,7 +22,7 @@ interface UserData {
   email: string;
 }
 
-export const CartSidebar: React.FC<CartSidebarProps> = ({
+export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
   isOpen,
   onClose,
   cartSummary,
@@ -34,6 +33,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   const { userInfo } = useAuth();
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Carregar dados do utilizador quando necessário
   const loadUserData = async () => {
@@ -126,7 +126,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
       const result = await response.json();
       
       if (result.url) {
-        // Fechar sidebar antes de redirecionar
+        // Fechar bottom sheet antes de redirecionar
         onClose();
         // Redirecionar para Stripe Checkout
         window.location.href = result.url;
@@ -144,18 +144,18 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
     }
   };
 
-  // Componente para cada item do carrinho
+  // Componente para cada item do carrinho (versão mobile compacta)
   const CartItemCard = ({ item }: { item: CartItem }) => (
     <motion.div
       layout
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="bg-ghibli-cream/30 rounded-xl p-4 border border-ghibli-sand/40"
+      className="bg-white rounded-xl p-3 border border-ghibli-sand/30 shadow-sm"
     >
       <div className="flex gap-3">
         {/* Imagem do produto */}
-        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-white shadow-sm">
+        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-ghibli-cream shadow-sm flex-shrink-0">
           <Image
             src={item.userImageUrl}
             alt={item.productName}
@@ -170,168 +170,171 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
             {item.productName}
           </h4>
           
-          {/* Variante/tamanho */}
-          {item.customizations?.variant && (
-            <p className="text-xs text-ghibli-earth mb-1">
-              <span className="font-medium">Variante:</span> {item.customizations.variant}
-            </p>
-          )}
-          
-          {/* Posição da foto */}
-          {item.customizations?.position && (
-            <p className="text-xs text-ghibli-earth mb-1">
-              <span className="font-medium">Posição:</span> {item.customizations.position}
-            </p>
-          )}
-          
-          {/* Controles de quantidade */}
-          <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                disabled={item.quantity <= 1}
-                className="h-6 w-6 p-0 rounded-md"
-              >
-                <Minus className="w-3 h-3" />
-              </Button>
-              
-              <span className="text-xs font-bold text-ghibli-earth min-w-[1.5rem] text-center">
-                {item.quantity}
-              </span>
-              
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                className="h-6 w-6 p-0 rounded-md"
-              >
-                <Plus className="w-3 h-3" />
-              </Button>
-            </div>
-            
-            <button
-              onClick={() => onRemoveItem(item.id)}
-              className="text-ghibli-poppy hover:text-red-700 transition-colors p-1"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+          {/* Variante e posição numa só linha */}
+          <div className="text-xs text-ghibli-earth space-y-0.5">
+            {item.customizations?.variant && (
+              <p><span className="font-medium">Variante:</span> {item.customizations.variant}</p>
+            )}
+            {item.customizations?.position && (
+              <p><span className="font-medium">Posição:</span> {item.customizations.position}</p>
+            )}
           </div>
         </div>
         
-        {/* Preço */}
-        <div className="text-right">
-          {/* Verificar se há desconto para este item */}
-          {(() => {
-            // Calcular desconto baseado na quantidade do mesmo produto
-            const sameProductItems = cartSummary?.items.filter(cartItem => cartItem.productId === item.productId) || [];
-            const totalSameProductQty = sameProductItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
-            
-            let discountPercent = 0;
-            if (totalSameProductQty >= 3) {
-              discountPercent = 15;
-            } else if (totalSameProductQty >= 2) {
-              discountPercent = 10;
-            }
-            
-            const originalPrice = item.price * item.quantity;
-            const discountedPrice = originalPrice * (1 - discountPercent / 100);
-            
-            if (discountPercent > 0) {
-              return (
-                <div>
-                  <p className="text-xs text-red-500 line-through">
+        {/* Controlos de quantidade e preço */}
+        <div className="flex flex-col items-end gap-2">
+          {/* Preço */}
+          <div className="text-right">
+            {(() => {
+              // Calcular desconto baseado na quantidade do mesmo produto
+              const sameProductItems = cartSummary?.items.filter(cartItem => cartItem.productId === item.productId) || [];
+              const totalSameProductQty = sameProductItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
+              
+              let discountPercent = 0;
+              if (totalSameProductQty >= 3) {
+                discountPercent = 15;
+              } else if (totalSameProductQty >= 2) {
+                discountPercent = 10;
+              }
+              
+              const originalPrice = item.price * item.quantity;
+              const discountedPrice = originalPrice * (1 - discountPercent / 100);
+              
+              if (discountPercent > 0) {
+                return (
+                  <div className="text-right">
+                    <p className="text-xs text-red-500 line-through">
+                      €{originalPrice.toFixed(2)}
+                    </p>
+                    <p className="text-sm font-bold text-ghibli-moss">
+                      €{discountedPrice.toFixed(2)}
+                    </p>
+                  </div>
+                );
+              } else {
+                return (
+                  <p className="text-sm font-bold text-ghibli-moss">
                     €{originalPrice.toFixed(2)}
                   </p>
-                  <p className="font-bold text-ghibli-moss">
-                    €{discountedPrice.toFixed(2)}
-                  </p>
-                  <p className="text-xs text-green-600">
-                    -{discountPercent}%
-                  </p>
-                </div>
-              );
-            } else {
-              return (
-                <p className="font-bold text-ghibli-moss">
-                  €{originalPrice.toFixed(2)}
-                </p>
-              );
-            }
-          })()}
+                );
+              }
+            })()}
+          </div>
+          
+          {/* Controlos de quantidade */}
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
+              disabled={item.quantity <= 1}
+              className="h-6 w-6 p-0 rounded-md"
+            >
+              <Minus className="w-3 h-3" />
+            </Button>
+            
+            <span className="text-xs font-bold text-ghibli-earth min-w-[1.5rem] text-center">
+              {item.quantity}
+            </span>
+            
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+              className="h-6 w-6 p-0 rounded-md"
+            >
+              <Plus className="w-3 h-3" />
+            </Button>
+            
+            <button
+              onClick={() => onRemoveItem(item.id)}
+              className="text-ghibli-poppy hover:text-red-700 transition-colors p-1 ml-1"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>
   );
 
   return (
-    <>
-      {/* Mobile: Bottom Sheet */}
-      <CartBottomSheet
-        isOpen={isOpen}
-        onClose={onClose}
-        cartSummary={cartSummary}
-        onRemoveItem={onRemoveItem}
-        onUpdateQuantity={onUpdateQuantity}
-        onClearCart={onClearCart}
-      />
-      
-      {/* Desktop: Sidebar */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* Overlay - só no desktop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={onClose}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 hidden lg:block"
-            />
-          
-          {/* Sidebar */}
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Overlay */}
           <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+          />
+          
+          {/* Bottom Sheet */}
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: isExpanded ? '5%' : '50%' }}
+            exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-[480px] bg-white z-50 shadow-2xl border-l border-ghibli-sand/20 hidden lg:flex flex-col"
+            className="fixed bottom-0 left-0 right-0 bg-white z-50 shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl overflow-hidden"
+            style={{ height: isExpanded ? '95vh' : '50vh' }}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-ghibli-sand/30 bg-gradient-to-r from-ghibli-cream to-ghibli-paper">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-ghibli-moss/10 rounded-full flex items-center justify-center">
-                  <ShoppingCart className="w-5 h-5 text-ghibli-moss" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-ghibli text-ghibli-wood">Carrinho</h2>
-                  <p className="text-sm text-ghibli-earth">
-                    {cartSummary?.itemCount || 0} {(cartSummary?.itemCount || 0) === 1 ? 'item' : 'items'}
-                  </p>
-                </div>
+            {/* Header com handle */}
+            <div className="flex flex-col">
+              {/* Handle para arrastar */}
+              <div className="flex justify-center py-2">
+                <motion.div
+                  className="w-12 h-1 bg-ghibli-sand rounded-full cursor-pointer"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  whileTap={{ scale: 0.95 }}
+                />
               </div>
               
-              <button
-                onClick={onClose}
-                className="w-8 h-8 rounded-full bg-ghibli-sand/20 hover:bg-ghibli-sand/40 flex items-center justify-center transition-colors"
-              >
-                <X className="w-5 h-5 text-ghibli-earth" />
-              </button>
+              {/* Cabeçalho */}
+              <div className="flex items-center justify-between px-6 pb-4 border-b border-ghibli-sand/30 bg-gradient-to-r from-ghibli-cream to-ghibli-paper">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-ghibli-moss/10 rounded-full flex items-center justify-center">
+                    <ShoppingCart className="w-4 h-4 text-ghibli-moss" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-ghibli text-ghibli-wood">Carrinho</h2>
+                    <p className="text-sm text-ghibli-earth">
+                      {cartSummary?.itemCount || 0} {(cartSummary?.itemCount || 0) === 1 ? 'item' : 'items'}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Botão de expandir/contrair */}
+                <motion.button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="w-8 h-8 rounded-full bg-ghibli-sand/20 hover:bg-ghibli-sand/40 flex items-center justify-center transition-colors"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <ChevronDown className={`w-5 h-5 text-ghibli-earth transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                </motion.button>
+                
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full bg-ghibli-sand/20 hover:bg-ghibli-sand/40 flex items-center justify-center transition-colors ml-2"
+                >
+                  <X className="w-4 h-4 text-ghibli-earth" />
+                </button>
+              </div>
             </div>
             
             {/* Conteúdo */}
             <div className="flex-1 overflow-hidden flex flex-col">
               {/* Lista de produtos */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
                 {cartSummary?.items.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🛒</div>
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-3">🛒</div>
                     <h3 className="text-lg font-semibold text-ghibli-earth mb-2">
                       Carrinho vazio
                     </h3>
                     <p className="text-ghibli-earth/70 mb-4">
-                      Adicione alguns produtos incríveis!
+                      Adicione alguns produtos!
                     </p>
                     <Button
                       onClick={onClose}
@@ -350,26 +353,16 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 )}
               </div>
               
-              {/* Footer com preços e checkout */}
+              {/* Footer fixo com preços e checkout */}
               {cartSummary && cartSummary.itemCount > 0 && (
                 <div className="border-t border-ghibli-sand/30 p-6 bg-ghibli-cream/20">
-                  {/* Breakdown de preços */}
-                  <div className="space-y-3 mb-6">
-                    {/* Subtotal original (se houver desconto) */}
-                    {cartSummary.originalSubtotal && cartSummary.discountAmount && cartSummary.discountAmount > 0 && cartSummary.originalSubtotal > cartSummary.subtotal && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-ghibli-earth">Subtotal (original)</span>
-                        <span className="text-ghibli-earth line-through">
-                          €{cartSummary.originalSubtotal.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Desconto */}
-                    {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
+                  {/* Resumo de preços compacto */}
+                  <div className="space-y-2 mb-4">
+                    {/* Desconto em destaque se houver */}
+                    {cartSummary.discountAmount && cartSummary.discountAmount > 0 && cartSummary.originalSubtotal && cartSummary.originalSubtotal > cartSummary.subtotal && (
                       <div className="flex justify-between text-sm bg-green-50 rounded-lg px-3 py-2">
                         <span className="text-green-700 font-medium">
-                          🎉 Desconto por quantidade
+                          🎉 Desconto aplicado
                         </span>
                         <span className="text-green-700 font-bold">
                           -€{cartSummary.discountAmount.toFixed(2)}
@@ -385,10 +378,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                     </div>
                     
                     <div className="flex justify-between text-sm">
-                      <div>
-                        <span className="text-ghibli-earth">Envio</span>
-                        <p className="text-xs text-ghibli-earth/70">Entrega em 4-7 dias úteis</p>
-                      </div>
+                      <span className="text-ghibli-earth">Envio</span>
                       <span className="text-green-600 font-bold text-sm">GRÁTIS! ✨</span>
                     </div>
                     
@@ -399,7 +389,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                       </span>
                     </div>
                     
-                    <div className="border-t border-ghibli-sand/50 pt-3">
+                    <div className="border-t border-ghibli-sand/50 pt-2">
                       <div className="flex justify-between text-lg font-bold">
                         <span className="text-ghibli-wood">Total</span>
                         <span className="text-ghibli-moss">
@@ -434,7 +424,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                   </Button>
                   
                   {userInfo && (
-                    <p className="text-xs text-ghibli-earth text-center mt-3">
+                    <p className="text-xs text-ghibli-earth text-center mt-2">
                       Será redirecionado para o Stripe para pagamento seguro
                     </p>
                   )}
@@ -445,6 +435,5 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
         </>
       )}
     </AnimatePresence>
-    </>
   );
-};
+}; 

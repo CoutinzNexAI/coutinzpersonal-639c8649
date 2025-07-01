@@ -52,7 +52,7 @@ const CheckoutCancelledPage: React.FC = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/checkout">
+              <Link href="/shop">
                 <Button className="bg-ghibli-moss hover:bg-ghibli-moss-light text-white px-8 py-3 rounded-xl">
                   <span className="mr-2">🛒</span>
                   Voltar ao Checkout
