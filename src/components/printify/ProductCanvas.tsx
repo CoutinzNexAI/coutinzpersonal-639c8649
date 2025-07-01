@@ -145,19 +145,10 @@ export default function ProductCanvas({
   }, [printifyGeneratedPreviewUrls, preloadedImages]);
 
   const handleGenerateMockup = useCallback(async () => {
-    if (!userImageUrl || !userId || isLoadingMockups || isGenerating) {
-      console.log('🚫 [ProductCanvas] Blocking duplicate call:', { 
-        userImageUrl: !!userImageUrl, 
-        userId: !!userId, 
-        isLoadingMockups,
-        isGenerating,
-        mockupGenerationKey 
-      });
+    if (!userImageUrl || !userId || isLoadingMockups) {
+      console.log('🚫 [ProductCanvas] Blocking duplicate call:', { userImageUrl: !!userImageUrl, userId: !!userId, isLoadingMockups });
       return;
     }
-
-    // ✅ GUARD: Evitar múltiplas chamadas simultâneas do mesmo mockupGenerationKey
-    setIsGenerating(true);
 
     console.log('🚀 [ProductCanvas] Starting mockup generation:', mockupGenerationKey);
     setIsLoadingMockups(true);
@@ -313,7 +304,7 @@ export default function ProductCanvas({
         isGenerating
       });
       
-      // ✅ Chamada direta sem setTimeout para evitar race conditions
+      setIsGenerating(true); // ✅ Bloquear outras chamadas
       handleGenerateMockup();
     }
   }, [userImageUrl, userId, selectedProduct.id, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup, mockupGenerationKey, isLoadingMockups, isGenerating]);

@@ -406,36 +406,35 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
             </motion.div>
           </div>
 
-
+          {/* ✅ MOCKUP ÚNICO E RESPONSIVO - VISÍVEL EM AMBOS */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-6 lg:mb-8"
+          >
+            <div className="relative w-full h-[350px] lg:h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20">
+              <ProductCanvas
+                key={mockupGenerationKey} // ✅ Chave única para evitar duplicações
+                selectedProduct={product}
+                userImageUrl={selectedImageUrl}
+                userId={userInfo?.id}
+                printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                onPreviewReady={handlePreviewReady}
+                onSelectImage={handleOpenGallery}
+                imageAdjustments={imageAdjustments}
+                onImageAdjust={setImageAdjustments}
+                selectedPrintifyVariantId={selectedPrintifyVariantId}
+                hasGenerated={hasGenerated}
+                onMockupGenerated={handleMockupGenerated}
+                mockupGenerationKey={mockupGenerationKey}
+                isGeneratingMockup={isGeneratingMockup}
+              />
+            </div>
+          </motion.div>
 
           {/* Layout Mobile */}
           <div className="block lg:hidden">
-            {/* ✅ MOCKUP MOBILE */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-6 px-4"
-            >
-              <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20">
-                <ProductCanvas
-                  key={mockupGenerationKey} // ✅ ÚNICO CANVAS
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={imageAdjustments}
-                  onImageAdjust={setImageAdjustments}
-                  selectedPrintifyVariantId={selectedPrintifyVariantId}
-                  hasGenerated={hasGenerated}
-                  onMockupGenerated={handleMockupGenerated}
-                  mockupGenerationKey={mockupGenerationKey}
-                  isGeneratingMockup={isGeneratingMockup}
-                />
-              </div>
-            </motion.div>
 
             {/* ✅ CONTROLOS MOBILE */}
             <motion.div
@@ -570,50 +569,48 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           </div>
 
           {/* Layout Desktop */}
-          <div className="hidden lg:grid lg:grid-cols-3 gap-8">
-            {/* ✅ MOCKUP DESKTOP - Primeira linha, colunas 1-2 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="lg:col-span-2 mb-6"
-            >
-              <div className="relative w-full h-[600px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20">
-                <ProductCanvas
-                  key={mockupGenerationKey} // ✅ MESMO KEY
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady}
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={imageAdjustments}
-                  onImageAdjust={setImageAdjustments}
-                  selectedPrintifyVariantId={selectedPrintifyVariantId}
-                  hasGenerated={hasGenerated}
-                  onMockupGenerated={handleMockupGenerated}
-                  mockupGenerationKey={mockupGenerationKey}
-                  isGeneratingMockup={isGeneratingMockup}
-                />
-              </div>
-            </motion.div>
-
-            {/* ✅ ÁREA CONTROLOS DESKTOP - Segunda linha, colunas 1-2 */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="lg:col-span-2"
-            >
-
-
-              {/* ✅ CONTROLOS DESKTOP */}
+          <div className="hidden lg:block">
+            <div className="lg:grid lg:grid-cols-3 gap-8">
+              {/* ✅ ÁREA ESQUERDA - MOCKUP + CONTROLOS DESKTOP */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                className="flex flex-row justify-center items-center gap-4"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="lg:col-span-2 order-1 space-y-6"
+              >
+                {/* ✅ MOCKUP DESKTOP */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="w-full"
                 >
+                  <ProductCanvas
+                    key={mockupGenerationKey}
+                    selectedProduct={product}
+                    userImageUrl={selectedImageUrl}
+                    userId={userInfo?.id}
+                    printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                    onPreviewReady={handlePreviewReady}
+                    onSelectImage={handleOpenGallery}
+                    imageAdjustments={imageAdjustments}
+                    onImageAdjust={setImageAdjustments}
+                    selectedPrintifyVariantId={selectedPrintifyVariantId}
+                    selectedImageId={selectedImageId}
+                    hasGenerated={hasGenerated}
+                    onMockupGenerated={handleMockupGenerated}
+                    mockupGenerationKey={mockupGenerationKey}
+                    isGeneratingMockup={isGeneratingMockup}
+                  />
+                </motion.div>
+
+                {/* ✅ CONTROLOS DESKTOP - ABAIXO DA MOCKUP */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                  className="flex flex-row justify-center items-center gap-4"
+                  >
                 {/* Botão Trocar Arte */}
                 <Button
                   onClick={handleOpenGallery}
@@ -864,6 +861,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 </CardContent>
               </Card>
             </motion.div>
+            </div>
           </div>
         </main>
 
