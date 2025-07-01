@@ -363,61 +363,62 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                 )}
               </div>
               
-              {/* Footer fixo com preços e checkout - Nova estrutura melhorada */}
+              {/* Footer fixo com preços e checkout - Layout mobile simplificado */}
               {cartSummary && cartSummary.itemCount > 0 && (
-                <div className="border-t border-ghibli-sand/30 bg-white">
-                  {/* Resumo de preços completo */}
-                  <div className="px-6 py-4 space-y-3">
-                    {/* Subtotal original (se houver desconto) */}
-                    {cartSummary.originalSubtotal && cartSummary.discountAmount && cartSummary.discountAmount > 0 && cartSummary.originalSubtotal > cartSummary.subtotal && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-ghibli-earth">Subtotal (original)</span>
-                        <span className="text-ghibli-earth line-through">
-                          €{cartSummary.originalSubtotal.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Desconto */}
+                <div className="border-t border-ghibli-sand/30 bg-ghibli-cream/20">
+                  {/* Resumo de preços simplificado para mobile */}
+                  <div className="px-6 py-4">
+                    {/* Subtotal original e desconto (se houver) */}
                     {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
-                      <div className="flex justify-between text-sm bg-green-50 rounded-lg px-3 py-2">
-                        <span className="text-green-700 font-medium">
-                          🎉 Desconto por quantidade
-                        </span>
-                        <span className="text-green-700 font-bold">
-                          -€{cartSummary.discountAmount.toFixed(2)}
-                        </span>
-                      </div>
+                      <>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-ghibli-earth">Subtotal (original)</span>
+                          <span className="text-ghibli-earth line-through">
+                            €{(cartSummary.originalSubtotal || 0).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm bg-green-50 rounded-lg px-3 py-2 mb-3">
+                          <span className="text-green-700 font-medium">
+                            🎉 Desconto por quantidade
+                          </span>
+                          <span className="text-green-700 font-bold">
+                            -€{cartSummary.discountAmount.toFixed(2)}
+                          </span>
+                        </div>
+                      </>
                     )}
                     
-                    <div className="flex justify-between text-sm">
-                      <span className="text-ghibli-earth">Subtotal</span>
-                      <span className="font-semibold text-ghibli-wood">
-                        €{cartSummary.subtotal.toFixed(2)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex justify-between text-sm">
-                      <div>
-                        <span className="text-ghibli-earth">Envio</span>
-                        <p className="text-xs text-ghibli-earth/70">Entrega em 4-7 dias úteis</p>
-                      </div>
-                      <span className="text-green-600 font-bold text-sm">GRÁTIS! ✨</span>
-                    </div>
-                    
-                    <div className="flex justify-between text-sm">
-                      <span className="text-ghibli-earth">IVA (23%)</span>
-                      <span className="font-semibold text-ghibli-wood">
-                        €{cartSummary.tax.toFixed(2)}
-                      </span>
-                    </div>
-                    
-                    <div className="border-t border-ghibli-sand/50 pt-3">
-                      <div className="flex justify-between text-lg font-bold">
-                        <span className="text-ghibli-wood">Total</span>
-                        <span className="text-ghibli-moss">
-                          €{(cartSummary.subtotal + cartSummary.tax).toFixed(2)}
+                    {/* Lista de preços principal */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-ghibli-earth">Subtotal</span>
+                        <span className="font-semibold text-ghibli-wood">
+                          €{cartSummary.subtotal.toFixed(2)}
                         </span>
+                      </div>
+                      
+                      <div className="flex justify-between text-sm">
+                        <div>
+                          <span className="text-ghibli-earth">Envio</span>
+                          <p className="text-xs text-ghibli-earth/70">Entrega em 4-7 dias úteis</p>
+                        </div>
+                        <span className="text-green-600 font-bold text-sm">GRÁTIS! ✨</span>
+                      </div>
+                      
+                      <div className="flex justify-between text-sm">
+                        <span className="text-ghibli-earth">IVA (23%)</span>
+                        <span className="font-semibold text-ghibli-wood">
+                          €{cartSummary.tax.toFixed(2)}
+                        </span>
+                      </div>
+                      
+                      <div className="border-t border-ghibli-sand/50 pt-3 mt-3">
+                        <div className="flex justify-between text-lg font-bold">
+                          <span className="text-ghibli-wood">Total</span>
+                          <span className="text-ghibli-moss">
+                            €{(cartSummary.subtotal + cartSummary.tax).toFixed(2)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
