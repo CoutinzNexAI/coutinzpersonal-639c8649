@@ -48,11 +48,12 @@ export class CartService {
       throw new Error('Campo obrigatório missing: customizations.angle');
     }
     
-    // Check if item already exists (same product + user image + variant)
+    // Check if item already exists (same product + user image + variant + position)
     const existingItem = cart.find(
       item => item.productId === newItem.productId && 
                item.userImageUrl === newItem.userImageUrl &&
-               item.customizations.variantId === newItem.customizations.variantId
+               item.customizations.variantId === newItem.customizations.variantId &&
+               item.customizations.position === newItem.customizations.position
     );
 
     if (existingItem) {

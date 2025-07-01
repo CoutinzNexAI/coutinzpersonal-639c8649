@@ -98,10 +98,10 @@ function MyApp({ Component, pageProps }: AppProps) {
       <TooltipProvider>
         <AuthProvider>
           <CartProvider>
-            <PostHogProvider>
-              <TransformationsModalProvider>
-                <AccountSettingsModalProvider>
-                  <OrdersModalProvider>
+          <PostHogProvider>
+            <TransformationsModalProvider>
+              <AccountSettingsModalProvider>
+                <OrdersModalProvider>
                   
                   <FallingElements />
                   

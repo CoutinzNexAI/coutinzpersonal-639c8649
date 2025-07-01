@@ -127,25 +127,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const discountedPrice = originalPrice * (1 - discountPercent / 100);
       
       return {
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: item.productName,
+      price_data: {
+        currency: 'eur',
+        product_data: {
+          name: item.productName,
             description: description,
-            images: item.userImageUrl ? [item.userImageUrl] : undefined,
-            metadata: {
-              productUid: item.productUid,
-              userImageId: item.userImageId || '',
+          images: item.userImageUrl ? [item.userImageUrl] : undefined,
+          metadata: {
+            productUid: item.productUid,
+            userImageId: item.userImageId || '',
               transformationId: item.userImageId || '',
               position: position,
               originalPrice: originalPrice.toString(),
               discountPercent: discountPercent.toString(),
               discountedPrice: discountedPrice.toString()
-            }
-          },
-          unit_amount: Math.round(discountedPrice * 100), // Usar preço com desconto
+          }
         },
-        quantity: item.quantity,
+          unit_amount: Math.round(discountedPrice * 100), // Usar preço com desconto
+      },
+      quantity: item.quantity,
       };
     });
 

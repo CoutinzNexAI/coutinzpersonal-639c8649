@@ -448,3 +448,4 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
     </>
   );
 };
+ 

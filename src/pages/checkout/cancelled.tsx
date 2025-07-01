@@ -71,7 +71,7 @@ const PaymentFailedPage: React.FC = () => {
               >
                 <span className="mr-2">🔄</span>
                 Tentar Novamente
-              </Button>
+                </Button>
               
               <Link href="/shop">
                 <Button variant="outline" className="border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss/10 px-8 py-3 rounded-xl">

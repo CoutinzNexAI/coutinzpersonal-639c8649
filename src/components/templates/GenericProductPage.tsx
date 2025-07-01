@@ -247,7 +247,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       });
 
       if (success) {
-        toast.success(`${product.name} adicionado ao carrinho!`, {
+      toast.success(`${product.name} adicionado ao carrinho!`, {
           description: 'O carrinho foi aberto automaticamente'
         });
         // Abrir o carrinho sidebar automaticamente
