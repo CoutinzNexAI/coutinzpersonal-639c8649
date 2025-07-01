@@ -330,53 +330,55 @@ const GhibliHero = () => {
               </motion.div>
             </div>
 
-            {/* Botões com design aprimorado (mantidos) */}
+            {/* Botões com design aprimorado */}
             <div className="flex flex-col space-y-6 items-center justify-center lg:justify-start w-full">
-              {/* Botão principal primeiro - desktop - mais sóbrio */}
+              {/* Botão principal primeiro - desktop - design melhorado */}
               <motion.div
                 className="w-auto relative group hidden md:block"
                 whileHover={{
-                  scale: 1.02,
+                  scale: 1.03,
                   transition: { duration: 0.2 }
                 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.97 }}
               >
-                <div className="absolute -inset-1 bg-gradient-to-r from-amber-300/40 via-yellow-300/40 to-amber-300/40 rounded-xl blur opacity-50 group-hover:opacity-70 transition duration-300"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-ghibli-moss/30 via-green-500/30 to-ghibli-moss/30 rounded-2xl blur opacity-50 group-hover:opacity-80 transition duration-300"></div>
                 <Button
                   variant="ghost"
                   className={`relative inline-flex items-center justify-center
-                                  rounded-xl border-2 border-amber-300/60 hover:border-amber-400/80 transition-all duration-300
-                                  shadow-lg hover:shadow-xl bg-gradient-to-br from-amber-200 via-yellow-200 to-amber-300 hover:from-amber-300 hover:via-yellow-300 hover:to-amber-400 text-amber-900 font-bold
-                                  text-xl px-10 py-5 md:px-12 md:py-6 transform hover:scale-102 font-ghibli`}
+                                  rounded-2xl border-2 border-ghibli-moss/40 hover:border-ghibli-moss/70 transition-all duration-300
+                                  shadow-xl hover:shadow-2xl bg-gradient-to-br from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold
+                                  text-xl px-12 py-6 md:px-14 md:py-7 transform hover:scale-[1.02] font-ghibli hover:shadow-green-500/30 touch-manipulation active:scale-95`}
                   onClick={handleTriggerStudio}
                   onMouseEnter={handleCTAHover}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <span className="mr-3 text-2xl">🎨</span>
                   <span>Transforme já a sua foto!</span>
                 </Button>
               </motion.div>
               
-              {/* Botões secundários lado a lado - desktop */}
-              <div className="hidden md:flex flex-row gap-4 items-center justify-center">
+              {/* Botões secundários lado a lado - desktop - design melhorado */}
+              <div className="hidden md:flex flex-row gap-6 items-center justify-center">
                 {/* Botão "Veja exemplos!" */}
               <motion.div
                   className="w-auto"
                 whileHover={{
-                  scale: 1.03,
+                  scale: 1.05,
                   transition: { duration: 0.2 }
                 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <Button
                   variant="outline"
                     className="inline-flex items-center justify-center transition-all duration-300
-                                  rounded-lg shadow-sm hover:shadow-md text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
-                                    hover:border-ghibli-moss text-base px-5 py-2.5"
+                                  rounded-xl shadow-lg hover:shadow-xl text-ghibli-wood bg-white/90 backdrop-blur-sm border-2 border-ghibli-moss/50 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
+                                    hover:border-ghibli-moss text-base px-6 py-3 font-semibold touch-manipulation active:scale-90"
                   onClick={handleOpenExamples}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <motion.span
-                    whileHover={{ rotate: [0, -10, 10, 0], transition: {duration: 0.4}}}
-                    className="bg-ghibli-moss/10 p-1.5 rounded-full mr-2"
+                    whileHover={{ rotate: [0, -15, 15, 0], transition: {duration: 0.5}}}
+                    className="bg-ghibli-moss/15 p-2 rounded-full mr-3"
                   >
                     <Images className="h-5 w-5 text-ghibli-moss" />
                   </motion.span>
@@ -384,7 +386,7 @@ const GhibliHero = () => {
                 </Button>
               </motion.div>
 
-                {/* Botão "Visite a Nossa Loja" */}
+                {/* Botão "Visite a Nossa Loja" - design melhorado */}
                 <motion.button
                   onClick={() => {
                     // 🔥 TRACKING: Shop button click
@@ -397,26 +399,27 @@ const GhibliHero = () => {
                   onMouseEnter={handleShopHover}
                   whileHover={{ 
                     scale: 1.05, 
-                    y: -2,
-                    boxShadow: "0 8px 25px -8px rgba(76, 175, 80, 0.4)"
+                    y: -3,
+                    boxShadow: "0 10px 30px -8px rgba(76, 175, 80, 0.5)"
                   }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-5 py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white rounded-xl border border-emerald-400/60 inline-flex items-center transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                  className="px-6 py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white rounded-xl border-2 border-emerald-400/60 inline-flex items-center transition-all duration-300 shadow-lg hover:shadow-xl font-semibold touch-manipulation active:scale-90"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <motion.span 
                     className="mr-2 text-lg"
                     animate={{ 
-                      rotate: [0, 5, -5, 0],
+                      rotate: [0, 8, -8, 0],
                     }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                   >
                     🛍️
                   </motion.span>
-                  <p className="text-sm font-bold">Visite a Nossa Loja!</p>
+                  <p className="text-base font-bold">Visite a Nossa Loja!</p>
                 </motion.button>
               </div>
               
-              {/* Botão para mobile apenas - Loja */}
+              {/* Botão para mobile apenas - Loja - design melhorado */}
               <div className="md:hidden flex flex-col space-y-4 items-center w-full">
                 {/* Botão "Visite a Nossa Loja" - mobile */}
               <motion.button
@@ -429,68 +432,27 @@ const GhibliHero = () => {
                 }}
                 onMouseEnter={handleShopHover}
                 whileHover={{ 
-                  scale: 1.05, 
+                  scale: 1.03, 
                   y: -2,
-                  boxShadow: "0 6px 20px -6px rgba(76, 175, 80, 0.4)"
+                  boxShadow: "0 8px 25px -6px rgba(76, 175, 80, 0.4)"
                 }}
                 whileTap={{ scale: 0.95 }}
-                  className="px-5 py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white rounded-full border border-emerald-400/60 inline-flex items-center transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                  className="px-8 py-4 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white rounded-2xl border-2 border-emerald-400/60 inline-flex items-center transition-all duration-300 shadow-lg hover:shadow-xl font-semibold w-full justify-center touch-manipulation active:scale-95"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 <motion.span 
-                  className="mr-2 text-lg"
+                  className="mr-3 text-lg"
                   animate={{ 
-                    rotate: [0, 5, -5, 0],
+                    rotate: [0, 8, -8, 0],
                   }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                 >
                   🛍️
                 </motion.span>
-                <p className="text-sm font-bold">Visite a Nossa Loja!</p>
+                <p className="text-lg font-bold">Visite a Nossa Loja!</p>
               </motion.button>
               </div>
             </div>
-
-            {/* Botão principal destacado - APENAS NO MOBILE, posicionado abaixo */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ 
-                opacity: 1, 
-                y: [0, -4, 0],
-              }}
-              transition={{ 
-                opacity: { delay: titleParts.length * 0.1 + 1.7, duration: 0.7 },
-                y: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: titleParts.length * 0.1 + 2}
-              }}
-              className="mt-8 w-auto relative group md:hidden flex justify-center"
-              whileHover={{
-                scale: 1.03,
-                transition: { duration: 0.2 }
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="absolute -inset-1 bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 rounded-xl blur opacity-70 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
-              <Button
-                variant="ghost"
-                className="relative inline-flex items-center justify-center
-                                rounded-xl border-3 border-amber-200 hover:border-amber-300 transition-all duration-300
-                                shadow-lg hover:shadow-xl bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50 text-ghibli-wood font-bold
-                                text-lg px-6 py-3 transform hover:scale-102"
-                onClick={handleTriggerStudio}
-                onMouseEnter={handleCTAHover}
-              >
-                <motion.span
-                  animate={{ 
-                    rotate: [0, -2, 2, -2, 0],
-                    scale: [1, 1.1, 1, 1.1, 1]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-                  className="mr-3 text-xl"
-                >
-                  ✨
-                </motion.span>
-                Transforme já a sua foto!
-              </Button>
-            </motion.div>
           </motion.div>
 
           <motion.div

@@ -168,7 +168,8 @@ const HeroSection: React.FC = () => {
             >
               <Link href="/transformacoes" className="flex-1">
                 <Button 
-                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-3 text-sm rounded-xl shadow-lg"
+                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-4 text-sm rounded-xl shadow-lg touch-manipulation active:scale-95 transition-transform"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <span className="mr-1 text-sm">🎨</span>
                   Transformar Foto
@@ -178,7 +179,8 @@ const HeroSection: React.FC = () => {
               <Link href="/shop" className="flex-1">
                 <Button 
                   variant="outline" 
-                  className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-3 text-sm rounded-xl"
+                  className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-4 text-sm rounded-xl touch-manipulation active:scale-95 transition-transform"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <span className="mr-1 text-sm">🛍️</span>
                   Ver Produtos
@@ -193,15 +195,15 @@ const HeroSection: React.FC = () => {
             >
               <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
                 <Zap className="w-5 h-5 text-ghibli-moss" />
-                <span className="text-ghibli-earth font-medium text-sm">Entrega Rápida</span>
+                <span className="text-ghibli-earth font-medium text-sm">Entrega 3-5 dias</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
                 <Heart className="w-5 h-5 text-ghibli-poppy" />
-                <span className="text-ghibli-earth font-medium text-sm">Personalização Única</span>
+                <span className="text-ghibli-earth font-medium text-sm">Criado só para si</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
                 <Users className="w-5 h-5 text-ghibli-moss" />
-                <span className="text-ghibli-earth font-medium text-sm">+1K Clientes</span>
+                <span className="text-ghibli-earth font-medium text-sm">Mais de 300 utilizadores</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
                 <Star className="w-5 h-5 text-yellow-500" />
@@ -299,19 +301,19 @@ const HeroSection: React.FC = () => {
             >
               <div className="flex items-center space-x-2">
                 <Zap className="w-5 h-5 text-ghibli-moss" />
-                <span className="text-ghibli-earth font-medium">Entrega Rápida</span>
+                <span className="text-ghibli-earth font-medium">Entrega Rápida (3-5 dias)</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Heart className="w-5 h-5 text-ghibli-poppy" />
-                <span className="text-ghibli-earth font-medium">Personalização Única</span>
+                <span className="text-ghibli-earth font-medium">Criado só para si</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="w-5 h-5 text-ghibli-moss" />
-                <span className="text-ghibli-earth font-medium">+1K Clientes</span>
+                <span className="text-ghibli-earth font-medium">Mais de 300 utilizadores</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Star className="w-5 h-5 text-yellow-500" />
-                <span className="text-ghibli-earth font-medium">5⭐ Reviews</span>
+                <span className="text-ghibli-earth font-medium">Clientes satisfeitos? Espreita tu mesmo</span>
               </div>
             </motion.div>
 

@@ -83,29 +83,32 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       <div className="px-4 pb-4 flex-shrink-0 space-y-3">
         {/* Botão para Loja - Criativo e Chamativo */}
         <div className="flex flex-col items-center gap-3">
-          <div className="text-center">
+          {/* Texto removido no mobile */}
+          <div className="text-center hidden md:block">
             <p className="text-sm font-semibold text-ghibli-wood">
               Agora transforma em algo real! 🎁
             </p>
           </div>
           <button
             onClick={() => window.location.href = '/shop'}
-            className="w-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] border border-emerald-400/60"
+            className="w-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] border-2 border-emerald-400/60 touch-manipulation active:scale-95"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-lg animate-pulse">🛍️</span>
-              <span>Ver Produtos Personalizados</span>
-              <span className="text-sm animate-bounce">✨</span>
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-xl">🛍️</span>
+              <span className="text-base">Ver Produtos Personalizados</span>
+              <span className="text-lg">✨</span>
             </div>
           </button>
         </div>
         
-        {/* Botão de Download */}
+        {/* Botão de Download - design melhorado */}
         <Button 
           onClick={onDownload}
           size="lg"
-          className="ghibli-button w-full flex items-center justify-center"
+          className="ghibli-button w-full flex items-center justify-center py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 touch-manipulation active:scale-95"
           disabled={imageError}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <Download className="mr-2 h-5 w-5" /> 
           {imageError ? 'Imagem Indisponível' : 'Baixar Imagem'}

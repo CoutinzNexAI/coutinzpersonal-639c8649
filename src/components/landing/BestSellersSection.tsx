@@ -73,10 +73,10 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
     >
       <Link href={product.href}>
         <div 
-          className="group bg-gradient-to-b from-white/90 via-ghibli-cream/70 to-white/90 rounded-2xl shadow-xl border border-ghibli-sand/30 overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer h-full hover:border-ghibli-moss/40"
+          className="group bg-gradient-to-b from-white/90 via-ghibli-cream/70 to-white/90 rounded-2xl shadow-xl border border-ghibli-sand/30 overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer h-full hover:border-ghibli-moss/40 touch-manipulation active:scale-95"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onTouchStart={() => setIsHovered(!isHovered)}
         >
           {/* Product Image com Efeito Hover */}
           <div className="relative aspect-square bg-gradient-to-br from-ghibli-cream/30 to-ghibli-sand/20 p-4 overflow-hidden">
@@ -213,16 +213,15 @@ const BestSellersSection: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           <Link href="/shop">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button 
-                size="default"
-                className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-8 py-3 text-base lg:text-lg rounded-xl shadow-lg hover:shadow-green-500/30 transition-all duration-300 border border-white/20"
-              >
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                Ver Todos os Produtos
-                <span className="ml-2 text-sm animate-pulse">🚀</span>
-              </Button>
-            </motion.div>
+            <Button 
+              size="default"
+              className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-8 py-4 text-base lg:text-lg rounded-xl shadow-lg hover:shadow-green-500/30 transition-all duration-300 border border-white/20 touch-manipulation active:scale-95"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+            >
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              Ver Todos os Produtos
+              <span className="ml-2 text-sm">🚀</span>
+            </Button>
           </Link>
         </motion.div>
 

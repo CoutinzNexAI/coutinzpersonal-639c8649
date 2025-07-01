@@ -129,7 +129,7 @@ const InteractiveGallery = () => {
   );
 
   return (
-    <section id="galeria" className="py-16 md:py-24 bg-gradient-to-b from-ghibli-cream/40 to-ghibli-paper/30 overflow-hidden">
+    <section id="galeria" className="py-12 md:py-24 bg-gradient-to-b from-ghibli-cream/40 to-ghibli-paper/30 overflow-hidden">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
