@@ -21,8 +21,8 @@ export const canvasConfig = {
   },
 
   discountTiers: [
-    { min: 3, discount: 15, label: '15% OFF para 3+ canvas', emoji: '🎯' },
-    { min: 2, discount: 10, label: '10% OFF para 2+ canvas', emoji: '🎨' }
+    { min: 2, discount: 10, label: 'canvas', emoji: '🎨' },
+    { min: 3, discount: 15, label: 'canvas', emoji: '🎯' }
   ],
 
   descriptionItems: (product: PrintifyProductMapping) => {
