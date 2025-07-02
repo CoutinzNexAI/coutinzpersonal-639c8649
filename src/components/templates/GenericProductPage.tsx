@@ -497,16 +497,14 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   )}
                 </div>
               ) : selectedImageUrl ? (
-                <div className="relative w-full h-full flex items-center justify-center">
+                <div className="relative w-full h-full flex items-center justify-center bg-white">
                   <div className="relative">
-                                         <img
-                       src={product.mockupInitialPath}
-                       alt="Preview inicial"
-                       className="max-w-full max-h-full object-contain drop-shadow-xl opacity-50"
-                     />
-                    <div className="absolute top-4 right-4 bg-ghibli-moss text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                      <RotateCw className="w-4 h-4 animate-spin" />
-                      A gerar...
+                    <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <RotateCw className="w-8 h-8 animate-spin text-ghibli-moss" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-ghibli-earth font-semibold text-lg">A gerar...</p>
+                      <p className="text-ghibli-earth/60 text-sm mt-1">A reposicionar arte</p>
                     </div>
                   </div>
                 </div>
@@ -524,7 +522,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     )}
                     {product.id === 'custom_canvas' && (
                       <img
-                        src="/mockupproduto/canvaspersonalizada.png"
+                        src="/mockupproduto/canva.png"
                         alt="Canvas Personalizado"
                         className="w-32 h-32 object-contain opacity-60"
                       />
@@ -545,7 +543,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     )}
                     {product.id === 'heart_mug' && (
                       <img
-                        src="/mockupproduto/canecapersonalizada.png"
+                        src="/mockupproduto/canecacoracao.png"
                         alt="Caneca de Coração"
                         className="w-32 h-32 object-contain opacity-60"
                       />
@@ -630,10 +628,10 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Loader2 className="w-8 h-8 animate-spin text-ghibli-moss" />
+                      <RotateCw className="w-8 h-8 animate-spin text-ghibli-moss" />
                     </div>
-                    <p className="text-ghibli-earth font-semibold text-lg">Gerar produto</p>
-                    <p className="text-ghibli-earth/60 text-sm mt-1">A reposicionar arte...</p>
+                    <p className="text-ghibli-earth font-semibold text-lg">A gerar...</p>
+                    <p className="text-ghibli-earth/60 text-sm mt-1">A reposicionar arte</p>
                   </div>
                 </div>
               )}
@@ -988,12 +986,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     </div>
                   </div>
 
-                  {/* Status Arte */}
-                  <ProductArtStatus 
-                    selectedImageUrl={selectedImageUrl}
-                    onOpenGallery={handleOpenGallery}
-                  />
-
                   {/* Descrição */}
                   <ProductDescription items={config.descriptionItems(product)} />
 
@@ -1037,6 +1029,12 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                       customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
                     />
                   )}
+
+                  {/* Status Arte */}
+                  <ProductArtStatus 
+                    selectedImageUrl={selectedImageUrl}
+                    onOpenGallery={handleOpenGallery}
+                  />
 
                   {/* Botão Principal */}
                   <div className="pt-3">
