@@ -549,7 +549,7 @@ export default function ProductCanvas({
           {/* Placeholder image do saco */}
           <div className="mb-6">
             <img
-              src="/assets/mockups/bag/saco.png"
+              src="/mockupproduto/saco.png"
               alt="Saco Personalizado"
               className="w-64 h-64 object-contain opacity-60"
             />
