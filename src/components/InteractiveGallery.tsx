@@ -12,45 +12,45 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: 1,
-    title: "Lego",
-    style: "Veja a transformação e o detalhe do lego",
-    before: "foto/barbarabandeiranormal.webp",
-    after: "lego/barbarabandeiralego.png"
+    title: "Pixar",
+    style: "Estilo Pixar",
+    before: "fotousar/raparigasala.png",
+    after: "fotousar/raparigasala2.png"
   },
   {
     id: 2,
-    title: "Minecraft",
-    style: "Estilo Minecraft para voltar aos tempos de 2011",
-    before: "foto/yamalnormal.webp",
-    after: "minecraft/yamalminecraft.png"
+    title: "Lego",
+    style: "Veja a transformação e o detalhe do lego",
+    before: "fotousar/rapazcao.png",
+    after: "fotousar/rapazcao3.png"
   },
   {
     id: 3,
-    title: "Ghibli",
-    style: "Transformação no estilo popular de Ghibli",
-    before: "foto/saojoaoportonormal.jpg",
-    after: "ghibli/saojoaoportoghibli.png"
+    title: "Graffiti",
+    style: "Estilo Graffiti",
+    before: "fotousar/afonso.jpg",
+    after: "fotousar/afonsograf.jpg"
   },
   {
     id: 4,
-    title: "Simpson",
-    style: "Desta vez a Barbara transformou-se numa Simpson!",
-    before: "foto/barbarabandeiranormal.webp",
-    after: "simpson/barbarabandeirasimpson.png"
+    title: "Ghibli",
+    style: "Transformação no estilo popular de Ghibli",
+    before: "fotousar/criancacao.webp",
+    after: "fotousar/criancacaoghibli.png"
   },
   {
     id: 5,
     title: "Cartoon",
     style: "Estilo inspirado nos cartoons americanos da TV",
-    before: "foto/yamalnormal.webp",
-    after: "cartoon/yamalcartoon.png"
+    before: "fotousar/homempraia.png",
+    after: "fotousar/homempraia6.png"
   },
   {
     id: 6,
     title: "Azulejo Português",
     style: "Estilo inspirado nos portugueses!",
-    before: "foto/saojoaoportonormal.jpg",
-    after: "azulejo/saojoaoportoazulejo.png"
+    before: "fotousar/maiamota.jpg",
+    after: "fotousar/maiaazulejo.jpg"
   },
 ];
 

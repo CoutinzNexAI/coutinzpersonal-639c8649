@@ -38,11 +38,11 @@ export interface StyleExample {
       description: "Transforme suas fotos no estilo dos Simpsons, com cores vibrantes e o estilo característico da série.",
       examples: [
         { before: "/foto/wbgnormal.jpg", after: "/simpson/wbgsimpson.png" },
-        { before: "/foto/joaomadalena.webp", after: "/simpson/joaomadalena.png" },
-        { before: "/foto/profjamnormal.jpg", after: "/simpson/profsimpson.png" },
-        { before: "/foto/barbarabandeiranormal.webp", after: "/simpson/barbarabandeirasimpson.png" },
-        { before: "/foto/mbappe.jpg", after: "/simpson/mbappesimpson.png" },
-        { before: "/foto/morambappenormal.webp", after: "/simpson/morasimpson.png" },
+        { before: "/fotousar/rapazcao.png", after: "/simpson/rapazcao4.png" },
+        { before: "/fotousar/raparigascafe.png", after: "/simpson/raparigascafe4.png" },
+        { before: "/fotousar/passeioporto.png", after: "/fotousar/passeioporto4.png" },
+        { before: "/fotousar/homempraia.jpg", after: "/fotousar/homempraia4.png" },
+        { before: "/fotousar/almoco.png", after: "/fotousar/almoco4.png" },
       ]
     },
     {

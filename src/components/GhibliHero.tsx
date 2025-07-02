@@ -386,7 +386,7 @@ const GhibliHero = () => {
                 </Button>
               </motion.div>
 
-                {/* Botão "Visite a Nossa Loja" - design melhorado */}
+                {/* Botão "Visite a Loja" - design melhorado */}
                 <motion.button
                   onClick={() => {
                     // 🔥 TRACKING: Shop button click
@@ -400,10 +400,10 @@ const GhibliHero = () => {
                   whileHover={{ 
                     scale: 1.05, 
                     y: -3,
-                    boxShadow: "0 10px 30px -8px rgba(76, 175, 80, 0.5)"
+                    boxShadow: "0 12px 35px -8px rgba(139, 115, 85, 0.4)"
                   }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white rounded-xl border-2 border-emerald-400/60 inline-flex items-center transition-all duration-300 shadow-lg hover:shadow-xl font-semibold touch-manipulation active:scale-90"
+                  className="px-6 py-3 bg-gradient-to-r from-ghibli-wood/90 via-amber-600 to-ghibli-wood hover:from-ghibli-wood hover:via-amber-700 hover:to-ghibli-wood text-white rounded-xl border-2 border-amber-500/60 hover:border-amber-400 inline-flex items-center transition-all duration-300 shadow-lg hover:shadow-xl font-semibold touch-manipulation active:scale-90"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <motion.span 
@@ -415,13 +415,13 @@ const GhibliHero = () => {
                   >
                     🛍️
                   </motion.span>
-                  <p className="text-base font-bold">Visite a Nossa Loja!</p>
+                  <p className="text-base font-bold">Visite a Loja</p>
                 </motion.button>
               </div>
               
               {/* Botão para mobile apenas - Loja - design melhorado */}
               <div className="md:hidden flex flex-col space-y-4 items-center w-full">
-                {/* Botão "Visite a Nossa Loja" - mobile */}
+                {/* Botão "Visite a Loja" - mobile */}
               <motion.button
                 onClick={() => {
                   trackEvent('shop_button_click', {
@@ -434,14 +434,14 @@ const GhibliHero = () => {
                 whileHover={{ 
                   scale: 1.03, 
                   y: -2,
-                  boxShadow: "0 8px 25px -6px rgba(76, 175, 80, 0.4)"
+                  boxShadow: "0 10px 30px -6px rgba(139, 115, 85, 0.4)"
                 }}
                 whileTap={{ scale: 0.95 }}
-                  className="px-8 py-4 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white rounded-2xl border-2 border-emerald-400/60 inline-flex items-center transition-all duration-300 shadow-lg hover:shadow-xl font-semibold w-full justify-center touch-manipulation active:scale-95"
+                  className="px-6 py-3 bg-gradient-to-r from-ghibli-wood/90 via-amber-600 to-ghibli-wood hover:from-ghibli-wood hover:via-amber-700 hover:to-ghibli-wood text-white rounded-xl border-2 border-amber-500/60 hover:border-amber-400 inline-flex items-center transition-all duration-300 shadow-lg hover:shadow-xl font-semibold w-full justify-center touch-manipulation active:scale-95"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 <motion.span 
-                  className="mr-3 text-lg"
+                  className="mr-2 text-lg"
                   animate={{ 
                     rotate: [0, 8, -8, 0],
                   }}
@@ -449,7 +449,7 @@ const GhibliHero = () => {
                 >
                   🛍️
                 </motion.span>
-                <p className="text-lg font-bold">Visite a Nossa Loja!</p>
+                <p className="text-base font-bold">Visite a Loja</p>
               </motion.button>
               </div>
             </div>

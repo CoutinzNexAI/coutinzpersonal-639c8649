@@ -42,7 +42,6 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
   const [selectedTransformation, setSelectedTransformation] = useState<PrivateTransformation | null>(null);
   const [privateTransformations, setPrivateTransformations] = useState<PrivateTransformation[]>([]);
   const [publicTitle, setPublicTitle] = useState('');
-  const [publicDescription, setPublicDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState<'select' | 'preview' | 'details' | 'success'>('select');
@@ -50,7 +49,6 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
   const [picCoinMessage, setPicCoinMessage] = useState('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // FETCH PRIVATE TRANSFORMATIONS
   const fetchPrivateTransformations = async () => {
@@ -93,7 +91,6 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
         body: JSON.stringify({
           transformationId: selectedTransformation.id,
           public_title: publicTitle.trim() || undefined,
-          public_description: publicDescription.trim() || undefined,
         })
       });
 
@@ -129,7 +126,6 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
   const resetModal = () => {
     setSelectedTransformation(null);
     setPublicTitle('');
-    setPublicDescription('');
     setStep('select');
     setIsKeyboardVisible(false);
   };
@@ -178,19 +174,14 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
     }
 
     const titleInput = titleInputRef.current;
-    const descriptionTextarea = descriptionTextareaRef.current;
     
-    if (titleInput && descriptionTextarea) {
+    if (titleInput) {
       titleInput.addEventListener('focus', handleFocus);
       titleInput.addEventListener('blur', handleBlur);
-      descriptionTextarea.addEventListener('focus', handleFocus);
-      descriptionTextarea.addEventListener('blur', handleBlur);
       
       return () => {
         titleInput.removeEventListener('focus', handleFocus);
         titleInput.removeEventListener('blur', handleBlur);
-        descriptionTextarea.removeEventListener('focus', handleFocus);
-        descriptionTextarea.removeEventListener('blur', handleBlur);
         
         if (window.visualViewport) {
           window.visualViewport.removeEventListener('resize', handleResize);
@@ -292,7 +283,6 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                           onClick={() => {
                             setSelectedTransformation(transformation);
                             setPublicTitle(transformation.public_title || '');
-                            setPublicDescription(transformation.public_description || '');
                             // Go to preview step on mobile, details on desktop
                             setStep(isMobile ? 'preview' : 'details');
                           }}
@@ -467,26 +457,6 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                         maxLength={75}
                       />
                       <p className="text-xs text-ghibli-earth mt-1">{publicTitle.length}/75 caracteres</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-ghibli-wood mb-2">
-                        Descrição (opcional)
-                      </label>
-                      <textarea
-                        ref={descriptionTextareaRef}
-                        value={publicDescription}
-                        onChange={(e) => {
-                          if (e.target.value.length <= 75) {
-                            setPublicDescription(e.target.value);
-                          }
-                        }}
-                        placeholder="Conta a história por trás desta transformação..."
-                        className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-ghibli-sand/20 border border-ghibli-sand/30 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all text-sm sm:text-base"
-                        rows={isKeyboardVisible ? 3 : 3}
-                        maxLength={75}
-                      />
-                      <p className="text-xs text-ghibli-earth mt-1">{publicDescription.length}/75 caracteres</p>
                     </div>
 
                     {!isKeyboardVisible && (
