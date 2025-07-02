@@ -564,7 +564,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     )}
                     {product.id === 'tote_bag' && (
                       <img
-                        src="/assets/mockups/bag/saco.png"
+                        src="/mockupproduto/saco.png"
                         alt="Saco Personalizado"
                         className="w-32 h-32 object-contain opacity-60"
                       />

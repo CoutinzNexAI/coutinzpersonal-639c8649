@@ -203,7 +203,7 @@ const HeroSection: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
                 <Users className="w-5 h-5 text-ghibli-moss" />
-                <span className="text-ghibli-earth font-medium text-sm">Mais de 300 utilizadores</span>
+                <span className="text-ghibli-earth font-medium text-sm">+300 utilizadores</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
                 <Star className="w-5 h-5 text-yellow-500" />
@@ -309,7 +309,7 @@ const HeroSection: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="w-5 h-5 text-ghibli-moss" />
-                <span className="text-ghibli-earth font-medium">Mais de 300 utilizadores</span>
+                <span className="text-ghibli-earth font-medium">+300 utilizadores</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Star className="w-5 h-5 text-yellow-500" />

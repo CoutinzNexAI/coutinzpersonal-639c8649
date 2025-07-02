@@ -18,9 +18,9 @@ export const phoneCaseConfig = {
 
   // ✅ DESCRIÇÃO: Específica para capas de telemóvel - 3 tópicos diretos
   descriptionItems: (_product: PrintifyProductMapping) => [
-    { text: 'Proteção superior com material TPU durável e resistente a quedas', color: 'moss' as const, emoji: '🛡️' },
-    { text: 'Impressão HD com cores vivas e resistentes ao desgaste', color: 'moss' as const, emoji: '🎨' },
-    { text: 'Compatible com carregamento wireless – prático e sem esforço', color: 'wood' as const, emoji: '⚡' }
+    { text: 'Proteção com material TPU resistente a quedas', color: 'moss' as const, emoji: '🛡️' },
+    { text: 'Impressão HD resistente ao desgaste', color: 'moss' as const, emoji: '🎨' },
+    { text: 'Compatível com carregamento wireless', color: 'wood' as const, emoji: '⚡' }
   ],
 
   // ✅ GARANTIAS: Ícones de confiança para capas
