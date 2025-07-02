@@ -24,11 +24,6 @@ export const mousepadConfig = {
       emoji: '🎯'
     },
     {
-      text: 'Impressão HD <span class="font-bold text-ghibli-wood">resistente ao uso diário</span>',
-      color: 'wood' as const,
-      emoji: '🎨'
-    },
-    {
       text: 'Tamanho <span class="font-bold text-ghibli-moss">23 x 19 cm</span> ideal para qualquer secretária',
       emoji: '📏'
     }
@@ -45,11 +40,11 @@ export const mousepadConfig = {
     },
     {
       icon: Truck,
-      title: 'Envio Seguro'
+      title: '3-5 dias úteis'
     },
     {
       icon: Award,
-      title: 'Qualidade Garantida'
+      title: 'Garantia 30 dias'
     }
   ],
 

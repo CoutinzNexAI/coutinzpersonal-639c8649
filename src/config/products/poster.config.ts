@@ -42,8 +42,8 @@ export const posterConfig = {
   // ✅ GARANTIAS: Ícones específicos para posters
   guaranteeItems: () => [
     { icon: Shield, title: 'Máxima Qualidade' },
-    { icon: Sparkles, title: 'Impressão HD' },
     { icon: Truck, title: '3-5 dias úteis' },
+    { icon: Sparkles, title: 'Impressão HD' },
     { icon: Award, title: 'Garantia 30 dias' }
   ],
 

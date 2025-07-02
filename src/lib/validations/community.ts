@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 // =====================================================
-// PICTUZ COMMUNITY - VALIDATION SCHEMAS
-// Validações robustas para todas as APIs da comunidade
+// PICTUZ COMMUNITY - VALIDATION SCHEMAS (SIMPLIFICADO)
+// Validações para a comunidade simplificada - apenas transformações e likes
 // =====================================================
 
 // SCHEMAS PARA DADOS DE INPUT
@@ -29,40 +29,12 @@ export const submitPublicationSchema = z.object({
     .optional(),
 });
 
-export const commentSchema = z.object({
-  transformation_id: z.string().uuid('ID de transformação inválido'),
-  comment_text: z.string()
-    .min(1, 'Comentário não pode estar vazio')
-    .max(75, 'Comentário deve ter no máximo 75 caracteres')
-    .trim()
-    .refine(
-      (text) => text.length > 0 && /\S/.test(text),
-      'Comentário deve conter pelo menos um caractere não vazio'
-    )
-    .refine(
-      (text) => !/<[^>]*>/g.test(text),
-      'Comentário não pode conter HTML'
-    ),
-  parent_comment_id: z.string().uuid('ID de comentário pai inválido').optional(),
-});
-
 export const toggleLikeSchema = z.object({
   transformation_id: z.string().uuid('ID de transformação inválido'),
 });
 
-export const toggleCommentLikeSchema = z.object({
-  comment_id: z.string().uuid('ID de comentário inválido'),
-});
-
 // SCHEMAS PARA QUERY PARAMETERS
 // ==============================
-
-export const getCommentsSchema = z.object({
-  transformation_id: z.string().uuid('ID de transformação inválido'),
-  page: z.coerce.number().min(1, 'Página deve ser maior que 0').default(1),
-  limit: z.coerce.number().min(1).max(50, 'Limite máximo é 50').default(20),
-  sort: z.enum(['newest', 'oldest', 'popular']).default('oldest'),
-});
 
 export const getPublicTransformationsSchema = z.object({
   page: z.coerce.number().min(1, 'Página deve ser maior que 0').default(1),
@@ -77,22 +49,18 @@ export const getMyPrivateTransformationsSchema = z.object({
   limit: z.coerce.number().min(1).max(50).default(20),
 });
 
-// ANTI-GAMING CONSTANTS
-// ======================
+// ANTI-GAMING CONSTANTS (SIMPLIFICADO)
+// =====================================
 
 export const ANTI_GAMING_LIMITS = {
-  // Limites semanais para bónus
+  // Limites semanais para bónus (apenas publicações)
   MAX_PUBLICATIONS_BONUS_PER_WEEK: 1,
-  MAX_COMMENT_BONUS_GROUPS_PER_WEEK: 3, // 15 comentários total
-  COMMENTS_PER_BONUS_GROUP: 5,
   
   // Cooldowns para prevenir spam
   MIN_COOLDOWN_BETWEEN_ACTIONS_MS: 5000, // 5 segundos
-  MIN_COOLDOWN_BETWEEN_COMMENTS_MS: 10000, // 10 segundos
   MIN_COOLDOWN_BETWEEN_LIKES_MS: 1000, // 1 segundo
   
-  // Limites de conteúdo
-  MAX_COMMENTS_PER_TRANSFORMATION_PER_USER_PER_HOUR: 5,
+  // Limites de likes
   MAX_LIKES_PER_USER_PER_MINUTE: 30,
   
   // Limites de publicação
@@ -174,10 +142,7 @@ export const formatLikeCount = (count: number): string => {
 // ============
 
 export type SubmitPublicationData = z.infer<typeof submitPublicationSchema>;
-export type CommentData = z.infer<typeof commentSchema>;
 export type ToggleLikeData = z.infer<typeof toggleLikeSchema>;
-export type ToggleCommentLikeData = z.infer<typeof toggleCommentLikeSchema>;
-export type GetCommentsQuery = z.infer<typeof getCommentsSchema>;
 export type GetPublicTransformationsQuery = z.infer<typeof getPublicTransformationsSchema>;
 export type GetMyPrivateTransformationsQuery = z.infer<typeof getMyPrivateTransformationsSchema>;
 

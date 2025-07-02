@@ -48,7 +48,7 @@ export const getStatusApiRateLimiter = redisClient ? new Ratelimit({
 }) : null;
 
 // =====================================================
-// COMMUNITY RATE LIMITERS - FASE 1.1
+// COMMUNITY RATE LIMITERS - SIMPLIFICADO
 // Rate limiting específico para funcionalidades da comunidade
 // =====================================================
 
@@ -68,14 +68,6 @@ export const communityLikeRateLimiter = redisClient ? new Ratelimit({
   prefix: "pictuz_community_like",
 }) : null;
 
-// Rate limiting para comentários (restritivo)
-export const communityCommentRateLimiter = redisClient ? new Ratelimit({
-  redis: redisClient,
-  limiter: Ratelimit.slidingWindow(10, "1 m"), // 10 comentários por minuto
-  analytics: true,
-  prefix: "pictuz_community_comment",
-}) : null;
-
 // Rate limiting para visualização de conteúdo (generoso)
 export const communityViewRateLimiter = redisClient ? new Ratelimit({
   redis: redisClient,
@@ -90,14 +82,6 @@ export const communityPrivateListRateLimiter = redisClient ? new Ratelimit({
   limiter: Ratelimit.slidingWindow(30, "1 m"), // 30 requests por minuto
   analytics: true,
   prefix: "pictuz_community_private_list",
-}) : null;
-
-// Rate limiting para buscar comentários (generoso)
-export const communityCommentsListRateLimiter = redisClient ? new Ratelimit({
-  redis: redisClient,
-  limiter: Ratelimit.slidingWindow(60, "1 m"), // 60 requests por minuto
-  analytics: true,
-  prefix: "pictuz_community_comments_list",
 }) : null;
 
 /**

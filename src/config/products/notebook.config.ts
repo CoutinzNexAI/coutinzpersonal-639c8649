@@ -34,7 +34,7 @@ export const notebookConfig = {
   guaranteeItems: () => [
     {
       icon: Shield,
-      title: 'Qualidade Premium'
+      title: 'Acabamento Premium'
     },
     {
       icon: Sparkles,
@@ -42,11 +42,11 @@ export const notebookConfig = {
     },
     {
       icon: Truck,
-      title: 'Envio Seguro'
+      title: '3-5 dias úteis'
     },
     {
       icon: Award,
-      title: 'Satisfação 100%'
+      title: 'Garantia 30 dias'
     }
   ],
 

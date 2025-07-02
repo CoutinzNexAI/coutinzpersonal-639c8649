@@ -1,38 +1,32 @@
 import { useState, useCallback } from 'react';
+import { toast } from '@/components/ui/sonner';
 
 // =====================================================
-// HOOK: USE COMMUNITY
-// Centraliza toda a lógica de estado da comunidade
+// COMMUNITY HOOK - VERSÃO SIMPLIFICADA
+// Hook simplificado apenas para transformações e likes
 // =====================================================
 
 export interface CommunityTransformation {
   id: string;
+  output_url: string;
+  input_url?: string;
+  style_name: string;
   public_title?: string;
   public_description?: string;
-  output_url: string;
-  like_count: number;
-  comment_count: number;
-  view_count: number;
   published_at: string;
-  user_id: string;
+  like_count: number;
   user_full_name?: string;
-  user_avatar_url?: string;
-  style_name?: string;
-  style_requested: string;
+  is_featured?: boolean;
+  is_trending?: boolean;
 }
 
-export interface CommunityComment {
-  id: string;
-  content: string;
-  created_at: string;
-  user_id: string;
-  user_full_name?: string;
-  user_avatar_url?: string;
-  parent_comment_id?: string;
-  replies?: CommunityComment[];
+export interface Filters {
+  sort: 'recent' | 'popular' | 'trending';
+  timeframe: 'day' | 'week' | 'month' | 'all';
+  search: string;
 }
 
-interface Pagination {
+export interface Pagination {
   page: number;
   limit: number;
   total: number;
@@ -41,17 +35,10 @@ interface Pagination {
   has_prev_page: boolean;
 }
 
-interface Filters {
-  sort: 'recent' | 'popular' | 'trending';
-  timeframe: 'day' | 'week' | 'month' | 'all';
-  search: string;
-}
-
 export const useCommunity = () => {
   // ESTADO PRINCIPAL
   const [transformations, setTransformations] = useState<CommunityTransformation[]>([]);
   const [likedTransformations, setLikedTransformations] = useState<Set<string>>(new Set());
-  const [comments, setComments] = useState<Record<string, CommunityComment[]>>({});
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 8,
@@ -63,115 +50,43 @@ export const useCommunity = () => {
   
   // ESTADOS DE LOADING
   const [loadingTransformations, setLoadingTransformations] = useState(false);
-  const [loadingComments, setLoadingComments] = useState<Record<string, boolean>>({});
-  const [submittingComment, setSubmittingComment] = useState<Record<string, boolean>>({});
   const [togglingLike, setTogglingLike] = useState<Record<string, boolean>>({});
 
-  // FETCH TRANSFORMAÇÕES - Modified for proper pagination
-  const fetchTransformations = useCallback(async (
-    filters: Filters,
-    reset: boolean = false,
-    page?: number
-  ) => {
+  // FETCH TRANSFORMATIONS
+  const fetchTransformations = useCallback(async (filters: Filters, reset: boolean = false) => {
     try {
       setLoadingTransformations(true);
-      const targetPage = page || (reset ? 1 : pagination.page);
-      
+
       const params = new URLSearchParams({
-        page: targetPage.toString(),
+        page: reset ? '1' : pagination.page.toString(),
         limit: pagination.limit.toString(),
         sort: filters.sort,
-        timeframe: filters.timeframe
+        timeframe: filters.timeframe,
+        search: filters.search
       });
 
-      if (filters.search.trim()) {
-        params.append('search', filters.search.trim());
-      }
-
       const response = await fetch(`/api/community/get-public-transformations?${params}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const text = await response.text();
-      if (!text) {
-        throw new Error('Empty response from server');
-      }
-      
-      const data = JSON.parse(text);
+      const data = await response.json();
 
       if (data.success) {
-        // Always replace transformations for pagination (no more concatenation)
         setTransformations(data.transformations);
         setPagination(data.pagination);
+        setLikedTransformations(new Set(data.liked_transformation_ids || []));
       } else {
         throw new Error(data.error || 'Failed to fetch transformations');
       }
     } catch (error) {
       console.error('Error fetching transformations:', error);
-      throw error;
+      toast.error('Erro ao carregar transformações');
     } finally {
       setLoadingTransformations(false);
     }
-  }, [pagination.limit]);
+  }, [pagination.page, pagination.limit]);
 
-  // NEW: Navigate to specific page
-  const goToPage = useCallback(async (page: number, filters: Filters) => {
-    if (page < 1 || page > pagination.total_pages || page === pagination.page) {
-      return;
-    }
-    await fetchTransformations(filters, false, page);
-  }, [fetchTransformations, pagination.page, pagination.total_pages]);
-
-  // NEW: Go to first page
-  const goToFirstPage = useCallback(async (filters: Filters) => {
-    if (pagination.page === 1) return;
-    await fetchTransformations(filters, false, 1);
-  }, [fetchTransformations, pagination.page]);
-
-  // NEW: Go to last page
-  const goToLastPage = useCallback(async (filters: Filters) => {
-    if (pagination.page === pagination.total_pages) return;
-    await fetchTransformations(filters, false, pagination.total_pages);
-  }, [fetchTransformations, pagination.page, pagination.total_pages]);
-
-  // NEW: Go to next page
-  const goToNextPage = useCallback(async (filters: Filters) => {
-    if (!pagination.has_next_page) return;
-    await fetchTransformations(filters, false, pagination.page + 1);
-  }, [fetchTransformations, pagination.has_next_page, pagination.page]);
-
-  // NEW: Go to previous page
-  const goToPreviousPage = useCallback(async (filters: Filters) => {
-    if (!pagination.has_prev_page) return;
-    await fetchTransformations(filters, false, pagination.page - 1);
-  }, [fetchTransformations, pagination.has_prev_page, pagination.page]);
-
-  // TOGGLE LIKE COM OPTIMISTIC UPDATE
+  // TOGGLE LIKE
   const toggleLike = useCallback(async (transformationId: string) => {
     try {
       setTogglingLike(prev => ({ ...prev, [transformationId]: true }));
-
-      // Optimistic update
-      const wasLiked = likedTransformations.has(transformationId);
-      const newLikedSet = new Set(likedTransformations);
-      
-      if (wasLiked) {
-        newLikedSet.delete(transformationId);
-      } else {
-        newLikedSet.add(transformationId);
-      }
-      setLikedTransformations(newLikedSet);
-
-      // Update like count optimistically
-      setTransformations(prev => 
-        prev.map(t => 
-          t.id === transformationId 
-            ? { ...t, like_count: t.like_count + (wasLiked ? -1 : 1) }
-            : t
-        )
-      );
 
       const response = await fetch('/api/community/toggle-like', {
         method: 'POST',
@@ -179,147 +94,68 @@ export const useCommunity = () => {
         body: JSON.stringify({ transformation_id: transformationId })
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const text = await response.text();
-      if (!text) {
-        throw new Error('Empty response from server');
-      }
-      
-      const data = JSON.parse(text);
-      
-      if (data.success) {
-        // Update with real data from server
-        setTransformations(prev => 
-          prev.map(t => 
-            t.id === transformationId 
-              ? { ...t, like_count: data.like_count }
-              : t
-          )
-        );
+      const data = await response.json();
 
-        // Update liked state with server response
-        const finalLikedSet = new Set(likedTransformations);
-        if (data.is_liked) {
-          finalLikedSet.add(transformationId);
-        } else {
-          finalLikedSet.delete(transformationId);
-        }
-        setLikedTransformations(finalLikedSet);
-      } else {
-        // Revert optimistic update on error
-        setLikedTransformations(likedTransformations);
+      if (data.success) {
+        // Update local state
+        setLikedTransformations(prev => {
+          const newSet = new Set(prev);
+          if (data.is_liked) {
+            newSet.add(transformationId);
+          } else {
+            newSet.delete(transformationId);
+          }
+          return newSet;
+        });
+
+        // Update like count in transformations
         setTransformations(prev => 
           prev.map(t => 
             t.id === transformationId 
-              ? { ...t, like_count: t.like_count + (wasLiked ? 1 : -1) }
+              ? { ...t, like_count: data.is_liked ? t.like_count + 1 : t.like_count - 1 }
               : t
           )
         );
+      } else {
         throw new Error(data.error || 'Failed to toggle like');
       }
     } catch (error) {
       console.error('Error toggling like:', error);
-      throw error;
+      toast.error('Erro ao dar like');
     } finally {
       setTogglingLike(prev => ({ ...prev, [transformationId]: false }));
     }
-  }, [likedTransformations]);
-
-  // FETCH COMENTÁRIOS
-  const fetchComments = useCallback(async (transformationId: string, page: number = 1) => {
-    try {
-      setLoadingComments(prev => ({ ...prev, [transformationId]: true }));
-
-      const params = new URLSearchParams({
-        transformation_id: transformationId,
-        page: page.toString(),
-        limit: '20'
-      });
-
-      const response = await fetch(`/api/community/comments?${params}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const text = await response.text();
-      if (!text) {
-        throw new Error('Empty response from server');
-      }
-      
-      const data = JSON.parse(text);
-
-      if (data.success) {
-        setComments(prev => ({
-          ...prev,
-          [transformationId]: page === 1 ? data.comments : [...(prev[transformationId] || []), ...data.comments]
-        }));
-      } else {
-        throw new Error(data.error || 'Failed to fetch comments');
-      }
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-      throw error;
-    } finally {
-      setLoadingComments(prev => ({ ...prev, [transformationId]: false }));
-    }
   }, []);
 
-  // ADICIONAR COMENTÁRIO
-  const addComment = useCallback(async (transformationId: string, content: string) => {
-    try {
-      setSubmittingComment(prev => ({ ...prev, [transformationId]: true }));
+  // PAGINATION HELPERS
+  const goToPage = useCallback(async (page: number, filters: Filters) => {
+    setPagination(prev => ({ ...prev, page }));
+    await fetchTransformations(filters);
+  }, [fetchTransformations]);
 
-      const response = await fetch('/api/community/add-comment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transformation_id: transformationId,
-          content: content.trim()
-        })
-      });
+  const goToFirstPage = useCallback(async (filters: Filters) => {
+    setPagination(prev => ({ ...prev, page: 1 }));
+    await fetchTransformations(filters);
+  }, [fetchTransformations]);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const text = await response.text();
-      if (!text) {
-        throw new Error('Empty response from server');
-      }
-      
-      const data = JSON.parse(text);
+  const goToLastPage = useCallback(async (filters: Filters) => {
+    setPagination(prev => ({ ...prev, page: prev.total_pages }));
+    await fetchTransformations(filters);
+  }, [fetchTransformations]);
 
-      if (data.success) {
-        // Update comments locally
-        setComments(prev => ({
-          ...prev,
-          [transformationId]: [data.comment, ...(prev[transformationId] || [])]
-        }));
-
-        // Update comment count in transformations
-        setTransformations(prev => 
-          prev.map(t => 
-            t.id === transformationId 
-              ? { ...t, comment_count: t.comment_count + 1 }
-              : t
-          )
-        );
-
-        return data.comment;
-      } else {
-        throw new Error(data.error || 'Failed to add comment');
-      }
-    } catch (error) {
-      console.error('Error adding comment:', error);
-      throw error;
-    } finally {
-      setSubmittingComment(prev => ({ ...prev, [transformationId]: false }));
+  const goToNextPage = useCallback(async (filters: Filters) => {
+    if (pagination.has_next_page) {
+      setPagination(prev => ({ ...prev, page: prev.page + 1 }));
+      await fetchTransformations(filters);
     }
-  }, []);
+  }, [pagination.has_next_page, fetchTransformations]);
+
+  const goToPreviousPage = useCallback(async (filters: Filters) => {
+    if (pagination.has_prev_page) {
+      setPagination(prev => ({ ...prev, page: prev.page - 1 }));
+      await fetchTransformations(filters);
+    }
+  }, [pagination.has_prev_page, fetchTransformations]);
 
   // HELPER FUNCTIONS
   const isLiked = useCallback((transformationId: string) => {
@@ -330,36 +166,25 @@ export const useCommunity = () => {
     return togglingLike[transformationId] || false;
   }, [togglingLike]);
 
-  const getComments = useCallback((transformationId: string) => {
-    return comments[transformationId] || [];
-  }, [comments]);
-
-  const isLoadingComments = useCallback((transformationId: string) => {
-    return loadingComments[transformationId] || false;
-  }, [loadingComments]);
-
-  const isSubmittingComment = useCallback((transformationId: string) => {
-    return submittingComment[transformationId] || false;
-  }, [submittingComment]);
-
   return {
+    // States
     transformations,
     loadingTransformations,
     pagination,
-    toggleLike,
+    
+    // Actions
     fetchTransformations,
-    // NEW pagination functions
+    toggleLike,
+    
+    // Pagination
     goToPage,
     goToFirstPage,
     goToLastPage,
     goToNextPage,
     goToPreviousPage,
-    fetchComments,
-    addComment,
+    
+    // Helpers
     isLiked,
     isTogglingLike,
-    getComments,
-    isLoadingComments,
-    isSubmittingComment
   };
 }; 

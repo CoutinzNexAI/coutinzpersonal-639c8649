@@ -100,7 +100,7 @@ const individualProducts: IndividualProduct[] = [
   // 3. Canvas (sem borda)
   {
     id: 'custom_canvas',
-    name: 'Canvas Sem Borda',
+    name: 'Canvas',
     price: 20.00,
     image: '/mockupproduto/canva.png',
     href: '/shop/canvas/custom_canvas',

@@ -29,7 +29,7 @@ export const canvasConfig = {
     const isFramed = product.name.includes('Moldura');
     return [
       {
-        text: 'Arte HD de alta qualidade',
+        text: 'Impressão HD com acabamento artístico',
         emoji: '🎨'
       },
       {
@@ -37,12 +37,8 @@ export const canvasConfig = {
         emoji: '🖼️'
       },
       {
-        text: 'Perfeito para decoração',
+        text: 'Ideal para <span class="font-bold text-ghibli-wood">dar vida a qualquer espaço',
         emoji: '🏠'
-      },
-      {
-        text: 'Presente único',
-        emoji: '🎁'
       }
     ];
   },
@@ -58,11 +54,11 @@ export const canvasConfig = {
     },
     {
       icon: Truck,
-      title: 'Envio Seguro'
+      title: '3-5 dias úteis'
     },
     {
       icon: Award,
-      title: 'Satisfação 100%'
+      title: 'Garantia 30 dias'
     }
   ],
 

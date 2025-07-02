@@ -20,7 +20,7 @@ interface CommunityTransformationCardProps {
   isLiked: boolean;
   isTogglingLike: boolean;
   onLike: (transformationId: string) => void;
-  onView: (transformation: CommunityTransformation) => void;
+  onView?: (transformation: CommunityTransformation) => void;
 }
 
 const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = ({
@@ -76,9 +76,8 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
 
   return (
     <motion.div
-      className="group relative bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden border border-ghibli-sand/30 hover:border-amber-400/50 transition-all duration-300 hover:shadow-xl cursor-pointer"
+      className="group relative bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden border border-ghibli-sand/30 hover:border-amber-400/50 transition-all duration-300 hover:shadow-xl"
       whileHover={{ y: -2, scale: 1.01 }}
-      onClick={() => onView(transformation)}
       layout
     >
       {/* Image Container */}
@@ -123,13 +122,6 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
             )}
           </motion.button>
         </div>
-
-        {/* View Indicator - Mobile Optimized */}
-        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30">
-          <div className="px-2 py-1 sm:px-3 sm:py-1.5 bg-black/60 backdrop-blur-md rounded-full text-white text-xs font-medium">
-            👆 Toca para ver
-          </div>
-        </div>
       </div>
 
       {/* Content - Mobile Optimized */}
@@ -166,11 +158,7 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
               <span className="text-xs sm:text-sm">{formatCount(transformation.like_count)}</span>
             </motion.span>
 
-            {/* Comments */}
-            <span className="flex items-center">
-              <ChatBubbleLeftIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 text-blue-500" />
-              <span className="text-xs sm:text-sm">{formatCount(transformation.comment_count)}</span>
-            </span>
+            {/* Comments - Removido porque não há mais comentários */}
           </div>
 
           {/* Time Ago */}
