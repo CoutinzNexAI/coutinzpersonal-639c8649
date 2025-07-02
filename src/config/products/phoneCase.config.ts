@@ -18,17 +18,17 @@ export const phoneCaseConfig = {
 
   // ✅ DESCRIÇÃO: Específica para capas de telemóvel - 3 tópicos diretos
   descriptionItems: (_product: PrintifyProductMapping) => [
-    { text: 'Proteção premium com material TPU resistente', color: 'moss' as const, emoji: '🛡️' },
-    { text: 'Impressão HD de alta qualidade', color: 'moss' as const, emoji: '🎨' },
-    { text: 'Compatible com carregamento wireless', color: 'wood' as const, emoji: '⚡' }
+    { text: 'Proteção superior com material TPU durável e resistente', color: 'moss' as const, emoji: '🛡️' },
+    { text: 'Impressão HD com cores vivas e resistentes ao desgaste', color: 'moss' as const, emoji: '🎨' },
+    { text: 'Compatible com carregamento wireless sem remover capa', color: 'wood' as const, emoji: '⚡' }
   ],
 
   // ✅ GARANTIAS: Ícones de confiança para capas
   guaranteeItems: () => [
     { icon: Shield, title: 'Proteção Garantida' },
-    { icon: Sparkles, title: 'Qualidade Premium' },
-    { icon: Truck, title: 'Envio Rápido' },
-    { icon: Award, title: 'Satisfação 100%' }
+    { icon: Sparkles, title: 'Acabamento Premium' },
+    { icon: Truck, title: '3-5 dias úteis' },
+    { icon: Award, title: 'Garantia 30 dias' }
   ],
 
   // ✅ COORDENADAS: Configuração para movimento horizontal

@@ -986,6 +986,20 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     </div>
                   </div>
 
+                  {/* Botão Principal */}
+                  <div className="pt-3">
+                    <ProductAddToCartButton
+                      canPurchase={!!canPurchase}
+                      isProcessingMockup={!!isProcessingMockup}
+                      loading={loading}
+                      userInfo={userInfo}
+                      selectedImageUrl={selectedImageUrl || ''}
+                      selectedPrintifyVariantId={selectedPrintifyVariantId}
+                      onAddToCart={handleAddToCart}
+                      size="desktop"
+                    />
+                  </div>
+
                   {/* Descrição */}
                   <ProductDescription items={config.descriptionItems(product)} />
 
@@ -1035,20 +1049,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     selectedImageUrl={selectedImageUrl}
                     onOpenGallery={handleOpenGallery}
                   />
-
-                  {/* Botão Principal */}
-                  <div className="pt-3">
-                    <ProductAddToCartButton
-                      canPurchase={!!canPurchase}
-                      isProcessingMockup={!!isProcessingMockup}
-                      loading={loading}
-                      userInfo={userInfo}
-                      selectedImageUrl={selectedImageUrl || ''}
-                      selectedPrintifyVariantId={selectedPrintifyVariantId}
-                      onAddToCart={handleAddToCart}
-                      size="desktop"
-                    />
-                  </div>
 
                   {/* Garantias */}
                   <ProductGuarantees 

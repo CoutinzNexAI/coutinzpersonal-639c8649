@@ -21,17 +21,13 @@ export const notebookConfig = {
       emoji: '📝'
     },
     {
-      text: 'Capa resistente com <span class="font-bold">impressão HD durável</span>',
+      text: 'Capa rígida com impressão HD de alta durabilidade e acabamento profissional',
       emoji: '🎨'
     },
     {
       text: 'Perfeito para <span class="font-bold text-ghibli-wood">anotações e criatividade</span>',
       color: 'wood' as const,
       emoji: '✨'
-    },
-    {
-      text: 'Formato prático e <span class="font-bold">fácil de transportar</span>',
-      emoji: '🎒'
     }
   ],
 

@@ -25,15 +25,15 @@ export const posterConfig = {
   // ✅ DESCRIÇÃO: Específica para posters
   descriptionItems: (_product: PrintifyProductMapping) => [
     { 
-      text: 'Poster de <span class="font-bold text-ghibli-moss">máxima qualidade</span> em papel premium',
+      text: 'Poster de <span class="font-bold text-ghibli-moss">qualidade premium</span> em papel artístico',
       emoji: '🎨'
     },
     { 
-      text: 'Impressão de <span class="font-bold">altíssima resolução</span> resistente',
+      text: 'Impressão <span class="font-bold">ultra nítida</span> e duradoura',
       emoji: '📸'
     },
     { 
-      text: '<span class="font-bold text-ghibli-wood">Perfeito para decorar qualquer espaço</span>', 
+      text: '<span class="font-bold text-ghibli-wood">Ideal para dar vida a qualquer espaço</span>', 
       color: 'wood' as const,
       emoji: '🏠'
     }
@@ -43,8 +43,8 @@ export const posterConfig = {
   guaranteeItems: () => [
     { icon: Shield, title: 'Máxima Qualidade' },
     { icon: Sparkles, title: 'Impressão HD' },
-    { icon: Truck, title: 'Envio Seguro' },
-    { icon: Award, title: 'Garantia Total' }
+    { icon: Truck, title: '3-5 dias úteis' },
+    { icon: Award, title: 'Garantia 30 dias' }
   ],
 
   // ✅ COORDENADAS: Configuração específica para posters
