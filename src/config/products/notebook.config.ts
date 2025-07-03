@@ -11,8 +11,8 @@ export const notebookConfig = {
   },
 
   discountTiers: [
-    { min: 3, discount: 15, label: '15% OFF para 3+ cadernos', emoji: '🎯' },
-    { min: 2, discount: 10, label: '10% OFF para 2+ cadernos', emoji: '📝' }
+    { min: 2, discount: 10, label: '10% OFF para 2+ cadernos', emoji: '📝' },
+    { min: 3, discount: 15, label: '15% OFF para 3+ cadernos', emoji: '🎯' }
   ],
 
   descriptionItems: (_product: PrintifyProductMapping) => [

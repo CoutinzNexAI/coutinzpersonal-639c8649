@@ -172,7 +172,7 @@ const HeroSection: React.FC = () => {
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <span className="mr-1 text-sm">🎨</span>
-                  Transformar Foto
+                  Transformar Grátis
                 </Button>
               </Link>
               
@@ -458,14 +458,14 @@ const HeroSection: React.FC = () => {
       
       {/* Floating elements */}
       <motion.div 
-        className="absolute top-32 right-32 text-4xl opacity-20"
+        className="absolute top-32 right-32 text-4xl opacity-20 z-0"
         animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
         transition={{ duration: 4, repeat: Infinity }}
       >
         🎨
       </motion.div>
       <motion.div 
-        className="absolute bottom-32 left-32 text-3xl opacity-20"
+        className="absolute bottom-32 left-32 text-3xl opacity-20 z-0"
         animate={{ y: [0, 10, 0], rotate: [0, -5, 5, 0] }}
         transition={{ duration: 3, repeat: Infinity, delay: 1 }}
       >

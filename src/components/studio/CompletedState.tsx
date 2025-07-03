@@ -81,27 +81,6 @@ const CompletedState: React.FC<CompletedStateProps> = ({
 
       {/* Rating e Botões na parte inferior */}
       <div className="px-4 pb-4 flex-shrink-0 space-y-3">
-        {/* Botão para Loja - Criativo e Chamativo */}
-        <div className="flex flex-col items-center gap-3">
-          {/* Texto removido no mobile */}
-          <div className="text-center hidden md:block">
-            <p className="text-sm font-semibold text-ghibli-wood">
-              Agora transforma em algo real! 🎁
-            </p>
-          </div>
-          <button
-            onClick={() => window.location.href = '/shop'}
-            className="w-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] border-2 border-emerald-400/60 touch-manipulation active:scale-95"
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-          >
-            <div className="flex items-center justify-center gap-3">
-              <span className="text-xl">🛍️</span>
-              <span className="text-base">Ver Produtos Personalizados</span>
-              <span className="text-lg">✨</span>
-            </div>
-          </button>
-        </div>
-        
         {/* Botão de Download - design melhorado */}
         <Button 
           onClick={onDownload}

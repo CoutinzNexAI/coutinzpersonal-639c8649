@@ -1,9 +1,10 @@
 // src/components/HowItWorks.tsx
 import React from 'react';
-import { Upload, Brush, Sun, ShoppingBag } from "lucide-react";
+import { Brush } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 
 // Variantes para a animação do container da grelha (stagger)
 const gridContainerVariants = {
@@ -120,10 +121,16 @@ const HowItWorks = () => {
             <Card className="ghibli-card h-full border-2 border-ghibli-sand/40 bg-white/70 backdrop-blur-sm overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:border-ghibli-sky/50">
               <CardContent className="p-6 md:p-8 flex flex-col items-center text-center">
                 <motion.div 
-                  className="w-20 h-20 rounded-full bg-ghibli-sky/20 flex items-center justify-center mb-6 border-2 border-ghibli-sky/30 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-sky/30 group-hover:border-ghibli-sky/50"
+                  className="w-28 h-28 rounded-full bg-ghibli-sky/20 flex items-center justify-center mb-6 border-2 border-ghibli-sky/30 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-sky/30 group-hover:border-ghibli-sky/50"
                   whileHover={{boxShadow: "0 0 15px rgba(135, 206, 235, 0.7)"}}
                 >
-                  <Upload className="h-10 w-10 text-ghibli-sky-deep" />
+                  <Image 
+                    src="/fotousar/upload.jpg" 
+                    alt="Upload" 
+                    width={80} 
+                    height={80} 
+                    className="rounded-md object-cover"
+                  />
                 </motion.div>
                 <h3 className="text-xl lg:text-2xl font-ghibli text-ghibli-wood mb-3">1. Faça Upload</h3>
                 <p className="text-ghibli-earth text-sm md:text-base leading-relaxed">
@@ -142,10 +149,10 @@ const HowItWorks = () => {
             <Card className="ghibli-card h-full border-2 border-ghibli-sand/40 bg-white/70 backdrop-blur-sm overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:border-ghibli-moss/50">
               <CardContent className="p-6 md:p-8 flex flex-col items-center text-center">
                 <motion.div 
-                  className="w-20 h-20 rounded-full bg-ghibli-sand/40 flex items-center justify-center mb-6 border-2 border-ghibli-sand/60 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-sand/60 group-hover:border-ghibli-sand"
+                  className="w-28 h-28 rounded-full bg-ghibli-sand/40 flex items-center justify-center mb-6 border-2 border-ghibli-sand/60 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-sand/60 group-hover:border-ghibli-sand"
                   whileHover={{boxShadow: "0 0 15px rgba(210, 180, 140, 0.7)"}}
                 >
-                  <Brush className="h-10 w-10 text-ghibli-earth-dark" />
+                  <Brush className="h-20 w-20 text-ghibli-earth-dark" />
                 </motion.div>
                 <h3 className="text-xl lg:text-2xl font-ghibli text-ghibli-wood mb-3">2. Escolha o Estilo</h3>
                 <p className="text-ghibli-earth text-sm md:text-base leading-relaxed">
@@ -164,10 +171,16 @@ const HowItWorks = () => {
             <Card className="ghibli-card h-full border-2 border-ghibli-sand/40 bg-white/70 backdrop-blur-sm overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:border-ghibli-sunflower/70">
               <CardContent className="p-6 md:p-8 flex flex-col items-center text-center">
                 <motion.div 
-                  className="w-20 h-20 rounded-full bg-ghibli-sunflower/20 flex items-center justify-center mb-6 border-2 border-ghibli-sunflower/40 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-sunflower/40 group-hover:border-ghibli-sunflower/60"
+                  className="w-28 h-28 rounded-full bg-ghibli-sunflower/20 flex items-center justify-center mb-6 border-2 border-ghibli-sunflower/40 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-sunflower/40 group-hover:border-ghibli-sunflower/60"
                   whileHover={{boxShadow: "0 0 15px rgba(255, 223, 100, 0.8)"}}
                 >
-                  <Sun className="h-10 w-10 text-ghibli-sunflower-dark" />
+                  <Image 
+                    src="/fotousar/magia.jpg" 
+                    alt="Magia" 
+                    width={80} 
+                    height={80} 
+                    className="rounded-md object-cover"
+                  />
                 </motion.div>
                 <h3 className="text-xl lg:text-2xl font-ghibli text-ghibli-wood mb-3">3. Receba a Magia</h3>
                 <p className="text-ghibli-earth text-sm md:text-base leading-relaxed">
@@ -188,10 +201,16 @@ const HowItWorks = () => {
             <Card className="ghibli-card h-full border-2 border-ghibli-sand/40 bg-white/70 backdrop-blur-sm overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:border-ghibli-moss/50">
               <CardContent className="p-6 md:p-8 flex flex-col items-center text-center">
                 <motion.div 
-                  className="w-20 h-20 rounded-full bg-ghibli-moss/20 flex items-center justify-center mb-6 border-2 border-ghibli-moss/40 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-moss/40 group-hover:border-ghibli-moss/60"
+                  className="w-28 h-28 rounded-full bg-ghibli-moss/20 flex items-center justify-center mb-6 border-2 border-ghibli-moss/40 transition-all duration-300 group-hover:scale-110 group-hover:bg-ghibli-moss/40 group-hover:border-ghibli-moss/60"
                   whileHover={{boxShadow: "0 0 15px rgba(79, 111, 82, 0.8)"}}
                 >
-                  <ShoppingBag className="h-10 w-10 text-ghibli-moss-dark" />
+                  <Image 
+                    src="/fotousar/produto.png" 
+                    alt="Produto" 
+                    width={80} 
+                    height={80} 
+                    className="rounded-md object-cover"
+                  />
                 </motion.div>
                 <h3 className="text-xl lg:text-2xl font-ghibli text-ghibli-wood mb-3">4. Escolha um Produto</h3>
                 <p className="text-ghibli-earth text-sm md:text-base leading-relaxed">
