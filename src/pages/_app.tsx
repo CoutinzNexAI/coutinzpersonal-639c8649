@@ -13,7 +13,6 @@ import { OrdersModalProvider } from '@/hooks/ordersModalContext';
 import TransformationsModal from '@/components/TransformationsModal';
 import AccountSettingsModal from '@/components/AccountSettingsModal';
 import { OrdersModal } from '@/components/OrdersModal';
-import FallingElements from '@/components/effects/FallingElements';
 import Script from 'next/script';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -102,8 +101,6 @@ function MyApp({ Component, pageProps }: AppProps) {
             <TransformationsModalProvider>
               <AccountSettingsModalProvider>
                 <OrdersModalProvider>
-                  
-                  <FallingElements />
                   
                   <Component {...pageProps} />
 
