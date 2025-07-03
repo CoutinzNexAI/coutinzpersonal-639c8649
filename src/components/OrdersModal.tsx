@@ -131,18 +131,18 @@ export const OrdersModal: React.FC = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-6xl max-h-[95vh] sm:max-h-[90vh] w-[95vw] sm:w-full overflow-hidden bg-ghibli-cream border-ghibli-stone">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden bg-ghibli-cream border-ghibli-stone">
         {selectedOrder ? (
           // Vista de Detalhes da Encomenda
           <>
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle className="text-xl sm:text-2xl font-semibold text-ghibli-earth flex items-center gap-2">
-                <Package2 className="w-5 h-5 sm:w-6 sm:h-6 text-ghibli-moss" />
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-semibold text-ghibli-earth flex items-center gap-2">
+                <Package2 className="w-6 h-6 text-ghibli-moss" />
                 Detalhes da Encomenda
               </DialogTitle>
             </DialogHeader>
             
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 overflow-hidden">
               <OrderDetailsView order={selectedOrder} onBack={handleBackToList} />
             </div>
           </>

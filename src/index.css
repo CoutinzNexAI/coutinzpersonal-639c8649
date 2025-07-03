@@ -6,44 +6,44 @@
 @layer base {
   :root {
     /* Cores Base */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 43 40% 96%; /* Cor de fundo principal (bege claro) */
+    --foreground: 35 25% 15%; /* Cor do texto principal (castanho escuro) */
 
     /* Cores do Card */
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; /* Fundo do card (branco) */
+    --card-foreground: 35 25% 15%; /* Texto dentro do card */
 
     /* Cores do Popover */
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%; /* Fundo do popover (branco) */
+    --popover-foreground: 35 25% 15%; /* Texto dentro do popover */
 
     /* Cores Primárias (usadas em botões, links, foco) */
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 86 16% 42%; /* Verde musgo (ghibli-moss) */
+    --primary-foreground: 0 0% 100%; /* Texto sobre cor primária (branco) */
 
     /* Cores Secundárias (elementos menos importantes) */
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary: 45 25% 83%; /* Bege acinzentado claro */
+    --secondary-foreground: 35 25% 15%; /* Texto sobre cor secundária */
 
     /* Cores Muted (texto secundário, placeholders) */
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 45 16% 86%; /* Cinza claro */
+    --muted-foreground: 35 10% 40%; /* Cinza escuro para texto muted */
 
     /* Cores Accent (destaques subtis) */
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 210 30% 86%; /* Azul acinzentado claro */
+    --accent-foreground: 35 25% 15%; /* Texto sobre cor accent */
 
     /* Cores Destructive (erros, alertas) */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%; /* Vermelho */
+    --destructive-foreground: 0 0% 98%; /* Texto sobre cor destructive (branco) */
 
     /* Cores de Bordas e Inputs */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 45 20% 85%; /* Cor da borda padrão */
+    --input: 45 20% 85%; /* Cor da borda do input */
+    --ring: 86 16% 42%; /* Cor do anel de foco (igual à primária) */
 
     /* Raio de Borda Padrão */
-    --radius: 0.5rem;
+    --radius: 1rem; /* Bordas bastante arredondadas */
 
     /* Cores específicas da Sidebar (se aplicável) */
     --sidebar-background: 0 0% 98%;
@@ -61,48 +61,17 @@
     /* --ghibli-paper: theme('colors.ghibli-paper'); */
     /* --ghibli-moss: theme('colors.ghibli-moss'); */
     /* ... etc ... */
-
-    /* Novas variáveis para o gráfico */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
   }
 
   /* Tema escuro (opcional, exemplo) */
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
+  /* .dark { ... define variáveis para o tema escuro ... } */
 }
 
 /* Estilos base aplicados a elementos HTML */
 @layer base {
   * {
-    @apply border-border;
+    /* Aplica a cor de borda padrão a todos os elementos (cuidado com esta regra global) */
+    /* @apply border-border; */ /* Comentado - pode causar bordas indesejadas */
   }
 
   html {
@@ -113,7 +82,7 @@
   body {
     /* Aplica cor de fundo, cor de texto e textura de papel */
     /* Garante que 'ghibli-paper' está definido no teu tema Tailwind */
-    @apply bg-background text-foreground;
+    @apply bg-ghibli-paper text-foreground;
     /* Define a fonte padrão */
     font-family: 'Inter', sans-serif;
     /* Melhora a renderização da fonte */
@@ -214,7 +183,7 @@
 
   /* Textura de papel sutil */
   .bg-paper-texture {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23D2CAB8' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23D2CAB8' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
 
   /* Classes de animação */
@@ -310,94 +279,4 @@
   .transition-hero {
     transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
   }
-
-  /* Custom scrollbar styles for mobile and desktop */
-  /* Webkit scrollbars (Chrome, Safari, Edge) */
-  *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  *::-webkit-scrollbar-track {
-    background: #f8f4f0; /* ghibli-cream */
-    border-radius: 4px;
-  }
-
-  *::-webkit-scrollbar-thumb {
-    background: #b8956b; /* ghibli-stone */
-    border-radius: 4px;
-    border: 2px solid #f8f4f0;
-  }
-
-  *::-webkit-scrollbar-thumb:hover {
-    background: #9d8061; /* darker ghibli-stone */
-  }
-
-  /* Mobile scrollbar styles */
-  @media (max-width: 768px) {
-    *::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
-    }
-
-    *::-webkit-scrollbar-thumb {
-      border: 1px solid #f8f4f0;
-    }
-  }
-
-  /* Firefox scrollbars */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: #b8956b #f8f4f0;
-  }
-
-  /* Smooth scrolling for mobile */
-  html {
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Mobile optimization for modal containers */
-  .modal-container {
-    @apply overscroll-contain;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Prevent body scroll when modal is open on mobile */
-  .modal-open {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
-    height: 100%;
-  }
-}
-
-/* Custom animation for mobile drawer */
-@keyframes slideInFromBottom {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideOutToBottom {
-  from {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-}
-
-.slide-in-bottom {
-  animation: slideInFromBottom 0.3s ease-out;
-}
-
-.slide-out-bottom {
-  animation: slideOutToBottom 0.3s ease-in;
 }
