@@ -163,29 +163,29 @@ const HeroSection: React.FC = () => {
 
             {/* Mobile CTA Buttons - Side by Side - MOVIDOS PARA CIMA */}
             <motion.div 
-              className="flex gap-2 mb-6"
+              className="flex flex-wrap gap-2 mb-6"
               variants={itemVariants}
             >
-              <Link href="/transformacoes" className="flex-1">
-                <motion.div whileTap={{ scale: 0.95 }}>
+              <Link href="/transformacoes" className="flex-1 min-w-[150px]">
+                <motion.div whileTap={{ scale: 0.95 }} className="h-full">
                 <Button 
                   className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-4 text-base rounded-xl shadow-lg"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <span className="mr-1 text-sm">🎨</span>
+                  <span className="mr-2">🎨</span>
                   Transformar Grátis
                 </Button>
                 </motion.div>
               </Link>
               
-              <Link href="/shop" className="flex-1">
-                <motion.div whileTap={{ scale: 0.95 }}>
+              <Link href="/shop" className="flex-1 min-w-[150px]"> 
+                <motion.div whileTap={{ scale: 0.95 }} className="h-full">
                   <Button 
                     variant="outline" 
                     className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-4 text-base rounded-xl"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <span className="mr-1 text-sm">🛍️</span>
+                  <span className="mr-2">🛍️</span>
                   Ver Produtos
                 </Button>
                 </motion.div>

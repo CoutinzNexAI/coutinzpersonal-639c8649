@@ -27,8 +27,8 @@ export const bagConfig = {
   guaranteeItems: () => [
     { icon: Shield, title: 'Qualidade Premium' },
     { icon: Sparkles, title: 'Impressão HD' },
-    { icon: Truck, title: 'Envio Rápido' },
-    { icon: Award, title: 'Garantia Total' }
+    { icon: Truck, title: '3-5 dias úteis' },
+    { icon: Award, title: 'Garantia 30 dias' }
   ],
 
   // ✅ VALIDAÇÃO: Específica para sacos
