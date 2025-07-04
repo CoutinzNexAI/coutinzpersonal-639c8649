@@ -131,11 +131,11 @@ export const OrdersModal: React.FC = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] sm:w-full max-w-5xl max-h-[88vh] sm:max-h-[90vh] overflow-hidden bg-ghibli-cream border-ghibli-stone">
+      <DialogContent className="w-[95vw] sm:w-full max-w-5xl max-h-[85vh] overflow-hidden bg-ghibli-cream border-ghibli-stone flex flex-col">
         {selectedOrder ? (
           // Vista de Detalhes da Encomenda
           <>
-            <DialogHeader className="pb-2 sm:pb-4">
+            <DialogHeader className="pb-2 sm:pb-4 flex-shrink-0">
               <DialogTitle className="text-lg sm:text-2xl font-semibold text-ghibli-earth flex items-center gap-2">
                 <Package2 className="w-5 h-5 sm:w-6 sm:h-6 text-ghibli-moss" />
                 Detalhes da Encomenda
@@ -149,7 +149,7 @@ export const OrdersModal: React.FC = () => {
         ) : (
           // Vista de Lista das Encomendas
           <>
-            <DialogHeader className="pb-2 sm:pb-4">
+            <DialogHeader className="pb-2 sm:pb-4 flex-shrink-0">
               <DialogTitle className="text-lg sm:text-2xl font-semibold text-ghibli-earth flex items-center gap-2">
                 <Package2 className="w-5 h-5 sm:w-6 sm:h-6 text-ghibli-moss" />
                 As Minhas Encomendas
@@ -157,7 +157,7 @@ export const OrdersModal: React.FC = () => {
             </DialogHeader>
 
             {/* Search bar */}
-            <div className="relative mb-3 sm:mb-4">
+            <div className="relative mb-3 sm:mb-4 flex-shrink-0">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ghibli-earth/60 w-4 h-4" />
               <Input
                 placeholder="Pesquisar por produto ou referência..."
@@ -167,95 +167,95 @@ export const OrdersModal: React.FC = () => {
               />
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto max-h-[55vh] sm:max-h-[60vh]">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 text-ghibli-moss animate-spin mb-4" />
-              <p className="text-ghibli-earth/70">A carregar as suas encomendas...</p>
-            </div>
-          ) : filteredOrders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Package className="w-12 h-12 text-ghibli-earth/40 mb-4" />
-              <h3 className="text-lg font-medium text-ghibli-earth mb-2">
-                {searchTerm ? 'Nenhuma encomenda encontrada' : 'Ainda não tem encomendas'}
-              </h3>
-              <p className="text-ghibli-earth/70 text-center max-w-md">
-                {searchTerm 
-                  ? 'Tente pesquisar por outro termo ou limpe o filtro.'
-                  : 'Comece a personalizar produtos na nossa loja!'
-                }
-              </p>
-              {!searchTerm && (
-                <Button
-                  onClick={handleClose}
-                  className="mt-4"
-                  variant="outline"
-                >
-                  Explorar Loja
-                </Button>
-              )}
-            </div>
-          ) : (
-                <OrderListView orders={filteredOrders} onOrderSelect={handleOrderClick} />
-          )}
-        </div>
-
-        {/* Footer with count and pagination */}
-        <div className="border-t border-ghibli-stone/20 pt-3 sm:pt-4">
-          {/* Pagination controls */}
-          {!searchTerm && totalOrders > 3 && (
-            <div className="flex justify-center items-center gap-2 mb-3 sm:mb-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const prevPage = currentPage - 1;
-                  setCurrentPage(prevPage);
-                  fetchOrders(prevPage, searchTerm);
-                }}
-                disabled={currentPage <= 1 || loading}
-                className="flex items-center gap-1 text-xs sm:text-sm"
-              >
-                <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
-                Anterior
-              </Button>
-              
-              <div className="flex items-center gap-1 text-xs sm:text-sm text-ghibli-earth px-2">
-                <span>Página {currentPage} de {Math.ceil(totalOrders / 3)}</span>
-              </div>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const nextPage = currentPage + 1;
-                  setCurrentPage(nextPage);
-                  fetchOrders(nextPage, searchTerm);
-                }}
-                disabled={currentPage >= Math.ceil(totalOrders / 3) || loading}
-                className="flex items-center gap-1 text-xs sm:text-sm"
-              >
-                Seguinte
-                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
-              </Button>
-            </div>
-          )}
-          
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
-            <p className="text-xs sm:text-sm text-ghibli-earth/70 text-center sm:text-left">
-              {searchTerm ? (
-                `${filteredOrders.length} encomenda${filteredOrders.length === 1 ? '' : 's'} encontrada${filteredOrders.length === 1 ? '' : 's'}`
+            {/* Content - SCROLL PRINCIPAL AQUI */}
+            <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-ghibli-moss/50 scrollbar-track-transparent" style={{ WebkitOverflowScrolling: 'touch' }}>
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 text-ghibli-moss animate-spin mb-4" />
+                  <p className="text-ghibli-earth/70">A carregar as suas encomendas...</p>
+                </div>
+              ) : filteredOrders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Package className="w-12 h-12 text-ghibli-earth/40 mb-4" />
+                  <h3 className="text-lg font-medium text-ghibli-earth mb-2">
+                    {searchTerm ? 'Nenhuma encomenda encontrada' : 'Ainda não tem encomendas'}
+                  </h3>
+                  <p className="text-ghibli-earth/70 text-center max-w-md">
+                    {searchTerm 
+                      ? 'Tente pesquisar por outro termo ou limpe o filtro.'
+                      : 'Comece a personalizar produtos na nossa loja!'
+                    }
+                  </p>
+                  {!searchTerm && (
+                    <Button
+                      onClick={handleClose}
+                      className="mt-4"
+                      variant="outline"
+                    >
+                      Explorar Loja
+                    </Button>
+                  )}
+                </div>
               ) : (
-                `${totalOrders} encomenda${totalOrders === 1 ? '' : 's'} total`
+                <OrderListView orders={filteredOrders} onOrderSelect={handleOrderClick} />
               )}
-            </p>
-            
-            <Button variant="outline" onClick={handleClose} size="sm" className="text-xs sm:text-sm">
-              Fechar
-            </Button>
-          </div>
-        </div>
+            </div>
+
+            {/* Footer with count and pagination */}
+            <div className="border-t border-ghibli-stone/20 pt-3 sm:pt-4 flex-shrink-0">
+              {/* Pagination controls */}
+              {!searchTerm && totalOrders > 3 && (
+                <div className="flex justify-center items-center gap-2 mb-3 sm:mb-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const prevPage = currentPage - 1;
+                      setCurrentPage(prevPage);
+                      fetchOrders(prevPage, searchTerm);
+                    }}
+                    disabled={currentPage <= 1 || loading}
+                    className="flex items-center gap-1 text-xs sm:text-sm"
+                  >
+                    <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Anterior
+                  </Button>
+                  
+                  <div className="flex items-center gap-1 text-xs sm:text-sm text-ghibli-earth px-2">
+                    <span>Página {currentPage} de {Math.ceil(totalOrders / 3)}</span>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const nextPage = currentPage + 1;
+                      setCurrentPage(nextPage);
+                      fetchOrders(nextPage, searchTerm);
+                    }}
+                    disabled={currentPage >= Math.ceil(totalOrders / 3) || loading}
+                    className="flex items-center gap-1 text-xs sm:text-sm"
+                  >
+                    Seguinte
+                    <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                  </Button>
+                </div>
+              )}
+              
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+                <p className="text-xs sm:text-sm text-ghibli-earth/70 text-center sm:text-left">
+                  {searchTerm ? (
+                    `${filteredOrders.length} encomenda${filteredOrders.length === 1 ? '' : 's'} encontrada${filteredOrders.length === 1 ? '' : 's'}`
+                  ) : (
+                    `${totalOrders} encomenda${totalOrders === 1 ? '' : 's'} total`
+                  )}
+                </p>
+                
+                <Button variant="outline" onClick={handleClose} size="sm" className="text-xs sm:text-sm">
+                  Fechar
+                </Button>
+              </div>
+            </div>
           </>
         )}
       </DialogContent>
