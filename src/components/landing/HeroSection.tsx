@@ -172,8 +172,7 @@ const HeroSection: React.FC = () => {
                   className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-4 text-base rounded-xl shadow-lg"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <span className="mr-2">🎨</span>
-                  Transformar Grátis
+                  Transforma Grátis
                 </Button>
                 </motion.div>
               </Link>
@@ -459,22 +458,6 @@ const HeroSection: React.FC = () => {
       <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-ghibli-sky/10 to-blue-500/10 rounded-full blur-2xl animate-pulse"></div>
       <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-ghibli-poppy/10 to-pink-500/10 rounded-full blur-xl animate-bounce"></div>
       <div className="absolute bottom-40 left-20 w-28 h-28 bg-gradient-to-r from-yellow-400/10 to-orange-500/10 rounded-full blur-xl animate-pulse"></div>
-      
-      {/* Floating elements */}
-      <motion.div 
-        className="absolute top-32 right-32 text-4xl opacity-20 z-0"
-        animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-        transition={{ duration: 4, repeat: Infinity }}
-      >
-        🎨
-      </motion.div>
-      <motion.div 
-        className="absolute bottom-32 left-32 text-3xl opacity-20 z-0"
-        animate={{ y: [0, 10, 0], rotate: [0, -5, 5, 0] }}
-        transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-      >
-        ✨
-      </motion.div>
     </section>
   );
 };
