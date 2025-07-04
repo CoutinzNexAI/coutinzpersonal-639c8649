@@ -296,7 +296,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
           
           {/* Bottom Sheet */}
           <motion.div
-            initial={{ y: '90%' }}
+            initial={{ y: '80%' }}
             animate={{ y: '5%' }}
             exit={{ y: '90%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
