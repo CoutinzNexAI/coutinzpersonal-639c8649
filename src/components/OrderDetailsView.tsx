@@ -242,7 +242,7 @@ const StatusTimeline: React.FC<{ status: string; printifyStatus: string }> = ({ 
 
 // Support Button Component
 const SupportButton: React.FC<{ order: UserOrder }> = ({ order }) => {
-  const mailtoLink = `mailto:diogo@pictuz.com?subject=Suporte para Encomenda ${order.order_reference || order.id.slice(0, 8)}&body=Olá,%0D%0A%0D%0AEstou a contactar em relação à minha encomenda:%0D%0A%0D%0A- Número da Encomenda: ${order.order_reference || order.id.slice(0, 8)}%0D%0A- Produto: ${order.product_name}%0D%0A- Data: ${formatDate(order.created_at)}%0D%0A- Estado: ${order.status}%0D%0A%0D%0ADescreva aqui o seu problema ou questão:%0D%0A%0D%0A%0D%0A%0D%0AObrigado!`;
+  const mailtoLink = `mailto:pictuzinfo@gmail.com?subject=Suporte para Encomenda ${order.order_reference || order.id.slice(0, 8)}&body=Olá,%0D%0A%0D%0AEstou a contactar em relação à minha encomenda:%0D%0A%0D%0A- Número da Encomenda: ${order.order_reference || order.id.slice(0, 8)}%0D%0A- Produto: ${order.product_name}%0D%0A- Data: ${formatDate(order.created_at)}%0D%0A- Estado: ${order.status}%0D%0A%0D%0ADescreva aqui o seu problema ou questão:%0D%0A%0D%0A%0D%0A%0D%0AObrigado!`;
 
   return (
     <div>
@@ -346,15 +346,15 @@ const ProductList: React.FC<{ items: UserOrder['items']; fallbackOrder?: UserOrd
         Detalhes do Produto
       </h2>
       
-      <div className="space-y-3 lg:space-y-4">
+      <div className="space-y-2 lg:space-y-4">
         {productsToShow.map((item) => {
           const customizations = parseProductCustomizations(item.customizations);
           
           return (
-            <div key={item.id} className="flex gap-3 lg:gap-4 bg-white/50 rounded-lg border border-ghibli-stone/10 p-3 lg:p-4">
+            <div key={item.id} className="flex gap-3 lg:gap-4 bg-white/60 rounded-lg border border-ghibli-stone/10 p-2 lg:p-4">
               {/* Product Image */}
               <div className="flex-shrink-0">
-                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-ghibli-stone/20 rounded-lg overflow-hidden">
+                <div className="w-12 h-12 lg:w-20 lg:h-20 bg-ghibli-stone/20 rounded-lg overflow-hidden">
                   {item.userImageUrl && (
                     <img 
                       src={item.userImageUrl}
@@ -372,7 +372,7 @@ const ProductList: React.FC<{ items: UserOrder['items']; fallbackOrder?: UserOrd
                 
                 {/* Personalizações - Mobile mais compacto */}
                 {customizations.length > 0 && (
-                  <div className="mb-2">
+                  <div className="mb-1 lg:mb-2">
                     <div className="space-y-0.5 lg:space-y-1">
                       {customizations.slice(0, 2).map((custom, idx) => (
                         <p key={idx} className="text-xs text-ghibli-earth/80">
@@ -425,17 +425,17 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
       </div>
 
       {/* Mobile: Layout vertical compacto */}
-      <div className="lg:hidden flex-1 overflow-y-auto space-y-3">
+      <div className="lg:hidden flex-1 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-ghibli-moss/50 scrollbar-track-transparent" style={{ WebkitOverflowScrolling: 'touch' }}>
         {/* Status Timeline - Compacto */}
-        <div className="bg-white/80 rounded-lg border border-ghibli-stone/20 p-3">
+        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-3 shadow-sm">
           <StatusTimeline status={order.status} printifyStatus={order.printify_status} />
         </div>
 
         {/* Order Header - Compacto */}
-        <div className="bg-white/80 rounded-lg border border-ghibli-stone/20 p-3">
+        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-3 shadow-sm">
           <div className="flex items-start justify-between mb-2">
-            <div className="flex-1">
-              <h1 className="text-base font-bold text-ghibli-earth mb-1">
+            <div className="flex-1 pr-3">
+              <h1 className="text-base font-bold text-ghibli-earth mb-1 leading-tight">
                 Encomenda #{order.order_reference || order.id.slice(0, 8)}
               </h1>
               <Badge className={`${statusInfo.color} flex items-center gap-1 text-xs w-fit`}>
@@ -443,7 +443,7 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
                 {statusInfo.label}
               </Badge>
             </div>
-            <div className="text-right">
+            <div className="text-right flex-shrink-0">
               <p className="text-lg font-bold text-ghibli-moss">
                 €{(order.total_amount || order.price).toFixed(2)}
               </p>
@@ -455,13 +455,13 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
         </div>
 
         {/* Product Details - Compacto */}
-        <div className="bg-white/80 rounded-lg border border-ghibli-stone/20 p-3">
+        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-3 shadow-sm">
           <ProductList items={order.items} fallbackOrder={order} />
         </div>
 
         {/* Tracking Information - Se existir */}
         {order.tracking_number && (
-          <div className="bg-blue-50 rounded-lg border border-blue-200 p-3">
+          <div className="bg-blue-50 rounded-xl border border-blue-200 p-3 shadow-sm">
             <h2 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
               <Truck className="w-4 h-4" />
               Informações de Envio
@@ -487,7 +487,7 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
         )}
 
         {/* Order Timeline - Compacto */}
-        <div className="bg-white/80 rounded-lg border border-ghibli-stone/20 p-3">
+        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-3 shadow-sm">
           <h2 className="text-sm font-semibold text-ghibli-earth mb-2 flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             Histórico da Encomenda
@@ -495,20 +495,20 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
           
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs">
-              <div className="w-2 h-2 bg-ghibli-moss rounded-full"></div>
+              <div className="w-2 h-2 bg-ghibli-moss rounded-full flex-shrink-0"></div>
               <span className="text-ghibli-earth/60">Criada em:</span>
               <span className="text-ghibli-earth">{formatDate(order.created_at)}</span>
             </div>
             
             <div className="flex items-center gap-2 text-xs">
-              <div className="w-2 h-2 bg-ghibli-moss rounded-full"></div>
+              <div className="w-2 h-2 bg-ghibli-moss rounded-full flex-shrink-0"></div>
               <span className="text-ghibli-earth/60">Última atualização:</span>
               <span className="text-ghibli-earth">{formatDate(order.updated_at)}</span>
             </div>
             
             {order.printify_status && (
               <div className="flex items-center gap-2 text-xs">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0"></div>
                 <span className="text-ghibli-earth/60">Estado Printify:</span>
                 <span className="text-ghibli-earth">{order.printify_status}</span>
               </div>
@@ -517,7 +517,7 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
         </div>
 
         {/* Support Button - Fixo no final */}
-        <div className="bg-white/80 rounded-lg border border-ghibli-stone/20 p-3">
+        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-3 shadow-sm">
           <SupportButton order={order} />
         </div>
       </div>
