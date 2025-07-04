@@ -296,9 +296,9 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
           
           {/* Bottom Sheet */}
           <motion.div
-            initial={{ y: '100%' }}
+            initial={{ y: '90%' }}
             animate={{ y: '5%' }}
-            exit={{ y: '100%' }}
+            exit={{ y: '90%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed bottom-0 left-0 right-0 bg-white z-[70] shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl overflow-hidden flex flex-col"
             style={{ height: '95vh' }}
