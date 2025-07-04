@@ -136,62 +136,63 @@ export const StyleExamplesModal: React.FC<StyleExamplesModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[80vw] xl:max-w-[75vw] max-h-[92vh] p-0 flex flex-col bg-ghibli-cream rounded-2xl shadow-2xl border-2 border-ghibli-sand/30"
+        className="sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[80vw] xl:max-w-[75vw] max-h-[85vh] sm:max-h-[80vh] p-0 flex flex-col bg-ghibli-cream rounded-2xl shadow-2xl border-2 border-ghibli-sand/30"
         aria-labelledby={modalTitleId}
         aria-describedby={modalDescriptionId}
       >
         {/* Header estilo livro antigo */}
-        <DialogHeader className="relative p-4 sm:p-5 border-b-2 border-ghibli-sand/40 bg-gradient-to-r from-ghibli-cream via-ghibli-sand/20 to-ghibli-cream">
-                     <div className="absolute inset-0 opacity-30" style={{
+        <DialogHeader className="relative p-3 sm:p-4 border-b-2 border-ghibli-sand/40 bg-gradient-to-r from-ghibli-cream via-ghibli-sand/20 to-ghibli-cream">
+          <div className="absolute inset-0 opacity-30" style={{
              backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23D2B48C\" fill-opacity=\"0.05\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"
            }} />
           <div className="relative z-10 flex items-center gap-3">
-            <Book className="w-7 h-7 text-ghibli-moss" />
+            <Book className="w-6 h-6 sm:w-7 sm:h-7 text-ghibli-moss" />
             <div>
-          <DialogTitle id={modalTitleId} className="text-2xl sm:text-3xl font-ghibli text-ghibli-wood">
+              <DialogTitle id={modalTitleId} className="text-xl sm:text-2xl md:text-3xl font-ghibli text-ghibli-wood">
                 Álbum Mágico de Estilos
-          </DialogTitle>
-              <DialogDescription id={modalDescriptionId} className="text-ghibli-earth text-sm mt-1">
+              </DialogTitle>
+              <DialogDescription id={modalDescriptionId} className="text-ghibli-earth text-xs sm:text-sm mt-1">
                 Descubra as transformações incríveis de cada estilo
-          </DialogDescription>
+              </DialogDescription>
             </div>
           </div>
           <DialogClose 
             ref={closeButtonRef} 
-            className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-full p-2 hover:bg-ghibli-sand/30 focus-visible:ring-2 focus-visible:ring-ghibli-moss transition-all backdrop-blur-sm bg-white/50" 
+            className="absolute right-2 top-2 sm:right-3 sm:top-3 rounded-full p-2.5 sm:p-3 hover:bg-ghibli-sand/30 focus-visible:ring-2 focus-visible:ring-ghibli-moss transition-all backdrop-blur-sm bg-white/70 hover:bg-white/90 z-20 touch-manipulation" 
             aria-label="Fechar álbum de estilos"
+            onClick={() => onOpenChange(false)}
           >
-            <X className="h-5 w-5 text-ghibli-stone" />
+            <X className="h-4 w-4 sm:h-5 sm:w-5 text-ghibli-stone" />
           </DialogClose>
         </DialogHeader>
 
         {/* Seletor de estilo - estilo pergaminho */}
-        <div className="px-4 sm:px-6 py-3 bg-gradient-to-b from-ghibli-sand/10 to-transparent border-b border-ghibli-sand/20">
+        <div className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 bg-gradient-to-b from-ghibli-sand/10 to-transparent border-b border-ghibli-sand/20">
           <div className="flex justify-center">
             <div className="relative">
-          <Select value={selectedStyleId} onValueChange={handleStyleChange}>
-                <SelectTrigger className="w-full max-w-sm text-base min-h-[44px] bg-ghibli-cream border-2 border-ghibli-sand/50 focus:ring-2 focus:ring-ghibli-moss text-ghibli-wood shadow-md rounded-xl font-medium">
+              <Select value={selectedStyleId} onValueChange={handleStyleChange}>
+                <SelectTrigger className="w-full max-w-sm text-sm sm:text-base min-h-[40px] sm:min-h-[44px] bg-ghibli-cream border-2 border-ghibli-sand/50 focus:ring-2 focus:ring-ghibli-moss text-ghibli-wood shadow-md rounded-xl font-medium">
                   <Camera className="w-4 h-4 mr-2 text-ghibli-moss" />
                   <SelectValue placeholder="Escolha um estilo..." />
-            </SelectTrigger>
+                </SelectTrigger>
                 <SelectContent className="bg-ghibli-cream border-ghibli-sand shadow-xl rounded-xl">
-              {STYLE_EXAMPLES_DATA.map(style => (
-                <SelectItem 
-                  key={style.id} 
-                  value={style.id}
-                      className="text-base p-3 hover:bg-ghibli-sand/30 focus:bg-ghibli-sand/50 text-ghibli-wood cursor-pointer transition-colors rounded-lg m-1"
-                >
-                  {style.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                  {STYLE_EXAMPLES_DATA.map(style => (
+                    <SelectItem 
+                      key={style.id} 
+                      value={style.id}
+                      className="text-sm sm:text-base p-2 sm:p-3 hover:bg-ghibli-sand/30 focus:bg-ghibli-sand/50 text-ghibli-wood cursor-pointer transition-colors rounded-lg m-1"
+                    >
+                      {style.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
 
         {/* Conteúdo principal - Páginas do álbum */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
           {currentStyleData ? (
               <div className="flex flex-col min-h-full">
               {/* Nome do estilo atual */}

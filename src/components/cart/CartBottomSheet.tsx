@@ -297,21 +297,21 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
           {/* Bottom Sheet */}
           <motion.div
             initial={{ y: '100%' }}
-            animate={{ y: '10%' }}
+            animate={{ y: '5%' }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 bg-white z-[70] shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl overflow-hidden"
-            style={{ height: '90vh' }}
+            className="fixed bottom-0 left-0 right-0 bg-white z-[70] shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl overflow-hidden flex flex-col"
+            style={{ height: '95vh' }}
           >
-            {/* Header com handle */}
-            <div className="flex flex-col">
+            {/* Header com handle - altura fixa */}
+            <div className="flex flex-col flex-shrink-0">
               {/* Handle visual */}
               <div className="flex justify-center py-2">
                 <div className="w-12 h-1 bg-ghibli-sand rounded-full" />
               </div>
               
               {/* Cabeçalho */}
-              <div className="flex items-center justify-between px-6 pb-4 border-b border-ghibli-sand/30 bg-gradient-to-r from-ghibli-cream to-ghibli-paper">
+              <div className="flex items-center justify-between px-4 pb-3 border-b border-ghibli-sand/30 bg-gradient-to-r from-ghibli-cream to-ghibli-paper">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-ghibli-moss/10 rounded-full flex items-center justify-center">
                     <ShoppingCart className="w-4 h-4 text-ghibli-moss" />
@@ -326,17 +326,17 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                 
                 <button
                   onClick={onClose}
-                  className="w-8 h-8 rounded-full bg-ghibli-sand/20 hover:bg-ghibli-sand/40 flex items-center justify-center transition-colors"
+                  className="w-9 h-9 rounded-full bg-ghibli-sand/20 hover:bg-ghibli-sand/40 flex items-center justify-center transition-colors touch-manipulation"
                 >
-                  <X className="w-4 h-4 text-ghibli-earth" />
+                  <X className="w-5 h-5 text-ghibli-earth" />
                 </button>
               </div>
             </div>
             
-            {/* Conteúdo */}
-            <div className="flex-1 overflow-hidden flex flex-col">
-              {/* Lista de produtos */}
-              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+            {/* Conteúdo scrollável - área que cresce */}
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+              {/* Lista de produtos - área scrollável */}
+              <div className="flex-1 overflow-y-auto px-4 py-3">
                 {cartSummary?.items.length === 0 ? (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-3">🛒</div>
@@ -355,31 +355,33 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                     </Button>
                   </div>
                 ) : (
-                  <AnimatePresence>
-                    {cartSummary?.items.map((item) => (
-                      <CartItemCard key={item.id} item={item} />
-                    ))}
-                  </AnimatePresence>
+                  <div className="space-y-3 pb-4">
+                    <AnimatePresence>
+                      {cartSummary?.items.map((item) => (
+                        <CartItemCard key={item.id} item={item} />
+                      ))}
+                    </AnimatePresence>
+                  </div>
                 )}
               </div>
               
-              {/* Footer fixo com preços e checkout - Layout mobile simplificado */}
+              {/* Footer fixo com preços e checkout */}
               {cartSummary && cartSummary.itemCount > 0 && (
-                <div className="border-t border-ghibli-sand/30 bg-ghibli-cream/20">
-                  {/* Resumo de preços simplificado para mobile */}
-                  <div className="px-6 py-4">
+                <div className="flex-shrink-0 border-t border-ghibli-sand/30 bg-ghibli-cream/20">
+                  {/* Resumo de preços compacto para mobile */}
+                  <div className="px-4 py-3">
                     {/* Subtotal original e desconto (se houver) */}
                     {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
                       <>
-                        <div className="flex justify-between text-sm mb-2">
+                        <div className="flex justify-between text-xs mb-1">
                           <span className="text-ghibli-earth">Subtotal (original)</span>
                           <span className="text-ghibli-earth line-through">
                             €{(cartSummary.originalSubtotal || 0).toFixed(2)}
                           </span>
                         </div>
-                        <div className="flex justify-between text-sm bg-green-50 rounded-lg px-3 py-2 mb-3">
+                        <div className="flex justify-between text-xs bg-green-50 rounded-lg px-2 py-1 mb-2">
                           <span className="text-green-700 font-medium">
-                            🎉 Desconto por quantidade
+                            🎉 Desconto
                           </span>
                           <span className="text-green-700 font-bold">
                             -€{cartSummary.discountAmount.toFixed(2)}
@@ -388,8 +390,8 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                       </>
                     )}
                     
-                    {/* Lista de preços principal */}
-                    <div className="space-y-2">
+                    {/* Lista de preços compacta */}
+                    <div className="space-y-1">
                       <div className="flex justify-between text-sm">
                         <span className="text-ghibli-earth">Subtotal</span>
                         <span className="font-semibold text-ghibli-wood">
@@ -397,12 +399,9 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                         </span>
                       </div>
                       
-                      <div className="flex justify-between text-sm">
-                        <div>
-                          <span className="text-ghibli-earth">Envio</span>
-                          <p className="text-xs text-ghibli-earth/70">Entrega em 4-7 dias úteis</p>
-                        </div>
-                        <span className="text-green-600 font-bold text-sm">GRÁTIS! ✨</span>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-ghibli-earth">Envio</span>
+                        <span className="text-green-600 font-bold">GRÁTIS! ✨</span>
                       </div>
                       
                       <div className="flex justify-between text-sm">
@@ -412,7 +411,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                         </span>
                       </div>
                       
-                      <div className="border-t border-ghibli-sand/50 pt-3 mt-3">
+                      <div className="border-t border-ghibli-sand/50 pt-2 mt-2">
                         <div className="flex justify-between text-lg font-bold">
                           <span className="text-ghibli-wood">Total</span>
                           <span className="text-ghibli-moss">
@@ -424,11 +423,11 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                   </div>
                   
                   {/* Botão de checkout */}
-                  <div className="px-6 pb-6">
+                  <div className="px-4 pb-4">
                     <Button
                       onClick={handleCheckout}
                       disabled={isProcessingCheckout || !userInfo}
-                      className="w-full py-4 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light hover:from-ghibli-moss-light hover:to-ghibli-moss text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="w-full py-3 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light hover:from-ghibli-moss-light hover:to-ghibli-moss text-white font-bold text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 touch-manipulation"
                     >
                       {isProcessingCheckout ? (
                         <div className="flex items-center justify-center gap-2">

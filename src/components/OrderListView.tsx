@@ -88,6 +88,9 @@ const parseCustomizations = (customizations: Record<string, string | number | bo
       case 'variantId':
       case 'x': // Remove coordenadas
       case 'y': // Remove coordenadas
+      case 'angle': // Remove ângulo
+      case 'scale': // Remove escala
+      case 'rotation': // Remove rotação
         break;
       case 'size':
         readable.push(`Tamanho: ${value}`);
@@ -119,7 +122,11 @@ const parseCustomizations = (customizations: Record<string, string | number | bo
         readable.push(`Texto: ${value}`);
         break;
       default:
-        readable.push(`${key}: ${value}`);
+        // Filtrar apenas keys que não sejam técnicas
+        if (typeof value === 'string' && value.length > 0 && 
+            !['imageAdjustments', 'adjustments', 'coordinates'].includes(key)) {
+          readable.push(`${key}: ${value}`);
+        }
     }
   }
   

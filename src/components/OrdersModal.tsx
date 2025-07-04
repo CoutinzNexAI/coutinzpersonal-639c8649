@@ -131,13 +131,13 @@ export const OrdersModal: React.FC = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden bg-ghibli-cream border-ghibli-stone">
+      <DialogContent className="w-[95vw] sm:w-full max-w-5xl max-h-[88vh] sm:max-h-[90vh] overflow-hidden bg-ghibli-cream border-ghibli-stone">
         {selectedOrder ? (
           // Vista de Detalhes da Encomenda
           <>
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-semibold text-ghibli-earth flex items-center gap-2">
-                <Package2 className="w-6 h-6 text-ghibli-moss" />
+            <DialogHeader className="pb-2 sm:pb-4">
+              <DialogTitle className="text-lg sm:text-2xl font-semibold text-ghibli-earth flex items-center gap-2">
+                <Package2 className="w-5 h-5 sm:w-6 sm:h-6 text-ghibli-moss" />
                 Detalhes da Encomenda
               </DialogTitle>
             </DialogHeader>
@@ -149,26 +149,26 @@ export const OrdersModal: React.FC = () => {
         ) : (
           // Vista de Lista das Encomendas
           <>
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-ghibli-earth flex items-center gap-2">
-            <Package2 className="w-6 h-6 text-ghibli-moss" />
-            As Minhas Encomendas
-          </DialogTitle>
-        </DialogHeader>
+            <DialogHeader className="pb-2 sm:pb-4">
+              <DialogTitle className="text-lg sm:text-2xl font-semibold text-ghibli-earth flex items-center gap-2">
+                <Package2 className="w-5 h-5 sm:w-6 sm:h-6 text-ghibli-moss" />
+                As Minhas Encomendas
+              </DialogTitle>
+            </DialogHeader>
 
-        {/* Search bar */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ghibli-earth/60 w-4 h-4" />
-          <Input
-            placeholder="Pesquisar por produto ou referência..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 border-ghibli-stone/30 focus:border-ghibli-moss"
-          />
-        </div>
+            {/* Search bar */}
+            <div className="relative mb-3 sm:mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ghibli-earth/60 w-4 h-4" />
+              <Input
+                placeholder="Pesquisar por produto ou referência..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 text-sm border-ghibli-stone/30 focus:border-ghibli-moss"
+              />
+            </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto max-h-[60vh]">
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto max-h-[55vh] sm:max-h-[60vh]">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-ghibli-moss animate-spin mb-4" />
@@ -202,10 +202,10 @@ export const OrdersModal: React.FC = () => {
         </div>
 
         {/* Footer with count and pagination */}
-        <div className="border-t border-ghibli-stone/20 pt-4">
+        <div className="border-t border-ghibli-stone/20 pt-3 sm:pt-4">
           {/* Pagination controls */}
           {!searchTerm && totalOrders > 3 && (
-            <div className="flex justify-center items-center gap-2 mb-4">
+            <div className="flex justify-center items-center gap-2 mb-3 sm:mb-4">
               <Button
                 variant="outline"
                 size="sm"
@@ -215,13 +215,13 @@ export const OrdersModal: React.FC = () => {
                   fetchOrders(prevPage, searchTerm);
                 }}
                 disabled={currentPage <= 1 || loading}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 text-xs sm:text-sm"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
                 Anterior
               </Button>
               
-              <div className="flex items-center gap-1 text-sm text-ghibli-earth">
+              <div className="flex items-center gap-1 text-xs sm:text-sm text-ghibli-earth px-2">
                 <span>Página {currentPage} de {Math.ceil(totalOrders / 3)}</span>
               </div>
               
@@ -234,16 +234,16 @@ export const OrdersModal: React.FC = () => {
                   fetchOrders(nextPage, searchTerm);
                 }}
                 disabled={currentPage >= Math.ceil(totalOrders / 3) || loading}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 text-xs sm:text-sm"
               >
                 Seguinte
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
             </div>
           )}
           
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-ghibli-earth/70">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+            <p className="text-xs sm:text-sm text-ghibli-earth/70 text-center sm:text-left">
               {searchTerm ? (
                 `${filteredOrders.length} encomenda${filteredOrders.length === 1 ? '' : 's'} encontrada${filteredOrders.length === 1 ? '' : 's'}`
               ) : (
@@ -251,7 +251,7 @@ export const OrdersModal: React.FC = () => {
               )}
             </p>
             
-            <Button variant="outline" onClick={handleClose}>
+            <Button variant="outline" onClick={handleClose} size="sm" className="text-xs sm:text-sm">
               Fechar
             </Button>
           </div>
