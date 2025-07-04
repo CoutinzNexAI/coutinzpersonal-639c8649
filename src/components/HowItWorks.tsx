@@ -51,7 +51,7 @@ const HowItWorks = () => {
 
   // Função para navegar para a página de transformação (home)
   const handleStep1Click = () => {
-    router.push('/');
+    router.push('/transformacoes');
   };
 
   // Função para navegar para a loja
