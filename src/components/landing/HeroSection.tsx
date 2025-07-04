@@ -58,7 +58,7 @@ const HeroSection: React.FC = () => {
 
   return (
     <section className="relative py-8 md:py-12 overflow-hidden bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 z-10">
         {/* Mobile Layout */}
         <div className="lg:hidden">
           <motion.div 
@@ -167,24 +167,28 @@ const HeroSection: React.FC = () => {
               variants={itemVariants}
             >
               <Link href="/transformacoes" className="flex-1">
+                <motion.div whileTap={{ scale: 0.95 }}>
                 <Button 
-                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-6 text-sm rounded-xl shadow-lg touch-manipulation active:scale-95 transition-transform"
+                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-4 text-base rounded-xl shadow-lg"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <span className="mr-1 text-sm">🎨</span>
                   Transformar Grátis
                 </Button>
+                </motion.div>
               </Link>
               
               <Link href="/shop" className="flex-1">
-                <Button 
-                  variant="outline" 
-                  className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-6 text-sm rounded-xl touch-manipulation active:scale-95 transition-transform"
+                <motion.div whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-4 text-base rounded-xl"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <span className="mr-1 text-sm">🛍️</span>
                   Ver Produtos
                 </Button>
+                </motion.div>
               </Link>
             </motion.div>
 
