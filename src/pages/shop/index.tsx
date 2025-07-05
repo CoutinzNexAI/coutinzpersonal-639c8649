@@ -185,11 +185,11 @@ const ShopPage: React.FC = () => {
       <PromotionalBanner />
 
       {/* Header com margem ajustada */}
-      <div className="relative z-40 mt-8">
+      <div className="relative z-40">
         <Header />
       </div>
 
-      <main className="pt-24 pb-16 relative z-10">
+      <main className="pt-16 pb-16 relative z-10">
         <div className="container mx-auto px-4">
           
           {/* TÍTULO PRINCIPAL - Maior, verde e destacado */}

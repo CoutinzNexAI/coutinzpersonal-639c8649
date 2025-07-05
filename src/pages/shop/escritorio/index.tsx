@@ -44,11 +44,11 @@ const EscritorioShopPage: React.FC = () => {
         <PromotionalBanner />
 
         {/* Header com margem ajustada */}
-        <div className="relative z-40 mt-8">
+        <div className="relative z-40">
           <Header />
         </div>
         
-        <main className="container mx-auto px-4 py-16 md:py-20 lg:py-24">
+        <main className="container mx-auto px-4 py-12 md:py-16 lg:py-20">
           {/* Header */}
           <div className="text-center mb-20 lg:mb-24">
             <motion.h1 

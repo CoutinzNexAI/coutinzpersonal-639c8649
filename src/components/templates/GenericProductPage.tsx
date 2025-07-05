@@ -446,11 +446,11 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         <PromotionalBanner />
 
         {/* Header com margem ajustada */}
-        <div className="relative z-40 mt-8">
+        <div className="relative z-40">
           <Header />
         </div>
         
-        <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-12 sm:pb-8 lg:pt-24 lg:pb-8">
+        <main className="container mx-auto px-2 sm:px-4 pt-16 pb-6 sm:pt-16 sm:pb-8 lg:pt-20 lg:pb-8">
           {/* ✅ TÍTULO - MOBILE ONLY */}
           <div className="block lg:hidden">
             <motion.div
@@ -472,10 +472,10 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-6 block lg:hidden"
           >
-            <div className="relative w-full h-[350px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20">
+            <div className={`relative w-full h-[350px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20`}>
               {/* ✅ MOBILE: SÓ MOSTRA IMAGENS (não gera) */}
               {printifyPreviewUrls.length > 0 ? (
-                <div className="relative w-full h-full flex items-center justify-center">
+                <div className="relative w-full h-full flex items-center justify-center bg-transparent">
                   <img
                     src={printifyPreviewUrls[currentPreviewIndex] || printifyPreviewUrls[0]}
                     alt="Preview mockup"
@@ -790,7 +790,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               className="lg:col-span-2 order-1"
             >
               {/* ✅ PRODUCT CANVAS REAL QUE GERA MOCKUPS */}
-              <div className="relative w-full h-[700px] bg-white rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20 mb-6">
+              <div className={`relative w-full h-[700px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20 mb-6`}>
                 <ProductCanvas
                   key={mockupGenerationKey} // ✅ Chave única para evitar duplicações
                   selectedProduct={product}

@@ -108,9 +108,6 @@ export const phoneCaseConfig = {
     getCustomSingleVariantText: (_product: PrintifyProductMapping) => {
       const variantCount = _product.variants?.length || 0;
       return `${variantCount} modelos disponíveis`;
-    },
-    getCustomSingleVariantSubtext: (_product: PrintifyProductMapping) => {
-      return 'iPhone e Samsung Galaxy';
     }
   },
 

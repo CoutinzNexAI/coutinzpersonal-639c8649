@@ -705,10 +705,8 @@ export default function ProductCanvas({
   // Previews gerados pela Printify
   const renderGeneratedPreviews = () => (
     <div className="relative w-full h-full">
-      {/* Imagem principal com fundo branco para capas */}
-      <div className={`relative w-full h-full flex items-center justify-center ${
-        selectedProduct.id === 'custom_phone_case' ? 'bg-white' : ''
-      }`}>
+      {/* Imagem principal sem fundo branco */}
+      <div className="relative w-full h-full flex items-center justify-center bg-transparent">
         <img
           src={printifyGeneratedPreviewUrls[currentPreviewIndex]}
           alt={`Preview ${currentPreviewIndex + 1}`}
@@ -794,7 +792,7 @@ export default function ProductCanvas({
 
   if (isLoadingMockups) {
     return (
-      <div className="relative w-full h-full bg-white flex items-center justify-center">
+      <div className="relative w-full h-full bg-transparent flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-ghibli-moss mx-auto mb-4" />
           <p className="text-ghibli-earth/70 text-sm">A criar produto...</p>
