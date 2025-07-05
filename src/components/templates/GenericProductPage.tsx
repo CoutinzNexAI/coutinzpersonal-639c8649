@@ -11,6 +11,7 @@ import { Minus, Plus, ChevronLeft, ChevronRight, RotateCw, Loader2 } from 'lucid
 import { toast } from 'sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import PromotionalBanner from '@/components/landing/PromotionalBanner';
 import TransformationGalleryModal from '@/components/shared/TransformationGalleryModal';
 import ProductCanvas from '@/components/printify/ProductCanvas';
 import { useAuth } from '@/hooks/useAuth';
@@ -441,7 +442,13 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
-        <Header />
+        {/* Banner Promocional */}
+        <PromotionalBanner />
+
+        {/* Header com margem ajustada */}
+        <div className="relative z-40 mt-8">
+          <Header />
+        </div>
         
         <main className="container mx-auto px-2 sm:px-4 pt-20 pb-6 sm:pt-12 sm:pb-8 lg:pt-24 lg:pb-8">
           {/* ✅ TÍTULO - MOBILE ONLY */}
@@ -956,14 +963,18 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                         {config.discountTiers && (
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             {config.discountTiers.map((tier, index: number) => (
-                              <div key={index} className={`text-center p-2 rounded-md transition-all ${
-                                quantity >= tier.min 
-                                  ? 'bg-green-100 border border-green-300 text-green-800' 
-                                  : 'bg-gray-100 text-gray-600'
-                              }`}>
+                              <button 
+                                key={index} 
+                                onClick={() => setQuantity(tier.min)}
+                                className={`text-center p-2 rounded-md transition-all cursor-pointer hover:scale-105 ${
+                                  quantity >= tier.min 
+                                    ? 'bg-green-100 border border-green-300 text-green-800 hover:bg-green-200' 
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
                                 <div className="font-bold">{tier.min}+ {tier.label}</div>
                                 <div>{tier.discount}% OFF</div>
-                              </div>
+                              </button>
                             ))}
                           </div>
                         )}

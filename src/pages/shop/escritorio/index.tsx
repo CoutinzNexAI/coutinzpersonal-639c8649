@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import PromotionalBanner from '@/components/landing/PromotionalBanner';
 import { getPrintifyProductsByCategory } from '@/lib/printify/printifyProducts';
 
 const EscritorioShopPage: React.FC = () => {
@@ -39,7 +40,13 @@ const EscritorioShopPage: React.FC = () => {
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-ghibli-cream to-ghibli-sand">
-        <Header />
+        {/* Banner Promocional */}
+        <PromotionalBanner />
+
+        {/* Header com margem ajustada */}
+        <div className="relative z-40 mt-8">
+          <Header />
+        </div>
         
         <main className="container mx-auto px-4 py-16 md:py-20 lg:py-24">
           {/* Header */}

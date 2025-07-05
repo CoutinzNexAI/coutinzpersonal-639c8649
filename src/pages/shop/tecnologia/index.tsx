@@ -1,5 +1,12 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import PromotionalBanner from '@/components/landing/PromotionalBanner';
+import { getPrintifyProductsByCategory } from '@/lib/printify/printifyProducts';
 
 const TecnologiaIndexPage: React.FC = () => {
   const router = useRouter();

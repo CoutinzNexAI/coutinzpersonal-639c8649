@@ -356,7 +356,7 @@ export default function ProductCanvas({
                 className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                Escolher Arte
+                Escolher Foto
               </Button>
               )}
             </div>
@@ -392,7 +392,7 @@ export default function ProductCanvas({
                 className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                Escolher Arte
+                Escolher Foto
               </Button>
             )}
           </div>
@@ -428,7 +428,7 @@ export default function ProductCanvas({
                 className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                Escolher Arte
+                Escolher Foto
               </Button>
             )}
           </div>
@@ -645,7 +645,7 @@ export default function ProductCanvas({
               className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
             >
               <Sparkles className="w-5 h-5 mr-2" />
-              Escolher Arte
+              Escolher Foto 
             </Button>
           )}
         </div>
@@ -697,7 +697,7 @@ export default function ProductCanvas({
       {/* Loading indicator no canto */}
       <div className="absolute top-4 right-4 bg-ghibli-moss text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
         <RotateCw className="w-4 h-4 animate-spin" />
-        A gerar...
+        A criar produto...
       </div>
     </div>
   );
@@ -766,7 +766,7 @@ export default function ProductCanvas({
           <span className="text-2xl">⚠️</span>
         </div>
         <h3 className="text-lg font-semibold text-red-800 mb-2">
-          Erro ao gerar mockup
+          Erro ao criar produto
         </h3>
         <p className="text-red-600 text-sm mb-4 leading-relaxed">
           {error}
@@ -797,7 +797,7 @@ export default function ProductCanvas({
       <div className="relative w-full h-full bg-white flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-ghibli-moss mx-auto mb-4" />
-          <p className="text-ghibli-earth/70 text-sm">A gerar mockup...</p>
+          <p className="text-ghibli-earth/70 text-sm">A criar produto...</p>
         </div>
       </div>
     );
@@ -814,7 +814,7 @@ export default function ProductCanvas({
               <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Loader2 className="w-8 h-8 animate-spin text-ghibli-moss" />
               </div>
-              <p className="text-ghibli-earth font-semibold text-lg">Gerar produto</p>
+              <p className="text-ghibli-earth font-semibold text-lg">Criar produto</p>
               <p className="text-ghibli-earth/60 text-sm mt-1">A reposicionar arte...</p>
             </div>
           </div>

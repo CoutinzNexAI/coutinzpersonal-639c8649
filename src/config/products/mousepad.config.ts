@@ -10,8 +10,8 @@ export const mousepadConfig = {
   },
 
   discountTiers: [
-    { min: 2, discount: 10, label: '10% OFF para 2+ mousepads', emoji: '🖱️' },
-    { min: 3, discount: 15, label: '15% OFF para 3+ mousepads', emoji: '🎯' }
+    { min: 2, discount: 10, label: '10% OFF', emoji: '🖱️' },
+    { min: 3, discount: 15, label: '15% OFF', emoji: '🎯' }
   ],
 
   descriptionItems: (_product: PrintifyProductMapping) => [

@@ -1,4 +1,10 @@
 import React, { useEffect } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import PromotionalBanner from '@/components/landing/PromotionalBanner';
 import { useRouter } from 'next/router';
 import { getPrintifyProductsByCategory } from '@/lib/printify/printifyProducts';
 

@@ -36,7 +36,7 @@ export const mugConfig = {
       color: 'moss' as const
     },
     { 
-      text: 'Impressão duradoura e <span class="font-bold">resistente à lavagem</span>',
+      text: 'Impressão nítida e <span class="font-bold">resistente à lavagem</span>',
       color: 'moss' as const
     },
     { 
@@ -58,11 +58,11 @@ export const mugConfig = {
     },
     {
       icon: Truck,
-      title: '~1 semana'
+      title: '3-5 dias úteis'
     },
     {
       icon: Award,
-      title: 'Garantia Total'
+      title: 'Garantia 30 dias'
     }
   ],
 

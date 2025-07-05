@@ -100,17 +100,18 @@ export const ProductQuantityPricing: React.FC<ProductQuantityPricingProps> = ({
         {/* Destaques de desconto */}
         <div className="space-y-1 text-xs">
           {discountTiers.map((tier, index) => (
-            <div 
+            <button
               key={index}
-              className={`flex items-center justify-between p-2 rounded-lg transition-all ${
+              onClick={() => onQuantityChange(tier.min)}
+              className={`w-full flex items-center justify-between p-2 rounded-lg transition-all cursor-pointer hover:scale-105 ${
                 quantity >= tier.min
-                  ? 'bg-green-100 border border-green-300 text-green-800' 
-                  : 'bg-gray-50 text-gray-600'
+                  ? 'bg-green-100 border border-green-300 text-green-800 hover:bg-green-200' 
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
               <span>{tier.emoji} {tier.min}+ {tier.label}</span>
               <span className="font-bold">{tier.discount}% OFF</span>
-            </div>
+            </button>
           ))}
         </div>
 

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Image, Coffee, Package, Smartphone, ShoppingBag, Briefcase, Sparkles } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import PromotionalBanner from '@/components/landing/PromotionalBanner';
 
 // Interface para categorias
 interface Category {
@@ -180,9 +181,15 @@ const ShopPage: React.FC = () => {
       <div className="absolute bottom-20 right-20 w-40 h-40 bg-gradient-to-r from-ghibli-sky/10 to-blue-500/10 rounded-full blur-2xl animate-pulse"></div>
       <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-gradient-to-r from-ghibli-sunflower/10 to-yellow-500/10 rounded-full blur-xl animate-pulse"></div>
 
-      <Header />
+      {/* Banner Promocional */}
+      <PromotionalBanner />
 
-      <main className="pt-20 pb-16 relative z-10">
+      {/* Header com margem ajustada */}
+      <div className="relative z-40 mt-8">
+        <Header />
+      </div>
+
+      <main className="pt-24 pb-16 relative z-10">
         <div className="container mx-auto px-4">
           
           {/* TÍTULO PRINCIPAL - Maior, verde e destacado */}
