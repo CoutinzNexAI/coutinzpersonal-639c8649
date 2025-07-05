@@ -45,8 +45,10 @@ const Header: React.FC = () => {
     clearCart
   } = useCart();
 
-  // Detecta se estamos na homepage para aplicar estilo específico
+  // Detecta se estamos na homepage ou páginas da loja para aplicar estilo específico
   const isHomePage = router.pathname === '/';
+  const isShopPage = router.pathname.startsWith('/shop');
+  const hasPromotionalBanner = isHomePage || isShopPage;
 
   // Handle logo click
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -129,8 +131,8 @@ const Header: React.FC = () => {
       ref={headerRef} 
       className={cn(
         "fixed z-50 w-full",
-        // Aplica margin-top extra apenas na homepage
-        isHomePage ? "top-8" : "top-0"
+        // Aplica margin-top extra na homepage e páginas da loja (onde há PromotionalBanner)
+        hasPromotionalBanner ? "top-8" : "top-0"
       )}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
