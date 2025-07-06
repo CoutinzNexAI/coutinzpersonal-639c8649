@@ -151,13 +151,13 @@ const HeroSection: React.FC = () => {
             >
               {/* Frase completa centrada numa linha - COM MAIS DESTAQUE */}
               <motion.h1 
-                className="text-2xl font-black text-ghibli-wood leading-tight tracking-wide drop-shadow-sm"
+                className="text-xl font-black text-ghibli-wood leading-tight tracking-wide drop-shadow-sm"
                 variants={titleVariants}
                 style={{
                   textShadow: '0 2px 4px rgba(139, 69, 19, 0.1)'
                 }}
               >
-                Photos that deserve more than a frame
+                Photos deserve to be seen
               </motion.h1>
             </motion.div>
 
