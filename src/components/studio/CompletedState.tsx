@@ -347,35 +347,11 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       <div className="flex-1 flex items-center justify-center p-4 md:p-6 min-h-0">
         <div className="w-full max-w-sm min-h-[280px] max-h-[350px] aspect-square relative rounded-xl shadow-xl overflow-hidden border-2 border-gray-200 bg-gray-100">
           {!showProductCarousel ? (
-            // Mostrar apenas a imagem original até pelo menos 1 mockup estar pronto
-            <div className="relative w-full h-full">
-              <Image 
-                src={transformedImageUrl} 
-                alt={`Imagem transformada no estilo ${selectedStyle.name}`} 
-                fill
-                sizes="(max-width: 768px) 80vw, (max-width: 1200px) 50vw, 30vw"
-                style={{ 
-                  objectFit: "contain",
-                  width: "100%",
-                  height: "100%" 
-                }}
-                className="bg-gray-100"
-                priority
-                unoptimized={true}
-                onError={handleImageError}
-                onLoad={() => {
-                  console.log('[CompletedState Image] Imagem carregada com sucesso:', transformedImageUrl);
-                  setImageError(false);
-                }}
-              />
-              
-              {/* Indicador discreto de que mockups estão sendo gerados */}
-              {(isGeneratingPosterMockup || isGeneratingMugMockup || isGeneratingNotebookMockup) && (
-                <div className="absolute top-2 right-2 bg-ghibli-moss/90 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  A preparar produtos...
-                </div>
-              )}
+            // Mostrar loading até pelo menos 1 mockup estar pronto - NUNCA mostrar imagem transformada sozinha
+            <div className="absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-center text-sm text-ghibli-moss p-4">
+              <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
+              <p className="font-medium mb-1">A preparar produtos...</p>
+              <p className="text-xs text-ghibli-earth/70">~5 segundos</p>
             </div>
           ) : isCurrentlyLoading() ? (
             <div className="absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-center text-sm text-ghibli-moss p-4">
@@ -483,17 +459,19 @@ const CompletedState: React.FC<CompletedStateProps> = ({
         </div>
       </div>
       
-      {/* Informações do Resultado */}
-      <div className="px-4 pt-2 pb-3 flex-shrink-0 border-t border-gray-200">
-        <div className="text-center">
-          <p className="text-lg font-medium text-ghibli-wood">
-            Transformação concluída!
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Estilo: {selectedStyle.name}
-          </p>
+      {/* Informações do Resultado - só aparece quando showProductCarousel for true */}
+      {showProductCarousel && (
+        <div className="px-4 pt-2 pb-3 flex-shrink-0 border-t border-gray-200">
+          <div className="text-center">
+            <p className="text-lg font-medium text-ghibli-wood">
+              Transformação concluída!
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Estilo: {selectedStyle.name}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Seção do Produto em Destaque - só aparece quando showProductCarousel for true */}
       {showProductCarousel && (
@@ -522,28 +500,30 @@ const CompletedState: React.FC<CompletedStateProps> = ({
         </div>
       )}
 
-      {/* Botões Secundários */}
-      <div className="px-4 pb-4 flex-shrink-0 space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-        <Button 
-            variant="outline"
-          onClick={onDownload}
-            className="py-2 text-sm"
-          disabled={imageError}
-        >
-            <Download className="w-4 h-4 mr-2" /> 
-            Original
-          </Button>
+      {/* Botões Secundários - só aparece quando showProductCarousel for true */}
+      {showProductCarousel && (
+        <div className="px-4 pb-4 flex-shrink-0 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
           <Button 
-            variant="outline"
-            onClick={onNewImage || (() => window.location.reload())}
-            className="py-2 text-sm"
+              variant="outline"
+            onClick={onDownload}
+              className="py-2 text-sm"
+            disabled={imageError}
           >
-            <RefreshCw className="w-4 h-4 mr-2" /> 
-            Nova Imagem
-        </Button>
+              <Download className="w-4 h-4 mr-2" /> 
+              Original
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={onNewImage || (() => window.location.reload())}
+              className="py-2 text-sm"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" /> 
+              Nova Imagem
+          </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
