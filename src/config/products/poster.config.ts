@@ -39,11 +39,11 @@ export const posterConfig = {
     }
   ],
 
-  // ✅ GARANTIAS: Ícones específicos para posters
+  // ✅ GARANTIAS: Textos persuasivos específicos para posters
   guaranteeItems: () => [
-    { icon: Shield, title: 'Máxima Qualidade' },
+    { icon: Shield, title: 'Papel Artístico Duradouro' },
+    { icon: Sparkles, title: 'Dá Vida a Qualquer Espaço' },
     { icon: Truck, title: '3-5 dias úteis' },
-    { icon: Sparkles, title: 'Impressão HD' },
     { icon: Award, title: 'Garantia 30 dias' }
   ],
 

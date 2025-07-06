@@ -23,10 +23,10 @@ export const phoneCaseConfig = {
     { text: 'Compatível com carregamento wireless', color: 'wood' as const, emoji: '⚡' }
   ],
 
-  // ✅ GARANTIAS: Ícones de confiança para capas
+  // ✅ GARANTIAS: Textos persuasivos para capas
   guaranteeItems: () => [
-    { icon: Shield, title: 'Proteção Garantida' },
-    { icon: Sparkles, title: 'Acabamento Premium' },
+    { icon: Shield, title: 'Material TPU Resistente' },
+    { icon: Sparkles, title: 'Compatível Wireless' },
     { icon: Truck, title: '3-5 dias úteis' },
     { icon: Award, title: 'Garantia 30 dias' }
   ],

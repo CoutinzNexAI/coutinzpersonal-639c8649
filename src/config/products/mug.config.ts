@@ -46,15 +46,15 @@ export const mugConfig = {
     }
   ],
 
-  // Itens de garantias (função que retorna JSX)
+  // Itens de garantias persuasivos para canecas
   guaranteeItems: () => [
     {
       icon: Shield,
-      title: 'Cerâmica Premium'
+      title: 'Cerâmica Premium Resistente'
     },
     {
       icon: Sparkles,
-      title: 'Impressão HD'
+      title: 'Perfeita para Todas Ocasiões'
     },
     {
       icon: Truck,

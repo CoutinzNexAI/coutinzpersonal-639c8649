@@ -14,7 +14,7 @@ interface ProductGuaranteesProps {
 const defaultGuarantees: GuaranteeItem[] = [
   {
     icon: <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
-    title: 'Material Premium'
+    title: 'Qualidade Premium'
   },
   {
     icon: <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
@@ -22,11 +22,11 @@ const defaultGuarantees: GuaranteeItem[] = [
   },
   {
     icon: <Truck className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
-    title: '~1 semana'
+    title: '3-5 dias úteis'
   },
   {
     icon: <Award className="w-3 h-3 sm:w-4 sm:h-4 text-ghibli-moss" />,
-    title: 'Garantia Total'
+    title: 'Garantia 30 dias'
   }
 ];
 

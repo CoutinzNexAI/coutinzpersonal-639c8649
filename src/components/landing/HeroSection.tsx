@@ -144,29 +144,59 @@ const HeroSection: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Mobile Logo + Title Layout - Centrados em suas metades */}
+            {/* Mobile Logo + Title Layout - COM EFEITO CAPTANTE */}
             <motion.div 
               className="text-center mb-6"
               variants={itemVariants}
             >
-              {/* Frase completa centrada numa linha - COM MAIS DESTAQUE */}
+              {/* Frase completa centrada - COM EFEITO CAPTANTE */}
               <motion.h1 
                 className="text-xl font-black text-ghibli-wood leading-tight tracking-wide drop-shadow-sm"
-                variants={titleVariants}
+                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ 
+                  duration: 1.2, 
+                  ease: "easeOut",
+                  type: "spring",
+                  bounce: 0.4
+                }}
                 style={{
                   textShadow: '0 2px 4px rgba(139, 69, 19, 0.1)'
                 }}
               >
-                Make Your Imagined Photos Real
+                <motion.span
+                  className="inline-block"
+                  initial={{ rotateX: 90, opacity: 0 }}
+                  animate={{ rotateX: 0, opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                >
+                  Make Your Imagined{" "}
+                </motion.span>
+                <motion.span
+                  className="inline-block bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent"
+                  initial={{ rotateX: 90, opacity: 0 }}
+                  animate={{ rotateX: 0, opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+                >
+                  Photos Real
+                </motion.span>
+                <motion.span
+                  className="inline-block ml-2"
+                  initial={{ scale: 0, rotate: 180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.6, delay: 1.2, type: "spring", bounce: 0.6 }}
+                >
+                  ✨
+                </motion.span>
               </motion.h1>
             </motion.div>
 
-            {/* Mobile CTA Buttons - Side by Side - AUMENTADOS 50% */}
+            {/* Mobile CTA Buttons - LADO A LADO - AUMENTADOS 50% */}
             <motion.div 
-              className="flex flex-wrap gap-3 mb-6"
+              className="flex gap-3 mb-6"
               variants={itemVariants}
             >
-              <Link href="/transformacoes" className="flex-1 min-w-[180px]">
+              <Link href="/transformacoes" className="flex-1">
                 <motion.div whileTap={{ scale: 0.95 }} className="h-full">
                 <Button 
                   className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-6 text-lg rounded-xl shadow-lg"
@@ -177,7 +207,7 @@ const HeroSection: React.FC = () => {
                 </motion.div>
               </Link>
               
-              <Link href="/shop" className="flex-1 min-w-[180px]"> 
+              <Link href="/shop" className="flex-1"> 
                 <motion.div whileTap={{ scale: 0.95 }} className="h-full">
                   <Button 
                     variant="outline" 

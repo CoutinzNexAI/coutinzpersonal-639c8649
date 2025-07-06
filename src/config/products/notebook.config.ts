@@ -34,11 +34,11 @@ export const notebookConfig = {
   guaranteeItems: () => [
     {
       icon: Shield,
-      title: 'Acabamento Premium'
+      title: 'Capa Rígida Durável'
     },
     {
       icon: Sparkles,
-      title: 'Impressão HD'
+      title: 'Ideal para Criatividade'
     },
     {
       icon: Truck,

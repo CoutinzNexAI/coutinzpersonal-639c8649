@@ -36,7 +36,7 @@ export const mousepadConfig = {
     },
     {
       icon: Sparkles,
-      title: 'Superfície Premium'
+      title: 'Máxima Precisão Gaming'
     },
     {
       icon: Truck,

@@ -23,10 +23,10 @@ export const bagConfig = {
     { text: 'Alças reforçadas para uso diário', color: 'wood' as const }
   ],
 
-  // ✅ GARANTIAS: Ícones de qualidade
+  // ✅ GARANTIAS: Textos persuasivos para sacos
   guaranteeItems: () => [
-    { icon: Shield, title: 'Qualidade Premium' },
-    { icon: Sparkles, title: 'Impressão HD' },
+    { icon: Shield, title: 'Algodão 100% Sustentável' },
+    { icon: Sparkles, title: 'Alças Reforçadas Duráveis' },
     { icon: Truck, title: '3-5 dias úteis' },
     { icon: Award, title: 'Garantia 30 dias' }
   ],

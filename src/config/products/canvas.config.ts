@@ -46,11 +46,11 @@ export const canvasConfig = {
   guaranteeItems: () => [
     {
       icon: Shield,
-      title: 'Garantia de Qualidade'
+      title: 'Acabamento Artístico HD'
     },
     {
       icon: Sparkles,
-      title: 'Arte Única'
+      title: 'Transforma Qualquer Espaço'
     },
     {
       icon: Truck,

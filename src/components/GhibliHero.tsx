@@ -421,9 +421,9 @@ const GhibliHero = () => {
                 <p className="text-base font-bold">Visite a Loja</p>
               </motion.button>
 
-                {/* Botão "Veja exemplos!" - MOBILE - Posicionado abaixo do "Visite a Loja" */}
+                {/* Botão "Veja exemplos!" - MOBILE - LARGURA REDUZIDA */}
                 <motion.div
-                  className="w-full"
+                  className="flex justify-center"
                   whileHover={{
                     scale: 1.03,
                     transition: { duration: 0.2 }
@@ -432,7 +432,7 @@ const GhibliHero = () => {
                 >
                   <Button
                     variant="outline"
-                    className="inline-flex items-center justify-center transition-all duration-300 w-full
+                    className="inline-flex items-center justify-center transition-all duration-300
                                     rounded-xl shadow-lg hover:shadow-xl text-ghibli-wood bg-white/90 backdrop-blur-sm border-2 border-ghibli-moss/50 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
                                     hover:border-ghibli-moss text-base px-6 py-3 font-semibold touch-manipulation active:scale-90"
                     onClick={handleOpenExamples}

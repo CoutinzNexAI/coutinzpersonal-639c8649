@@ -251,11 +251,11 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   // Determinar qual imagem mostrar
   const getCurrentImage = () => {
     if (currentImageIndex === 0) {
-      // Mostrar mockup do poster (usar a 4ª imagem se disponível, senão a primeira)
+      // Mostrar mockup do poster (usar a 4ª imagem - previewUrls[3])
       if (posterMockupUrls.length > 3) {
-        return { url: posterMockupUrls[3], type: 'poster' };
+        return { url: posterMockupUrls[3], type: 'poster' }; // Posição 3 = 4ª imagem das 5 que o Printify disponibiliza
       } else if (posterMockupUrls.length > 0) {
-        return { url: posterMockupUrls[0], type: 'poster' };
+        return { url: posterMockupUrls[0], type: 'poster' }; // Fallback para primeira se não houver 4
       }
       // Se não tem mockup, mostrar imagem original temporariamente
       return { url: transformedImageUrl, type: 'original' };
@@ -269,9 +269,11 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       // Se não tem mockup, mostrar imagem original temporariamente
       return { url: transformedImageUrl, type: 'original' };
     } else if (currentImageIndex === 2) {
-      // Mostrar mockup do caderno (usar a 1ª imagem)
-      if (notebookMockupUrls.length > 0) {
-        return { url: notebookMockupUrls[0], type: 'notebook' };
+      // Mostrar mockup do caderno (usar a 2ª imagem - posição 1)
+      if (notebookMockupUrls.length > 1) {
+        return { url: notebookMockupUrls[1], type: 'notebook' }; // Posição 1 = segunda imagem
+      } else if (notebookMockupUrls.length > 0) {
+        return { url: notebookMockupUrls[0], type: 'notebook' }; // Fallback para primeira se não houver 2
       }
       // Se não tem mockup, mostrar imagem original temporariamente
       return { url: transformedImageUrl, type: 'original' };

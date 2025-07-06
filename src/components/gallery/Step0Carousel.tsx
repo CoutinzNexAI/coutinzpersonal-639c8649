@@ -28,8 +28,8 @@ const EXAMPLES_DATA: CarouselExample[] = [
     id: 2,
     beforeSrc: '/fotousar/raparigascafe.png',
     afterSrc: '/fotousar/raparigascafe3.png',
-    altBefore: 'Imagem original de uma paisagem urbana com grafitti',
-    altAfter: 'Paisagem urbana com grafitti transformada para o estilo Azulejo',
+    altBefore: 'Imagem original de uma rapariga a beber café',
+    altAfter: 'Rapariga a beber café transformada para o estilo Azulejo',
     ariaLabel: 'Exemplo de transformação: Paisagem urbana para estilo Azulejo Português',
   },
   {

@@ -24,7 +24,7 @@ import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
 import ProductQuantityPricing from '@/components/shared/ProductQuantityPricing';
 import ProductArtStatus from '@/components/shared/ProductArtStatus';
 import ProductGuarantees from '@/components/shared/ProductGuarantees';
-import ProductDescription from '@/components/shared/ProductDescription';
+
 import ProductVariantSelector from '@/components/shared/ProductVariantSelector';
 import ProductAddToCartButton from '@/components/shared/ProductAddToCartButton';
 import ProductMobileControls from '@/components/shared/ProductMobileControls';
@@ -103,8 +103,18 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   // Setup inicial do produto
   useEffect(() => {
     if (product?.variants?.length) {
-      const firstVariant = product.variants[0];
-      setSelectedPrintifyVariantId(firstVariant.id);
+      // Para poster vertical, usar o tamanho 24" x 36" (61,0 x 91,4 cm) como padrão
+      if (product.id === 'poster_vertical_semi_glossy') {
+        const targetVariant = product.variants.find(v => v.id === 92407); // 24" x 36" (61,0 x 91,4 cm)
+        if (targetVariant) {
+          setSelectedPrintifyVariantId(targetVariant.id);
+        } else {
+          setSelectedPrintifyVariantId(product.variants[0].id); // Fallback para primeira
+        }
+      } else {
+        const firstVariant = product.variants[0];
+        setSelectedPrintifyVariantId(firstVariant.id);
+      }
     }
   }, [product]);
 
@@ -759,9 +769,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               transition={{ duration: 0.6, delay: 0.6 }}
               className="px-4 space-y-4"
             >
-              <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
-                <ProductDescription items={config.descriptionItems(product)} />
-              </div>
+
 
               {/* Seletor de Variantes Mobile */}
               <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
@@ -1041,8 +1049,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     />
                   </div>
 
-                  {/* Descrição */}
-                  <ProductDescription items={config.descriptionItems(product)} />
+
 
                   {/* Seletor de Variantes */}
                   {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
