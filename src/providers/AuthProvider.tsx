@@ -49,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // 🔒 PROTEÇÃO: Parar session recording para conta de teste
       if (userData.email === 'diogolemecoutinho@gmail.com') {
-        console.log('PostHog: Session recording parado para conta de teste');
+        console.log('PostHog: Session recording parado para cota de teste');
         if (typeof window !== 'undefined') {
           posthog.stopSessionRecording();
         }
