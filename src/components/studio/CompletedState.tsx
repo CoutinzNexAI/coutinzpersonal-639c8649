@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Style } from '../StyleSelectorModal';
 import Image from 'next/image';
-import { Download, AlertTriangle, Loader2, RefreshCw, ShoppingBag, ArrowRight, ChevronRight } from 'lucide-react';
+import { Download, AlertTriangle, Loader2, RefreshCw, ShoppingBag, ArrowRight, ChevronRight, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/router';
@@ -25,10 +25,13 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   onNewImage,
 }) => {
   const [imageError, setImageError] = React.useState(false);
-  const [mockupUrls, setMockupUrls] = React.useState<string[]>([]);
-  const [isGeneratingMockup, setIsGeneratingMockup] = React.useState(false);
-  const [mockupError, setMockupError] = React.useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = React.useState(0); // 0 = mockup, 1 = original
+  const [posterMockupUrls, setPosterMockupUrls] = React.useState<string[]>([]);
+  const [mugMockupUrls, setMugMockupUrls] = React.useState<string[]>([]);
+  const [isGeneratingPosterMockup, setIsGeneratingPosterMockup] = React.useState(false);
+  const [isGeneratingMugMockup, setIsGeneratingMugMockup] = React.useState(false);
+  const [posterMockupError, setPosterMockupError] = React.useState(false);
+  const [mugMockupError, setMugMockupError] = React.useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0); // 0 = poster, 1 = caneca, 2 = original
   
   const { userInfo } = useAuth();
   const router = useRouter();
@@ -40,13 +43,13 @@ const CompletedState: React.FC<CompletedStateProps> = ({
     toast.error("Erro ao carregar a imagem final.");
   };
 
-  // Função para gerar mockup automaticamente
+  // Função para gerar mockup do poster
   const generatePosterMockup = React.useCallback(async () => {
-    if (!transformedImageUrl || !userInfo?.id || isGeneratingMockup) return;
+    if (!transformedImageUrl || !userInfo?.id || isGeneratingPosterMockup) return;
 
     console.log('🎯 [CompletedState] Iniciando geração automática de mockup do poster');
-    setIsGeneratingMockup(true);
-    setMockupError(false);
+    setIsGeneratingPosterMockup(true);
+    setPosterMockupError(false);
 
     try {
       const response = await fetch('/api/printify/mockups/generate', {
@@ -57,13 +60,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
           userImageUrl: transformedImageUrl,
           userId: userInfo.id,
           selectedPrintifyVariantId: 101836, // Poster 16" x 24" (40,6 x 61,0 cm)
-          // Usar as mesmas especificações do poster para fill sem espaços
-          imageAdjustments: {
-            x: 0.5,
-            y: 0.5,
-            scale: 1.05, // Fill para cobrir toda a área
-            rotation: 0
-          }
+          // Não passar imageAdjustments - deixar a API calcular automaticamente para fill perfeito
         })
       });
 
@@ -74,55 +71,132 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       const data = await response.json();
       
       if (data.success && data.previewUrls && data.previewUrls.length > 0) {
-        setMockupUrls(data.previewUrls);
-        console.log('✅ [CompletedState] Mockup gerado com sucesso:', data.previewUrls);
+        setPosterMockupUrls(data.previewUrls);
+        console.log('✅ [CompletedState] Mockup do poster gerado com sucesso:', data.previewUrls);
       } else {
-        throw new Error(data.error || 'Falha ao gerar mockup');
+        throw new Error(data.error || 'Falha ao gerar mockup do poster');
       }
     } catch (error) {
-      console.error('❌ [CompletedState] Erro ao gerar mockup:', error);
-      setMockupError(true);
-      // Não mostrar toast de erro para não incomodar o user
+      console.error('❌ [CompletedState] Erro ao gerar mockup do poster:', error);
+      setPosterMockupError(true);
     } finally {
-      setIsGeneratingMockup(false);
+      setIsGeneratingPosterMockup(false);
     }
-  }, [transformedImageUrl, userInfo?.id, isGeneratingMockup]);
+  }, [transformedImageUrl, userInfo?.id, isGeneratingPosterMockup]);
 
-  // Gerar mockup automaticamente quando a imagem estiver pronta
-  React.useEffect(() => {
-    if (transformedImageUrl && userInfo?.id && mockupUrls.length === 0 && !mockupError) {
-      // Pequeno delay para garantir que a imagem está totalmente carregada
-      const timer = setTimeout(() => {
-        generatePosterMockup();
-      }, 500);
+  // Função para gerar mockup da caneca
+  const generateMugMockup = React.useCallback(async () => {
+    if (!transformedImageUrl || !userInfo?.id || isGeneratingMugMockup) return;
+
+    console.log('🎯 [CompletedState] Iniciando geração automática de mockup da caneca');
+    setIsGeneratingMugMockup(true);
+    setMugMockupError(false);
+
+    try {
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: 'heart_mug',
+          userImageUrl: transformedImageUrl,
+          userId: userInfo.id,
+          selectedPrintifyVariantId: 77224, // Caneca Coração 11oz / White
+          // Não passar imageAdjustments - deixar a API calcular automaticamente para fill perfeito
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
       
-      return () => clearTimeout(timer);
+      if (data.success && data.previewUrls && data.previewUrls.length > 0) {
+        setMugMockupUrls(data.previewUrls);
+        console.log('✅ [CompletedState] Mockup da caneca gerado com sucesso:', data.previewUrls);
+      } else {
+        throw new Error(data.error || 'Falha ao gerar mockup da caneca');
+      }
+    } catch (error) {
+      console.error('❌ [CompletedState] Erro ao gerar mockup da caneca:', error);
+      setMugMockupError(true);
+    } finally {
+      setIsGeneratingMugMockup(false);
     }
-  }, [transformedImageUrl, userInfo?.id, mockupUrls.length, mockupError, generatePosterMockup]);
+  }, [transformedImageUrl, userInfo?.id, isGeneratingMugMockup]);
+
+  // Gerar mockups automaticamente quando a imagem estiver pronta
+  React.useEffect(() => {
+    if (transformedImageUrl && userInfo?.id) {
+      // Gerar poster primeiro
+      if (posterMockupUrls.length === 0 && !posterMockupError) {
+        const timer = setTimeout(() => {
+          generatePosterMockup();
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+      
+      // Gerar caneca depois (com delay para não sobrecarregar)
+      if (mugMockupUrls.length === 0 && !mugMockupError && posterMockupUrls.length > 0) {
+        const timer = setTimeout(() => {
+          generateMugMockup();
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [transformedImageUrl, userInfo?.id, posterMockupUrls.length, mugMockupUrls.length, posterMockupError, mugMockupError, generatePosterMockup, generateMugMockup]);
 
   const handleGoToProduct = () => {
-    const productUrl = `/shop/poster/poster_vertical_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
+    let productUrl = '';
+    
+    if (currentImageIndex === 0) {
+      // Poster
+      productUrl = `/shop/poster/poster_vertical_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
+    } else if (currentImageIndex === 1) {
+      // Caneca Coração
+      productUrl = `/shop/mug/heart_mug?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
+    } else {
+      // Imagem original - vai para poster por padrão
+      productUrl = `/shop/poster/poster_vertical_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
+    }
+    
     router.push(productUrl);
   };
 
-  const handleRetryMockup = () => {
-    setMockupError(false);
-    setMockupUrls([]);
+  const handleRetryPosterMockup = () => {
+    setPosterMockupError(false);
+    setPosterMockupUrls([]);
     generatePosterMockup();
   };
 
+  const handleRetryMugMockup = () => {
+    setMugMockupError(false);
+    setMugMockupUrls([]);
+    generateMugMockup();
+  };
+
   const handleNextImage = () => {
-    setCurrentImageIndex(currentImageIndex === 0 ? 1 : 0);
+    setCurrentImageIndex((prev) => (prev + 1) % 3); // 0 → 1 → 2 → 0
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + 3) % 3); // 0 → 2 → 1 → 0
   };
 
   // Determinar qual imagem mostrar
   const getCurrentImage = () => {
     if (currentImageIndex === 0) {
-      // Mostrar mockup (usar a 4ª imagem se disponível, senão a primeira)
-      if (mockupUrls.length > 3) {
-        return { url: mockupUrls[3], type: 'mockup' };
-      } else if (mockupUrls.length > 0) {
-        return { url: mockupUrls[0], type: 'mockup' };
+      // Mostrar mockup do poster (usar a 4ª imagem se disponível, senão a primeira)
+      if (posterMockupUrls.length > 3) {
+        return { url: posterMockupUrls[3], type: 'poster' };
+      } else if (posterMockupUrls.length > 0) {
+        return { url: posterMockupUrls[0], type: 'poster' };
+      }
+      return null;
+    } else if (currentImageIndex === 1) {
+      // Mostrar mockup da caneca (usar a primeira imagem)
+      if (mugMockupUrls.length > 0) {
+        return { url: mugMockupUrls[0], type: 'mug' };
       }
       return null;
     } else {
@@ -133,47 +207,91 @@ const CompletedState: React.FC<CompletedStateProps> = ({
 
   const currentImage = getCurrentImage();
 
+  // Determinar texto do produto
+  const getProductText = () => {
+    if (currentImageIndex === 0) {
+      return 'Poster Vertical';
+    } else if (currentImageIndex === 1) {
+      return 'Caneca Coração';
+    } else {
+      return 'Poster Vertical'; // Default para imagem original
+    }
+  };
+
+  // Determinar se deve mostrar loading
+  const isCurrentlyLoading = () => {
+    if (currentImageIndex === 0) {
+      return isGeneratingPosterMockup;
+    } else if (currentImageIndex === 1) {
+      return isGeneratingMugMockup;
+    }
+    return false;
+  };
+
+  // Determinar se há erro
+  const hasCurrentError = () => {
+    if (currentImageIndex === 0) {
+      return posterMockupError;
+    } else if (currentImageIndex === 1) {
+      return mugMockupError;
+    } else if (currentImageIndex === 2) {
+      return imageError;
+    }
+    return false;
+  };
+
+  // Função de retry apropriada
+  const handleRetryCurrentMockup = () => {
+    if (currentImageIndex === 0) {
+      handleRetryPosterMockup();
+    } else if (currentImageIndex === 1) {
+      handleRetryMugMockup();
+    }
+  };
+
   return (
     <div className="relative w-full h-full flex flex-col min-h-0">
       
-      {/* Área da Imagem Principal - Mockup ou Original */}
+      {/* Área da Imagem Principal - Carrossel de 3 imagens */}
       <div className="flex-1 flex items-center justify-center p-4 md:p-6 min-h-0">
         <div className="w-full max-w-sm min-h-[280px] max-h-[350px] aspect-square relative rounded-xl shadow-xl overflow-hidden border-2 border-gray-200 bg-gray-100">
-          {isGeneratingMockup && currentImageIndex === 0 ? (
+          {isCurrentlyLoading() ? (
             <div className="absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-center text-sm text-ghibli-moss p-4">
               <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
               <p className="font-medium mb-1">A gerar mockup...</p>
               <p className="text-xs text-ghibli-earth/70">~5 segundos</p>
             </div>
-          ) : mockupError && currentImageIndex === 0 ? (
+          ) : hasCurrentError() ? (
             <div className="absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-sm text-gray-600 p-4">
               <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-gray-500" />
-              <p className="font-medium mb-1">Erro no mockup</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRetryMockup}
-                className="text-xs mt-2"
-              >
-                Tentar novamente
-              </Button>
-            </div>
-          ) : imageError && currentImageIndex === 1 ? (
-            <div className="absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-sm text-gray-600 p-4">
-              <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-gray-500" />
-              <p className="font-medium mb-1">Erro ao carregar imagem</p>
-              <p className="text-xs text-gray-500 break-all">{transformedImageUrl}</p>
+              <p className="font-medium mb-1">
+                {currentImageIndex === 2 ? 'Erro ao carregar imagem' : 'Erro no mockup'}
+              </p>
+              {currentImageIndex !== 2 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRetryCurrentMockup}
+                  className="text-xs mt-2"
+                >
+                  Tentar novamente
+                </Button>
+              )}
             </div>
           ) : currentImage ? (
             <div className="relative w-full h-full">
               <Image 
                 key={`${currentImage.url}-${currentImageIndex}`}
                 src={currentImage.url} 
-                alt={currentImage.type === 'mockup' ? 'Preview do poster' : `Imagem transformada no estilo ${selectedStyle.name}`} 
+                alt={
+                  currentImage.type === 'poster' ? 'Preview do poster' :
+                  currentImage.type === 'mug' ? 'Preview da caneca' :
+                  `Imagem transformada no estilo ${selectedStyle.name}`
+                } 
                 fill
                 sizes="(max-width: 768px) 80vw, (max-width: 1200px) 50vw, 30vw"
                 style={{ 
-                  objectFit: currentImage.type === 'mockup' ? "contain" : "contain",
+                  objectFit: "contain",
                   width: "100%",
                   height: "100%" 
                 }}
@@ -189,20 +307,36 @@ const CompletedState: React.FC<CompletedStateProps> = ({
                 }}
               />
               
-              {/* Seta de Navegação - apenas mostrar se temos mockup */}
-              {mockupUrls.length > 0 && (
+              {/* Setas de Navegação */}
+              <>
+                {/* Seta Esquerda */}
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 border border-gray-200"
+                  title="Produto anterior"
+                >
+                  <ChevronLeft className="w-4 h-4 text-ghibli-moss" />
+                </button>
+                
+                {/* Seta Direita */}
                 <button
                   onClick={handleNextImage}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 border border-gray-200"
-                  title={currentImageIndex === 0 ? "Ver imagem original" : "Ver no produto"}
+                  title="Próximo produto"
                 >
                   <ChevronRight className="w-4 h-4 text-ghibli-moss" />
                 </button>
-              )}
+              </>
               
               {/* Indicador do tipo de imagem */}
               <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                {currentImage.type === 'mockup' ? 'No Produto' : 'Imagem Original'}
+                {currentImage.type === 'poster' ? 'Poster' : 
+                 currentImage.type === 'mug' ? 'Caneca' : 'Imagem Original'}
+              </div>
+              
+              {/* Indicador de posição no carrossel */}
+              <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                {currentImageIndex + 1}/3
               </div>
             </div>
           ) : (
@@ -235,7 +369,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
               <ShoppingBag className="w-4 h-4" />
               Produto Recomendado
             </h3>
-            <p className="text-sm text-ghibli-earth/70">Poster Vertical 16" x 24" - €35.00</p>
+            <p className="text-sm text-ghibli-earth/70">{getProductText()}</p>
           </div>
           
           {/* Botão Principal Destacado */}
