@@ -480,7 +480,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           <Header />
         </div>
         
-        <main className="container mx-auto px-2 sm:px-4 pt-16 pb-6 sm:pt-16 sm:pb-8 lg:pt-20 lg:pb-8">
+        <main className="container mx-auto px-2 sm:px-4 pt-24 pb-6 sm:pt-24 sm:pb-8 lg:pt-28 lg:pb-8">
           {/* ✅ TÍTULO - MOBILE ONLY */}
           <div className="block lg:hidden">
             <motion.div

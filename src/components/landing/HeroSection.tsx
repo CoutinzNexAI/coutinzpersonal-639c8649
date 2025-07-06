@@ -157,19 +157,19 @@ const HeroSection: React.FC = () => {
                   textShadow: '0 2px 4px rgba(139, 69, 19, 0.1)'
                 }}
               >
-                Photos deserve to be seen
+                Make Your Imagined Photos Real
               </motion.h1>
             </motion.div>
 
-            {/* Mobile CTA Buttons - Side by Side - MOVIDOS PARA CIMA */}
+            {/* Mobile CTA Buttons - Side by Side - AUMENTADOS 50% */}
             <motion.div 
-              className="flex flex-wrap gap-2 mb-6"
+              className="flex flex-wrap gap-3 mb-6"
               variants={itemVariants}
             >
-              <Link href="/transformacoes" className="flex-1 min-w-[150px]">
+              <Link href="/transformacoes" className="flex-1 min-w-[180px]">
                 <motion.div whileTap={{ scale: 0.95 }} className="h-full">
                 <Button 
-                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-4 text-base rounded-xl shadow-lg"
+                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-6 text-lg rounded-xl shadow-lg"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   Transforma Grátis
@@ -177,11 +177,11 @@ const HeroSection: React.FC = () => {
                 </motion.div>
               </Link>
               
-              <Link href="/shop" className="flex-1 min-w-[150px]"> 
+              <Link href="/shop" className="flex-1 min-w-[180px]"> 
                 <motion.div whileTap={{ scale: 0.95 }} className="h-full">
                   <Button 
                     variant="outline" 
-                    className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-4 text-base rounded-xl"
+                    className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-6 text-lg rounded-xl"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <span className="mr-2">🛍️</span>
@@ -209,8 +209,7 @@ const HeroSection: React.FC = () => {
                 <span className="text-ghibli-earth font-medium text-sm">+300 utilizadores</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
-                <Star className="w-5 h-5 text-yellow-500" />
-                <span className="text-ghibli-earth font-medium text-sm">5⭐ Reviews</span>
+                <span className="text-yellow-500 font-medium text-sm">⭐5 Reviews</span>
               </div>
             </motion.div>
           </motion.div>

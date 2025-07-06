@@ -189,12 +189,12 @@ const ShopPage: React.FC = () => {
         <Header />
       </div>
 
-      <main className="pt-16 pb-16 relative z-10">
+      <main className="pt-24 pb-16 relative z-10">
         <div className="container mx-auto px-4">
           
           {/* TÍTULO PRINCIPAL - Maior, verde e destacado */}
           <motion.div
-            className="text-center mb-12"
+            className="text-center mb-12 mt-4"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
