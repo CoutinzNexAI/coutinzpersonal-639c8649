@@ -287,22 +287,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     setIsLoading(true); 
     try {
+      // 1. Supabase logout
       const { error } = await supabase.auth.signOut({ scope: 'local' }); 
       if (error) {
         console.error('[signOut] Supabase sign out error:', error);
         throw error; 
       }
+
+      // 2. Limpar estado da aplicação
       setUserInfo(null);
-      setSession(null); // Limpa a sessão também
+      setSession(null);
+
+      // 3. Limpar dados sensíveis do localStorage
+      try {
+        // Limpar carrinho
+        localStorage.removeItem('pictuz_cart');
+        
+        // Limpar dados de sessão e cache
+        const keysToRemove = [
+          'welcome_shown_',
+          'funnel_',
+          'upload_attempts',
+          'last_visit_timestamp'
+        ];
+        
+        Object.keys(localStorage).forEach(key => {
+          keysToRemove.forEach(prefix => {
+            if (key.startsWith(prefix)) {
+              localStorage.removeItem(key);
+            }
+          });
+        });
+
+        // Limpar sessionStorage também
+        sessionStorage.clear();
+        
+        console.log('✅ [signOut] Local storage cleaned');
+      } catch (storageError) {
+        console.warn('[signOut] Error cleaning localStorage:', storageError);
+      }
+
+      // 4. Trigger cart update event para atualizar UI
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('cartUpdated'));
+      }
+
       setIsLoading(false);
-      setSessionChecked(true); 
+      setSessionChecked(true);
+
+      // 5. Redirecionar para homepage e dar refresh para limpar tudo
+      if (typeof window !== 'undefined') {
+        // Pequeno delay para garantir que o toast aparece
+        setTimeout(() => {
+          window.location.href = '/'; // Força refresh completo
+        }, 1000);
+      }
+      
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
       toast.error("Erro ao sair", { description: errorMessage });
+      
+      // Mesmo com erro, limpar estado local
       setUserInfo(null);
       setSession(null);
       setIsLoading(false);
       setSessionChecked(true);
+
+      // Redirecionar mesmo com erro
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+      }
     }
   };
 

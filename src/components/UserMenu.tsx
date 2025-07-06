@@ -59,13 +59,14 @@ const UserMenu: React.FC = () => {
     setIsLoggingOut(true);
     try {
       await signOut();
-      toast.success("Sessão terminada com sucesso!");
+      // O toast será mostrado no AuthProvider
+      // O redirecionamento também será automático
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
       toast.error("Oops! Algo correu mal ao terminar a sessão.");
-    } finally {
-      setIsLoggingOut(false);
+      setIsLoggingOut(false); // Reset apenas em caso de erro
     }
+    // Não fazer setIsLoggingOut(false) aqui porque a página vai recarregar
   };
 
   const handleMenuItemClick = (action: 'account' | 'transformations' | 'orders' | 'logout') => {
