@@ -50,12 +50,11 @@ export interface StyleExample {
       name: "Estilo Ghibli",
       description: "Dê às suas imagens o visual mágico dos filmes do Studio Ghibli, com cores suaves e detalhes encantadores.",
       examples: [
-        { before: "/foto/tonymickaelcarreiranormal.jpg", after: "/ghibli/tonymickaelghibli.png" },
-        { before: "/foto/gyokerespotenormal.jpeg", after: "/ghibli/gyopoteghibli.png" },
-        { before: "/foto/casamentonormal.jpg", after: "/ghibli/casalghibli.png" },
-        { before: "/foto/caogatonormal.jpg", after: "/ghibli/caogatoghibli.png" },
-        { before: "/foto/saojoaoportonormal.jpg", after: "/ghibli/saojoaoportoghibli.png" },
-        { before: "/foto/joaomadalena.webp", after: "/ghibli/joaomadalena.png" },
+        { before: "/fotousar/raparigaalgarve.png", after: "/fotousar/raparigaalgarve1.jpg" },
+        { before: "/fotousar/raparigascafe.png", after: "/fotousar/raparigascafe.png" },
+        { before: "/fotousar/passeioporto.png", after: "/fotousar/passeioporto1.png" },
+        { before: "/fotousar/mae2filhos.png", after: "/fotousar/mae2filhos1.png" },
+        { before: "/fotousar/homempraia.png", after: "/fotousar/homempraia1.png" },
 
       ]
     },

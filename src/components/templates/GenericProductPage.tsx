@@ -108,6 +108,29 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     }
   }, [product]);
 
+  // ✅ LER QUERY PARAMETERS PARA IMAGEM AUTOMÁTICA (vinda das transformações)
+  useEffect(() => {
+    const { imageUrl, imageId } = router.query;
+    
+    if (imageUrl && typeof imageUrl === 'string' && !selectedImageUrl) {
+      console.log('🎯 [GenericProductPage] Aplicando imagem automática via query params:', { imageUrl, imageId });
+      
+      setSelectedImageUrl(imageUrl);
+      setSelectedImageId((imageId as string) || null);
+      
+      // Reset estados para nova imagem
+      setPrintifyPreviewUrls([]);
+      setPrintifyImageId('');
+      setPrintifyProductId('');
+      setImageAdjustments(undefined);
+      setHasGenerated(false);
+      
+      toast.success('Arte aplicada automaticamente!', {
+        description: 'A imagem da sua transformação foi aplicada ao produto'
+      });
+    }
+  }, [router.query, selectedImageUrl]);
+
   // ✅ CONTROLO ÚNICO DE MOCKUP GENERATION KEY
   useEffect(() => {
     if (selectedImageUrl && selectedPrintifyVariantId) {

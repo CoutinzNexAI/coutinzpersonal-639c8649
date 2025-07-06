@@ -195,6 +195,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
                 onDownload={handleDownload}
                 transformationId={currentJobId}
                 initialRating={currentRating}
+                onNewImage={onResetToStepZero}
               />
             </div>
             <div className="p-4 pt-2 flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-gray-200">
