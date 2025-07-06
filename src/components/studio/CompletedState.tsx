@@ -125,26 +125,23 @@ const CompletedState: React.FC<CompletedStateProps> = ({
     }
   }, [transformedImageUrl, userInfo?.id, isGeneratingMugMockup]);
 
-  // Gerar mockups automaticamente quando a imagem estiver pronta
+  // Gerar mockups automaticamente em background (sem loading visível)
   React.useEffect(() => {
     if (transformedImageUrl && userInfo?.id) {
-      // Gerar poster primeiro
-      if (posterMockupUrls.length === 0 && !posterMockupError) {
-        const timer = setTimeout(() => {
-          generatePosterMockup();
-        }, 500);
-        return () => clearTimeout(timer);
+      // Gerar poster imediatamente (sem delay)
+      if (posterMockupUrls.length === 0 && !posterMockupError && !isGeneratingPosterMockup) {
+        generatePosterMockup();
       }
       
-      // Gerar caneca depois (com delay para não sobrecarregar)
-      if (mugMockupUrls.length === 0 && !mugMockupError && posterMockupUrls.length > 0) {
+      // Gerar caneca em paralelo (sem esperar poster)
+      if (mugMockupUrls.length === 0 && !mugMockupError && !isGeneratingMugMockup) {
         const timer = setTimeout(() => {
           generateMugMockup();
-        }, 2000);
+        }, 1000); // Delay mínimo para não sobrecarregar
         return () => clearTimeout(timer);
       }
     }
-  }, [transformedImageUrl, userInfo?.id, posterMockupUrls.length, mugMockupUrls.length, posterMockupError, mugMockupError, generatePosterMockup, generateMugMockup]);
+  }, [transformedImageUrl, userInfo?.id, posterMockupUrls.length, mugMockupUrls.length, posterMockupError, mugMockupError, isGeneratingPosterMockup, isGeneratingMugMockup, generatePosterMockup, generateMugMockup]);
 
   const handleGoToProduct = () => {
     let productUrl = '';
@@ -192,13 +189,17 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       } else if (posterMockupUrls.length > 0) {
         return { url: posterMockupUrls[0], type: 'poster' };
       }
-      return null;
+      // Se não tem mockup, mostrar imagem original temporariamente
+      return { url: transformedImageUrl, type: 'original' };
     } else if (currentImageIndex === 1) {
-      // Mostrar mockup da caneca (usar a primeira imagem)
-      if (mugMockupUrls.length > 0) {
-        return { url: mugMockupUrls[0], type: 'mug' };
+      // Mostrar mockup da caneca (usar a 3ª imagem - previewUrls[2])
+      if (mugMockupUrls.length > 2) {
+        return { url: mugMockupUrls[2], type: 'mug' };
+      } else if (mugMockupUrls.length > 0) {
+        return { url: mugMockupUrls[0], type: 'mug' }; // Fallback para primeira se não houver 3
       }
-      return null;
+      // Se não tem mockup, mostrar imagem original temporariamente
+      return { url: transformedImageUrl, type: 'original' };
     } else {
       // Mostrar imagem original
       return { url: transformedImageUrl, type: 'original' };
@@ -210,21 +211,23 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   // Determinar texto do produto
   const getProductText = () => {
     if (currentImageIndex === 0) {
+      if (isGeneratingPosterMockup) {
+        return 'Poster Vertical (a gerar...)';
+      }
       return 'Poster Vertical';
     } else if (currentImageIndex === 1) {
+      if (isGeneratingMugMockup) {
+        return 'Caneca Coração (a gerar...)';
+      }
       return 'Caneca Coração';
     } else {
       return 'Poster Vertical'; // Default para imagem original
     }
   };
 
-  // Determinar se deve mostrar loading
+  // Determinar se deve mostrar loading (sempre false para não interromper fluxo)
   const isCurrentlyLoading = () => {
-    if (currentImageIndex === 0) {
-      return isGeneratingPosterMockup;
-    } else if (currentImageIndex === 1) {
-      return isGeneratingMugMockup;
-    }
+    // Nunca mostrar loading - mockups geram em background
     return false;
   };
 
@@ -328,16 +331,25 @@ const CompletedState: React.FC<CompletedStateProps> = ({
                 </button>
               </>
               
-              {/* Indicador do tipo de imagem */}
-              <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+              {/* Indicador do tipo de imagem - melhorado */}
+              <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20">
                 {currentImage.type === 'poster' ? 'Poster' : 
-                 currentImage.type === 'mug' ? 'Caneca' : 'Imagem Original'}
+                 currentImage.type === 'mug' ? 'Caneca' : 'Original'}
               </div>
               
-              {/* Indicador de posição no carrossel */}
-              <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+              {/* Indicador de posição no carrossel - melhorado */}
+              <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20">
                 {currentImageIndex + 1}/3
               </div>
+              
+              {/* Indicador de loading discreto quando gerando mockup */}
+              {((currentImageIndex === 0 && isGeneratingPosterMockup) || 
+                (currentImageIndex === 1 && isGeneratingMugMockup)) && (
+                <div className="absolute top-2 right-2 bg-ghibli-moss/90 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  A gerar...
+                </div>
+              )}
             </div>
           ) : (
             <div className="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center">
