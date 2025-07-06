@@ -180,28 +180,24 @@ const CompletedState: React.FC<CompletedStateProps> = ({
     }
   }, [transformedImageUrl, userInfo?.id, isGeneratingNotebookMockup, showProductCarousel]);
 
-  // Gerar mockups automaticamente em background (sem loading visível)
+  // Gerar mockups automaticamente em background (VERDADEIRAMENTE EM PARALELO)
   React.useEffect(() => {
     if (transformedImageUrl && userInfo?.id) {
-      // Gerar poster imediatamente (sem delay)
+      // 🚀 GERAÇÃO PARALELA REAL - todos os produtos geram simultaneamente
+      
+      // Gerar poster imediatamente
       if (posterMockupUrls.length === 0 && !posterMockupError && !isGeneratingPosterMockup) {
         generatePosterMockup();
       }
       
-      // Gerar caneca em paralelo (sem esperar poster)
+      // Gerar caneca IMEDIATAMENTE (sem delay artificial)
       if (mugMockupUrls.length === 0 && !mugMockupError && !isGeneratingMugMockup) {
-        const timer = setTimeout(() => {
-          generateMugMockup();
-        }, 1000); // Delay mínimo para não sobrecarregar
-        return () => clearTimeout(timer);
+        generateMugMockup();
       }
 
-      // Gerar caderno em paralelo (com delay maior)
+      // Gerar caderno IMEDIATAMENTE (sem delay artificial)
       if (notebookMockupUrls.length === 0 && !notebookMockupError && !isGeneratingNotebookMockup) {
-        const timer = setTimeout(() => {
-          generateNotebookMockup();
-        }, 2000); // Delay maior para caderno
-        return () => clearTimeout(timer);
+        generateNotebookMockup();
       }
     }
   }, [transformedImageUrl, userInfo?.id, posterMockupUrls.length, mugMockupUrls.length, notebookMockupUrls.length, posterMockupError, mugMockupError, notebookMockupError, isGeneratingPosterMockup, isGeneratingMugMockup, isGeneratingNotebookMockup, generatePosterMockup, generateMugMockup, generateNotebookMockup]);

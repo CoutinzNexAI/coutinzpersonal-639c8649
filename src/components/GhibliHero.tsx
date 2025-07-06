@@ -245,38 +245,7 @@ const GhibliHero = () => {
           ))}
         </motion.h1>
 
-        {/* Botão "Veja exemplos!" - MOBILE APENAS - Posicionado abaixo do título */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: titleParts.length * 0.1 + 0.8 }}
-          className="md:hidden flex justify-center mb-6"
-        >
-          <motion.div
-            className="w-auto"
-            whileHover={{
-              scale: 1.03,
-              transition: { duration: 0.2 }
-            }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Button
-              variant="outline"
-              className="inline-flex items-center justify-center transition-all duration-300
-                              rounded-lg shadow-sm hover:shadow-md text-ghibli-earth bg-white/80 backdrop-blur-sm border-ghibli-moss/60 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
-                              hover:border-ghibli-moss text-sm px-4 py-2"
-              onClick={handleOpenExamples}
-            >
-              <motion.span
-                whileHover={{ rotate: [0, -10, 10, 0], transition: {duration: 0.4}}}
-                className="bg-ghibli-moss/10 p-1.5 rounded-full mr-2"
-              >
-                <Images className="h-5 w-5 text-ghibli-moss" />
-              </motion.span>
-              Veja exemplos!
-            </Button>
-          </motion.div>
-        </motion.div>
+
 
         <div className="relative z-10 flex flex-col lg:flex-row items-center lg:items-start lg:justify-center gap-8 xl:gap-12">
           <motion.div
@@ -451,6 +420,33 @@ const GhibliHero = () => {
                 </motion.span>
                 <p className="text-base font-bold">Visite a Loja</p>
               </motion.button>
+
+                {/* Botão "Veja exemplos!" - MOBILE - Posicionado abaixo do "Visite a Loja" */}
+                <motion.div
+                  className="w-full"
+                  whileHover={{
+                    scale: 1.03,
+                    transition: { duration: 0.2 }
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    variant="outline"
+                    className="inline-flex items-center justify-center transition-all duration-300 w-full
+                                    rounded-xl shadow-lg hover:shadow-xl text-ghibli-wood bg-white/90 backdrop-blur-sm border-2 border-ghibli-moss/50 hover:bg-ghibli-moss/10 hover:text-ghibli-moss
+                                    hover:border-ghibli-moss text-base px-6 py-3 font-semibold touch-manipulation active:scale-90"
+                    onClick={handleOpenExamples}
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                  >
+                    <motion.span
+                      whileHover={{ rotate: [0, -15, 15, 0], transition: {duration: 0.5}}}
+                      className="bg-ghibli-moss/15 p-2 rounded-full mr-3"
+                    >
+                      <Images className="h-5 w-5 text-ghibli-moss" />
+                    </motion.span>
+                    Veja exemplos!
+                  </Button>
+                </motion.div>
               </div>
             </div>
           </motion.div>
