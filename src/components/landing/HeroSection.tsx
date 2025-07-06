@@ -157,7 +157,7 @@ const HeroSection: React.FC = () => {
                   textShadow: '0 2px 4px rgba(139, 69, 19, 0.1)'
                 }}
               >
-                More Than a Frame - It's a Feeling
+                Photos that deserve more than a frame
               </motion.h1>
             </motion.div>
 

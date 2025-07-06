@@ -190,10 +190,11 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
           <div className="w-full h-full flex flex-col"> 
             <div className="flex-1 min-h-0"> 
               <CompletedState
-                originalImageUrl={uploadedImage?.preview || ''}
                 transformedImageUrl={transformedImage}
-                transformationId={currentJobId || ''}
+                selectedStyle={selectedStyle}
                 onDownload={handleDownload}
+                transformationId={currentJobId}
+                initialRating={currentRating}
                 onNewImage={onResetToStepZero}
               />
             </div>

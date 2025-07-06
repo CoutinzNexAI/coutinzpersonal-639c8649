@@ -1,329 +1,547 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { Style } from '../StyleSelectorModal';
+import Image from 'next/image';
+import { Download, AlertTriangle, Loader2, RefreshCw, ShoppingBag, ArrowRight, ChevronRight, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/router';
 
 interface CompletedStateProps {
-  originalImageUrl: string;
   transformedImageUrl: string;
-  transformationId: string;
+  selectedStyle: Style;
   onDownload: () => void;
-  onNewImage: () => void;
-}
-
-interface MockupData {
-  mockupUrl: string;
-  printifyProductId: string;
-  printifyImageId: string;
+  transformationId?: string; // Novo prop para o ID da transformação
+  initialRating?: number; // Novo prop para o rating inicial
+  onNewImage?: () => void; // Handler para nova imagem
 }
 
 const CompletedState: React.FC<CompletedStateProps> = ({
-  originalImageUrl,
   transformedImageUrl,
-  transformationId,
+  selectedStyle,
   onDownload,
+  transformationId,
+  initialRating,
   onNewImage,
 }) => {
+  const [imageError, setImageError] = React.useState(false);
+  const [posterMockupUrls, setPosterMockupUrls] = React.useState<string[]>([]);
+  const [mugMockupUrls, setMugMockupUrls] = React.useState<string[]>([]);
+  const [notebookMockupUrls, setNotebookMockupUrls] = React.useState<string[]>([]);
+  const [isGeneratingPosterMockup, setIsGeneratingPosterMockup] = React.useState(false);
+  const [isGeneratingMugMockup, setIsGeneratingMugMockup] = React.useState(false);
+  const [isGeneratingNotebookMockup, setIsGeneratingNotebookMockup] = React.useState(false);
+  const [posterMockupError, setPosterMockupError] = React.useState(false);
+  const [mugMockupError, setMugMockupError] = React.useState(false);
+  const [notebookMockupError, setNotebookMockupError] = React.useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0); // 0 = poster, 1 = caneca, 2 = caderno, 3 = original
+  const [showProductCarousel, setShowProductCarousel] = React.useState(false);
+  
+  const { userInfo } = useAuth();
   const router = useRouter();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [posterMockup, setPosterMockup] = useState<MockupData | null>(null);
-  const [mugMockup, setMugMockup] = useState<MockupData | null>(null);
-  const [notebookMockup, setNotebookMockup] = useState<MockupData | null>(null);
-  const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
-  const [isGeneratingMug, setIsGeneratingMug] = useState(false);
-  const [isGeneratingNotebook, setIsGeneratingNotebook] = useState(false);
-  const [allMockupsReady, setAllMockupsReady] = useState(false);
 
-  // Configuração dos produtos no carousel
-  const products = [
-    {
-      id: 'poster',
-      name: 'Poster Vertical',
-      mockup: posterMockup,
-      isGenerating: isGeneratingPoster,
-      route: '/shop/poster/poster_vertical_semi_glossy',
-      price: '€20.00'
-    },
-    {
-      id: 'mug',
-      name: 'Caneca Coração',
-      mockup: mugMockup,
-      isGenerating: isGeneratingMug,
-      route: '/shop/mug/heart_mug',
-      price: '€30.00'
-    },
-    {
-      id: 'notebook',
-      name: 'Caderno',
-      mockup: notebookMockup,
-      isGenerating: isGeneratingNotebook,
-      route: '/shop/escritorio/spiral_journal',
-      price: '€20.00'
-    },
-    {
-      id: 'original',
-      name: 'Imagem Original',
-      mockup: null,
-      isGenerating: false,
-      route: null,
-      price: null
-    }
-  ];
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error('[CompletedState Image] Erro ao carregar a imagem:', e.currentTarget.src);
+    console.error('[CompletedState Image] URL que falhou:', transformedImageUrl);
+    setImageError(true);
+    toast.error("Erro ao carregar a imagem final.");
+  };
 
-  const currentProduct = products[currentIndex];
+  // Função para gerar mockup do poster
+  const generatePosterMockup = React.useCallback(async () => {
+    if (!transformedImageUrl || !userInfo?.id || isGeneratingPosterMockup) return;
 
-  // Função para gerar mockup
-  const generateMockup = async (
-    productId: string,
-    variantId: number,
-    imageUrl: string,
-    setMockup: (mockup: MockupData | null) => void,
-    setIsGenerating: (loading: boolean) => void
-  ) => {
+    console.log('🎯 [CompletedState] Iniciando geração automática de mockup do poster');
+    setIsGeneratingPosterMockup(true);
+    setPosterMockupError(false);
+
     try {
-      setIsGenerating(true);
-      
       const response = await fetch('/api/printify/mockups/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          product_id: productId,
-          variant_id: variantId,
-          image_url: imageUrl,
-        }),
+          productId: 'poster_vertical_semi_glossy',
+          userImageUrl: transformedImageUrl,
+          userId: userInfo.id,
+          selectedPrintifyVariantId: 101836, // Poster 16" x 24" (40,6 x 61,0 cm)
+          // Não passar imageAdjustments - deixar a API calcular automaticamente para fill perfeito
+        })
       });
 
       if (!response.ok) {
-        throw new Error(`Erro na geração: ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
       
-      if (data.success && data.mockupUrl && data.printifyProductId && data.printifyImageId) {
-        setMockup({
-          mockupUrl: data.mockupUrl,
-          printifyProductId: data.printifyProductId,
-          printifyImageId: data.printifyImageId,
-        });
+      if (data.success && data.previewUrls && data.previewUrls.length > 0) {
+        setPosterMockupUrls(data.previewUrls);
+        console.log('✅ [CompletedState] Mockup do poster gerado com sucesso:', data.previewUrls);
+        // Mostrar carousel quando primeiro mockup estiver pronto
+        setShowProductCarousel(true);
+      } else {
+        throw new Error(data.error || 'Falha ao gerar mockup do poster');
       }
     } catch (error) {
-      console.error(`Erro ao gerar mockup ${productId}:`, error);
+      console.error('❌ [CompletedState] Erro ao gerar mockup do poster:', error);
+      setPosterMockupError(true);
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingPosterMockup(false);
     }
-  };
+  }, [transformedImageUrl, userInfo?.id, isGeneratingPosterMockup]);
 
-  // Gerar todos os mockups em paralelo
-  useEffect(() => {
-    const generateAllMockups = async () => {
-      const promises = [
-        // Poster (imediato)
-        generateMockup(
-          'poster_vertical_semi_glossy',
-          101836,
-          transformedImageUrl,
-          setPosterMockup,
-          setIsGeneratingPoster
-        ),
-        
-        // Caneca (delay 1s, usa 3ª imagem se disponível)
-        new Promise(resolve => {
-          setTimeout(async () => {
-            // Tentar usar a 3ª imagem das preview URLs se disponível
-            const imageToUse = transformedImageUrl; // Por agora usar a mesma, depois podemos implementar previewUrls[2]
-            await generateMockup(
-              'heart_mug',
-              77224,
-              imageToUse,
-              setMugMockup,
-              setIsGeneratingMug
-            );
-            resolve(void 0);
-          }, 1000);
-        }),
-        
-        // Caderno (delay 2s)
-        new Promise(resolve => {
-          setTimeout(async () => {
-            await generateMockup(
-              'spiral_journal',
-              65482,
-              transformedImageUrl,
-              setNotebookMockup,
-              setIsGeneratingNotebook
-            );
-            resolve(void 0);
-          }, 2000);
+  // Função para gerar mockup da caneca
+  const generateMugMockup = React.useCallback(async () => {
+    if (!transformedImageUrl || !userInfo?.id || isGeneratingMugMockup) return;
+
+    console.log('🎯 [CompletedState] Iniciando geração automática de mockup da caneca');
+    setIsGeneratingMugMockup(true);
+    setMugMockupError(false);
+
+    try {
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: 'heart_mug',
+          userImageUrl: transformedImageUrl,
+          userId: userInfo.id,
+          selectedPrintifyVariantId: 77224, // Caneca Coração 11oz / White
+          // Não passar imageAdjustments - deixar a API calcular automaticamente para fill perfeito
         })
-      ];
+      });
 
-      await Promise.all(promises);
-      setAllMockupsReady(true);
-    };
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
-    generateAllMockups();
-  }, [transformedImageUrl]);
-
-  const handleProductClick = () => {
-    if (currentProduct.id === 'original') {
-      onDownload();
-      return;
+      const data = await response.json();
+      
+      if (data.success && data.previewUrls && data.previewUrls.length > 0) {
+        setMugMockupUrls(data.previewUrls);
+        console.log('✅ [CompletedState] Mockup da caneca gerado com sucesso:', data.previewUrls);
+        // Mostrar carousel quando primeiro mockup estiver pronto (se ainda não estiver visível)
+        if (!showProductCarousel) {
+          setShowProductCarousel(true);
+        }
+      } else {
+        throw new Error(data.error || 'Falha ao gerar mockup da caneca');
+      }
+    } catch (error) {
+      console.error('❌ [CompletedState] Erro ao gerar mockup da caneca:', error);
+      setMugMockupError(true);
+    } finally {
+      setIsGeneratingMugMockup(false);
     }
+  }, [transformedImageUrl, userInfo?.id, isGeneratingMugMockup, showProductCarousel]);
 
-    const mockup = currentProduct.mockup;
-    if (!mockup) {
-      toast.error('Mockup ainda não está pronto');
-      return;
+  // Função para gerar mockup do caderno
+  const generateNotebookMockup = React.useCallback(async () => {
+    if (!transformedImageUrl || !userInfo?.id || isGeneratingNotebookMockup) return;
+
+    console.log('🎯 [CompletedState] Iniciando geração automática de mockup do caderno');
+    setIsGeneratingNotebookMockup(true);
+    setNotebookMockupError(false);
+
+    try {
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: 'spiral_journal',
+          userImageUrl: transformedImageUrl,
+          userId: userInfo.id,
+          selectedPrintifyVariantId: 65482, // Caderno Blank / One Size
+          // Não passar imageAdjustments - deixar a API calcular automaticamente para fill perfeito
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.previewUrls && data.previewUrls.length > 0) {
+        setNotebookMockupUrls(data.previewUrls);
+        console.log('✅ [CompletedState] Mockup do caderno gerado com sucesso:', data.previewUrls);
+        // Mostrar carousel quando primeiro mockup estiver pronto (se ainda não estiver visível)
+        if (!showProductCarousel) {
+          setShowProductCarousel(true);
+        }
+      } else {
+        throw new Error(data.error || 'Falha ao gerar mockup do caderno');
+      }
+    } catch (error) {
+      console.error('❌ [CompletedState] Erro ao gerar mockup do caderno:', error);
+      setNotebookMockupError(true);
+    } finally {
+      setIsGeneratingNotebookMockup(false);
     }
+  }, [transformedImageUrl, userInfo?.id, isGeneratingNotebookMockup, showProductCarousel]);
 
-    const queryParams = new URLSearchParams({
-      imageUrl: transformedImageUrl,
-      imageId: transformationId,
-      printifyProductId: mockup.printifyProductId,
-      printifyImageId: mockup.printifyImageId,
-      fromTransformation: 'true'
-    }).toString();
+  // Gerar mockups automaticamente em background (sem loading visível)
+  React.useEffect(() => {
+    if (transformedImageUrl && userInfo?.id) {
+      // Gerar poster imediatamente (sem delay)
+      if (posterMockupUrls.length === 0 && !posterMockupError && !isGeneratingPosterMockup) {
+        generatePosterMockup();
+      }
+      
+      // Gerar caneca em paralelo (sem esperar poster)
+      if (mugMockupUrls.length === 0 && !mugMockupError && !isGeneratingMugMockup) {
+        const timer = setTimeout(() => {
+          generateMugMockup();
+        }, 1000); // Delay mínimo para não sobrecarregar
+        return () => clearTimeout(timer);
+      }
 
-    router.push(`${currentProduct.route}?${queryParams}`);
-    toast.success('Arte aplicada automaticamente!');
+      // Gerar caderno em paralelo (com delay maior)
+      if (notebookMockupUrls.length === 0 && !notebookMockupError && !isGeneratingNotebookMockup) {
+        const timer = setTimeout(() => {
+          generateNotebookMockup();
+        }, 2000); // Delay maior para caderno
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [transformedImageUrl, userInfo?.id, posterMockupUrls.length, mugMockupUrls.length, notebookMockupUrls.length, posterMockupError, mugMockupError, notebookMockupError, isGeneratingPosterMockup, isGeneratingMugMockup, isGeneratingNotebookMockup, generatePosterMockup, generateMugMockup, generateNotebookMockup]);
+
+  const handleGoToProduct = () => {
+    let productUrl = '';
+    
+    if (currentImageIndex === 0) {
+      // Poster
+      productUrl = `/shop/poster/poster_vertical_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
+    } else if (currentImageIndex === 1) {
+      // Caneca Coração
+      productUrl = `/shop/mug/heart_mug?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
+    } else if (currentImageIndex === 2) {
+      // Caderno
+      productUrl = `/shop/escritorio/spiral_journal?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
+    } else {
+      // Imagem original - vai para poster por padrão
+      productUrl = `/shop/poster/poster_vertical_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
+    }
+    
+    router.push(productUrl);
   };
 
-  const nextProduct = () => {
-    setCurrentIndex((prev) => (prev + 1) % products.length);
+  const handleRetryPosterMockup = () => {
+    setPosterMockupError(false);
+    setPosterMockupUrls([]);
+    generatePosterMockup();
   };
 
-  const prevProduct = () => {
-    setCurrentIndex((prev) => (prev - 1 + products.length) % products.length);
+  const handleRetryMugMockup = () => {
+    setMugMockupError(false);
+    setMugMockupUrls([]);
+    generateMugMockup();
   };
 
-  // Mostrar loading até todos os mockups estarem prontos
-  if (!allMockupsReady) {
-    return (
-      <div className="flex flex-col items-center space-y-6 p-8">
-        <div className="w-full max-w-md aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-          <img 
-            src={transformedImageUrl} 
-            alt="Transformação"
-            className="w-full h-full object-cover rounded-lg"
-          />
-        </div>
-        
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center space-x-2">
-            <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
-            <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-            <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-          </div>
-          <p className="text-lg font-semibold text-gray-700">A preparar produtos...</p>
-          <p className="text-sm text-gray-500">A gerar mockups personalizados</p>
-        </div>
-      </div>
-    );
-  }
+  const handleRetryNotebookMockup = () => {
+    setNotebookMockupError(false);
+    setNotebookMockupUrls([]);
+    generateNotebookMockup();
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % 4); // 0 → 1 → 2 → 3 → 0
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + 4) % 4); // 0 → 3 → 2 → 1 → 0
+  };
+
+  // Determinar qual imagem mostrar
+  const getCurrentImage = () => {
+    if (currentImageIndex === 0) {
+      // Mostrar mockup do poster (usar a 4ª imagem se disponível, senão a primeira)
+      if (posterMockupUrls.length > 3) {
+        return { url: posterMockupUrls[3], type: 'poster' };
+      } else if (posterMockupUrls.length > 0) {
+        return { url: posterMockupUrls[0], type: 'poster' };
+      }
+      // Se não tem mockup, mostrar imagem original temporariamente
+      return { url: transformedImageUrl, type: 'original' };
+    } else if (currentImageIndex === 1) {
+      // Mostrar mockup da caneca (usar a 3ª imagem - previewUrls[2])
+      if (mugMockupUrls.length > 2) {
+        return { url: mugMockupUrls[2], type: 'mug' };
+      } else if (mugMockupUrls.length > 0) {
+        return { url: mugMockupUrls[0], type: 'mug' }; // Fallback para primeira se não houver 3
+      }
+      // Se não tem mockup, mostrar imagem original temporariamente
+      return { url: transformedImageUrl, type: 'original' };
+    } else if (currentImageIndex === 2) {
+      // Mostrar mockup do caderno (usar a 1ª imagem)
+      if (notebookMockupUrls.length > 0) {
+        return { url: notebookMockupUrls[0], type: 'notebook' };
+      }
+      // Se não tem mockup, mostrar imagem original temporariamente
+      return { url: transformedImageUrl, type: 'original' };
+    } else {
+      // Mostrar imagem original
+      return { url: transformedImageUrl, type: 'original' };
+    }
+  };
+
+  const currentImage = getCurrentImage();
+
+  // Determinar texto do produto
+  const getProductText = () => {
+    if (currentImageIndex === 0) {
+      if (isGeneratingPosterMockup) {
+        return 'Poster Vertical (a gerar...)';
+      }
+      return 'Poster Vertical';
+    } else if (currentImageIndex === 1) {
+      if (isGeneratingMugMockup) {
+        return 'Caneca Coração (a gerar...)';
+      }
+      return 'Caneca Coração';
+    } else if (currentImageIndex === 2) {
+      if (isGeneratingNotebookMockup) {
+        return 'Caderno (a gerar...)';
+      }
+      return 'Caderno';
+    } else {
+      return 'Poster Vertical'; // Default para imagem original
+    }
+  };
+
+  // Determinar se deve mostrar loading (sempre false para não interromper fluxo)
+  const isCurrentlyLoading = () => {
+    // Nunca mostrar loading - mockups geram em background
+    return false;
+  };
+
+  // Determinar se há erro
+  const hasCurrentError = () => {
+    if (currentImageIndex === 0) {
+      return posterMockupError;
+    } else if (currentImageIndex === 1) {
+      return mugMockupError;
+    } else if (currentImageIndex === 2) {
+      return notebookMockupError;
+    } else if (currentImageIndex === 3) {
+      return imageError;
+    }
+    return false;
+  };
+
+  // Função de retry apropriada
+  const handleRetryCurrentMockup = () => {
+    if (currentImageIndex === 0) {
+      handleRetryPosterMockup();
+    } else if (currentImageIndex === 1) {
+      handleRetryMugMockup();
+    } else if (currentImageIndex === 2) {
+      handleRetryNotebookMockup();
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center space-y-6 p-8">
-      {/* Carousel de Produtos */}
-      <div className="relative w-full max-w-md">
-        {/* Navegação Esquerda */}
-        <button
-          onClick={prevProduct}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/90 transition-all"
-        >
-          <ChevronLeft className="w-5 h-5 text-gray-700" />
-        </button>
-
-        {/* Navegação Direita */}
-        <button
-          onClick={nextProduct}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:bg-white/90 transition-all"
-        >
-          <ChevronRight className="w-5 h-5 text-gray-700" />
-        </button>
-
-        {/* Imagem do Produto */}
-        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
-          {currentProduct.id === 'original' ? (
-            <img 
-              src={transformedImageUrl} 
-              alt="Imagem Original"
-              className="w-full h-full object-cover"
-            />
-          ) : currentProduct.mockup ? (
-            <img 
-              src={currentProduct.mockup.mockupUrl} 
-              alt={currentProduct.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <img 
+    <div className="relative w-full h-full flex flex-col min-h-0">
+      
+      {/* Área da Imagem Principal - Carrossel de 4 imagens (só aparece quando showProductCarousel for true) */}
+      <div className="flex-1 flex items-center justify-center p-4 md:p-6 min-h-0">
+        <div className="w-full max-w-sm min-h-[280px] max-h-[350px] aspect-square relative rounded-xl shadow-xl overflow-hidden border-2 border-gray-200 bg-gray-100">
+          {!showProductCarousel ? (
+            // Mostrar apenas a imagem original até pelo menos 1 mockup estar pronto
+            <div className="relative w-full h-full">
+              <Image 
                 src={transformedImageUrl} 
-                alt="A gerar..."
-                className="w-full h-full object-cover opacity-50"
+                alt={`Imagem transformada no estilo ${selectedStyle.name}`} 
+                fill
+                sizes="(max-width: 768px) 80vw, (max-width: 1200px) 50vw, 30vw"
+                style={{ 
+                  objectFit: "contain",
+                  width: "100%",
+                  height: "100%" 
+                }}
+                className="bg-gray-100"
+                priority
+                unoptimized={true}
+                onError={handleImageError}
+                onLoad={() => {
+                  console.log('[CompletedState Image] Imagem carregada com sucesso:', transformedImageUrl);
+                  setImageError(false);
+                }}
               />
-              {currentProduct.isGenerating && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-                  <div className="text-white text-sm font-medium px-3 py-1 bg-black/50 rounded-full">
-                    A gerar...
-                  </div>
+              
+              {/* Indicador discreto de que mockups estão sendo gerados */}
+              {(isGeneratingPosterMockup || isGeneratingMugMockup || isGeneratingNotebookMockup) && (
+                <div className="absolute top-2 right-2 bg-ghibli-moss/90 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  A preparar produtos...
                 </div>
               )}
             </div>
+          ) : isCurrentlyLoading() ? (
+            <div className="absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-center text-sm text-ghibli-moss p-4">
+              <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
+              <p className="font-medium mb-1">A gerar mockup...</p>
+              <p className="text-xs text-ghibli-earth/70">~5 segundos</p>
+            </div>
+          ) : hasCurrentError() ? (
+            <div className="absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-sm text-gray-600 p-4">
+              <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-gray-500" />
+              <p className="font-medium mb-1">
+                {currentImageIndex === 3 ? 'Erro ao carregar imagem' : 'Erro no mockup'}
+              </p>
+              {currentImageIndex !== 3 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRetryCurrentMockup}
+                  className="text-xs mt-2"
+                >
+                  Tentar novamente
+                </Button>
+              )}
+            </div>
+          ) : currentImage ? (
+            <div className="relative w-full h-full">
+            <Image 
+                key={`${currentImage.url}-${currentImageIndex}`}
+                src={currentImage.url} 
+                alt={
+                  currentImage.type === 'poster' ? 'Preview do poster' :
+                  currentImage.type === 'mug' ? 'Preview da caneca' :
+                  currentImage.type === 'notebook' ? 'Preview do caderno' :
+                  `Imagem transformada no estilo ${selectedStyle.name}`
+                } 
+              fill
+              sizes="(max-width: 768px) 80vw, (max-width: 1200px) 50vw, 30vw"
+              style={{ 
+                objectFit: "contain",
+                width: "100%",
+                height: "100%" 
+              }}
+              className="bg-gray-100"
+              priority
+              unoptimized={true}
+                onError={currentImage.type === 'original' ? handleImageError : undefined}
+              onLoad={() => {
+                  console.log('[CompletedState Image] Imagem carregada com sucesso:', currentImage.url);
+                  if (currentImage.type === 'original') {
+                setImageError(false);
+                  }
+              }}
+            />
+              
+              {/* Setas de Navegação */}
+              <>
+                {/* Seta Esquerda */}
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 border border-gray-200"
+                  title="Produto anterior"
+                >
+                  <ChevronLeft className="w-4 h-4 text-ghibli-moss" />
+                </button>
+                
+                {/* Seta Direita */}
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 border border-gray-200"
+                  title="Próximo produto"
+                >
+                  <ChevronRight className="w-4 h-4 text-ghibli-moss" />
+                </button>
+              </>
+              
+              {/* Indicador do tipo de imagem - melhorado */}
+              <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20">
+                {currentImage.type === 'poster' ? 'Poster' : 
+                 currentImage.type === 'mug' ? 'Caneca' : 
+                 currentImage.type === 'notebook' ? 'Caderno' : 'Original'}
+              </div>
+              
+              {/* Indicador de posição no carrossel - melhorado */}
+              <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20">
+                {currentImageIndex + 1}/4
+              </div>
+              
+              {/* Indicador de loading discreto quando gerando mockup */}
+              {((currentImageIndex === 0 && isGeneratingPosterMockup) || 
+                (currentImageIndex === 1 && isGeneratingMugMockup) ||
+                (currentImageIndex === 2 && isGeneratingNotebookMockup)) && (
+                <div className="absolute top-2 right-2 bg-ghibli-moss/90 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  A gerar...
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center">
+              <div className="text-center text-ghibli-earth/60">
+                <p className="text-sm">A preparar preview...</p>
+              </div>
+            </div>
           )}
         </div>
-
-        {/* Indicadores */}
-        <div className="flex justify-center mt-4 space-x-2">
-          {products.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentIndex 
-                  ? 'bg-blue-500 w-6' 
-                  : 'bg-gray-300 hover:bg-gray-400'
-              }`}
-            />
-          ))}
+      </div>
+      
+      {/* Informações do Resultado */}
+      <div className="px-4 pt-2 pb-3 flex-shrink-0 border-t border-gray-200">
+        <div className="text-center">
+          <p className="text-lg font-medium text-ghibli-wood">
+            Transformação concluída!
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Estilo: {selectedStyle.name}
+          </p>
         </div>
       </div>
 
-      {/* Informações do Produto */}
-      <div className="text-center space-y-2">
-        <p className="text-sm text-gray-500">Produto Recomendado</p>
-        <h3 className="text-xl font-semibold text-gray-800">{currentProduct.name}</h3>
-      </div>
+      {/* Seção do Produto em Destaque - só aparece quando showProductCarousel for true */}
+      {showProductCarousel && (
+        <div className="px-4 pb-2 flex-shrink-0">
+          <div className="bg-gradient-to-r from-ghibli-moss/5 to-ghibli-sky/5 rounded-xl p-4 border border-ghibli-moss/20">
+            <div className="text-center mb-3">
+              <h3 className="font-semibold text-ghibli-wood flex items-center justify-center gap-2">
+                <ShoppingBag className="w-4 h-4" />
+                Produto Recomendado
+              </h3>
+              <p className="text-sm text-ghibli-earth/70">{getProductText()}</p>
+            </div>
+            
+            {/* Botão Principal Destacado */}
+            <Button 
+              onClick={handleGoToProduct}
+              className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white py-3 text-base font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              disabled={imageError}
+            >
+              <span className="flex items-center justify-center gap-2">
+                Ver Produto
+                <ArrowRight className="w-4 h-4" />
+              </span>
+            </Button>
+          </div>
+        </div>
+      )}
 
-      {/* Botões de Ação */}
-      <div className="flex flex-col w-full max-w-md space-y-3">
-        {/* Botão Principal */}
-        <Button
-          onClick={handleProductClick}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
+      {/* Botões Secundários */}
+      <div className="px-4 pb-4 flex-shrink-0 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+        <Button 
+            variant="outline"
+          onClick={onDownload}
+            className="py-2 text-sm"
+          disabled={imageError}
         >
-          {currentProduct.id === 'original' ? 'Baixar Imagem' : `Ver Produto - ${currentProduct.price}`}
-        </Button>
-
-        {/* Botões Secundários */}
-        <div className="flex space-x-3">
-          <Button
-            variant="outline"
-            onClick={onDownload}
-            className="flex-1 flex items-center justify-center space-x-2 py-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>Original</span>
+            <Download className="w-4 h-4 mr-2" /> 
+            Original
           </Button>
-          
-          <Button
+          <Button 
             variant="outline"
-            onClick={onNewImage}
-            className="flex-1 py-2"
+            onClick={onNewImage || (() => window.location.reload())}
+            className="py-2 text-sm"
           >
+            <RefreshCw className="w-4 h-4 mr-2" /> 
             Nova Imagem
-          </Button>
+        </Button>
         </div>
       </div>
     </div>
