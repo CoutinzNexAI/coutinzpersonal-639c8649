@@ -110,10 +110,10 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   // ✅ LER QUERY PARAMETERS PARA IMAGEM AUTOMÁTICA (vinda das transformações)
   useEffect(() => {
-    const { imageUrl, imageId } = router.query;
+    const { imageUrl, imageId, fromTransformation } = router.query;
     
     if (imageUrl && typeof imageUrl === 'string' && !selectedImageUrl) {
-      console.log('🎯 [GenericProductPage] Aplicando imagem automática via query params:', { imageUrl, imageId });
+      console.log('🎯 [GenericProductPage] Aplicando imagem automática via query params:', { imageUrl, imageId, fromTransformation });
       
       setSelectedImageUrl(imageUrl);
       setSelectedImageId((imageId as string) || null);
@@ -125,9 +125,16 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       setImageAdjustments(undefined);
       setHasGenerated(false);
       
-      toast.success('Arte aplicada automaticamente!', {
-        description: 'A imagem da sua transformação foi aplicada ao produto'
-      });
+      // Se vem de transformação, mostrar mensagem mais específica
+      if (fromTransformation === 'true') {
+        toast.success('Produto configurado!', {
+          description: 'A sua arte está pronta para compra'
+        });
+      } else {
+        toast.success('Arte aplicada automaticamente!', {
+          description: 'A imagem da sua transformação foi aplicada ao produto'
+        });
+      }
     }
   }, [router.query, selectedImageUrl]);
 

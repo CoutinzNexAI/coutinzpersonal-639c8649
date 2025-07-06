@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Style } from '../StyleSelectorModal';
 import Image from 'next/image';
-import { Download, AlertTriangle, Loader2, RefreshCw, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Download, AlertTriangle, Loader2, RefreshCw, ShoppingBag, ArrowRight, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/router';
@@ -25,9 +25,10 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   onNewImage,
 }) => {
   const [imageError, setImageError] = React.useState(false);
-  const [mockupUrl, setMockupUrl] = React.useState<string>('');
+  const [mockupUrls, setMockupUrls] = React.useState<string[]>([]);
   const [isGeneratingMockup, setIsGeneratingMockup] = React.useState(false);
   const [mockupError, setMockupError] = React.useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0); // 0 = mockup, 1 = original
   
   const { userInfo } = useAuth();
   const router = useRouter();
@@ -55,7 +56,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
           productId: 'poster_vertical_semi_glossy',
           userImageUrl: transformedImageUrl,
           userId: userInfo.id,
-          selectedPrintifyVariantId: 92389, // Variante padrão 5" x 7"
+          selectedPrintifyVariantId: 101836, // Poster 16" x 24" (40,6 x 61,0 cm)
           // Usar as mesmas especificações do poster para fill sem espaços
           imageAdjustments: {
             x: 0.5,
@@ -73,8 +74,8 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       const data = await response.json();
       
       if (data.success && data.previewUrls && data.previewUrls.length > 0) {
-        setMockupUrl(data.previewUrls[0]);
-        console.log('✅ [CompletedState] Mockup gerado com sucesso:', data.previewUrls[0]);
+        setMockupUrls(data.previewUrls);
+        console.log('✅ [CompletedState] Mockup gerado com sucesso:', data.previewUrls);
       } else {
         throw new Error(data.error || 'Falha ao gerar mockup');
       }
@@ -89,7 +90,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
 
   // Gerar mockup automaticamente quando a imagem estiver pronta
   React.useEffect(() => {
-    if (transformedImageUrl && userInfo?.id && !mockupUrl && !mockupError) {
+    if (transformedImageUrl && userInfo?.id && mockupUrls.length === 0 && !mockupError) {
       // Pequeno delay para garantir que a imagem está totalmente carregada
       const timer = setTimeout(() => {
         generatePosterMockup();
@@ -97,52 +98,119 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       
       return () => clearTimeout(timer);
     }
-  }, [transformedImageUrl, userInfo?.id, mockupUrl, mockupError, generatePosterMockup]);
+  }, [transformedImageUrl, userInfo?.id, mockupUrls.length, mockupError, generatePosterMockup]);
 
   const handleGoToProduct = () => {
-    const productUrl = `/shop/poster/poster_vertical_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}`;
+    const productUrl = `/shop/poster/poster_vertical_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
     router.push(productUrl);
   };
 
   const handleRetryMockup = () => {
     setMockupError(false);
-    setMockupUrl('');
+    setMockupUrls([]);
     generatePosterMockup();
   };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex(currentImageIndex === 0 ? 1 : 0);
+  };
+
+  // Determinar qual imagem mostrar
+  const getCurrentImage = () => {
+    if (currentImageIndex === 0) {
+      // Mostrar mockup (usar a 4ª imagem se disponível, senão a primeira)
+      if (mockupUrls.length > 3) {
+        return { url: mockupUrls[3], type: 'mockup' };
+      } else if (mockupUrls.length > 0) {
+        return { url: mockupUrls[0], type: 'mockup' };
+      }
+      return null;
+    } else {
+      // Mostrar imagem original
+      return { url: transformedImageUrl, type: 'original' };
+    }
+  };
+
+  const currentImage = getCurrentImage();
 
   return (
     <div className="relative w-full h-full flex flex-col min-h-0">
       
-      {/* Área da Imagem Transformada */}
+      {/* Área da Imagem Principal - Mockup ou Original */}
       <div className="flex-1 flex items-center justify-center p-4 md:p-6 min-h-0">
         <div className="w-full max-w-sm min-h-[280px] max-h-[350px] aspect-square relative rounded-xl shadow-xl overflow-hidden border-2 border-gray-200 bg-gray-100">
-          {imageError ? (
+          {isGeneratingMockup && currentImageIndex === 0 ? (
+            <div className="absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-center text-sm text-ghibli-moss p-4">
+              <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
+              <p className="font-medium mb-1">A gerar mockup...</p>
+              <p className="text-xs text-ghibli-earth/70">~5 segundos</p>
+            </div>
+          ) : mockupError && currentImageIndex === 0 ? (
+            <div className="absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-sm text-gray-600 p-4">
+              <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-gray-500" />
+              <p className="font-medium mb-1">Erro no mockup</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRetryMockup}
+                className="text-xs mt-2"
+              >
+                Tentar novamente
+              </Button>
+            </div>
+          ) : imageError && currentImageIndex === 1 ? (
             <div className="absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-sm text-gray-600 p-4">
               <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-gray-500" />
               <p className="font-medium mb-1">Erro ao carregar imagem</p>
               <p className="text-xs text-gray-500 break-all">{transformedImageUrl}</p>
             </div>
+          ) : currentImage ? (
+            <div className="relative w-full h-full">
+              <Image 
+                key={`${currentImage.url}-${currentImageIndex}`}
+                src={currentImage.url} 
+                alt={currentImage.type === 'mockup' ? 'Preview do poster' : `Imagem transformada no estilo ${selectedStyle.name}`} 
+                fill
+                sizes="(max-width: 768px) 80vw, (max-width: 1200px) 50vw, 30vw"
+                style={{ 
+                  objectFit: currentImage.type === 'mockup' ? "contain" : "contain",
+                  width: "100%",
+                  height: "100%" 
+                }}
+                className="bg-gray-100"
+                priority
+                unoptimized={true}
+                onError={currentImage.type === 'original' ? handleImageError : undefined}
+                onLoad={() => {
+                  console.log('[CompletedState Image] Imagem carregada com sucesso:', currentImage.url);
+                  if (currentImage.type === 'original') {
+                    setImageError(false);
+                  }
+                }}
+              />
+              
+              {/* Seta de Navegação - apenas mostrar se temos mockup */}
+              {mockupUrls.length > 0 && (
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 border border-gray-200"
+                  title={currentImageIndex === 0 ? "Ver imagem original" : "Ver no produto"}
+                >
+                  <ChevronRight className="w-4 h-4 text-ghibli-moss" />
+                </button>
+              )}
+              
+              {/* Indicador do tipo de imagem */}
+              <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                {currentImage.type === 'mockup' ? 'No Produto' : 'Imagem Original'}
+              </div>
+            </div>
           ) : (
-            <Image 
-              key={transformedImageUrl}
-              src={transformedImageUrl} 
-              alt={`Imagem transformada no estilo ${selectedStyle.name}`} 
-              fill
-              sizes="(max-width: 768px) 80vw, (max-width: 1200px) 50vw, 30vw"
-              style={{ 
-                objectFit: "contain",
-                width: "100%",
-                height: "100%" 
-              }}
-              className="bg-gray-100"
-              priority
-              unoptimized={true}
-              onError={handleImageError}
-              onLoad={() => {
-                console.log('[CompletedState Image] Imagem carregada com sucesso:', transformedImageUrl);
-                setImageError(false);
-              }}
-            />
+            <div className="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center">
+              <div className="text-center text-ghibli-earth/60">
+                <p className="text-sm">A preparar preview...</p>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -165,46 +233,9 @@ const CompletedState: React.FC<CompletedStateProps> = ({
           <div className="text-center mb-3">
             <h3 className="font-semibold text-ghibli-wood flex items-center justify-center gap-2">
               <ShoppingBag className="w-4 h-4" />
-              Ver no Produto
+              Produto Recomendado
             </h3>
-            <p className="text-sm text-ghibli-earth/70">Poster Vertical A4 Semi-Brilhante</p>
-          </div>
-          
-          {/* Mockup do Produto */}
-          <div className="aspect-[3/4] bg-white rounded-lg overflow-hidden border border-ghibli-sand/30 mb-3 max-w-[120px] mx-auto">
-            {isGeneratingMockup ? (
-              <div className="w-full h-full flex flex-col items-center justify-center text-ghibli-moss">
-                <Loader2 className="w-6 h-6 animate-spin mb-2" />
-                <p className="text-xs">A gerar...</p>
-              </div>
-            ) : mockupError ? (
-              <div className="w-full h-full flex flex-col items-center justify-center text-ghibli-earth/60 p-2">
-                <AlertTriangle className="w-5 h-5 mb-1" />
-                <p className="text-xs text-center mb-2">Erro no mockup</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRetryMockup}
-                  className="text-xs px-2 py-1 h-6"
-                >
-                  Tentar novamente
-                </Button>
-              </div>
-            ) : mockupUrl ? (
-              <img 
-                src={mockupUrl} 
-                alt="Preview do poster" 
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-                <img
-                  src="/mockupproduto/postervertical.png"
-                  alt="Poster Vertical"
-                  className="w-16 h-16 object-contain opacity-60"
-                />
-              </div>
-            )}
+            <p className="text-sm text-ghibli-earth/70">Poster Vertical 16" x 24" - €35.00</p>
           </div>
           
           {/* Botão Principal Destacado */}
@@ -214,7 +245,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
             disabled={imageError}
           >
             <span className="flex items-center justify-center gap-2">
-              Ver Produto - €20.00
+              Ver Produto
               <ArrowRight className="w-4 h-4" />
             </span>
           </Button>

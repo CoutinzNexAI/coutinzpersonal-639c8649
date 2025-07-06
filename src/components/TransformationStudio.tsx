@@ -1,7 +1,7 @@
 // src/components/TransformationStudio.tsx
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { RefreshCw, LoaderCircle, Check } from "lucide-react";
+import { LoaderCircle, Check } from "lucide-react";
 import Image from 'next/image';
 
 import ImageUpload from './ImageUpload';
@@ -197,11 +197,6 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
                 initialRating={currentRating}
                 onNewImage={onResetToStepZero}
               />
-            </div>
-            <div className="p-4 pt-2 flex-shrink-0 bg-white/90 backdrop-blur-sm border-t border-gray-200">
-              <Button className="w-full ghibli-button" onClick={onResetToStepZero} disabled={isLoading}>
-                <RefreshCw className="mr-2 h-4 w-4" /> Nova Imagem
-              </Button>
             </div>
           </div>
         );
