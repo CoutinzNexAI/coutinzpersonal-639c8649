@@ -350,14 +350,12 @@ const CompletedState: React.FC<CompletedStateProps> = ({
             // Mostrar loading até pelo menos 1 mockup estar pronto - NUNCA mostrar imagem transformada sozinha
             <div className="absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-center text-sm text-ghibli-moss p-4">
               <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
-              <p className="font-medium mb-1">A preparar produtos...</p>
-              <p className="text-xs text-ghibli-earth/70">~5 segundos</p>
+              <p className="font-medium mb-1">A finalizar...</p>
             </div>
           ) : isCurrentlyLoading() ? (
             <div className="absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-center text-sm text-ghibli-moss p-4">
               <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
-              <p className="font-medium mb-1">A gerar mockup...</p>
-              <p className="text-xs text-ghibli-earth/70">~5 segundos</p>
+              <p className="font-medium mb-1">A finalizar...</p>
             </div>
           ) : hasCurrentError() ? (
             <div className="absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-sm text-gray-600 p-4">
