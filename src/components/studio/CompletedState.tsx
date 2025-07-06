@@ -18,7 +18,7 @@ interface MockupData {
   printifyImageId: string;
 }
 
-export const CompletedState: React.FC<CompletedStateProps> = ({
+const CompletedState: React.FC<CompletedStateProps> = ({
   originalImageUrl,
   transformedImageUrl,
   transformationId,
@@ -329,3 +329,5 @@ export const CompletedState: React.FC<CompletedStateProps> = ({
     </div>
   );
 };
+
+export default CompletedState;
