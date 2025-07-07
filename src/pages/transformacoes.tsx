@@ -5,38 +5,18 @@ import GhibliHero from '@/components/GhibliHero'; // Componente principal com te
 import InteractiveGallery from '@/components/InteractiveGallery'; // Secção da galeria de exemplos
 import Footer from '@/components/Footer'; // Rodapé
 
-import { FirstPurchasePromoModal } from '@/components/FirstPurchasePromoModal';
 import { TermsAcceptanceModal } from '@/components/TermsAcceptanceModal';
 import { useAuth } from '@/hooks/useAuth';
-import { usePicCoins } from '@/hooks/usePicCoins';
-import { useFirstPurchasePromo } from '@/hooks/useFirstPurchasePromo';
 import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
 import { trackLandingPageVisit, trackSessionStart, trackTimeOnPage, trackReturnVisit, trackUserLifecycleStage } from '@/lib/posthog';
 import { trackOrganicTraffic } from '@/lib/seo-tracking';
-import { toast } from '@/components/ui/sonner';
 
 // Componente funcional para a página de transformações (antiga rota '/')
 export default function TransformacoesPage() {
   const { userInfo, isLoading: isAuthLoading } = useAuth();
-  const { purchaseCoins } = usePicCoins();
-  const { shouldShowPromo, markFirstPurchaseAsUsed, markPromoShown, dismissPromo } = useFirstPurchasePromo();
   const { acceptTerms, rejectTerms, checkTermsAcceptance, loading: termsLoading } = useTermsAcceptance();
   
   const [showTermsModal, setShowTermsModal] = useState(false);
-  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
-
-  // Nova lógica: mostrar modal automaticamente quando elegível
-  useEffect(() => {
-    if (shouldShowPromo) {
-      // Pequeno delay para página carregar
-      const timer = setTimeout(() => {
-        setIsPromoModalOpen(true);
-        markPromoShown(); // Incrementar contagem quando modal efetivamente abre
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [shouldShowPromo, markPromoShown]);
 
   // 🔥 FUNNEL TRACKING: Landing page visit and session tracking
   useEffect(() => {
@@ -51,8 +31,7 @@ export default function TransformacoesPage() {
     trackLandingPageVisit({
       user_id: userInfo?.id || null,
       is_authenticated: !!userInfo,
-      has_transformations: false, // Simplified - not needed for new promo logic
-      is_eligible_for_promo: shouldShowPromo,
+      has_transformations: false,
       entry_point: 'transformacoes'
     });
 
@@ -76,10 +55,10 @@ export default function TransformacoesPage() {
 
     // Track user lifecycle stage
     if (userInfo) {
-      const lifecycleStage = 'new_user'; // Simplified for new promo logic
+      const lifecycleStage = 'new_user';
       trackUserLifecycleStage(lifecycleStage, {
         user_id: userInfo.id,
-        transformation_count: 0 // Simplified - not tracking transformations anymore
+        transformation_count: 0
       });
     }
 
@@ -91,7 +70,7 @@ export default function TransformacoesPage() {
         session_duration: timeOnPage
       });
     };
-  }, [userInfo?.id, shouldShowPromo]);
+  }, [userInfo?.id]);
 
   // Check terms acceptance after authentication
   useEffect(() => {
@@ -103,47 +82,6 @@ export default function TransformacoesPage() {
       });
     }
   }, [userInfo, isAuthLoading, checkTermsAcceptance]);
-
-  // Função para executar o checkout do Stripe
-  const executeStripeCheckout = async (packageId: string) => {
-    try {
-      const sessionId = await purchaseCoins(packageId);
-      
-      // Redirect to Stripe Checkout
-      const stripe = await import('@stripe/stripe-js').then(m => 
-        m.loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-      );
-      
-      if (stripe) {
-        await stripe.redirectToCheckout({ sessionId });
-      }
-    } catch (error) {
-      console.error('Purchase error:', error);
-      toast.error('Erro na compra', {
-        description: error instanceof Error ? error.message : 'Tenta novamente'
-      });
-    }
-  };
-
-  // Quando aceita a promoção
-  const handleAcceptPromo = async (promoPackageId: string) => {
-    // Marcar primeira compra como usada
-    const success = await markFirstPurchaseAsUsed();
-    if (!success) {
-      toast.error('Erro ao processar promoção');
-      return;
-    }
-
-    setIsPromoModalOpen(false);
-    
-    // Executar checkout com preço promocional
-    await executeStripeCheckout(promoPackageId);
-  };
-
-  const handleClosePromoModal = () => {
-    setIsPromoModalOpen(false);
-    dismissPromo(); // Track dismissal e manter rate limiting
-  };
 
   const handleTermsAccept = async () => {
     try {
@@ -250,13 +188,6 @@ export default function TransformacoesPage() {
 
         {/* Rodapé com links e informações */}
         <Footer />
-
-        {/* Modal de Promoção Primeira Compra - com nova lógica */}
-        <FirstPurchasePromoModal 
-          isOpen={isPromoModalOpen}
-          onClose={handleClosePromoModal}
-          onAcceptPromo={handleAcceptPromo}
-        />
 
         {/* Modal de Termos */}
         <TermsAcceptanceModal

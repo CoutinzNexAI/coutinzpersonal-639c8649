@@ -5,7 +5,7 @@ import { UploadedFile } from './useImageUpload'; // Assuming this path is correc
 import { Style } from '@/components/StyleSelectorModal'; // Assuming this path is correct
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { usePicCoins } from '@/hooks/usePicCoins';
+import { useDailyTransformations } from '@/hooks/useDailyTransformations';
 import { 
   trackImageUploadStart, 
   trackImageUploadSuccess, 
@@ -15,7 +15,7 @@ import {
   trackTransformationProcessComplete,
   trackFunnelAbandonment,
   trackDropOff,
-  trackPicCoinSpending,
+
   trackPicCoinBalance,
   trackPicCoinRefund,
   trackHover,
@@ -23,7 +23,7 @@ import {
   trackEvent 
 } from '@/lib/posthog';
 
-const PICCOINS_PER_TRANSFORMATION = 1;
+// Transformações são agora gratuitas - 10 por dia
 const MAX_POLL_ATTEMPTS_CONST = 36; // 36 * 10s = 360s = 6 minutos (buffer para Vercel Pro 5min)
 const POLLING_INTERVAL_MS = 10000; // Intervalo de polling (10 segundos) - menos agressivo
 
@@ -74,7 +74,7 @@ export type UseImageProcessingResult = ReturnType<typeof useImageProcessing>;
 
 export function useImageProcessing() {
   const { userInfo, isLoading: isAuthLoading } = useAuth();
-  const { spendCoins, refundCoins, refetchBalance } = usePicCoins();
+  const { useTransformation, refetch: refetchDaily, status: dailyStatus } = useDailyTransformations();
   const router = useRouter();
 
   const [uploadedImage, setUploadedImage] = useState<UploadedFile | null>(null);
@@ -229,20 +229,20 @@ export function useImageProcessing() {
     }
   }, [selectedStyle]);
 
-  // Função para processar reembolso automático
-  const handleRefund = useCallback(async (jobId: string) => {
+  // Função para processar falhas - no novo sistema não há refunds pois transformações são grátis
+  const handleFailure = useCallback(async (jobId: string) => {
     if (!jobId || !userInfo?.id) return;
     
     try {
-      console.log(`[useImageProcessing] Attempting refund for job ${jobId}`);
-      await refundCoins(PICCOINS_PER_TRANSFORMATION, jobId);
-      await refetchBalance();
-      console.log(`[useImageProcessing] Refund successful for job ${jobId}`);
-    } catch (refundError) {
-      console.error(`[useImageProcessing] Refund failed for job ${jobId}:`, refundError);
-      // Don't show toast error for refund failures to avoid confusion
+      console.log(`[useImageProcessing] Processing failure for job ${jobId} - no refund needed (free transformations)`);
+      // No novo sistema das transformações diárias, não há necessidade de refund
+      // A transformação falhada não foi "cobrada", era grátis
+      await refetchDaily(); // Apenas atualizar status
+      console.log(`[useImageProcessing] Failure processed for job ${jobId}`);
+    } catch (error) {
+      console.error(`[useImageProcessing] Error processing failure for job ${jobId}:`, error);
     }
-  }, [refundCoins, refetchBalance, userInfo?.id]);
+  }, [refetchDaily, userInfo?.id]);
 
   // Polling Logic useEffect
   useEffect(() => {
@@ -285,8 +285,8 @@ export function useImageProcessing() {
             setActiveStep(3);
           toast.error("Falha na Transformação", {description: SIMPLE_ERROR_TOAST_MESSAGE});
 
-          // Process refund automatically
-          await handleRefund(currentJobId);
+          // Process failure automatically
+          await handleFailure(currentJobId);
 
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
@@ -301,7 +301,7 @@ export function useImageProcessing() {
             output_url: data.output_url,
             poll_attempts: pollCountRef.current,
             processing_time_seconds: pollCountRef.current * 10, // Approximate time
-            total_cost: PICCOINS_PER_TRANSFORMATION
+            is_free_transformation: true
           });
 
           setTransformedImage(data.output_url);
@@ -384,8 +384,8 @@ export function useImageProcessing() {
         setActiveStep(3);
         toast.error("Processamento Demorado", { description: "A transformação demorou mais que o esperado. O seu crédito será devolvido automaticamente.", duration: 7000 });
 
-        // Process refund for timeout
-        await handleRefund(currentJobId);
+        // Process failure for timeout
+        await handleFailure(currentJobId);
 
         if (pollingIntervalRef.current) {
           clearInterval(pollingIntervalRef.current);
@@ -421,7 +421,7 @@ export function useImageProcessing() {
         pollingIntervalRef.current = null;
       }
     };
-  }, [currentJobId, processingState, userInfo, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage, fetchTransformationRating, handleRefund]);
+  }, [currentJobId, processingState, userInfo, isAuthLoading, setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setTransformedImage, fetchTransformationRating, handleFailure]);
 
 
   const resetAllLocalStates = useCallback(() => {
@@ -579,7 +579,7 @@ export function useImageProcessing() {
       style_name: selectedStyle.name,
       file_size: uploadedImage.file.size,
       file_type: uploadedImage.file.type,
-      credits_cost: PICCOINS_PER_TRANSFORMATION
+      is_free_transformation: true
     });
 
     setIsLoading(true);
@@ -594,24 +594,33 @@ export function useImageProcessing() {
     let tempNewJobId: string | null = null;
 
     try {
-      await refetchBalance(); 
+      await refetchDaily(); 
       
-      const balanceResponse = await fetch('/api/piccoins/balance');
-      if(!balanceResponse.ok) {
-        const errorData = await balanceResponse.json().catch(() => ({message: "Falha ao obter saldo."}));
-        throw new Error(errorData.message || "Falha ao verificar saldo atualizado.");
+      // Verificar limite diário em vez de PicCoins
+      if (!dailyStatus?.can_transform) {
+        // 🔥 TRACKING: Daily limit exceeded
+        trackFunnelAbandonment('transformation_start', 'daily_limit_exceeded', {
+          user_id: userInfo.id,
+          current_usage: dailyStatus?.current_usage || 0,
+          daily_limit: dailyStatus?.daily_limit || 10,
+          style_id: selectedStyle.id
+        });
+
+        const resetTime = dailyStatus?.hours_until_reset || 0;
+        const hours = Math.floor(resetTime);
+        const minutes = Math.floor((resetTime - hours) * 60);
+        
+        toast.warning("🔄 Limite Diário Atingido!", { 
+          description: `Utilizaste todas as ${dailyStatus?.daily_limit || 10} transformações hoje. ${hours > 0 ? `Reset em ${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `Reset em ${minutes}m`}.`,
+          duration: 5000
+        });
+        setProcessingState('idle'); 
+        setIsLoading(false);
+        return;
       }
-      const currentBalanceData = await balanceResponse.json();
-      const currentFreshBalance = currentBalanceData.balance;
 
-      // 🔥 TRACKING: Credit balance checked
-      trackPicCoinBalance(currentFreshBalance, {
-        user_id: userInfo.id,
-        required_credits: PICCOINS_PER_TRANSFORMATION,
-        has_sufficient_balance: currentFreshBalance >= PICCOINS_PER_TRANSFORMATION
-      });
-
-      if (currentFreshBalance >= PICCOINS_PER_TRANSFORMATION) {
+      // Tem transformações disponíveis - prosseguir
+      if (dailyStatus?.can_transform) {
         // A usar PicCoins - progress bar é suficiente
         
         setProcessingState('uploading_image');
@@ -707,20 +716,32 @@ export function useImageProcessing() {
         
         setProcessingState('spending_coins');
 
-        // 🔥 TRACKING: Credit spending start
-        trackPicCoinSpending(PICCOINS_PER_TRANSFORMATION, 'transformation', {
+        // 🔥 TRACKING: Daily transformation usage start
+        trackEvent('daily_transformation_used', {
           user_id: userInfo.id,
           job_id: tempNewJobId,
-          balance_before: currentFreshBalance
+          remaining_before: dailyStatus?.remaining_count || 0
         });
 
-        await spendCoins(PICCOINS_PER_TRANSFORMATION, tempNewJobId); 
+        // Consumir uma transformação diária
+        const useResult = await fetch('/api/daily-transformations/use', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transformationId: tempNewJobId })
+        });
+        
+        if (!useResult.ok) {
+          const errorData = await useResult.json().catch(() => ({message: 'Falha ao registar transformação diária'}));
+          throw new Error(errorData.message);
+        }
+        
+        const useResultData = await useResult.json();
 
-        // 🔥 TRACKING: Credit spending success
-        trackPicCoinSpending(PICCOINS_PER_TRANSFORMATION, 'transformation_success', {
+        // 🔥 TRACKING: Daily transformation usage success
+        trackEvent('daily_transformation_success', {
           user_id: userInfo.id,
           job_id: tempNewJobId,
-          balance_after: currentFreshBalance - PICCOINS_PER_TRANSFORMATION
+          remaining_after: useResultData.remaining_count || 0
         });
         
         setProcessingState('triggering_processing');
@@ -781,23 +802,6 @@ export function useImageProcessing() {
 
         // Transformação iniciada - progress bar é suficiente
         
-      } else { 
-        // 🔥 TRACKING: Insufficient credits
-        trackFunnelAbandonment('transformation_start', 'insufficient_credits', {
-          user_id: userInfo.id,
-          current_balance: currentFreshBalance,
-          required_credits: PICCOINS_PER_TRANSFORMATION,
-          style_id: selectedStyle.id
-        });
-
-        toast.warning("💰 Saldo de PicCoins Insuficiente!", { 
-          description: `Precisas de ${PICCOINS_PER_TRANSFORMATION} PicCoin para esta transformação (saldo atual: ${currentFreshBalance}). Vamos redirecionar para a página de compra.`,
-          duration: 5000
-        });
-        setProcessingState('idle'); 
-        setIsLoading(false);
-        setTimeout(() => { router.push('/pricing?from=studio&reason=insufficient_balance'); }, 3000);
-        return;
       }
 
     } catch (error: unknown) {
@@ -819,10 +823,10 @@ export function useImageProcessing() {
       setActiveStep(3);
       setErrorMessage(errorMsg);
 
-      // Process refund if job was created and coins were spent
+      // Process failure if job was created
       if (tempNewJobId && processingState !== 'checking_balance' && processingState !== 'idle') {
-        console.log(`[useImageProcessing] Start error detected, initiating refund for job ${tempNewJobId}`);
-        await handleRefund(tempNewJobId);
+        console.log(`[useImageProcessing] Start error detected, processing failure for job ${tempNewJobId}`);
+        await handleFailure(tempNewJobId);
       }
 
       if (processingState !== 'checking_balance' && processingState !== 'idle') {
@@ -859,8 +863,8 @@ export function useImageProcessing() {
     }
   }, [
     uploadedImage, selectedStyle, userInfo, isAuthLoading, processingState, 
-    spendCoins, refetchBalance, router, handleRefund,
-    setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setCurrentJobId, setTransformedImage 
+    refetchDaily, router, handleFailure,
+    setActiveStep, setErrorMessage, setIsLoading, setProcessingState, setCurrentJobId, setTransformedImage, dailyStatus
   ]);
 
   const handleNewImage = useCallback(() => {

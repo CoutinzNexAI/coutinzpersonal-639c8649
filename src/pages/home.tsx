@@ -5,38 +5,18 @@ import GhibliHero from '@/components/GhibliHero'; // Componente principal com te
 import InteractiveGallery from '@/components/InteractiveGallery'; // Secção da galeria de exemplos
 import Footer from '@/components/Footer'; // Rodapé
 
-import { FirstPurchasePromoModal } from '@/components/FirstPurchasePromoModal';
 import { TermsAcceptanceModal } from '@/components/TermsAcceptanceModal';
 import { useAuth } from '@/hooks/useAuth';
-import { usePicCoins } from '@/hooks/usePicCoins';
-import { useFirstPurchasePromo } from '@/hooks/useFirstPurchasePromo';
 import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
 import { trackLandingPageVisit, trackSessionStart, trackTimeOnPage, trackReturnVisit, trackUserLifecycleStage } from '@/lib/posthog';
 import { trackOrganicTraffic } from '@/lib/seo-tracking';
-import { toast } from '@/components/ui/sonner';
 
-// Componente funcional para a página inicial (rota '/')
+// Componente funcional para a página home (antiga rota '/')
 export default function HomePage() {
   const { userInfo, isLoading: isAuthLoading } = useAuth();
-  const { purchaseCoins } = usePicCoins();
-  const { shouldShowPromo, markFirstPurchaseAsUsed, markPromoShown, dismissPromo } = useFirstPurchasePromo();
   const { acceptTerms, rejectTerms, checkTermsAcceptance, loading: termsLoading } = useTermsAcceptance();
   
   const [showTermsModal, setShowTermsModal] = useState(false);
-  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
-
-  // Nova lógica: mostrar modal automaticamente quando elegível
-  useEffect(() => {
-    if (shouldShowPromo) {
-      // Pequeno delay para página carregar
-      const timer = setTimeout(() => {
-        setIsPromoModalOpen(true);
-        markPromoShown(); // Incrementar contagem quando modal efetivamente abre
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [shouldShowPromo, markPromoShown]);
 
   // 🔥 FUNNEL TRACKING: Landing page visit and session tracking
   useEffect(() => {
@@ -51,9 +31,8 @@ export default function HomePage() {
     trackLandingPageVisit({
       user_id: userInfo?.id || null,
       is_authenticated: !!userInfo,
-      has_transformations: false, // Simplified - not needed for new promo logic
-      is_eligible_for_promo: shouldShowPromo,
-      entry_point: 'homepage'
+      has_transformations: false,
+      entry_point: 'home'
     });
 
     // Track session start
@@ -76,22 +55,22 @@ export default function HomePage() {
 
     // Track user lifecycle stage
     if (userInfo) {
-      const lifecycleStage = 'new_user'; // Simplified for new promo logic
+      const lifecycleStage = 'new_user';
       trackUserLifecycleStage(lifecycleStage, {
         user_id: userInfo.id,
-        transformation_count: 0 // Simplified - not tracking transformations anymore
+        transformation_count: 0
       });
     }
 
     // Track time on page when component unmounts
     return () => {
       const timeOnPage = Math.floor((Date.now() - sessionStartTime) / 1000);
-      trackTimeOnPage(timeOnPage, 'homepage', {
+      trackTimeOnPage(timeOnPage, 'home', {
         user_id: userInfo?.id || null,
         session_duration: timeOnPage
       });
     };
-  }, [userInfo?.id, shouldShowPromo]);
+  }, [userInfo]);
 
   // Check terms acceptance after authentication
   useEffect(() => {
@@ -103,47 +82,6 @@ export default function HomePage() {
       });
     }
   }, [userInfo, isAuthLoading, checkTermsAcceptance]);
-
-  // Função para executar o checkout do Stripe
-  const executeStripeCheckout = async (packageId: string) => {
-    try {
-      const sessionId = await purchaseCoins(packageId);
-      
-      // Redirect to Stripe Checkout
-      const stripe = await import('@stripe/stripe-js').then(m => 
-        m.loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-      );
-      
-      if (stripe) {
-        await stripe.redirectToCheckout({ sessionId });
-      }
-    } catch (error) {
-      console.error('Purchase error:', error);
-      toast.error('Erro na compra', {
-        description: error instanceof Error ? error.message : 'Tenta novamente'
-      });
-    }
-  };
-
-  // Quando aceita a promoção
-  const handleAcceptPromo = async (promoPackageId: string) => {
-    // Marcar primeira compra como usada
-    const success = await markFirstPurchaseAsUsed();
-    if (!success) {
-      toast.error('Erro ao processar promoção');
-      return;
-    }
-
-    setIsPromoModalOpen(false);
-    
-    // Executar checkout com preço promocional
-    await executeStripeCheckout(promoPackageId);
-  };
-
-  const handleClosePromoModal = () => {
-    setIsPromoModalOpen(false);
-    dismissPromo(); // Track dismissal e manter rate limiting
-  };
 
   const handleTermsAccept = async () => {
     try {
@@ -232,7 +170,7 @@ export default function HomePage() {
                   "@type": "Offer",
                   "price": "0",
                   "priceCurrency": "EUR",
-                  "description": "Créditos gratuitos disponíveis para começar",
+                  "description": "Transformações gratuitas disponíveis",
                   "availability": "https://schema.org/InStock"
                 },
                 "featureList": [
@@ -241,7 +179,7 @@ export default function HomePage() {
                   "Mais de 20 estilos artísticos",
                   "Upload fácil e rápido",
                   "Galeria da comunidade",
-                  "Créditos gratuitos",
+                  "10 transformações gratuitas por dia",
                   "Resultados em segundos",
                   "Interface em português"
                 ],
@@ -250,105 +188,34 @@ export default function HomePage() {
                   "@type": "Audience",
                   "geographicArea": ["Portugal", "Brasil"]
                 }
-              },
-              {
-                "@context": "https://schema.org",
-                "@type": "Service",
-                "name": "Transformação de Fotos AI",
-                "description": "Serviço de transformação de fotografias em arte usando inteligência artificial",
-                "provider": {
-                  "@type": "Organization",
-                  "name": "Pictuz"
-                },
-                "serviceType": "Photo Editing",
-                "areaServed": ["PT", "BR"],
-                "hasOfferCatalog": {
-                  "@type": "OfferCatalog",
-                  "name": "Estilos de Arte AI",
-                  "itemListElement": [
-                    {
-                      "@type": "Offer",
-                      "itemOffered": {
-                        "@type": "Service",
-                        "name": "Estilo Simpson",
-                        "description": "Transforme fotos no estilo dos Simpsons"
-                      }
-                    },
-                    {
-                      "@type": "Offer", 
-                      "itemOffered": {
-                        "@type": "Service",
-                        "name": "Estilo Ghibli",
-                        "description": "Arte no estilo Studio Ghibli"
-                      }
-                    },
-                    {
-                      "@type": "Offer",
-                      "itemOffered": {
-                        "@type": "Service", 
-                        "name": "Estilo LEGO",
-                        "description": "Transforme em blocos LEGO"
-                      }
-                    },
-                    {
-                      "@type": "Offer",
-                      "itemOffered": {
-                        "@type": "Service",
-                        "name": "Azulejo Português",
-                        "description": "Estilo tradicional azulejo português"
-                      }
-                    }
-                  ]
-                }
               }
             ])
           }}
         />
       </Head>
 
-      {/* Container principal da página com layout flexível vertical e cor de fundo */}
-    <div className="min-h-screen bg-ghibli-cream flex flex-col">
-      {/* Renderiza o cabeçalho */}
-      <Header />
+      {/* Layout Ghibli estruturado com cabeçalho, hero, galeria e rodapé */}
+      <div className="bg-ghibli-paper min-h-screen relative overflow-hidden">
+        {/* Header principal */}
+        <Header />
 
-      {/* Conteúdo principal da página */}
-      {/* flex-grow garante que ocupa o espaço disponível, empurrando o footer para baixo */}
-      {/* pt-* adiciona padding no topo para compensar a altura do header fixo */}
-      <main className="flex-grow pt-16 md:pt-20">
-
-        {/* Renderiza a secção principal (Hero + Estúdio Interativo) */}
-        {/* Toda a lógica de passos (upload, estilo, pagamento, etc.) está encapsulada aqui */}
+        {/* Componente Hero: título principal + área de upload/demo */}
         <GhibliHero />
 
-        {/* Renderiza as secções inferiores da página */}
-
-        {/* Renderiza a secção da galeria interativa */}
+        {/* Galeria interativa com exemplos de transformações */}
         <InteractiveGallery />
 
-        {/* Separador visual para espaçamento antes do footer */}
-        <div className="ghibli-divider my-12 md:my-16 lg:my-20" />
+        {/* Rodapé com links e informações */}
+        <Footer />
 
-      </main> {/* Fim do conteúdo principal */}
-
-      {/* Renderiza o rodpé */}
-      <Footer />
-
-      {/* Modal de promoção primeira compra */}
-      <FirstPurchasePromoModal
-        isOpen={isPromoModalOpen}
-        onClose={handleClosePromoModal}
-        onAcceptPromo={handleAcceptPromo}
-      />
-
-      {/* Terms Acceptance Modal */}
-      <TermsAcceptanceModal
-        isOpen={showTermsModal}
-        onAccept={handleTermsAccept}
-        onReject={handleTermsReject}
-        userEmail={userInfo?.email}
-        loading={termsLoading}
-      />
-    </div> {/* Fim do container principal */}
+        {/* Modal de Termos */}
+        <TermsAcceptanceModal
+          isOpen={showTermsModal}
+          onAccept={handleTermsAccept}
+          onReject={handleTermsReject}
+          loading={termsLoading}
+        />
+      </div>
     </>
   );
 }

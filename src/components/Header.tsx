@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Menu, X, ShoppingCart } from "lucide-react";
 import UserMenu from "./UserMenu";
-import { PicCoinBalance } from './PicCoinBalance';
+
 import { CartButton } from './cart/CartButton';
 import { CartSidebar } from './cart/CartSidebar';
 import { useCart } from '@/providers/CartProvider';
@@ -19,11 +19,10 @@ interface NavLink {
   id: string;
 }
 
-// Navigation links in the new order: Transformações, Loja, Preço, Comunidade
+// Navigation links: Transformações, Loja, Comunidade
 const navLinks: NavLink[] = [
   { href: "/transformacoes", label: "Transformações", id: "transformacoes" },
   { href: "/shop", label: "Loja", id: "shop" },
-  { href: "/pricing", label: "Preço", id: "pricing" },
   { href: "/community", label: "Comunidade", id: "community" },
 ];
 
@@ -219,8 +218,6 @@ const Header: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              <PicCoinBalance />
-              
               {/* Cart Button - Desktop */}
               <CartButton
                 cartCount={cartCount}
@@ -233,8 +230,6 @@ const Header: React.FC = () => {
 
           {/* Mobile controls */}
           <div className="md:hidden flex items-center space-x-3">
-            <PicCoinBalance />
-            
             {/* Cart Button - Mobile */}
             <CartButton
               cartCount={cartCount}

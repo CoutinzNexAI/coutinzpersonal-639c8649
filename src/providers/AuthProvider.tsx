@@ -76,12 +76,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const isNewUser = result.isNewUser;
 
         if (isNewUser) {
-          // 🔥 TRACKING: New user registration (database already gives 2 piccoins by default)
+          // 🔥 TRACKING: New user registration
           trackEvent('user_registered', {
             user_id: userData.id,
             email: userData.email,
-            signup_method: 'google',
-            welcome_bonus: 2 // Note: bonus is automatic via database default value
+            signup_method: 'google'
           });
 
           // Show welcome message only once per session
@@ -91,8 +90,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (!alreadyShown) {
             sessionStorage.setItem(welcomeShownKey, 'true');
             setTimeout(() => {
-              toast.success("🎁 Bem-vindo ao PicTuz!", {
-                description: "Recebeste 2 PicCoins grátis para começares a transformar as tuas fotos!"
+              toast.success("🎉 Bem-vindo ao Pictuz!", {
+                description: "Tens 10 transformações gratuitas por dia para criares produtos incríveis!"
               });
             }, 1500);
           }
