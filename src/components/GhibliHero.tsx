@@ -91,8 +91,21 @@ const GhibliHero = () => {
       button_text: 'Transforme já a sua foto!'
     });
 
+    // Se ainda está carregando, aguarda automaticamente sem mostrar toast
     if (isAuthLoading) {
-      toast.info("A verificar autenticação...", { duration: 2000 });
+      // Aguarda a autenticação terminar e depois prossegue automaticamente
+      const checkAuthInterval = setInterval(() => {
+        if (!isAuthLoading) {
+          clearInterval(checkAuthInterval);
+          // Chama recursivamente a função quando loading terminar
+          handleTriggerStudio();
+        }
+      }, 100); // Verifica a cada 100ms
+      
+      // Safety timeout para evitar loop infinito
+      setTimeout(() => {
+        clearInterval(checkAuthInterval);
+      }, 5000);
       return;
     }
 

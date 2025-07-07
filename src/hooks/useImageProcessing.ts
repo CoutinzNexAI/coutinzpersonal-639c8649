@@ -536,14 +536,15 @@ export function useImageProcessing() {
       toast.error("Erro de Preparação", { description: "Por favor, carregue uma imagem e selecione um estilo antes de transformar." }); 
       return;
     }
-    if (isAuthLoading) {
+    if (isAuthLoading) { 
       // 🔥 TRACKING: Auth loading error
       trackFunnelAbandonment('transformation_start', 'auth_loading', {
         error_type: 'auth_loading',
         user_id: userInfo?.id || null
       });
 
-      toast.info("Aguarde...", { description: "A verificar autenticação do utilizador." }); 
+      // Aguarda silenciosamente que a autenticação termine
+      console.log('[useImageProcessing] Aguardando verificação de autenticação...');
       return;
     }
     if (!userInfo?.id) { 
