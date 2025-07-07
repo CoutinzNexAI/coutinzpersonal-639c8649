@@ -185,7 +185,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       line_items: lineItems,
       mode: 'payment',
       success_url: `${req.headers.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.origin}/checkout/cancelled`,
+      cancel_url: `${req.headers.referer || req.headers.origin + '/shop'}`,
       customer_email: userEmail,
       metadata: {
         userId,

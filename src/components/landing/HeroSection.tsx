@@ -144,53 +144,57 @@ const HeroSection: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Mobile Logo + Title Layout - COM EFEITO CAPTANTE MELHORADO */}
+            {/* Mobile Logo + Title Layout - VERSÃO ULTRA RESPONSIVA */}
             <motion.div 
-              className="text-center mb-6 px-2"
+              className="text-center mb-6 px-3 max-w-sm mx-auto"
               variants={itemVariants}
             >
-              {/* Frase completa centrada - COM EFEITO CAPTANTE RESPONSIVO */}
+              {/* Frase completa centrada - VERSÃO ULTRA ROBUSTA MOBILE */}
               <motion.h1 
-                className="text-lg sm:text-xl font-black text-ghibli-wood leading-tight tracking-wide drop-shadow-sm"
-                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                className="text-base sm:text-lg md:text-xl font-black text-ghibli-wood leading-snug tracking-wide drop-shadow-sm"
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ 
-                  duration: 1.2, 
+                  duration: 1.0, 
                   ease: "easeOut",
                   type: "spring",
-                  bounce: 0.4
+                  bounce: 0.3
                 }}
                 style={{
-                  textShadow: '0 2px 4px rgba(139, 69, 19, 0.1)',
-                  wordSpacing: '0.1em'
+                  textShadow: '0 1px 3px rgba(139, 69, 19, 0.1)',
+                  wordSpacing: 'normal',
+                  lineHeight: '1.2'
                 }}
               >
-                <motion.span
-                  className="inline-block break-words"
-                  initial={{ rotateX: 90, opacity: 0 }}
-                  animate={{ rotateX: 0, opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                  style={{ transformStyle: 'preserve-3d' }}
+                {/* Primeira linha sempre separada */}
+                <motion.div
+                  className="block mb-1"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                  Make Your Imagined{" "}
-                </motion.span>
-                <motion.span
-                  className="inline-block bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent break-words"
-                  initial={{ rotateX: 90, opacity: 0 }}
-                  animate={{ rotateX: 0, opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
-                  style={{ transformStyle: 'preserve-3d' }}
+                  <span className="inline-block">Make Your Imagined</span>
+                </motion.div>
+                
+                {/* Segunda linha com destaque */}
+                <motion.div
+                  className="block"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
                 >
-                  Photos Real
-                </motion.span>
-                <motion.span
-                  className="inline-block ml-1"
-                  initial={{ scale: 0, rotate: 180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ duration: 0.6, delay: 1.2, type: "spring", bounce: 0.6 }}
-                >
-                  ✨
-                </motion.span>
+                  <span className="inline-block bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent font-extrabold">
+                    Photos Real
+                  </span>
+                  <motion.span
+                    className="inline-block ml-1 text-sm"
+                    initial={{ scale: 0, rotate: 180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ duration: 0.5, delay: 0.8, type: "spring", bounce: 0.6 }}
+                  >
+                    ✨
+                  </motion.span>
+                </motion.div>
               </motion.h1>
             </motion.div>
 

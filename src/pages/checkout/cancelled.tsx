@@ -32,35 +32,35 @@ const PaymentFailedPage: React.FC = () => {
           >
             <div className="text-6xl mb-6">😞</div>
             
-            <h1 className="text-3xl font-ghibli text-red-600 mb-4">
-              Pagamento Não Processado
+            <h1 className="text-3xl font-ghibli text-amber-600 mb-4">
+              Checkout Cancelado
             </h1>
             
             <p className="text-ghibli-earth text-lg mb-6">
-              Ocorreu um problema com o processamento do seu pagamento. Não se preocupe, os seus produtos continuam guardados no carrinho.
+              O processo de pagamento foi cancelado. Os seus produtos continuam guardados no carrinho para quando estiver pronto.
             </p>
 
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-              <div className="flex items-center justify-center text-red-600 mb-2">
-                <span className="mr-2">🔍</span>
-                <span className="font-medium">Possíveis Causas</span>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+              <div className="flex items-center justify-center text-blue-600 mb-2">
+                <span className="mr-2">💡</span>
+                <span className="font-medium">Isto é normal!</span>
               </div>
-              <ul className="text-sm text-red-700 text-left space-y-1">
-                <li>• Dados do cartão incorretos ou expirado</li>
-                <li>• Limite de cartão insuficiente</li>
-                <li>• Problema temporário na rede bancária</li>
-                <li>• Cancelamento manual do pagamento</li>
+              <ul className="text-sm text-blue-700 text-left space-y-1">
+                <li>• Usou o botão "voltar" do navegador</li>
+                <li>• Decidiu continuar a comprar mais tarde</li>
+                <li>• Quer rever os detalhes do pedido</li>
+                <li>• Mudou de ideias temporariamente</li>
               </ul>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
-              <div className="flex items-center justify-center text-blue-600 mb-2">
-                <span className="mr-2">💬</span>
-                <span className="font-medium">O que fazemos agora?</span>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8">
+              <div className="flex items-center justify-center text-amber-600 mb-2">
+                <span className="mr-2">🛒</span>
+                <span className="font-medium">Os seus produtos estão seguros</span>
               </div>
-              <p className="text-sm text-blue-700">
-                A nossa equipa foi automaticamente notificada. Se o problema persistir, 
-                iremos contactá-lo em breve para o ajudar a finalizar a sua compra.
+              <p className="text-sm text-amber-700">
+                Nada se perdeu! Pode continuar a comprar ou finalizar a compra quando quiser. 
+                O seu carrinho mantém-se igual.
               </p>
             </div>
 
