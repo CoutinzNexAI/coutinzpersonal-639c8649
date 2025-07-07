@@ -328,7 +328,7 @@ const HeroSection: React.FC = () => {
 
             {/* Subtitle with Simplified Animation */}
             <motion.p 
-              className="text-lg md:text-xl text-ghibli-earth mb-6 leading-relaxed max-w-3xl"
+              className="text-lg md:text-xl text-ghibli-earth mb-10 leading-relaxed max-w-3xl"
               variants={subtitleVariants}
             >
               Porque memórias não foram feitas para ficar no ecrã!
@@ -336,7 +336,7 @@ const HeroSection: React.FC = () => {
 
             {/* Benefits */}
             <motion.div 
-              className="grid grid-cols-2 gap-3 mb-6"
+              className="grid grid-cols-2 gap-3 mb-8"
               variants={itemVariants}
             >
               <div className="flex items-center space-x-2">
@@ -427,12 +427,12 @@ const HeroSection: React.FC = () => {
               </motion.div>
             </Link>
 
-            {/* Sub-grelha para os 2 quadrados - LIGEIRAMENTE MENORES */}
-            <div className="col-span-1 grid grid-rows-2 gap-3 h-full max-h-[460px]">
+            {/* Sub-grelha para os 2 quadrados - MAIORES NO DESKTOP */}
+            <div className="col-span-1 grid grid-rows-2 gap-4 h-full max-h-[520px]">
               {/* Quadrado 1:1 - Tecnologia */}
               <Link href="/shop/tecnologia/custom_phone_case" className="row-span-1">
                 <motion.div 
-                  className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer h-full w-full max-h-[220px]"
+                  className="relative aspect-square rounded-xl overflow-hidden shadow-xl group cursor-pointer h-full w-full max-h-[250px]"
                   whileHover={{ scale: 1.02, rotate: 1 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -442,17 +442,17 @@ const HeroSection: React.FC = () => {
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     quality={95}
-                    sizes="(max-width: 1024px) 25vw, 12.5vw"
+                    sizes="(max-width: 1024px) 25vw, 15vw"
                   />
                   {/* Overlays e texto */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute top-1 right-1">
-                    <span className="bg-ghibli-poppy text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
+                  <div className="absolute top-2 right-2">
+                    <span className="bg-ghibli-poppy text-white px-2 py-1 rounded-full text-sm font-bold">
                       TOP
                     </span>
                   </div>
-                  <div className="absolute bottom-1 left-1 right-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <h4 className="text-xs font-bold">Capa Telemóvel</h4>
+                  <div className="absolute bottom-2 left-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <h4 className="text-sm font-bold">Capa Telemóvel</h4>
                   </div>
                 </motion.div>
               </Link>
@@ -460,7 +460,7 @@ const HeroSection: React.FC = () => {
               {/* Quadrado 1:1 - Caneca Coração */}
               <Link href="/shop/mug/heart_mug" className="row-span-1">
                 <motion.div 
-                  className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer h-full w-full max-h-[220px]"
+                  className="relative aspect-square rounded-xl overflow-hidden shadow-xl group cursor-pointer h-full w-full max-h-[250px]"
                   whileHover={{ scale: 1.02, rotate: 0 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -470,17 +470,17 @@ const HeroSection: React.FC = () => {
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     quality={95}
-                    sizes="(max-width: 1024px) 25vw, 12.5vw"
+                    sizes="(max-width: 1024px) 25vw, 15vw"
                   />
                   {/* Overlays e texto */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute top-1 right-1">
-                    <span className="bg-pink-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
+                  <div className="absolute top-2 right-2">
+                    <span className="bg-pink-500 text-white px-2 py-1 rounded-full text-sm font-bold">
                       ❤️
                     </span>
                   </div>
-                  <div className="absolute bottom-1 left-1 right-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <h4 className="text-xs font-bold">Caneca Coração</h4>
+                  <div className="absolute bottom-2 left-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <h4 className="text-sm font-bold">Caneca Coração</h4>
                   </div>
                 </motion.div>
               </Link>
