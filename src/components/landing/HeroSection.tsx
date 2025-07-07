@@ -151,7 +151,7 @@ const HeroSection: React.FC = () => {
             >
               {/* Frase completa centrada - VERSÃO ULTRA ROBUSTA MOBILE */}
               <motion.h1 
-                className="text-base sm:text-lg md:text-xl font-black text-ghibli-wood leading-snug tracking-wide drop-shadow-sm"
+                className="text-lg sm:text-xl md:text-2xl font-black text-ghibli-wood leading-snug tracking-wide drop-shadow-sm"
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ 
