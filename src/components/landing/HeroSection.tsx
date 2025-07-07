@@ -149,16 +149,17 @@ const HeroSection: React.FC = () => {
               className="text-center mb-6 px-3 max-w-sm mx-auto"
               variants={itemVariants}
             >
-              {/* Frase completa centrada - VERSÃO ULTRA ROBUSTA MOBILE */}
+              {/* Frase completa centrada - COM ANIMAÇÃO DE ENTRADA VISÍVEL */}
               <motion.h1 
                 className="text-lg sm:text-xl md:text-2xl font-black text-ghibli-wood leading-snug tracking-wide drop-shadow-sm"
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                initial={{ opacity: 0, y: 50, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ 
-                  duration: 1.0, 
+                  duration: 1.2, 
                   ease: "easeOut",
                   type: "spring",
-                  bounce: 0.3
+                  bounce: 0.4,
+                  delay: 0.3
                 }}
                 style={{
                   textShadow: '0 1px 3px rgba(139, 69, 19, 0.1)',
@@ -166,31 +167,31 @@ const HeroSection: React.FC = () => {
                   lineHeight: '1.2'
                 }}
               >
-                {/* Primeira linha sempre separada */}
+                {/* Primeira linha com entrada sequencial */}
                 <motion.div
                   className="block mb-1"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
                 >
                   <span className="inline-block">Make Your Imagined</span>
                 </motion.div>
                 
-                {/* Segunda linha com destaque */}
+                {/* Segunda linha com destaque e entrada mais dramática */}
                 <motion.div
                   className="block"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
+                  initial={{ opacity: 0, x: 30, scale: 0.9 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  transition={{ duration: 0.8, delay: 0.8, ease: "easeOut", type: "spring", bounce: 0.3 }}
                 >
                   <span className="inline-block bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent font-extrabold">
                     Photos Real
                   </span>
                   <motion.span
                     className="inline-block ml-1 text-sm"
-                    initial={{ scale: 0, rotate: 180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.5, delay: 0.8, type: "spring", bounce: 0.6 }}
+                    initial={{ scale: 0, rotate: 180, opacity: 0 }}
+                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 1.4, type: "spring", bounce: 0.8 }}
                   >
                     ✨
                   </motion.span>
@@ -246,7 +247,7 @@ const HeroSection: React.FC = () => {
                 <span className="text-ghibli-earth font-medium text-sm">+300 utilizadores</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
-                <span className="text-yellow-500 font-medium text-sm">⭐5 Reviews</span>
+                <span className="text-yellow-500 font-medium text-sm">⭐ Máxima Qualidade</span>
               </div>
             </motion.div>
           </motion.div>
