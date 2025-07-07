@@ -104,9 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (syncError) {
         console.error("[syncUserWithDatabase] Error syncing user via API:", syncError);
-        toast.error("Erro ao sincronizar perfil", { 
-          description: syncError instanceof Error ? syncError.message : 'Erro desconhecido'
-        });
+        // Removido toast - não é necessário incomodar o utilizador com erros técnicos de sincronização
       }
     } catch (error) {
       console.error('[syncUserWithDatabase] Exception:', error);

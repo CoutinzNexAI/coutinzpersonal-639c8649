@@ -18,7 +18,7 @@ export const CartButton: React.FC<CartButtonProps> = ({
     <Button
       onClick={onClick}
       variant="ghost"
-      className={`relative p-3 rounded-xl hover:bg-ghibli-moss/10 transition-all duration-300 group ${className}`}
+      className={`relative p-3 rounded-xl hover:bg-ghibli-moss/10 transition-all duration-300 group overflow-hidden ${className}`}
     >
       {/* Ícone do carrinho */}
       <ShoppingCart className="w-6 h-6 text-ghibli-wood group-hover:text-ghibli-moss transition-colors" />
@@ -36,7 +36,7 @@ export const CartButton: React.FC<CartButtonProps> = ({
       
       {/* Efeito de shimmer quando há items */}
       {cartCount > 0 && (
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-ghibli-moss/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-ghibli-moss/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 overflow-hidden"></div>
       )}
     </Button>
   );

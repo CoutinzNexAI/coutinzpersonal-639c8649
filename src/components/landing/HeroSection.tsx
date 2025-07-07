@@ -57,7 +57,7 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="relative py-8 md:py-12 overflow-hidden bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50">
+    <section className="relative py-8 md:py-12 md:pb-24 lg:pb-28 overflow-hidden bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50">
       <div className="container mx-auto px-4 z-10">
         {/* Mobile Layout */}
         <div className="lg:hidden">
@@ -151,7 +151,7 @@ const HeroSection: React.FC = () => {
             >
               {/* Frase completa centrada - COM ANIMAÇÃO DE ENTRADA VISÍVEL */}
               <motion.h1 
-                className="text-xl sm:text-2xl md:text-3xl font-black text-ghibli-wood leading-snug tracking-wide drop-shadow-sm"
+                className="text-xl sm:text-2xl md:text-3xl font-black text-ghibli-wood leading-tight tracking-wide drop-shadow-sm"
                 initial={{ opacity: 0, y: 50, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ 
@@ -163,8 +163,7 @@ const HeroSection: React.FC = () => {
                 }}
                 style={{
                   textShadow: '0 1px 3px rgba(139, 69, 19, 0.1)',
-                  wordSpacing: 'normal',
-                  lineHeight: '1.2'
+                  lineHeight: '1.1'
                 }}
               >
                 {/* Primeira linha com entrada sequencial */}
@@ -174,7 +173,7 @@ const HeroSection: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
                 >
-                  <span className="inline-block">Make Your Imagined</span>
+                  Make Your Imagined
                 </motion.div>
                 
                 {/* Segunda linha com destaque e entrada mais dramática */}
@@ -184,14 +183,14 @@ const HeroSection: React.FC = () => {
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   transition={{ duration: 0.8, delay: 0.8, ease: "easeOut", type: "spring", bounce: 0.3 }}
                 >
-                  <span className="inline-block">Photos </span>
-                  <span className="inline-block bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent font-extrabold">
+                  <span className="text-ghibli-wood">Photos </span>
+                  <span className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent font-extrabold">
                     Real
                   </span>
                   <motion.span
-                    className="inline-block ml-1 text-sm"
+                    className="ml-1 text-sm"
                     initial={{ scale: 0, rotate: 180, opacity: 0 }}
-                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
                     transition={{ duration: 0.6, delay: 1.4, type: "spring", bounce: 0.8 }}
                   >
                     ✨

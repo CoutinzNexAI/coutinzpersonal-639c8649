@@ -600,7 +600,7 @@ export function useImageProcessing() {
       if (!dailyStatus?.can_transform) {
         // 🔥 TRACKING: Daily limit exceeded
         trackFunnelAbandonment('transformation_start', 'daily_limit_exceeded', {
-          user_id: userInfo.id,
+        user_id: userInfo.id,
           current_usage: dailyStatus?.current_usage || 0,
           daily_limit: dailyStatus?.daily_limit || 10,
           style_id: selectedStyle.id

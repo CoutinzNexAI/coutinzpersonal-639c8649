@@ -20,64 +20,141 @@ interface FaqItem {
 const faqData: FaqItem[] = [
   {
     id: "item-1",
-    question: "O que é o PicTuz e como funciona a magia?",
+    question: "Como funciona o PicTuz? É realmente grátis criar as fotos?",
     answer: (
       <div className="space-y-3">
-        <p>
-          O <strong>PicTuz</strong> é a plataforma portuguesa mais avançada para transformar as suas fotografias em obras de arte únicas usando inteligência artificial de última geração!
-        </p>
-        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-3">
-          <p className="text-amber-800 text-sm">
-            ✨ <strong>A nossa IA foi treinada</strong> com milhares de obras de arte clássicas e modernas, permitindo criar transformações que rivalizam com artistas profissionais!
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-green-800 font-medium">
+            🎁 <strong>SIM! Completamente grátis para transformar as suas fotos!</strong>
           </p>
         </div>
         <p>
-          Simplesmente carregue a sua foto, escolha entre os nossos <strong>+15 estilos únicos</strong> (desde Ghibli mágico até Azulejo Português), e veja a magia acontecer em segundos!
+          O <strong>PicTuz</strong> oferece <strong>10 transformações gratuitas por dia</strong> para todos os utilizadores. Simplesmente:
         </p>
+        <ol className="list-decimal list-inside space-y-2 pl-2">
+          <li><strong>Registe-se gratuitamente</strong> (pode usar o Google)</li>
+          <li><strong>Carregue a sua foto</strong> (JPG, PNG, WEBP até 10MB)</li>
+          <li><strong>Escolha entre +15 estilos únicos</strong> (Ghibli, LEGO, Cartoon, Azulejo Português...)</li>
+          <li><strong>Transforme instantaneamente</strong> - sem custos!</li>
+          <li><strong>Descarregue em alta qualidade</strong> e use como desejar</li>
+        </ol>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-blue-800 text-sm">
+            ⏰ <strong>Limite diário:</strong> 10 transformações por dia. Mais que suficiente para criar arte incrível!
+        </p>
+        </div>
       </div>
     ),
   },
   {
     id: "item-2",
-    question: "Como começar? É realmente grátis?",
+    question: "Que produtos físicos posso encomendar?",
     answer: (
       <div className="space-y-3">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <p className="text-green-800 font-medium">
-            🎁 <strong>SIM! Completamente grátis para começar!</strong>
+        <p className="font-medium text-ghibli-wood">
+          Transforme as suas criações em produtos físicos de <strong>qualidade premium</strong>:
+        </p>
+        <div className="bg-gradient-to-r from-ghibli-moss/10 to-green-50 border border-green-200 rounded-lg p-4">
+          <ul className="text-sm space-y-2">
+            <li>• <strong>Decoração:</strong> Canvas, posters, quadros com moldura</li>
+            <li>• <strong>Uso diário:</strong> Canecas, capas de telemóvel</li>
+            <li>• <strong>Escritório:</strong> Cadernos, mousepads</li>
+            <li>• <strong>Acessórios:</strong> Sacos personalizados</li>
+          </ul>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-blue-800 text-sm">
+            🛍️ <strong>Visite a nossa loja</strong> para ver todos os produtos disponíveis e escolher o perfeito para si!
           </p>
         </div>
-        <ol className="list-decimal list-inside space-y-2 pl-2">
-          <li>
-            <strong>Registe-se gratuitamente</strong> (pode usar o Google) e receba <strong>2 PicCoins</strong> de bónus!
-          </li>
-          <li>
-            <strong>Carregue a sua foto</strong> (JPG, PNG, WEBP até 10MB) - sem marcas de água!
-          </li>
-          <li>
-            <strong>Escolha o seu estilo favorito</strong> da nossa galeria curada
-          </li>
-          <li>
-            <strong>Use as suas PicCoins</strong> para transformar - as primeiras são por nossa conta!
-          </li>
-          <li>
-            <strong>Descarregue em alta qualidade</strong> e partilhe na nossa comunidade
-          </li>
-        </ol>
-        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
-          💡 <strong>Dica:</strong> Explore a nossa comunidade - utilizadores ativos descobrem formas secretas de ganhar PicCoins extra! 🪙
-        </p>
       </div>
     ),
   },
   {
     id: "item-3",
+    question: "Quanto tempo demora a entrega e qual o processo?",
+    answer: (
+      <div className="space-y-3">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-green-800 font-medium">
+            🚀 <strong>Entrega rápida em 3-5 dias úteis!</strong>
+          </p>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-ghibli-moss text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</div>
+            <div>
+              <h4 className="font-medium text-ghibli-wood">Encomenda Confirmada</h4>
+              <p className="text-sm text-ghibli-earth">Recebe confirmação imediata por email com detalhes da encomenda</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-ghibli-sand text-ghibli-wood rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</div>
+            <div>
+              <h4 className="font-medium text-ghibli-wood">Produção Premium</h4>
+              <p className="text-sm text-ghibli-earth">Impressão de alta qualidade com controlo rigoroso (1-2 dias úteis)</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-ghibli-sand text-ghibli-wood rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</div>
+            <div>
+              <h4 className="font-medium text-ghibli-wood">Embalagem e Envio</h4>
+              <p className="text-sm text-ghibli-earth">Embalagem cuidadosa e envio com tracking (1 dia útil)</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-ghibli-moss text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">✓</div>
+            <div>
+              <h4 className="font-medium text-ghibli-wood">Entrega na Sua Casa</h4>
+              <p className="text-sm text-ghibli-earth">Recebe o seu produto personalizado em casa (2-3 dias úteis após envio)</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-blue-800 text-sm">
+            📦 <strong>Tracking incluído:</strong> Acompanhe a sua encomenda em tempo real desde a produção até à entrega!
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: "item-4",
+    question: "A qualidade dos produtos é realmente boa?",
+    answer: (
+      <div className="space-y-3">
+        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-3">
+          <p className="text-amber-800 font-medium">
+            ⭐ <strong>Qualidade Premium Garantida!</strong>
+          </p>
+        </div>
+        <p>
+          Usamos apenas <strong>materiais de alta qualidade</strong> e parceiros de confiança para garantir que recebe produtos que duram:
+        </p>
+        <ul className="list-disc list-inside space-y-1 pl-2">
+          <li><strong>Impressão HD profissional</strong> com cores vibrantes e duradouras</li>
+          <li><strong>Materiais premium</strong> resistentes ao uso diário</li>
+          <li><strong>Controlo de qualidade rigoroso</strong> antes do envio</li>
+          <li><strong>Acabamentos profissionais</strong> em todos os produtos</li>
+        </ul>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-green-800 text-sm">
+            🛡️ <strong>Garantia de 30 dias:</strong> Se não ficar 100% satisfeito com a qualidade, devolvemos o dinheiro!
+        </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: "item-5",
     question: "Quanto tempo demora para transformar uma imagem?",
     answer: (
       <div className="space-y-2">
-        <p>
-          <strong>A magia acontece rapidamente!</strong>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-green-800 font-medium">
+            ⚡ <strong>Transformação instantânea - resultados em segundos!</strong>
         </p>
+        </div>
         <ul className="list-disc list-inside space-y-1 pl-2">
           <li><strong>Fotos simples:</strong> 30-60 segundos ⚡</li>
           <li><strong>Fotos complexas:</strong> 1-3 minutos 🎨</li>
@@ -85,28 +162,28 @@ const faqData: FaqItem[] = [
         </ul>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-blue-800 text-sm">
-            🚀 <strong>Novidade:</strong> Agora com processamento até 5x mais rápido! O nosso sistema de monitorização garante que nunca perde uma transformação.
+            🚀 <strong>Sistema otimizado:</strong> Processamento até 5x mais rápido com monitorização que garante que nunca perde uma transformação!
           </p>
         </div>
       </div>
     ),
   },
   {
-    id: "item-5",
+    id: "item-6",
     question: "As minhas fotos ficam seguras? E a privacidade?",
     answer: (
       <div className="space-y-2">
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
           <p className="text-green-800 font-medium">
-            🔒 <strong>100% Seguro e Privado!</strong>
+            🔒 <strong>100% Seguro e Privado - A sua privacidade é sagrada!</strong>
           </p>
         </div>
         <ul className="list-disc list-inside space-y-1 pl-2">
-          <li><strong>Encriptação total:</strong> As suas fotos são protegidas durante todo o processo</li>
+          <li><strong>Encriptação total:</strong> Fotos protegidas durante todo o processo</li>
           <li><strong>Servidores europeus:</strong> Dados processados em infraestrutura GDPR-compliant</li>
           <li><strong>Retenção limitada:</strong> Fotos originais removidas após processamento</li>
           <li><strong>Controlo total:</strong> Pode eliminar as suas transformações a qualquer momento</li>
-          <li><strong>Não vendemos dados:</strong> A sua privacidade é sagrada para nós</li>
+          <li><strong>Não vendemos dados:</strong> Zero partilha com terceiros</li>
         </ul>
         <p className="text-sm">
           Consulte a nossa <strong>Política de Privacidade</strong> para detalhes completos sobre proteção de dados.
@@ -115,39 +192,8 @@ const faqData: FaqItem[] = [
     ),
   },
   {
-    id: "item-6",
-    question: "Como funciona o sistema de PicCoins?",
-    answer: (
-      <div className="space-y-3">
-        <p>
-          As <strong>PicCoins 🪙</strong> são a nossa moeda digital que torna tudo justo e transparente:
-        </p>
-        <div className="space-y-2">
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
-            <p className="text-yellow-800">
-              <strong>🎁 Bónus de Registo:</strong> 2 PicCoins gratuitas (2 transformações!)
-            </p>
-          </div>
-          <div className="bg-blue-50 border border-blue-200 rounded p-3">
-            <p className="text-blue-800">
-              <strong>💰 Pacotes Económicos:</strong> Descontos até 40% em pacotes maiores
-            </p>
-          </div>
-          <div className="bg-purple-50 border border-purple-200 rounded p-3">
-            <p className="text-purple-800">
-              <strong>🌟 Bónus da Comunidade:</strong> Ganhe PicCoins participando ativamente!
-            </p>
-          </div>
-        </div>
-        <p className="text-sm text-amber-700">
-          💡 <strong>Segredo:</strong> Comentários úteis, likes genuínos e partilhas na comunidade podem render PicCoins surprise! 🎁
-        </p>
-      </div>
-    ),
-  },
-  {
-    id: "item-8",
-    question: "Pagamentos são seguros? Que métodos aceitem?",
+    id: "item-7",
+    question: "Pagamentos são seguros? Que métodos aceitam?",
     answer: (
       <div className="space-y-2">
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
@@ -158,69 +204,101 @@ const faqData: FaqItem[] = [
         <p>
           Usamos o <strong>Stripe</strong>, a plataforma de pagamentos mais confiável do mundo, utilizada por empresas como Spotify, Uber e Shopify.
         </p>
-        <p className="text-sm font-medium">
-          🔐 <strong>O PicTuz nunca vê ou armazena dados do seu cartão</strong> - tudo processado diretamente pelo Stripe.
+        <div className="space-y-2">
+          <div className="bg-blue-50 border border-blue-200 rounded p-3">
+            <p className="text-blue-800 text-sm">
+              💳 <strong>Métodos aceites:</strong> Visa, Mastercard, American Express, Apple Pay, Google Pay
+            </p>
+          </div>
+          <div className="bg-purple-50 border border-purple-200 rounded p-3">
+            <p className="text-purple-800 text-sm">
+              🔐 <strong>Segurança máxima:</strong> O PicTuz nunca vê ou armazena dados do seu cartão - tudo processado diretamente pelo Stripe
         </p>
+          </div>
+        </div>
       </div>
     ),
   },
   {
-    id: "item-9",
-    question: "Posso usar as imagens comercialmente?",
+    id: "item-8",
+    question: "Posso usar as imagens comercialmente? Há restrições?",
     answer: (
       <div className="space-y-2">
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
           <p className="text-green-800 font-medium">
-            ✅ <strong>Sim! Uso comercial permitido!</strong>
+            ✅ <strong>Sim! Uso comercial totalmente permitido!</strong>
           </p>
         </div>
         <p>
-          As transformações criadas no PicTuz são <strong>suas</strong> para usar como desejar:
+          As transformações criadas no PicTuz são <strong>100% suas</strong> para usar como desejar:
         </p>
         <ul className="list-disc list-inside space-y-1 pl-2">
           <li><strong>Redes sociais:</strong> Instagram, Facebook, TikTok - sem restrições</li>
           <li><strong>Uso comercial:</strong> Marketing, produtos, vendas online</li>
           <li><strong>Impressões:</strong> Posters, merchandising, arte física</li>
           <li><strong>Portfolios:</strong> Use como exemplos do seu trabalho criativo</li>
+          <li><strong>NFTs e arte digital:</strong> Crie e venda as suas criações</li>
         </ul>
-        <p className="text-sm text-amber-700">
+        <div className="bg-amber-50 border border-amber-200 rounded p-3">
+          <p className="text-amber-700 text-sm">
           📝 <strong>Apenas pedimos:</strong> Se partilhar publicamente, mencione @pictuz.ia - ajuda-nos a crescer! 🙏
         </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: "item-9",
+    question: "Que imagens posso transformar? Há limitações?",
+    answer: (
+      <div className="space-y-3">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-green-800 font-medium">
+            ✅ <strong>Pode transformar quase tudo!</strong>
+          </p>
+        </div>
+        <p>
+          A nossa IA funciona com uma grande variedade de imagens:
+        </p>
+        <ul className="list-disc list-inside space-y-1 pl-2">
+          <li><strong>Pessoas:</strong> Retratos, selfies, fotos de família</li>
+          <li><strong>Animais:</strong> Cães, gatos, qualquer animal de estimação</li>
+          <li><strong>Lugares:</strong> Paisagens, cidades, monumentos, natureza</li>
+          <li><strong>Objetos:</strong> Carros, comida, arquitetura, arte</li>
+          <li><strong>Memórias:</strong> Casamentos, festas, viagens</li>
+        </ul>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-red-800 text-sm">
+            ❌ <strong>Não permitido:</strong> Conteúdo violento, armas, nudez ou imagens inapropriadas
+          </p>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-blue-800 text-sm">
+            💡 <strong>Dica:</strong> Fotos nítidas e bem iluminadas dão sempre os melhores resultados!
+          </p>
+        </div>
       </div>
     ),
   },
   {
     id: "item-10",
-    question: "Que tipos de fotos funcionam melhor?",
+    question: "Oferecem descontos ou promoções?",
     answer: (
       <div className="space-y-3">
-        <p>
-          A nossa IA é <strong>inteligente e versátil</strong>, mas algumas dicas garantem resultados incríveis:
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="bg-green-50 border border-green-200 rounded p-3">
-            <span className="font-medium text-green-800">✅ Funciona MUITO bem:</span>
-            <ul className="text-sm mt-1 space-y-1">
-              <li>• Retratos nítidos</li>
-              <li>• Paisagens detalhadas</li>
-              <li>• Animais de estimação</li>
-              <li>• Arquitetura</li>
-              <li>• Fotos com boa iluminação</li>
-            </ul>
-          </div>
-          <div className="bg-orange-50 border border-orange-200 rounded p-3">
-            <span className="font-medium text-orange-800">⚠️ Resultados variáveis:</span>
-            <ul className="text-sm mt-1 space-y-1">
-              <li>• Fotos muito escuras</li>
-              <li>• Imagens muito pequenas</li>
-              <li>• Múltiplas pessoas</li>
-              <li>• Movimento/blur</li>
-            </ul>
-          </div>
+        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-3">
+          <p className="text-amber-800 font-medium">
+            🎁 <strong>Sim! Várias formas de poupar!</strong>
+          </p>
         </div>
+        <ul className="list-disc list-inside space-y-2 pl-2">
+          <li><strong>Descontos automáticos:</strong> Compre 2+ produtos e poupe automaticamente</li>
+          <li><strong>Transformações gratuitas:</strong> 10 por dia, crie à vontade</li>
+          <li><strong>Promoções especiais:</strong> Ofertas exclusivas por email</li>
+          <li><strong>Novidades:</strong> Acesso antecipado a novos produtos</li>
+        </ul>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-blue-800 text-sm">
-            💡 <strong>Dica profissional:</strong> Fotos quadradas (1:1) ou verticais (4:5) tendem a ter os melhores resultados para redes sociais!
+            📧 <strong>Subscreva a nossa newsletter</strong> para receber ofertas exclusivas e ser o primeiro a saber das novidades!
           </p>
         </div>
       </div>
