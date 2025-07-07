@@ -86,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Usar a função SQL para consumir uma transformação diária
     const { data, error } = await supabaseAdmin.rpc('use_daily_transformation', {
       p_user_id: userId,
-      p_transformation_id: transformationId,
+      p_transformation_id: transformationId || null,
       p_limit: 10 // Limite diário padrão
     });
 

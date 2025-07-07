@@ -40,9 +40,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ uploadedImageUrl, _errorMessage
             <p>
               Pedimos desculpa, não foi possível processar a sua imagem.
             </p>
-            <p className="font-medium text-green-600">
-              O seu crédito será automaticamente devolvido.
-            </p>
+
             <p>
               Tente novamente com outra imagem ou estilo diferente.
           </p>

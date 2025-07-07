@@ -29,7 +29,7 @@ const POLLING_INTERVAL_MS = 10000; // Intervalo de polling (10 segundos) - menos
 
 // Mensagens de erro padronizadas
 const STANDARD_ERROR_MESSAGE = "Pedimos desculpa, não foi possível processar a sua imagem.";
-const SIMPLE_ERROR_TOAST_MESSAGE = "Falha na transformação. O seu crédito será devolvido automaticamente.";
+const SIMPLE_ERROR_TOAST_MESSAGE = "Falha na transformação. Tente novamente com outra imagem ou estilo diferente.";
 
 // Tipos de status de falha que podem ser definidos na DB
 type FailureStatusDB = 
@@ -382,7 +382,7 @@ export function useImageProcessing() {
         setErrorMessage(STANDARD_ERROR_MESSAGE);
         setProcessingState('error'); 
         setActiveStep(3);
-        toast.error("Processamento Demorado", { description: "A transformação demorou mais que o esperado. O seu crédito será devolvido automaticamente.", duration: 7000 });
+        toast.error("Processamento Demorado", { description: "A transformação demorou mais que o esperado. Tente novamente.", duration: 7000 });
 
         // Process failure for timeout
         await handleFailure(currentJobId);
