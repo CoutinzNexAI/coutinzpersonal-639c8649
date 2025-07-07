@@ -111,7 +111,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
       const shippingPrice = 0; // Envio sempre grátis
       const finalTotal = cartSummary.subtotal + cartSummary.tax;
 
-      toast.info('A preparar sessão de pagamento...', { duration: 2000 });
+      // A preparar pagamento - loading state é suficiente
 
       // 3. Criar sessão de pagamento Stripe (mesma API)
       const response = await fetch('/api/stripe/create-checkout-session', {

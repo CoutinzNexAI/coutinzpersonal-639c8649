@@ -135,16 +135,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       setImageAdjustments(undefined);
       setHasGenerated(false);
       
-      // Se vem de transformação, mostrar mensagem mais específica
-      if (fromTransformation === 'true') {
-        toast.success('Produto configurado!', {
-          description: 'A sua arte está pronta para compra'
-        });
-      } else {
-        toast.success('Arte aplicada automaticamente!', {
-          description: 'A imagem da sua transformação foi aplicada ao produto'
-        });
-      }
+      // Arte aplicada automaticamente - visual feedback é suficiente
     }
   }, [router.query, selectedImageUrl]);
 
@@ -288,9 +279,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       });
 
       if (success) {
-      toast.success(`${product.name} adicionado ao carrinho!`, {
-          description: 'O carrinho foi aberto automaticamente'
-        });
+        // Produto adicionado - abertura do carrinho é feedback suficiente
         // Abrir o carrinho sidebar automaticamente
         setIsCartOpen(true);
       }
@@ -321,7 +310,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     // ✅ NOTA: mockupGenerationKey será gerado automaticamente pelo useEffect
     console.log('🎨 [GenericProductPage] Image selection completed, waiting for useEffect to generate key');
     
-    toast.success('Arte aplicada com sucesso!');
+    // Arte aplicada - visual feedback é suficiente
   };
 
   // ✅ CALLBACK PARA QUANDO MOCKUP É GERADO
@@ -386,9 +375,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           
           const finishLoading = () => {
             setIsGeneratingMockup(false);
-            if (!isPositionChange) {
-              toast.success('Mockup atualizado com sucesso!');
-            }
+            // Mockup atualizado - visual feedback é suficiente
           };
           
           img.onload = finishLoading;
@@ -409,9 +396,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           };
         } else {
           setIsGeneratingMockup(false);
-          if (!isPositionChange) {
-            toast.success('Mockup atualizado com sucesso!');
-          }
+          // Mockup atualizado - visual feedback é suficiente
         }
       }
     } catch (error) {

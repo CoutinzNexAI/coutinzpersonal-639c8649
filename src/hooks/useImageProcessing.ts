@@ -308,7 +308,7 @@ export function useImageProcessing() {
           setProcessingState('completed');
           setActiveStep(3);
           setSimulatedProgress(100);
-          toast.success("Transformação concluída!");
+          // Transformação concluída - visual feedback é suficiente
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
@@ -362,7 +362,7 @@ export function useImageProcessing() {
               setProcessingState('completed'); 
             setActiveStep(3); 
               setSimulatedProgress(100);
-              toast.success("Transformação encontrada após verificação final!");
+              // Transformação encontrada - visual feedback é suficiente
               if (pollingIntervalRef.current) {
                 clearInterval(pollingIntervalRef.current);
                 pollingIntervalRef.current = null;
@@ -500,7 +500,7 @@ export function useImageProcessing() {
     setIsStyleModalOpen(false);
     setErrorMessage(null); 
     setProcessingState('idle'); 
-    toast.success(`Estilo "${style.name}" selecionado!`);
+          // Estilo selecionado - visual feedback é suficiente
   }, [setActiveStep, setSelectedStyle, setIsStyleModalOpen, setErrorMessage, setProcessingState, userInfo?.id, uploadedImage]);
 
 
@@ -612,7 +612,7 @@ export function useImageProcessing() {
       });
 
       if (currentFreshBalance >= PICCOINS_PER_TRANSFORMATION) {
-        toast.info("💰 Usando PicCoins...", { description: `A preparar a sua transformação. Saldo: ${currentFreshBalance}` });
+        // A usar PicCoins - progress bar é suficiente
         
         setProcessingState('uploading_image');
 
@@ -779,7 +779,7 @@ export function useImageProcessing() {
           style_name: selectedStyle.name
         });
 
-        toast.success("✨ Transformação Iniciada!", { description: "A sua imagem está a ser processada. Pode acompanhar aqui ou voltar mais tarde." });
+        // Transformação iniciada - progress bar é suficiente
         
       } else { 
         // 🔥 TRACKING: Insufficient credits
@@ -946,7 +946,7 @@ export function useImageProcessing() {
         file_size: blob.size
       });
       
-      toast.success("✅ Imagem baixada com sucesso!");
+      // Imagem baixada - a ação de download é feedback suficiente
     } catch (error) {
       console.error('[handleDownload] Erro ao baixar imagem:', error);
 

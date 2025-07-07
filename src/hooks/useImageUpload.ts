@@ -186,9 +186,7 @@ export function useImageUpload() {
     const previewUrl = URL.createObjectURL(file);
     setUploadedFile({ file, preview: previewUrl });
     
-    toast.success("Imagem Carregada", {
-      description: `${file.name} (${formatFileSize(file.size)})`
-    });
+    // Imagem carregada - visual feedback é suficiente
     setIsVerifying(false); // Termina a verificação
   }, [validateFile, uploadedFile?.preview]); // Adicionado uploadedFile?.preview para revogar corretamente
 
