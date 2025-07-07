@@ -144,14 +144,14 @@ const HeroSection: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Mobile Logo + Title Layout - COM EFEITO CAPTANTE */}
+            {/* Mobile Logo + Title Layout - COM EFEITO CAPTANTE MELHORADO */}
             <motion.div 
-              className="text-center mb-6"
+              className="text-center mb-6 px-2"
               variants={itemVariants}
             >
-              {/* Frase completa centrada - COM EFEITO CAPTANTE */}
+              {/* Frase completa centrada - COM EFEITO CAPTANTE RESPONSIVO */}
               <motion.h1 
-                className="text-xl font-black text-ghibli-wood leading-tight tracking-wide drop-shadow-sm"
+                className="text-lg sm:text-xl font-black text-ghibli-wood leading-tight tracking-wide drop-shadow-sm"
                 initial={{ opacity: 0, y: 30, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ 
@@ -161,27 +161,30 @@ const HeroSection: React.FC = () => {
                   bounce: 0.4
                 }}
                 style={{
-                  textShadow: '0 2px 4px rgba(139, 69, 19, 0.1)'
+                  textShadow: '0 2px 4px rgba(139, 69, 19, 0.1)',
+                  wordSpacing: '0.1em'
                 }}
               >
                 <motion.span
-                  className="inline-block"
+                  className="inline-block break-words"
                   initial={{ rotateX: 90, opacity: 0 }}
                   animate={{ rotateX: 0, opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.3 }}
+                  style={{ transformStyle: 'preserve-3d' }}
                 >
                   Make Your Imagined{" "}
                 </motion.span>
                 <motion.span
-                  className="inline-block bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent"
+                  className="inline-block bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent break-words"
                   initial={{ rotateX: 90, opacity: 0 }}
                   animate={{ rotateX: 0, opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.6 }}
+                  style={{ transformStyle: 'preserve-3d' }}
                 >
                   Photos Real
                 </motion.span>
                 <motion.span
-                  className="inline-block ml-2"
+                  className="inline-block ml-1"
                   initial={{ scale: 0, rotate: 180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 0.6, delay: 1.2, type: "spring", bounce: 0.6 }}
@@ -191,24 +194,24 @@ const HeroSection: React.FC = () => {
               </motion.h1>
             </motion.div>
 
-            {/* Mobile CTA Buttons - LADO A LADO - AUMENTADOS 50% */}
+            {/* Mobile CTA Buttons - VERTICALMENTE EMPILHADOS */}
             <motion.div 
-              className="flex gap-3 mb-6"
+              className="flex flex-col gap-3 mb-6 px-4"
               variants={itemVariants}
             >
-              <Link href="/transformacoes" className="flex-1">
-                <motion.div whileTap={{ scale: 0.95 }} className="h-full">
+              <Link href="/transformacoes" className="w-full">
+                <motion.div whileTap={{ scale: 0.95 }} className="w-full">
                 <Button 
                   className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-6 text-lg rounded-xl shadow-lg"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  Transforma Grátis
+                  🎨 Transforma Grátis
                 </Button>
                 </motion.div>
               </Link>
               
-              <Link href="/shop" className="flex-1"> 
-                <motion.div whileTap={{ scale: 0.95 }} className="h-full">
+              <Link href="/shop" className="w-full"> 
+                <motion.div whileTap={{ scale: 0.95 }} className="w-full">
                   <Button 
                     variant="outline" 
                     className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-6 text-lg rounded-xl"
@@ -382,15 +385,15 @@ const HeroSection: React.FC = () => {
             </motion.div>
           </motion.div>
 
-          {/* Right Column - Product Images Grid */}
+          {/* Right Column - Product Images Grid - IMAGENS DIREITA LIGEIRAMENTE MENORES */}
           <motion.div 
-            className="grid grid-cols-2 gap-3 items-start" 
+            className="grid grid-cols-2 gap-3 items-start max-h-[480px]" 
             variants={itemVariants}
           >
             {/* Imagem principal 9:16 - Canvas */}
             <Link href="/shop/canvas/custom_canvas" className="col-span-1">
               <motion.div 
-                className="relative rounded-3xl overflow-hidden shadow-2xl group cursor-pointer w-full aspect-[9/16]"
+                className="relative rounded-3xl overflow-hidden shadow-2xl group cursor-pointer w-full aspect-[9/16] max-h-[480px]"
                 whileHover={{ scale: 1.01, y: -2 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
@@ -419,12 +422,12 @@ const HeroSection: React.FC = () => {
               </motion.div>
             </Link>
 
-            {/* Sub-grelha para os 2 quadrados */}
-            <div className="col-span-1 grid grid-rows-2 gap-3 h-full">
+            {/* Sub-grelha para os 2 quadrados - LIGEIRAMENTE MENORES */}
+            <div className="col-span-1 grid grid-rows-2 gap-3 h-full max-h-[460px]">
               {/* Quadrado 1:1 - Tecnologia */}
               <Link href="/shop/tecnologia/custom_phone_case" className="row-span-1">
                 <motion.div 
-                  className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer h-full w-full"
+                  className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer h-full w-full max-h-[220px]"
                   whileHover={{ scale: 1.02, rotate: 1 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -452,7 +455,7 @@ const HeroSection: React.FC = () => {
               {/* Quadrado 1:1 - Caneca Coração */}
               <Link href="/shop/mug/heart_mug" className="row-span-1">
                 <motion.div 
-                  className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer h-full w-full"
+                  className="relative aspect-square rounded-xl overflow-hidden shadow-lg group cursor-pointer h-full w-full max-h-[220px]"
                   whileHover={{ scale: 1.02, rotate: 0 }}
                   transition={{ duration: 0.3 }}
                 >

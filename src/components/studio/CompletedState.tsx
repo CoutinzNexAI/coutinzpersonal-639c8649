@@ -63,7 +63,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
           productId: 'poster_vertical_semi_glossy',
           userImageUrl: transformedImageUrl,
           userId: userInfo.id,
-          selectedPrintifyVariantId: 101836, // Poster 16" x 24" (40,6 x 61,0 cm)
+          selectedPrintifyVariantId: 92407, // Poster 24" x 36" (61,0 x 91,4 cm) = ~60,96x91,44cm
           // Não passar imageAdjustments - deixar a API calcular automaticamente para fill perfeito
         })
       });

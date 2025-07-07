@@ -103,9 +103,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   // Setup inicial do produto
   useEffect(() => {
     if (product?.variants?.length) {
-      // Para poster vertical, usar o tamanho 24" x 36" (61,0 x 91,4 cm) como padrão
+      // Para poster vertical, usar o tamanho 11" x 14" (27,94 x 35,56 cm) como padrão no menu
       if (product.id === 'poster_vertical_semi_glossy') {
-        const targetVariant = product.variants.find(v => v.id === 92407); // 24" x 36" (61,0 x 91,4 cm)
+        const targetVariant = product.variants.find(v => v.id === 92406); // 11" x 14" (27,94 x 35,56 cm)
         if (targetVariant) {
           setSelectedPrintifyVariantId(targetVariant.id);
         } else {
