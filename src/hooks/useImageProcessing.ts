@@ -610,8 +610,8 @@ export function useImageProcessing() {
         const hours = Math.floor(resetTime);
         const minutes = Math.floor((resetTime - hours) * 60);
         
-        toast.warning("🔄 Limite Diário Atingido!", { 
-          description: `Utilizaste todas as ${dailyStatus?.daily_limit || 10} transformações hoje. ${hours > 0 ? `Reset em ${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `Reset em ${minutes}m`}.`,
+        toast.warning("🎨 Transformações Esgotadas!", { 
+          description: `Já usaste as ${dailyStatus?.daily_limit || 10} transformações de hoje! ${hours > 0 ? `Mais transformações disponíveis em ${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `Mais transformações disponíveis em ${minutes}m`}.`,
           duration: 5000
         });
         setProcessingState('idle'); 

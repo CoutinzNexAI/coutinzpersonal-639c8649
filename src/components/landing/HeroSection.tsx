@@ -69,7 +69,7 @@ const HeroSection: React.FC = () => {
           >
             {/* Mobile Images Grid */}
             <motion.div 
-              className="grid grid-cols-4 gap-2 items-start mb-6" 
+              className="grid grid-cols-4 gap-2 items-start mb-3" 
               variants={itemVariants}
             >
               {/* Canvas 9:16 - 2 colunas */}
@@ -151,7 +151,7 @@ const HeroSection: React.FC = () => {
             >
               {/* Frase completa centrada - COM ANIMAÇÃO DE ENTRADA VISÍVEL */}
               <motion.h1 
-                className="text-lg sm:text-xl md:text-2xl font-black text-ghibli-wood leading-snug tracking-wide drop-shadow-sm"
+                className="text-xl sm:text-2xl md:text-3xl font-black text-ghibli-wood leading-snug tracking-wide drop-shadow-sm"
                 initial={{ opacity: 0, y: 50, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ 
@@ -184,8 +184,9 @@ const HeroSection: React.FC = () => {
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   transition={{ duration: 0.8, delay: 0.8, ease: "easeOut", type: "spring", bounce: 0.3 }}
                 >
+                  <span className="inline-block">Photos </span>
                   <span className="inline-block bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent font-extrabold">
-                    Photos Real
+                    Real
                   </span>
                   <motion.span
                     className="inline-block ml-1 text-sm"

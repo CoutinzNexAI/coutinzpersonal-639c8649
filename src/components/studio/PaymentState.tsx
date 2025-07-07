@@ -23,9 +23,9 @@ const PaymentState: React.FC<PaymentStateProps> = ({
   const getStateMessage = () => {
     switch (processingState) {
       case 'checking_balance':
-        return { icon: Coins, text: "A verificar saldo de PicCoins...", color: "text-amber-600" };
+        return { icon: Coins, text: "A verificar transformações disponíveis...", color: "text-amber-600" };
       case 'spending_coins':
-        return { icon: Coins, text: "A gastar PicCoin...", color: "text-green-600" };
+        return { icon: Coins, text: "A processar transformação...", color: "text-green-600" };
       case 'uploading_image':
         return { icon: LoaderCircle, text: "A fazer upload da imagem...", color: "text-blue-600" };
       case 'creating_job':
@@ -78,13 +78,13 @@ const PaymentState: React.FC<PaymentStateProps> = ({
 
       {!isRedirecting && (
         <div className="space-y-4 w-full max-w-xs">
-          <div className="text-center p-4 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-lg border border-amber-200">
+          <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Coins className="w-5 h-5 text-amber-600" />
-              <span className="font-semibold text-amber-800">Custo: 1 PicCoin</span>
+              <Coins className="w-5 h-5 text-green-600" />
+              <span className="font-semibold text-green-800">Transformação Gratuita</span>
             </div>
-            <p className="text-xs text-amber-700">
-              Se não tiver saldo suficiente, será redirecionado para comprar PicCoins
+            <p className="text-xs text-green-700">
+              Tens transformações disponíveis para usar hoje
             </p>
           </div>
           

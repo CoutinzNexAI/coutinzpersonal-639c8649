@@ -143,9 +143,9 @@ export const useDailyTransformations = () => {
     const minutes = Math.floor((status.hours_until_reset - hours) * 60);
     
     if (hours > 0) {
-      return `Limite esgotado. Reset em ${hours}h${minutes > 0 ? ` ${minutes}m` : ''}`;
+      return `Mais transformações disponíveis em ${hours}h${minutes > 0 ? ` ${minutes}m` : ''}`;
     } else {
-      return `Limite esgotado. Reset em ${minutes}m`;
+      return `Mais transformações disponíveis em ${minutes}m`;
     }
   }, [status]);
 
