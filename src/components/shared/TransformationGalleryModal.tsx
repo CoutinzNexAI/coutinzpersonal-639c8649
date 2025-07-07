@@ -222,11 +222,13 @@ export default function TransformationGalleryModal({
               </p>
               {!searchTerm && (
                 <Button
-                  onClick={handleClose}
-                  className="mt-4"
-                  variant="outline"
+                  onClick={() => {
+                    handleClose();
+                    window.location.href = '/transformacoes';
+                  }}
+                  className="mt-4 bg-ghibli-moss hover:bg-ghibli-moss/90 text-white"
                 >
-                  Criar Transformação
+                  Ir para Transformações
                 </Button>
               )}
             </div>
@@ -288,57 +290,35 @@ export default function TransformationGalleryModal({
         </div>
 
         {/* Footer with pagination */}
-        <div className="shrink-0 flex items-center justify-between pt-4 border-t border-ghibli-stone/30">
-          <div className="flex-1"></div>
-          
-          <div className="flex items-center gap-3">
-            {/* Pagination controls */}
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrevPage}
-                  disabled={currentPage === 1}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                
-                <span className="text-sm text-ghibli-earth px-2">
-                  {currentPage} / {totalPages}
-                </span>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
-            
-            <Button variant="outline" onClick={handleClose}>
-              Cancelar
-            </Button>
-            {selectedImageId && (
-              <Button 
-                onClick={() => {
-                  const selected = transformations.find(t => t.id === selectedImageId);
-                  if (selected) {
-                    handleSelectImage(selected);
-                  }
-                }}
-                className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white"
+        {totalPages > 1 && (
+          <div className="shrink-0 flex items-center justify-center pt-4 border-t border-ghibli-stone/30">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
               >
-                Selecionar Imagem
+                <ChevronLeft className="w-4 h-4" />
               </Button>
-            )}
+              
+              <span className="text-sm text-ghibli-earth px-2">
+                {currentPage} / {totalPages}
+              </span>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );
