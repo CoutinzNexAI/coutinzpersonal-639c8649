@@ -291,7 +291,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] lg:hidden"
+            className="fixed inset-0 bg-black/40 z-[60] lg:hidden"
           />
           
           {/* Bottom Sheet */}
