@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import PromotionalBanner from '@/components/landing/PromotionalBanner';
 import HeroSection from '@/components/landing/HeroSection';
 import BestSellersSection from '@/components/landing/BestSellersSection';
+import ReviewsSection from '@/components/ReviewsSection';
 import HowItWorks from '@/components/HowItWorks';
 import { FAQSection } from '@/components/FAQSection';
 
@@ -81,6 +82,9 @@ const HomePage: React.FC = () => {
 
         {/* Best Sellers Section */}
         <BestSellersSection />
+
+        {/* Reviews Section */}
+        <ReviewsSection />
 
         {/* How It Works Section */}
         <HowItWorks />

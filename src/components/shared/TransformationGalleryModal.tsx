@@ -290,33 +290,33 @@ export default function TransformationGalleryModal({
         </div>
 
         {/* Footer with pagination */}
-        {totalPages > 1 && (
+            {totalPages > 1 && (
           <div className="shrink-0 flex items-center justify-center pt-4 border-t border-ghibli-stone/30">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              
-              <span className="text-sm text-ghibli-earth px-2">
-                {currentPage} / {totalPages}
-              </span>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                
+                <span className="text-sm text-ghibli-earth px-2">
+                  {currentPage} / {totalPages}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
           </div>
         )}
       </DialogContent>
