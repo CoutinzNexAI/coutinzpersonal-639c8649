@@ -27,15 +27,15 @@ export default function ReviewModal({ onClose }: ReviewModalProps) {
         onClick={onClose}
       />
       
-      {/* Modal with ghibli theme - smaller size */}
-      <div className="relative w-full max-w-md">
+      {/* Modal with ghibli theme - responsive size: smaller on mobile, larger on desktop */}
+      <div className="relative w-full max-w-md lg:max-w-2xl">
         {/* Floating decorative elements - smaller */}
         <div className="absolute -top-3 -left-3 w-6 h-6 bg-ghibli-sunflower rounded-full opacity-70 animate-float" />
         <div className="absolute -top-1 -right-4 w-4 h-4 bg-ghibli-moss rounded-full opacity-50 animate-float animation-delay-1000" />
         <div className="absolute -bottom-4 -left-1 w-7 h-7 bg-ghibli-leaf rounded-full opacity-60 animate-float animation-delay-2000" />
         
-        {/* Main Modal Content - compact */}
-        <div className="bg-ghibli-paper/95 backdrop-blur-xl rounded-2xl p-5 shadow-2xl border-2 border-ghibli-moss/20 relative overflow-hidden max-h-[85vh]">
+        {/* Main Modal Content - responsive padding */}
+        <div className="bg-ghibli-paper/95 backdrop-blur-xl rounded-2xl p-5 lg:p-8 shadow-2xl border-2 border-ghibli-moss/20 relative overflow-hidden max-h-[85vh]">
           {/* Background gradient overlay - ghibli style */}
           <div className="absolute inset-0 bg-gradient-to-br from-ghibli-cream/30 via-ghibli-sand/20 to-ghibli-moss/10" />
           
@@ -49,90 +49,90 @@ export default function ReviewModal({ onClose }: ReviewModalProps) {
 
           {/* Scrollable content */}
           <div className="relative z-10 overflow-y-auto max-h-[75vh]">
-            {/* Header with ghibli styling - compact */}
-            <div className="text-center mb-4">
+            {/* Header with ghibli styling - responsive */}
+            <div className="text-center mb-4 lg:mb-6">
               <div className="relative inline-block">
-                <div className="w-14 h-14 bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-leaf rounded-xl flex items-center justify-center mb-3 mx-auto shadow-lg border border-ghibli-paper">
-                  <Camera className="w-7 h-7 text-ghibli-paper" />
+                <div className="w-14 h-14 lg:w-20 lg:h-20 bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-leaf rounded-xl flex items-center justify-center mb-3 mx-auto shadow-lg border border-ghibli-paper">
+                  <Camera className="w-7 h-7 lg:w-10 lg:h-10 text-ghibli-paper" />
                 </div>
-                <Sparkles className="absolute -top-1 -right-1 w-4 h-4 text-ghibli-sunflower animate-spin" />
-                <Sparkles className="absolute -bottom-1 -left-1 w-3 h-3 text-ghibli-leaf animate-pulse" />
+                <Sparkles className="absolute -top-1 -right-1 w-4 h-4 lg:w-6 lg:h-6 text-ghibli-sunflower animate-spin" />
+                <Sparkles className="absolute -bottom-1 -left-1 w-3 h-3 lg:w-5 lg:h-5 text-ghibli-leaf animate-pulse" />
               </div>
               
-              <h3 className="text-lg font-bold text-ghibli-wood mb-1 font-ghibli">
+              <h3 className="text-lg lg:text-2xl font-bold text-ghibli-wood mb-1 font-ghibli">
                 📸 Partilha a Tua Experiência!
               </h3>
-              <p className="text-sm text-ghibli-earth">
+              <p className="text-sm lg:text-base text-ghibli-earth">
                 Adorámos saber a tua opinião sobre o nosso trabalho
               </p>
             </div>
 
-            {/* Discount highlight - compact */}
-            <div className="bg-gradient-to-r from-ghibli-sunflower/20 to-ghibli-moss/20 rounded-xl p-3 mb-4 border border-ghibli-sunflower/30">
+            {/* Discount highlight - responsive */}
+            <div className="bg-gradient-to-r from-ghibli-sunflower/20 to-ghibli-moss/20 rounded-xl p-3 lg:p-4 mb-4 lg:mb-6 border border-ghibli-sunflower/30">
               <div className="flex items-center gap-2 justify-center">
-                <Gift className="w-4 h-4 text-ghibli-moss" />
-                <span className="font-semibold text-ghibli-wood text-sm">
+                <Gift className="w-4 h-4 lg:w-5 lg:h-5 text-ghibli-moss" />
+                <span className="font-semibold text-ghibli-wood text-sm lg:text-base">
                   🎁 Partilha e ganha descontos exclusivos!
                 </span>
               </div>
-              <p className="text-xs text-ghibli-earth text-center mt-1">
+              <p className="text-xs lg:text-sm text-ghibli-earth text-center mt-1">
                 Reviews partilhadas podem ser premiadas com ofertas especiais
               </p>
             </div>
 
-            {/* Instructions with ghibli theme - compact */}
-            <div className="bg-ghibli-cream/60 rounded-xl p-4 mb-4 border border-ghibli-moss/20">
-              <h4 className="font-semibold text-ghibli-wood mb-3 flex items-center gap-2 font-ghibli text-sm">
-                <Heart className="w-4 h-4 text-ghibli-moss" />
+            {/* Instructions with ghibli theme - responsive */}
+            <div className="bg-ghibli-cream/60 rounded-xl p-4 lg:p-6 mb-4 lg:mb-6 border border-ghibli-moss/20">
+              <h4 className="font-semibold text-ghibli-wood mb-3 lg:mb-4 flex items-center gap-2 font-ghibli text-sm lg:text-base">
+                <Heart className="w-4 h-4 lg:w-5 lg:h-5 text-ghibli-moss" />
                 Como partilhar a tua experiência:
               </h4>
               
-              <div className="space-y-2">
-                <div className="flex items-start gap-2">
-                  <div className="w-5 h-5 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light rounded-full flex items-center justify-center text-ghibli-paper text-xs font-bold flex-shrink-0 mt-0.5 border border-ghibli-paper">
+              <div className="space-y-2 lg:space-y-3">
+                <div className="flex items-start gap-2 lg:gap-3">
+                  <div className="w-5 h-5 lg:w-6 lg:h-6 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light rounded-full flex items-center justify-center text-ghibli-paper text-xs lg:text-sm font-bold flex-shrink-0 mt-0.5 border border-ghibli-paper">
                     1
                   </div>
-                  <p className="text-ghibli-wood text-xs">
+                  <p className="text-ghibli-wood text-xs lg:text-sm">
                     <strong>Tira uma foto</strong> do teu produto PicTuz em ação!
                   </p>
                 </div>
                 
-                <div className="flex items-start gap-2">
-                  <div className="w-5 h-5 bg-gradient-to-r from-ghibli-moss-light to-ghibli-leaf rounded-full flex items-center justify-center text-ghibli-paper text-xs font-bold flex-shrink-0 mt-0.5 border border-ghibli-paper">
+                <div className="flex items-start gap-2 lg:gap-3">
+                  <div className="w-5 h-5 lg:w-6 lg:h-6 bg-gradient-to-r from-ghibli-moss-light to-ghibli-leaf rounded-full flex items-center justify-center text-ghibli-paper text-xs lg:text-sm font-bold flex-shrink-0 mt-0.5 border border-ghibli-paper">
                     2
                   </div>
-                  <p className="text-ghibli-wood text-xs">
+                  <p className="text-ghibli-wood text-xs lg:text-sm">
                     <strong>Envia por DM</strong> no nosso Instagram com a tua opinião
                   </p>
                 </div>
                 
-                <div className="flex items-start gap-2">
-                  <div className="w-5 h-5 bg-gradient-to-r from-ghibli-leaf to-ghibli-sunflower rounded-full flex items-center justify-center text-ghibli-paper text-xs font-bold flex-shrink-0 mt-0.5 border border-ghibli-paper">
+                <div className="flex items-start gap-2 lg:gap-3">
+                  <div className="w-5 h-5 lg:w-6 lg:h-6 bg-gradient-to-r from-ghibli-leaf to-ghibli-sunflower rounded-full flex items-center justify-center text-ghibli-paper text-xs lg:text-sm font-bold flex-shrink-0 mt-0.5 border border-ghibli-paper">
                     3
                   </div>
-                  <p className="text-ghibli-wood text-xs">
+                  <p className="text-ghibli-wood text-xs lg:text-sm">
                     <strong>Apareçe aqui!</strong> As melhores reviews ficam na nossa galeria
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Instagram CTA with ghibli styling - compact */}
+            {/* Instagram CTA with ghibli styling - responsive */}
             <div className="text-center">
               <button
                 onClick={handleInstagramClick}
-                className="relative group w-full bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-leaf text-ghibli-paper px-6 py-3 rounded-xl font-semibold text-sm shadow-lg hover:scale-105 transition-all duration-300 overflow-hidden border border-ghibli-paper"
+                className="relative group w-full bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-leaf text-ghibli-paper px-6 py-3 lg:py-4 rounded-xl font-semibold text-sm lg:text-base shadow-lg hover:scale-105 transition-all duration-300 overflow-hidden border border-ghibli-paper"
               >
                 {/* Shimmer effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-ghibli-paper/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 
                 <div className="relative flex items-center justify-center gap-2">
-                  <Instagram className="w-4 h-4" />
+                  <Instagram className="w-4 h-4 lg:w-5 lg:h-5" />
                   <span>Abrir Instagram @pictuz.ai</span>
                 </div>
               </button>
               
-              <p className="text-xs text-ghibli-earth mt-2">
+              <p className="text-xs lg:text-sm text-ghibli-earth mt-2">
                 Ao clicar, vais ser redirecionado para o Instagram
               </p>
             </div>

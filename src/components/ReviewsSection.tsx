@@ -147,16 +147,6 @@ export default function ReviewsSection() {
             <div className="mt-6">
               <div className="bg-ghibli-paper/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border-2 border-ghibli-moss/10">
                 <div className="text-center">
-                  {/* Rating */}
-                  <div className="flex justify-center gap-1 mb-3">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="w-4 h-4 text-ghibli-sunflower fill-current"
-                      />
-                    ))}
-                  </div>
-
                   {/* Review Text - smaller for mobile */}
                   <blockquote className="text-sm text-ghibli-wood/80 mb-4 leading-relaxed">
                     "{reviews[currentReview].text}"
@@ -238,18 +228,8 @@ export default function ReviewsSection() {
             <div className="mt-8 max-w-4xl mx-auto">
               <div className="bg-ghibli-paper/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-ghibli-moss/10 transition-all duration-500">
                 <div className="text-center">
-                  {/* Rating */}
-                  <div className="flex justify-center gap-1 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="w-6 h-6 text-ghibli-sunflower fill-current"
-                      />
-                    ))}
-                  </div>
-
-                  {/* Review Text */}
-                  <blockquote className="text-xl lg:text-2xl text-ghibli-wood/90 mb-6 leading-relaxed font-medium italic">
+                  {/* Review Text - slightly smaller for PC */}
+                  <blockquote className="text-lg lg:text-xl text-ghibli-wood/90 mb-6 leading-relaxed font-medium italic">
                     "{reviews[currentReview].text}"
                   </blockquote>
 
@@ -295,9 +275,6 @@ export default function ReviewsSection() {
           >
             📸 Partilha a tua experiência
           </button>
-          <p className="text-sm text-ghibli-earth mt-3 font-medium">
-            Partilha a tua experiência connosco!
-          </p>
         </div>
       </div>
 
