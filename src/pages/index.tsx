@@ -83,11 +83,11 @@ const HomePage: React.FC = () => {
         {/* Best Sellers Section */}
         <BestSellersSection />
 
-        {/* Reviews Section */}
-        <ReviewsSection />
-
         {/* How It Works Section */}
         <HowItWorks />
+
+        {/* Reviews Section */}
+        <ReviewsSection />
 
         {/* FAQ Section */}
         <FAQSection />

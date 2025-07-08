@@ -57,13 +57,13 @@ export default function ReviewsSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  // Auto-play functionality
+  // Auto-play functionality - increased to 6 seconds
   useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
       setCurrentReview((prev) => (prev + 1) % reviews.length);
-    }, 4000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
@@ -100,96 +100,171 @@ export default function ReviewsSection() {
             <span className="text-ghibli-moss">Agora Visíveis</span>
           </h2>
           <p className="text-lg text-ghibli-earth max-w-2xl mx-auto font-medium">
-            Descobre o que os nossos clientes dizem sobre as suas transformações mágicas ✨
+            Descobre o que os nossos clientes dizem sobre as suas transformações mágicas
           </p>
         </div>
 
-        {/* Reviews Grid Layout */}
+        {/* Reviews Layout - Mobile vs Desktop */}
         <div className="relative max-w-7xl mx-auto">
-          {/* Grid of 4 review images */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {reviews.map((review, index) => (
-              <div 
-                key={review.id} 
-                className={`relative cursor-pointer transition-all duration-500 ${
-                  index === currentReview 
-                    ? 'scale-110 z-10 shadow-2xl' 
-                    : 'hover:scale-105 opacity-70 hover:opacity-100'
-                }`}
-                onClick={() => goToReview(index)}
-              >
-                <div className={`rounded-2xl overflow-hidden shadow-xl border-4 transition-all duration-500 ${
-                  index === currentReview 
-                    ? 'border-ghibli-moss shadow-ghibli-moss/30' 
-                    : 'border-ghibli-cream'
-                }`}>
-                  <div className={`aspect-square relative ${
-                    index === currentReview ? 'h-64 lg:h-80' : 'h-48 lg:h-56'
-                  }`}>
-                    <img
-                      src={review.image}
-                      alt={`Review de ${review.author}`}
-                      className="w-full h-full object-cover transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-ghibli-wood/20 to-transparent"></div>
+          {/* Mobile: Single review display */}
+          <div className="lg:hidden">
+            <div className="relative">
+              <div className="flex justify-center">
+                <div className="relative cursor-pointer">
+                  <div className="rounded-2xl overflow-hidden shadow-xl border-4 border-ghibli-moss shadow-ghibli-moss/30">
+                    <div className="w-72 h-72 relative">
+                      <img
+                        src={reviews[currentReview].image}
+                        alt={`Review de ${reviews[currentReview].author}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-ghibli-wood/20 to-transparent"></div>
+                    </div>
+                    {/* Product tag */}
+                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light text-ghibli-paper px-3 py-1 rounded-full text-xs font-bold shadow-xl border-2 border-ghibli-paper">
+                      {reviews[currentReview].product}
+                    </div>
                   </div>
-                  {/* Product tag */}
-                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light text-ghibli-paper px-3 py-1 rounded-full text-xs font-bold shadow-xl border-2 border-ghibli-paper">
-                    {review.product}
-                  </div>
-                  {/* Selection indicator */}
-                  {index === currentReview && (
-                    <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-ghibli-moss rounded-full border-4 border-ghibli-paper shadow-lg animate-pulse"></div>
-                  )}
                 </div>
               </div>
-            ))}
+
+              {/* Navigation Arrows - Mobile */}
+              <button
+                onClick={prevReview}
+                className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-ghibli-paper/95 backdrop-blur-sm rounded-full shadow-lg border-2 border-ghibli-moss/20 flex items-center justify-center hover:bg-ghibli-paper hover:scale-110 hover:border-ghibli-moss/40 transition-all duration-300 z-20"
+              >
+                <ChevronLeft className="w-5 h-5 text-ghibli-wood" />
+              </button>
+              <button
+                onClick={nextReview}
+                className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-ghibli-paper/95 backdrop-blur-sm rounded-full shadow-lg border-2 border-ghibli-moss/20 flex items-center justify-center hover:bg-ghibli-paper hover:scale-110 hover:border-ghibli-moss/40 transition-all duration-300 z-20"
+              >
+                <ChevronRight className="w-5 h-5 text-ghibli-wood" />
+              </button>
+            </div>
+
+            {/* Mobile Review Content - smaller and more discrete */}
+            <div className="mt-6">
+              <div className="bg-ghibli-paper/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border-2 border-ghibli-moss/10">
+                <div className="text-center">
+                  {/* Rating */}
+                  <div className="flex justify-center gap-1 mb-3">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-4 h-4 text-ghibli-sunflower fill-current"
+                      />
+                    ))}
+                  </div>
+
+                  {/* Review Text - smaller for mobile */}
+                  <blockquote className="text-sm text-ghibli-wood/80 mb-4 leading-relaxed">
+                    "{reviews[currentReview].text}"
+                  </blockquote>
+
+                  {/* Author Info - compact for mobile */}
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light rounded-full flex items-center justify-center text-ghibli-paper font-bold text-xs border border-ghibli-paper shadow-lg">
+                      {reviews[currentReview].author.charAt(0)}
+                    </div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold text-ghibli-wood text-sm">{reviews[currentReview].author}</span>
+                        <CheckCircle className="w-3 h-3 text-ghibli-leaf" />
+                      </div>
+                      <div className="text-xs text-ghibli-earth">{reviews[currentReview].location}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Navigation Arrows */}
-          <button
-            onClick={prevReview}
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-ghibli-paper/95 backdrop-blur-sm rounded-full shadow-lg border-2 border-ghibli-moss/20 flex items-center justify-center hover:bg-ghibli-paper hover:scale-110 hover:border-ghibli-moss/40 transition-all duration-300 z-20"
-          >
-            <ChevronLeft className="w-6 h-6 text-ghibli-wood" />
-          </button>
-          <button
-            onClick={nextReview}
-            className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-ghibli-paper/95 backdrop-blur-sm rounded-full shadow-lg border-2 border-ghibli-moss/20 flex items-center justify-center hover:bg-ghibli-paper hover:scale-110 hover:border-ghibli-moss/40 transition-all duration-300 z-20"
-          >
-            <ChevronRight className="w-6 h-6 text-ghibli-wood" />
-          </button>
-
-          {/* Featured Review Content - Text below the highlighted image */}
-          <div className="mt-8 max-w-4xl mx-auto">
-            <div className="bg-ghibli-paper/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-ghibli-moss/10 transition-all duration-500">
-              <div className="text-center">
-                {/* Rating */}
-                <div className="flex justify-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-6 h-6 text-ghibli-sunflower fill-current"
-                    />
-                  ))}
-                </div>
-
-                {/* Review Text */}
-                <blockquote className="text-xl lg:text-2xl text-ghibli-wood/90 mb-6 leading-relaxed font-medium italic">
-                  "{reviews[currentReview].text}"
-                </blockquote>
-
-                {/* Author Info */}
-                <div className="flex items-center justify-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light rounded-full flex items-center justify-center text-ghibli-paper font-bold text-lg border-2 border-ghibli-paper shadow-lg">
-                    {reviews[currentReview].author.charAt(0)}
-                  </div>
-                  <div className="text-left">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-ghibli-wood text-lg">{reviews[currentReview].author}</span>
-                      <CheckCircle className="w-4 h-4 text-ghibli-leaf" />
+          {/* Desktop: Grid of 4 review images */}
+          <div className="hidden lg:block">
+            <div className="grid grid-cols-4 gap-4 mb-8">
+              {reviews.map((review, index) => (
+                <div 
+                  key={review.id} 
+                  className={`relative cursor-pointer transition-all duration-500 ${
+                    index === currentReview 
+                      ? 'scale-110 z-10 shadow-2xl' 
+                      : 'hover:scale-105 opacity-70 hover:opacity-100'
+                  }`}
+                  onClick={() => goToReview(index)}
+                >
+                  <div className={`rounded-2xl overflow-hidden shadow-xl border-4 transition-all duration-500 ${
+                    index === currentReview 
+                      ? 'border-ghibli-moss shadow-ghibli-moss/30' 
+                      : 'border-ghibli-cream'
+                  }`}>
+                    {/* Fixed square format for all images */}
+                    <div className="aspect-square w-full h-56 relative">
+                      <img
+                        src={review.image}
+                        alt={`Review de ${review.author}`}
+                        className="w-full h-full object-cover transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-ghibli-wood/20 to-transparent"></div>
                     </div>
-                    <div className="text-sm text-ghibli-earth">{reviews[currentReview].location} • Cliente Verificado</div>
+                    {/* Product tag */}
+                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light text-ghibli-paper px-3 py-1 rounded-full text-xs font-bold shadow-xl border-2 border-ghibli-paper">
+                      {review.product}
+                    </div>
+                    {/* Selection indicator */}
+                    {index === currentReview && (
+                      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-ghibli-moss rounded-full border-4 border-ghibli-paper shadow-lg animate-pulse"></div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Navigation Arrows - Desktop */}
+            <button
+              onClick={prevReview}
+              className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-ghibli-paper/95 backdrop-blur-sm rounded-full shadow-lg border-2 border-ghibli-moss/20 flex items-center justify-center hover:bg-ghibli-paper hover:scale-110 hover:border-ghibli-moss/40 transition-all duration-300 z-20"
+            >
+              <ChevronLeft className="w-6 h-6 text-ghibli-wood" />
+            </button>
+            <button
+              onClick={nextReview}
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-ghibli-paper/95 backdrop-blur-sm rounded-full shadow-lg border-2 border-ghibli-moss/20 flex items-center justify-center hover:bg-ghibli-paper hover:scale-110 hover:border-ghibli-moss/40 transition-all duration-300 z-20"
+            >
+              <ChevronRight className="w-6 h-6 text-ghibli-wood" />
+            </button>
+
+            {/* Featured Review Content - Desktop only */}
+            <div className="mt-8 max-w-4xl mx-auto">
+              <div className="bg-ghibli-paper/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-ghibli-moss/10 transition-all duration-500">
+                <div className="text-center">
+                  {/* Rating */}
+                  <div className="flex justify-center gap-1 mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-6 h-6 text-ghibli-sunflower fill-current"
+                      />
+                    ))}
+                  </div>
+
+                  {/* Review Text */}
+                  <blockquote className="text-xl lg:text-2xl text-ghibli-wood/90 mb-6 leading-relaxed font-medium italic">
+                    "{reviews[currentReview].text}"
+                  </blockquote>
+
+                  {/* Author Info */}
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light rounded-full flex items-center justify-center text-ghibli-paper font-bold text-lg border-2 border-ghibli-paper shadow-lg">
+                      {reviews[currentReview].author.charAt(0)}
+                    </div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-ghibli-wood text-lg">{reviews[currentReview].author}</span>
+                        <CheckCircle className="w-4 h-4 text-ghibli-leaf" />
+                      </div>
+                      <div className="text-sm text-ghibli-earth">{reviews[currentReview].location} • Cliente Verificado</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -221,7 +296,7 @@ export default function ReviewsSection() {
             📸 Partilha a tua experiência
           </button>
           <p className="text-sm text-ghibli-earth mt-3 font-medium">
-            Partilha a tua experiência connosco! ✨
+            Partilha a tua experiência connosco!
           </p>
         </div>
       </div>

@@ -52,13 +52,15 @@ export const useCommunity = () => {
   const [loadingTransformations, setLoadingTransformations] = useState(false);
   const [togglingLike, setTogglingLike] = useState<Record<string, boolean>>({});
 
-  // FETCH TRANSFORMATIONS
-  const fetchTransformations = useCallback(async (filters: Filters, reset: boolean = false) => {
+  // FETCH TRANSFORMATIONS - Fixed to accept page parameter
+  const fetchTransformations = useCallback(async (filters: Filters, reset: boolean = false, targetPage?: number) => {
     try {
       setLoadingTransformations(true);
 
+      const pageToUse = targetPage !== undefined ? targetPage : (reset ? 1 : pagination.page);
+
       const params = new URLSearchParams({
-        page: reset ? '1' : pagination.page.toString(),
+        page: pageToUse.toString(),
         limit: pagination.limit.toString(),
         sort: filters.sort,
         timeframe: filters.timeframe,
@@ -81,7 +83,7 @@ export const useCommunity = () => {
     } finally {
       setLoadingTransformations(false);
     }
-  }, [pagination.page, pagination.limit]);
+  }, [pagination.limit]);
 
   // TOGGLE LIKE
   const toggleLike = useCallback(async (transformationId: string) => {
@@ -127,35 +129,30 @@ export const useCommunity = () => {
     }
   }, []);
 
-  // PAGINATION HELPERS
+  // PAGINATION HELPERS - Fixed to pass page directly to fetchTransformations
   const goToPage = useCallback(async (page: number, filters: Filters) => {
-    setPagination(prev => ({ ...prev, page }));
-    await fetchTransformations(filters);
+    await fetchTransformations(filters, false, page);
   }, [fetchTransformations]);
 
   const goToFirstPage = useCallback(async (filters: Filters) => {
-    setPagination(prev => ({ ...prev, page: 1 }));
-    await fetchTransformations(filters);
+    await fetchTransformations(filters, false, 1);
   }, [fetchTransformations]);
 
   const goToLastPage = useCallback(async (filters: Filters) => {
-    setPagination(prev => ({ ...prev, page: prev.total_pages }));
-    await fetchTransformations(filters);
-  }, [fetchTransformations]);
+    await fetchTransformations(filters, false, pagination.total_pages);
+  }, [fetchTransformations, pagination.total_pages]);
 
   const goToNextPage = useCallback(async (filters: Filters) => {
     if (pagination.has_next_page) {
-      setPagination(prev => ({ ...prev, page: prev.page + 1 }));
-      await fetchTransformations(filters);
+      await fetchTransformations(filters, false, pagination.page + 1);
     }
-  }, [pagination.has_next_page, fetchTransformations]);
+  }, [pagination.has_next_page, pagination.page, fetchTransformations]);
 
   const goToPreviousPage = useCallback(async (filters: Filters) => {
     if (pagination.has_prev_page) {
-      setPagination(prev => ({ ...prev, page: prev.page - 1 }));
-      await fetchTransformations(filters);
+      await fetchTransformations(filters, false, pagination.page - 1);
     }
-  }, [pagination.has_prev_page, fetchTransformations]);
+  }, [pagination.has_prev_page, pagination.page, fetchTransformations]);
 
   // HELPER FUNCTIONS
   const isLiked = useCallback((transformationId: string) => {
