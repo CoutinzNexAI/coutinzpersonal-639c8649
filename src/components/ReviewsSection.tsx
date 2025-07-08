@@ -84,7 +84,7 @@ export default function ReviewsSection() {
   };
 
   return (
-    <section className="py-16 lg:py-24 bg-gradient-to-br from-ghibli-paper via-ghibli-cream to-ghibli-sand/30 relative overflow-hidden">
+    <section id="reviews" className="py-16 lg:py-24 bg-gradient-to-br from-ghibli-paper via-ghibli-cream to-ghibli-sand/30 relative overflow-hidden">
       {/* Ghibli-style background decoration */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-10 left-10 w-64 h-64 bg-ghibli-moss/30 rounded-full mix-blend-multiply filter blur-2xl animate-float"></div>

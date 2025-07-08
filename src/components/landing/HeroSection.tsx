@@ -6,6 +6,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const HeroSection: React.FC = () => {
+  // Function to scroll to reviews section
+  const scrollToReviews = () => {
+    const reviewsSection = document.getElementById('reviews');
+    if (reviewsSection) {
+      reviewsSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -246,7 +256,10 @@ const HeroSection: React.FC = () => {
                 <Users className="w-5 h-5 text-ghibli-moss" />
                 <span className="text-ghibli-earth font-medium text-sm">+300 utilizadores</span>
               </div>
-              <div className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg">
+              <div 
+                className="flex items-center space-x-2 bg-white/80 p-3 rounded-lg cursor-pointer hover:bg-white hover:shadow-md transition-all duration-300"
+                onClick={scrollToReviews}
+              >
                 <span className="text-yellow-500 font-medium text-sm">⭐ Máxima Qualidade</span>
               </div>
             </motion.div>
@@ -351,9 +364,12 @@ const HeroSection: React.FC = () => {
                 <Users className="w-5 h-5 text-ghibli-moss" />
                 <span className="text-ghibli-earth font-medium">+300 utilizadores</span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div 
+                className="flex items-center space-x-2 cursor-pointer hover:text-ghibli-moss transition-colors duration-300"
+                onClick={scrollToReviews}
+              >
                 <Star className="w-5 h-5 text-yellow-500" />
-                <span className="text-ghibli-earth font-medium">Clientes satisfeitos? Espreita tu mesmo</span>
+                <span className="text-ghibli-earth font-medium">Vê o que dizem sobre nós</span>
               </div>
             </motion.div>
 
