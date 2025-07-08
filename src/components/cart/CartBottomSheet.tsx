@@ -285,15 +285,6 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/40 z-[60] lg:hidden"
-          />
-          
           {/* Bottom Sheet */}
           <motion.div
             initial={{ y: '80%' }}

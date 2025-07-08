@@ -281,15 +281,6 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Overlay - só no desktop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={onClose}
-              className="fixed inset-0 bg-black/40 z-[60] hidden lg:block"
-            />
-          
           {/* Sidebar */}
           <motion.div
             initial={{ x: '100%' }}
