@@ -140,7 +140,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
           <Button variant="link" onClick={() => setActiveStep(1)} className="mt-2 text-ghibli-moss">Voltar ao Upload</Button>
         </div>
       );
-      case 3: // "Pagamento" com PicCoins / Processamento / Resultado
+              case 3: // Processamento / Resultado
       
       // Estados que mostram o PaymentState (antes de iniciar o processamento real)
       if (['idle', 'checking_balance', 'spending_coins', 'uploading_image', 'creating_job_record', 'triggering_processing'].includes(processingState)) {

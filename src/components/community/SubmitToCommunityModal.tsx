@@ -10,7 +10,6 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
-import PicCoinAnimation from './PicCoinAnimation';
 
 // =====================================================
 // SUBMIT TO COMMUNITY MODAL
@@ -45,8 +44,6 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState<'select' | 'preview' | 'details' | 'success'>('select');
-  const [showPicCoinAnimation, setShowPicCoinAnimation] = useState(false);
-  const [picCoinMessage, setPicCoinMessage] = useState('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,19 +94,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
       const data = await response.json();
 
       if (data.success) {
-        // Show PicCoin animation if earned
-        if (data.earned_piccoin) {
-          setPicCoinMessage(data.message || 'Publicado na comunidade e ganhaste 1 PicCoin! 🎉');
-          setShowPicCoinAnimation(true);
-          
-          // Wait for animation to start, then show success
-          setTimeout(() => {
-            setStep('success');
-          }, 1000);
-        } else {
-          setStep('success');
-        }
-        
+        setStep('success');
         onSuccess(data.message || 'Publicado na comunidade com sucesso!');
       } else {
         alert(`Erro: ${data.error}`);
@@ -365,7 +350,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-6">
                   <h4 className="font-medium text-green-800 mb-2 text-sm">🎉 Publicação Direta na Comunidade</h4>
                   <p className="text-green-700 text-xs">
-                    A tua arte será <strong>publicada imediatamente</strong> na comunidade! Podes ganhar <strong>1 PicCoin</strong> por semana.
+                    A tua arte será <strong>publicada imediatamente</strong> na comunidade para todos verem!
                   </p>
                 </div>
 
@@ -463,7 +448,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
                       <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 sm:p-4">
                         <h4 className="font-medium text-green-800 mb-2 text-sm sm:text-base">🎉 Publicação Direta na Comunidade</h4>
                         <p className="text-green-700 text-xs sm:text-sm">
-                          A tua arte será <strong>publicada imediatamente</strong> na comunidade! Podes ganhar <strong>1 PicCoin</strong> por semana.
+                          A tua arte será <strong>publicada imediatamente</strong> na comunidade para todos verem!
                         </p>
                       </div>
                     )}
@@ -558,12 +543,7 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
             )}
           </motion.div>
 
-          {/* PicCoin Animation */}
-          <PicCoinAnimation
-            isVisible={showPicCoinAnimation}
-            onComplete={() => setShowPicCoinAnimation(false)}
-            message={picCoinMessage}
-          />
+
         </div>
       )}
     </AnimatePresence>

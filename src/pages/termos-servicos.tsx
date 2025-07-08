@@ -62,7 +62,7 @@ const TermosServicosPage: React.FC = () => {
               <li><strong>Transformação:</strong> O processo pelo qual o Serviço utiliza inteligência artificial (OpenAI API) para aplicar um estilo artístico selecionado ao Conteúdo do Utilizador.</li>
               <li><strong>Imagem Transformada:</strong> A imagem resultante do processo de Transformação, armazenada permanentemente no seu histórico.</li>
               <li><strong>Estilo:</strong> Um filtro ou modelo artístico predefinido disponível no Serviço para aplicação ao Conteúdo do Utilizador.</li>
-              <li><strong>PicCoins:</strong> A moeda virtual interna do Serviço, utilizada para pagar transformações de imagem (1 PicCoin = 1 transformação).</li>
+              <li><strong>Transformações Diárias:</strong> Limite diário de transformações de imagem gratuitas disponíveis para cada utilizador.</li>
               <li><strong>Comunidade:</strong> A funcionalidade opcional que permite aos utilizadores partilhar publicamente as suas transformações com outros membros da comunidade PicTuz.</li>
             </ul>
           </section>
@@ -70,7 +70,7 @@ const TermosServicosPage: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">2. Descrição do Serviço</h2>
             <p className="text-ghibli-earth">
-              O PicTuz é uma plataforma de transformação de imagens que permite aos utilizadores carregar fotografias digitais, selecionar um estilo artístico predefinido e, mediante pagamento em PicCoins, solicitar uma transformação dessas fotografias utilizando algoritmos de inteligência artificial da OpenAI. As transformações são processadas na nuvem e as Imagens Transformadas ficam disponíveis permanentemente no histórico da Conta do utilizador. O Serviço inclui também funcionalidades de comunidade para partilha opcional de criações.
+              O PicTuz é uma plataforma de transformação de imagens que permite aos utilizadores carregar fotografias digitais, selecionar um estilo artístico predefinido e solicitar uma transformação dessas fotografias utilizando algoritmos de inteligência artificial da OpenAI. As transformações são processadas na nuvem e as Imagens Transformadas ficam disponíveis permanentemente no histórico da Conta do utilizador. O serviço oferece transformações gratuitas dentro de um limite diário. O Serviço inclui também funcionalidades de comunidade para partilha opcional de criações.
             </p>
             <p className="text-ghibli-earth mt-4">
               <strong>Analytics e Melhoramento Contínuo:</strong> Para fornecer a melhor experiência possível, implementamos um sistema avançado de analytics comportamentais que inclui tracking detalhado de utilização, funnels de conversão, e gravação de sessões. Estes dados são utilizados exclusivamente para otimizar a plataforma, identificar problemas e desenvolver funcionalidades baseadas em necessidades reais dos utilizadores.
@@ -82,7 +82,7 @@ const TermosServicosPage: React.FC = () => {
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
               <li><strong>Necessidade de Conta:</strong> Para utilizar as funcionalidades de transformação, histórico e comunidade, é necessário criar uma Conta através de autenticação Google.</li>
               <li><strong>Autenticação Obrigatória:</strong> O registo e login são exclusivamente efetuados através de autenticação com conta Google, utilizando os serviços do Supabase Auth. Ao utilizar este método, autoriza-nos a aceder às informações básicas do seu perfil Google (nome, email e foto de perfil) conforme descrito na nossa <a href={urlPoliticaPrivacidade} className="text-ghibli-sky hover:underline">Política de Privacidade</a>.</li>
-              <li><strong>Bónus de Boas-vindas:</strong> Novos utilizadores recebem automaticamente 2 PicCoins gratuitos como bónus de boas-vindas para experimentar o Serviço.</li>
+              <li><strong>Transformações Gratuitas:</strong> Novos utilizadores podem utilizar o serviço gratuitamente dentro do limite diário de transformações estabelecido.</li>
               <li><strong>Segurança da Conta:</strong> Você é responsável por manter a confidencialidade das suas credenciais de acesso Google e por todas as atividades que ocorram na sua Conta. Deve notificar-nos imediatamente sobre qualquer uso não autorizado da sua Conta.</li>
             </ul>
           </section>
@@ -94,7 +94,7 @@ const TermosServicosPage: React.FC = () => {
             </p>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
               <li><strong>Consentimento para Session Recordings:</strong> Autoriza a gravação das suas sessões (movimentos do rato, cliques, navegação) para fins de otimização de UX e resolução de problemas técnicos. Dados sensíveis são automaticamente censurados.</li>
-              <li><strong>Analytics Comportamentais:</strong> Consente à recolha de dados detalhados sobre a sua interação com a plataforma, incluindo funnels de conversão, padrões de abandono, e comportamento económico relacionado com PicCoins.</li>
+              <li><strong>Analytics Comportamentais:</strong> Consente à recolha de dados detalhados sobre a sua interação com a plataforma, incluindo funnels de conversão, padrões de abandono, e comportamentos de utilização.</li>
               <li><strong>Finalidade Legítima:</strong> Todos os dados recolhidos são utilizados exclusivamente para melhoramento do Serviço, identificação de bugs, e desenvolvimento de funcionalidades baseadas em necessidades reais.</li>
               <li><strong>Direito de Retirada:</strong> Pode retirar o consentimento para analytics avançados a qualquer momento contactando-nos, mantendo o acesso às funcionalidades core do Serviço.</li>
               <li><strong>Conformidade RGPD:</strong> O processamento destes dados está em conformidade com o Regulamento Geral de Proteção de Dados, conforme detalhado na nossa Política de Privacidade.</li>
@@ -105,19 +105,12 @@ const TermosServicosPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">5. Sistema PicCoins</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">5. Sistema de Transformações Gratuitas</h2>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Moeda Virtual:</strong> PicCoins são a moeda virtual exclusiva do Serviço, utilizada para pagar transformações de imagem. Cada transformação custa 1 PicCoin.</li>
-              <li><strong>Aquisição:</strong> PicCoins podem ser adquiridos através do sistema de pagamento Stripe em vários pacotes com preços e quantidades diferentes.</li>
-              <li><strong>Ganhar PicCoins:</strong> Pode ganhar PicCoins adicionais através de:
-                <ul className="list-circle list-outside pl-6 mt-2 space-y-1">
-                  <li>Bónus de boas-vindas (2 PicCoins para novos utilizadores)</li>
-                  <li>Publicação semanal na comunidade (máximo 1 PicCoin por semana)</li>
-                  <li>Promoções especiais ocasionais</li>
-                </ul>
-              </li>
-              <li><strong>Não Reembolsáveis:</strong> PicCoins são virtuais e não têm valor monetário real. Não são reembolsáveis nem transferíveis para dinheiro real.</li>
-              <li><strong>Validade:</strong> PicCoins não expiram enquanto a sua Conta estiver ativa.</li>
+              <li><strong>Serviço Gratuito:</strong> O PicTuz oferece transformações de imagem gratuitamente a todos os utilizadores registados.</li>
+              <li><strong>Limite Diário:</strong> Cada utilizador tem direito a um número limitado de transformações gratuitas por dia para garantir um serviço estável e equitativo para todos.</li>
+              <li><strong>Reset Diário:</strong> O limite de transformações é renovado diariamente, permitindo utilização contínua do serviço.</li>
+              <li><strong>Utilização Responsável:</strong> O sistema de limites está implementado para prevenir abuso e garantir que todos os utilizadores tenham acesso justo ao serviço.</li>
             </ul>
           </section>
 
@@ -145,7 +138,7 @@ const TermosServicosPage: React.FC = () => {
               <li><strong>Propriedade e Licenciamento das Imagens Transformadas:</strong>
                 <ul className="list-circle list-outside pl-6 mt-2 space-y-1">
                     <li>Você retém a propriedade dos direitos sobre o seu Conteúdo original.</li>
-                    <li>Sujeito ao pagamento das taxas aplicáveis (via PicCoins) e ao cumprimento destes Termos, obtém uma licença perpétua, não exclusiva e mundial para usar as Imagens Transformadas para fins pessoais e comerciais.</li>
+                    <li>Sujeito ao cumprimento destes Termos e ao respeito pelos limites diários estabelecidos, obtém uma licença perpétua, não exclusiva e mundial para usar as Imagens Transformadas para fins pessoais e comerciais.</li>
                     <li><strong>Limitação de Responsabilidade:</strong> A utilização de certas transformações pode estar sujeita a direitos de terceiros. É da sua responsabilidade garantir que a utilização comercial das Imagens Transformadas não infringe direitos de terceiros. Não oferecemos garantias de singularidade das Imagens Transformadas.</li>
                 </ul>
               </li>
@@ -154,16 +147,16 @@ const TermosServicosPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">8. Pagamentos, PicCoins e Reembolsos</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">8. Produtos Físicos e Pagamentos</h2>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Sistema de Pagamento:</strong> O acesso às funcionalidades de transformação requer PicCoins, que são adquiridos através de pagamentos processados pelo Stripe. Os preços estão claramente indicados na plataforma e podem ser alterados mediante aviso prévio.</li>
-              <li><strong>Processador de Pagamento:</strong> Todos os pagamentos são processados através do Stripe. Ao efetuar um pagamento, aceita os termos e condições do Stripe. Não armazenamos informações completas do cartão de crédito nos nossos servidores.</li>
-              <li><strong>Política de Reembolsos:</strong> 
+              <li><strong>Serviço Gratuito de Transformações:</strong> O acesso às funcionalidades de transformação de imagem é completamente gratuito, dentro dos limites diários estabelecidos.</li>
+              <li><strong>Produtos Físicos:</strong> O serviço oferece a possibilidade de encomendar produtos físicos personalizados (telas, canecas, etc.) através de integração com serviços de impressão sob demanda.</li>
+              <li><strong>Processador de Pagamento:</strong> Os pagamentos para produtos físicos são processados através do Stripe. Ao efetuar um pagamento, aceita os termos e condições do Stripe. Não armazenamos informações completas do cartão de crédito nos nossos servidores.</li>
+              <li><strong>Política de Reembolsos para Produtos Físicos:</strong> 
                 <ul className="list-circle list-outside pl-6 mt-2 space-y-1">
-                  <li>PicCoins são virtuais e não reembolsáveis após a compra bem-sucedida.</li>
-                  <li>Se uma transformação falhar devido a problemas técnicos do nosso lado, o PicCoin será devolvido automaticamente à sua conta.</li>
-                  <li>Em caso de problemas técnicos comprovados que impeçam o uso do Serviço, poderemos oferecer créditos adicionais à nossa discrição.</li>
-                  <li>Problemas relacionados com pagamentos devem ser reportados em 30 dias.</li>
+                  <li>Os reembolsos de produtos físicos estão sujeitos às políticas do fornecedor de impressão e às condições específicas de cada produto.</li>
+                  <li>Se uma transformação falhar devido a problemas técnicos do nosso lado, o limite diário será restaurado automaticamente.</li>
+                  <li>Problemas relacionados com encomendas devem ser reportados em 30 dias.</li>
                 </ul>
               </li>
             </ul>

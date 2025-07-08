@@ -70,7 +70,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
                 <strong>Dados de Pagamento:</strong> Utilizamos Stripe para processar pagamentos. Não armazenamos detalhes completos do cartão - apenas identificadores da transação e metadados necessários para gestão da conta e suporte.
               </li>
               <li>
-                <strong>Sistema PicCoins:</strong> Mantemos um registo completo das suas transações de PicCoins, incluindo compras, gastos e bónus recebidos, para gestão da sua conta e histórico financeiro.
+                <strong>Sistema de Transformações:</strong> Mantemos um registo da utilização das suas transformações diárias para gestão dos limites e histórico de utilização.
               </li>
               <li>
                 <strong>Dados da Comunidade (Opcionais):</strong> Se escolher publicar transformações na comunidade, recolhemos títulos e descrições públicas que fornece, bem como dados de interação (likes, comentários).
@@ -85,7 +85,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
                   <li>Otimizar interfaces e fluxos de utilizador</li>
                   <li>Personalizar experiência baseada em padrões de uso</li>
                   <li>Prevenir abandono através de análise de funnels</li>
-                  <li>Melhorar sistema de PicCoins baseado em comportamento económico</li>
+                  <li>Melhorar sistema de transformações baseado em padrões de utilização</li>
                   <li>Desenvolver funcionalidades baseadas em necessidades reais identificadas</li>
                 </ul>
               </li>
@@ -100,7 +100,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
             <p className="mb-4 text-ghibli-earth">Utilizamos as informações recolhidas para os seguintes fins específicos:</p>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
               <li><strong>Fornecimento do Serviço:</strong> Criar e manter a sua conta, processar transformações de imagem usando OpenAI, e apresentar o histórico das suas criações.</li>
-              <li><strong>Processamento de Pagamentos:</strong> Gestão de compras de PicCoins através do Stripe e manutenção do saldo da sua conta.</li>
+              <li><strong>Processamento de Pagamentos:</strong> Gestão de compras de produtos físicos através do Stripe.</li>
               <li><strong>Funcionalidades da Comunidade:</strong> Permitir partilha opcional das suas transformações, sistema de likes e comentários.</li>
               <li><strong>Suporte ao Cliente:</strong> Resolução de problemas técnicos, recuperação de transformações e assistência geral.</li>
               <li><strong>Melhoramento do Serviço:</strong> Análise agregada de padrões de utilização para otimizar performance e funcionalidades.</li>
@@ -128,7 +128,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
               <li><strong>Dados da Conta:</strong> Mantidos enquanto a sua conta estiver ativa. Pode solicitar eliminação a qualquer momento.</li>
               <li><strong>Imagens Originais:</strong> Armazenadas indefinidamente no Supabase Storage para permitir re-processamento e suporte técnico. São automaticamente eliminadas se a conta for eliminada.</li>
               <li><strong>Imagens Transformadas:</strong> Armazenadas permanentemente no seu histórico pessoal enquanto a conta estiver ativa. Fazem parte do valor do serviço prestado.</li>
-              <li><strong>Histórico de PicCoins:</strong> Mantido indefinidamente para fins contabilísticos e fiscais, conforme exigido por lei.</li>
+              <li><strong>Histórico de Compras:</strong> Mantido indefinidamente para fins contabilísticos e fiscais, conforme exigido por lei.</li>
               <li><strong>Dados de Pagamento:</strong> Identificadores Stripe retidos por pelo menos 7 anos para conformidade fiscal.</li>
               <li><strong>Dados da Comunidade:</strong> Publicações na comunidade permanecem disponíveis mesmo após eliminação da conta, mas são desassociadas do seu perfil.</li>
             </ul>
@@ -318,7 +318,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
                   <li>Cliques, hovers, scroll depth e tempo em cada página</li>
                   <li>Jornada completa: landing → upload → seleção → transformação → resultado</li>
                   <li>Padrões de abandono e pontos de atrito</li>
-                  <li>Comportamento económico (compras, gastos PicCoins)</li>
+                  <li>Comportamento de utilização (transformações, produtos)</li>
                   <li>Device info (resolução, browser, OS) para otimização responsiva</li>
                 </ul>
               </div>
@@ -381,7 +381,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
               <li><strong>Dados Pessoais:</strong> Eliminados permanentemente no prazo de 30 dias</li>
               <li><strong>Imagens Originais e Transformadas:</strong> Eliminadas permanentemente do nosso storage</li>
-              <li><strong>Histórico de PicCoins:</strong> Anonimizado mas mantido para conformidade fiscal (dados desassociados da sua identidade)</li>
+              <li><strong>Histórico de Compras:</strong> Anonimizado mas mantido para conformidade fiscal (dados desassociados da sua identidade)</li>
               <li><strong>Publicações da Comunidade:</strong> Mantidas mas desassociadas do seu perfil (aparecem como "Utilizador Eliminado")</li>
             </ul>
             <p className="text-ghibli-earth mt-4">

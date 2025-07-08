@@ -15,9 +15,6 @@ import {
   trackTransformationProcessComplete,
   trackFunnelAbandonment,
   trackDropOff,
-
-  trackPicCoinBalance,
-  trackPicCoinRefund,
   trackHover,
   trackFeatureAdoption,
   trackEvent 
@@ -596,7 +593,7 @@ export function useImageProcessing() {
     try {
       await refetchDaily(); 
       
-      // Verificar limite diário em vez de PicCoins
+      // Check daily limit for free transformations
       if (!dailyStatus?.can_transform) {
         // 🔥 TRACKING: Daily limit exceeded
         trackFunnelAbandonment('transformation_start', 'daily_limit_exceeded', {
@@ -621,7 +618,7 @@ export function useImageProcessing() {
 
       // Tem transformações disponíveis - prosseguir
       if (dailyStatus?.can_transform) {
-        // A usar PicCoins - progress bar é suficiente
+        // Processing transformation - progress bar is sufficient
         
         setProcessingState('uploading_image');
 

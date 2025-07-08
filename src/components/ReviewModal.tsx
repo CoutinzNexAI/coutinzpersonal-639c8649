@@ -115,31 +115,13 @@ export default function ReviewModal({ onClose }: ReviewModalProps) {
                 
                 <div className="relative flex items-center justify-center gap-3">
                   <Instagram className="w-6 h-6" />
-                  <span>Abrir Instagram @pictuz.official</span>
+                  <span>Abrir Instagram @pictuz.ai</span>
                 </div>
               </button>
               
               <p className="text-xs text-gray-500 mt-3">
                 Ao clicar, vais ser redirecionado para o Instagram
               </p>
-            </div>
-
-            {/* Fun stats */}
-            <div className="mt-6 pt-6 border-t border-gray-200/50">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-purple-600">10K+</div>
-                  <div className="text-xs text-gray-500">Reviews</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-pink-600">50K+</div>
-                  <div className="text-xs text-gray-500">Produtos</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-yellow-600">99%</div>
-                  <div className="text-xs text-gray-500">Satisfação</div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

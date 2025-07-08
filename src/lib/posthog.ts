@@ -229,61 +229,7 @@ export function trackDropOff(fromStep: string, expectedNextStep: string, data: R
   });
 }
 
-// 💰 PICCOINS ECONOMICS TRACKING
-
-export function trackPicCoinEvent(event: string, data: Record<string, unknown> = {}) {
-  trackEvent(`piccoin_${event}`, {
-    ...data,
-    economics_event: true,
-    timestamp: new Date().toISOString()
-  });
-}
-
-export function trackPicCoinEarning(amount: number, source: string, data: Record<string, unknown> = {}) {
-  trackPicCoinEvent('earned', {
-    ...data,
-    amount,
-    source,
-    transaction_type: 'earn'
-  });
-}
-
-export function trackPicCoinSpending(amount: number, purpose: string, data: Record<string, unknown> = {}) {
-  trackPicCoinEvent('spent', {
-    ...data,
-    amount,
-    purpose,
-    transaction_type: 'spend'
-  });
-}
-
-export function trackPicCoinPurchase(amount: number, price: number, method: string, data: Record<string, unknown> = {}) {
-  trackPicCoinEvent('purchased', {
-    ...data,
-    amount,
-    price_eur: price,
-    payment_method: method,
-    transaction_type: 'purchase',
-    conversion_value: price
-  });
-}
-
-export function trackPicCoinBalance(balance: number, data: Record<string, unknown> = {}) {
-  trackPicCoinEvent('balance_checked', {
-    ...data,
-    current_balance: balance,
-    balance_check: true
-  });
-}
-
-export function trackPicCoinRefund(amount: number, reason: string, data: Record<string, unknown> = {}) {
-  trackPicCoinEvent('refunded', {
-    ...data,
-    amount,
-    refund_reason: reason,
-    transaction_type: 'refund'
-  });
-}
+// PicCoin tracking functions removed since piccoins system was deprecated
 
 // 🎮 BEHAVIORAL MICRO-EVENTS
 

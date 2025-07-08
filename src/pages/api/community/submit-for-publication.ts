@@ -5,9 +5,7 @@ import { applyRateLimit, communitySubmitRateLimiter } from '@/lib/rate-limit';
 import { 
   submitPublicationSchema, 
   COMMUNITY_ERROR_MESSAGES,
-  validateContentSafety,
-  ANTI_GAMING_LIMITS,
-  getWeekStart 
+  validateContentSafety
 } from '@/lib/validations/community';
 
 // =====================================================
@@ -18,7 +16,6 @@ import {
 type ResponseData = {
   success?: boolean;
   transformation_id?: string;
-  earned_piccoin?: boolean;
   message?: string;
   error?: string;
 };
@@ -163,9 +160,8 @@ export default async function handler(
       }
     }
 
-    // 6. VERIFICAR LIMITES ANTI-GAMING
-    // =================================
-    const weekStart = getWeekStart(new Date());
+    // 6. VERIFICAR LIMITES ANTI-GAMING (Simplified)
+    // ==============================================
     
     // Check daily limit
     const today = new Date().toISOString().split('T')[0];
@@ -177,30 +173,13 @@ export default async function handler(
       .gte('updated_at', `${today}T00:00:00.000Z`)
       .lte('updated_at', `${today}T23:59:59.999Z`);
 
-    if (todaySubmissions && todaySubmissions >= ANTI_GAMING_LIMITS.MAX_PUBLICATIONS_PER_DAY) {
+    if (todaySubmissions && todaySubmissions >= 10) { // Simple daily limit
       return res.status(429).json({ 
         error: COMMUNITY_ERROR_MESSAGES.DAILY_LIMIT_REACHED
       });
     }
 
-    // Check weekly bonus limit
-    const { data: weeklyLimits } = await supabaseAdmin
-      .from('user_weekly_limits')
-      .select('publications_this_week')
-      .eq('user_id', user.id)
-      .eq('week_start_date', weekStart)
-      .single();
-
-    const publicationsThisWeek = weeklyLimits?.publications_this_week || 0;
-    const canEarnBonus = publicationsThisWeek < ANTI_GAMING_LIMITS.MAX_PUBLICATIONS_BONUS_PER_WEEK;
-
-    console.log(`${endpointName} 📊 Weekly limits check:`, {
-      user_id: user.id,
-      week_start_date: weekStart,
-      publications_this_week: publicationsThisWeek,
-      max_allowed: ANTI_GAMING_LIMITS.MAX_PUBLICATIONS_BONUS_PER_WEEK,
-      can_earn_bonus: canEarnBonus
-    });
+    // Weekly limits removed since piccoin rewards no longer exist
 
     // 7. ATUALIZAR TRANSFORMAÇÃO PARA APPROVED (DIRETO NA COMUNIDADE)
     // ===============================================================
@@ -223,66 +202,17 @@ export default async function handler(
       });
     }
 
-    // 8. CONCEDER PICCOIN SE ELEGÍVEL
-    // ===============================
-    let earnedPiccoin = false;
-    console.log(`${endpointName} 🪙 PicCoin check: canEarnBonus = ${canEarnBonus}`);
-    
-    if (canEarnBonus) {
-      try {
-        console.log(`${endpointName} 🔄 Attempting to grant PicCoin to user ${user.id}...`);
-        
-        const { error: rewardError } = await supabaseAdmin
-          .rpc('earn_piccoins', {
-            p_user_id: user.id,
-            p_amount: 1,
-            p_type: 'earned',
-            p_reference_id: validatedData.transformationId,
-            p_description: 'Publicação na comunidade'
-          });
+    // 8. WEEKLY LIMITS UPDATE (Removed piccoin rewards)
+    // =================================================
 
-        if (rewardError) {
-          console.warn(`${endpointName} ⚠️ Failed to grant PicCoin:`, rewardError.message);
-        } else {
-          earnedPiccoin = true;
-          console.log(`${endpointName} 🪙 Granted 1 PicCoin to user ${user.id} for community publication`);
-        }
-      } catch (incentiveError) {
-        console.warn(`${endpointName} ⚠️ Incentive error:`, incentiveError);
-        // Don't fail the submission for this
-      }
-    } else {
-      console.log(`${endpointName} ⏸️ Cannot grant PicCoin - user already has ${publicationsThisWeek} publications this week`);
-    }
+    // Weekly limits update removed since piccoin rewards no longer exist
 
-    // 9. ATUALIZAR WEEKLY LIMITS
-    // ===========================
-    try {
-      await supabaseAdmin
-        .from('user_weekly_limits')
-        .upsert({
-          user_id: user.id,
-          week_start_date: weekStart,
-          publications_this_week: publicationsThisWeek + 1,
-          last_action_at: new Date().toISOString(),
-        }, { 
-          onConflict: 'user_id,week_start_date',
-          ignoreDuplicates: false 
-        });
-    } catch (limitsError) {
-      console.warn(`${endpointName} ⚠️ Failed to update weekly limits:`, limitsError);
-      // Don't fail the submission for this
-    }
-
-    console.log(`${endpointName} ✅ Transformation ${validatedData.transformationId} published directly to community by user ${user.id}. Earned PicCoin: ${earnedPiccoin}`);
+    console.log(`${endpointName} ✅ Transformation ${validatedData.transformationId} published directly to community by user ${user.id}.`);
 
     return res.status(200).json({
       success: true,
       transformation_id: validatedData.transformationId,
-      earned_piccoin: earnedPiccoin,
-      message: earnedPiccoin 
-        ? 'Transformação publicada na comunidade e 1 PicCoin ganho! 🎉' 
-        : 'Transformação publicada na comunidade com sucesso!'
+      message: 'Transformação publicada na comunidade com sucesso!'
     });
 
   } catch (error) {

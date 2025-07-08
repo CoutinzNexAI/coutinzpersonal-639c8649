@@ -177,6 +177,6 @@ export const useDailyTransformations = () => {
     refetch,
     
     // Para compatibilidade com componentes existentes
-    balance: status?.remaining_count ?? 0, // Simula o balance das PicCoins
+    balance: status?.remaining_count ?? 0, // Daily transformations remaining
   };
 }; 

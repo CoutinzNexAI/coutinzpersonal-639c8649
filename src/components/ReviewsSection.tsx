@@ -92,30 +92,30 @@ export default function ReviewsSection() {
   };
 
   return (
-    <section className="py-16 lg:py-24 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-        <div className="absolute top-10 right-10 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+    <section className="py-16 lg:py-24 bg-gradient-to-br from-ghibli-paper via-ghibli-cream to-ghibli-sand/30 relative overflow-hidden">
+      {/* Ghibli-style background decoration */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-10 left-10 w-64 h-64 bg-ghibli-moss/30 rounded-full mix-blend-multiply filter blur-2xl animate-float"></div>
+        <div className="absolute top-20 right-16 w-48 h-48 bg-ghibli-sunflower/20 rounded-full mix-blend-multiply filter blur-xl animate-float animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-56 h-56 bg-ghibli-sky/30 rounded-full mix-blend-multiply filter blur-2xl animate-float animation-delay-4000"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        {/* Section Header */}
+        {/* Section Header - Ghibli Style */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full border border-purple-200 mb-4">
-            <Star className="w-4 h-4 text-yellow-500 fill-current" />
-            <span className="text-sm font-medium text-purple-700">Reviews dos Nossos Clientes</span>
+          <div className="inline-flex items-center gap-2 bg-ghibli-paper/80 backdrop-blur-sm px-6 py-3 rounded-full border-2 border-ghibli-moss/20 mb-6 shadow-lg">
+            <Star className="w-5 h-5 text-ghibli-sunflower fill-current" />
+            <span className="text-sm font-medium text-ghibli-wood font-ghibli">Reviews dos Nossos Clientes</span>
           </div>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-            Mais de <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">10.000</span> Clientes Satisfeitos
+          <h2 className="text-3xl lg:text-4xl font-bold text-ghibli-wood mb-4 font-ghibli">
+            Transformações que <span className="text-ghibli-moss">Encantam</span>
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Descobre o que os nossos clientes dizem sobre as suas transformações mágicas
+          <p className="text-lg text-ghibli-earth max-w-2xl mx-auto font-medium">
+            Descobre o que os nossos clientes dizem sobre as suas transformações mágicas ✨
           </p>
         </div>
 
-        {/* Reviews Carousel */}
+        {/* Reviews Carousel - Ghibli Style */}
         <div className="relative max-w-6xl mx-auto">
           <div className="relative overflow-hidden rounded-3xl">
             <div 
@@ -124,52 +124,52 @@ export default function ReviewsSection() {
             >
               {reviews.map((review, index) => (
                 <div key={review.id} className="w-full flex-shrink-0 px-4">
-                  <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-300">
+                  <div className="bg-ghibli-paper/90 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-ghibli-moss/10 hover:shadow-3xl hover:border-ghibli-moss/20 transition-all duration-500">
                     <div className="flex flex-col lg:flex-row items-center gap-8">
-                      {/* Review Image */}
-                      <div className="relative group">
-                        <div className="w-64 h-64 lg:w-80 lg:h-80 rounded-2xl overflow-hidden shadow-xl">
+                      {/* Review Image - MUITO MAIOR */}
+                      <div className="relative group flex-shrink-0">
+                        <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-3xl overflow-hidden shadow-2xl border-4 border-ghibli-cream">
                           <img
                             src={review.image}
                             alt={`Review de ${review.author}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-ghibli-wood/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         </div>
-                        {/* Product tag */}
-                        <div className="absolute -top-3 -right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
+                        {/* Product tag - Ghibli style */}
+                        <div className="absolute -top-3 -right-3 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light text-ghibli-paper px-4 py-2 rounded-full text-sm font-bold shadow-xl border-2 border-ghibli-paper">
                           {review.product}
                         </div>
                       </div>
 
-                      {/* Review Content */}
-                      <div className="flex-1 text-center lg:text-left">
+                      {/* Review Content - MENOR E MAIS COMPACTO */}
+                      <div className="flex-1 text-center lg:text-left max-w-lg">
                         {/* Rating */}
                         <div className="flex justify-center lg:justify-start gap-1 mb-4">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className="w-5 h-5 text-yellow-500 fill-current"
+                              className="w-4 h-4 text-ghibli-sunflower fill-current"
                             />
                           ))}
                         </div>
 
-                        {/* Review Text */}
-                        <blockquote className="text-lg lg:text-xl text-gray-700 mb-6 leading-relaxed">
+                        {/* Review Text - MENOR */}
+                        <blockquote className="text-base lg:text-lg text-ghibli-wood/90 mb-6 leading-relaxed font-medium">
                           "{review.text}"
                         </blockquote>
 
-                        {/* Author Info */}
+                        {/* Author Info - COMPACTO */}
                         <div className="flex items-center justify-center lg:justify-start gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                          <div className="w-10 h-10 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light rounded-full flex items-center justify-center text-ghibli-paper font-bold text-sm border-2 border-ghibli-paper shadow-lg">
                             {review.author.charAt(0)}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-gray-900">{review.author}</span>
-                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              <span className="font-bold text-ghibli-wood text-sm">{review.author}</span>
+                              <CheckCircle className="w-3 h-3 text-ghibli-leaf" />
                             </div>
-                            <div className="text-sm text-gray-500">{review.location} • Cliente Verificado</div>
+                            <div className="text-xs text-ghibli-earth">{review.location} • Cliente Verificado</div>
                           </div>
                         </div>
                       </div>
@@ -180,46 +180,46 @@ export default function ReviewsSection() {
             </div>
           </div>
 
-          {/* Navigation Arrows */}
+          {/* Navigation Arrows - Ghibli Style */}
           <button
             onClick={prevReview}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white hover:scale-110 transition-all duration-200 z-10"
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-ghibli-paper/95 backdrop-blur-sm rounded-full shadow-lg border-2 border-ghibli-moss/20 flex items-center justify-center hover:bg-ghibli-paper hover:scale-110 hover:border-ghibli-moss/40 transition-all duration-300 z-10"
           >
-            <ChevronLeft className="w-6 h-6 text-gray-700" />
+            <ChevronLeft className="w-6 h-6 text-ghibli-wood" />
           </button>
           <button
             onClick={nextReview}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white hover:scale-110 transition-all duration-200 z-10"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-ghibli-paper/95 backdrop-blur-sm rounded-full shadow-lg border-2 border-ghibli-moss/20 flex items-center justify-center hover:bg-ghibli-paper hover:scale-110 hover:border-ghibli-moss/40 transition-all duration-300 z-10"
           >
-            <ChevronRight className="w-6 h-6 text-gray-700" />
+            <ChevronRight className="w-6 h-6 text-ghibli-wood" />
           </button>
         </div>
 
-        {/* Dots Navigation */}
+        {/* Dots Navigation - Ghibli Style */}
         <div className="flex justify-center gap-3 mt-8">
           {reviews.map((_, index) => (
             <button
               key={index}
               onClick={() => goToReview(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              className={`h-3 rounded-full transition-all duration-300 border-2 ${
                 index === currentReview
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 w-8'
-                  : 'bg-gray-300 hover:bg-gray-400'
+                  ? 'bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light w-8 border-ghibli-moss'
+                  : 'bg-ghibli-sand w-3 border-ghibli-sand hover:bg-ghibli-earth hover:border-ghibli-earth'
               }`}
             />
           ))}
         </div>
 
-        {/* CTA Button */}
+        {/* CTA Button - Ghibli Style */}
         <div className="text-center mt-12">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-ghibli-moss via-ghibli-moss-light to-ghibli-moss text-ghibli-paper px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl border-2 border-ghibli-paper"
           >
             <Instagram className="w-5 h-5" />
             Deixar a Minha Review
           </button>
-          <p className="text-sm text-gray-500 mt-3">
+          <p className="text-sm text-ghibli-earth mt-3 font-medium">
             Partilha a tua experiência connosco! ✨
           </p>
         </div>

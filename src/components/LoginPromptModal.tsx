@@ -110,7 +110,7 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
             {[
               { icon: Save, text: "🖼️ Galeria pessoal automática", color: "text-green-600" },
               { icon: History, text: "📱 Acesso em qualquer dispositivo", color: "text-blue-600" },
-              { icon: Gift, text: "🎁 2 PicCoins grátis de boas-vindas!", color: "text-amber-600" }
+              { icon: Gift, text: "🎁 Transformações gratuitas todos os dias!", color: "text-amber-600" }
             ].map((item, index) => (
               <motion.div 
                 key={index}
