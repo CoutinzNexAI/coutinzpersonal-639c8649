@@ -96,11 +96,10 @@ export default function ReviewsSection() {
         {/* Section Header - Updated as requested */}
         <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-5xl font-bold text-ghibli-wood mb-4 font-ghibli leading-tight">
-            Outras Realidades Imaginadas,<br />
-            <span className="text-ghibli-moss">Agora Visíveis</span>
+            Reviews<br />
           </h2>
           <p className="text-lg text-ghibli-earth max-w-2xl mx-auto font-medium">
-            Descobre o que os nossos clientes dizem sobre as suas transformações mágicas
+            Descobre o que os nossos clientes dizem sobre os nossos produtos
           </p>
         </div>
 

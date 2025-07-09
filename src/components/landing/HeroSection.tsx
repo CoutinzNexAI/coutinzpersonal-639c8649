@@ -198,12 +198,52 @@ const HeroSection: React.FC = () => {
                     Real
                   </span>
                   <motion.span
-                    className="ml-1 text-sm"
-                    initial={{ scale: 0, rotate: 180, opacity: 0 }}
-                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.6, delay: 1.4, type: "spring", bounce: 0.8 }}
+                    className="ml-1 text-sm relative"
+                    initial={{ scale: 0, rotate: 180, opacity: 0, y: -20 }}
+                    animate={{ 
+                      opacity: 1, 
+                      scale: 1, 
+                      rotate: 0,
+                      y: 0
+                    }}
+                    transition={{ 
+                      duration: 0.8, 
+                      delay: 1.4, 
+                      type: "spring", 
+                      bounce: 0.8,
+                      ease: "easeOut"
+                    }}
                   >
-                    ✨
+                    <motion.span
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 5, -5, 0],
+                        opacity: [1, 0.8, 1]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 2
+                      }}
+                    >
+                      ✨
+                    </motion.span>
+                    
+                    {/* Efeito de brilho */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent rounded-full blur-sm"
+                      animate={{
+                        opacity: [0, 0.6, 0],
+                        scale: [0.5, 1.5, 0.5]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 2.5
+                      }}
+                    />
                   </motion.span>
                 </motion.div>
               </motion.h1>
@@ -369,7 +409,7 @@ const HeroSection: React.FC = () => {
                 onClick={scrollToReviews}
               >
                 <Star className="w-5 h-5 text-yellow-500" />
-                <span className="text-ghibli-earth font-medium">Vê o que dizem sobre nós</span>
+                <span className="text-ghibli-earth font-medium">Clientes 100% satisfeitos</span>
               </div>
             </motion.div>
 
