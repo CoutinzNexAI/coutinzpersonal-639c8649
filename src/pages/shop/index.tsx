@@ -145,7 +145,7 @@ const individualProducts: IndividualProduct[] = [
     id: 'tote_bag',
     name: 'Saco Tote Bag',
     price: 25.00,
-    image: '/landing/totebag.png',
+    image: '/mockupproduto/saco.png',
     href: '/shop/bag/tote_bag'
   },
   // 9. Mousepad
