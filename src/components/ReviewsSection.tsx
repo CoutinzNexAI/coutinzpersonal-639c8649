@@ -26,11 +26,11 @@ const reviews: Review[] = [
   {
     id: 2,
     image: '/reviews/review2.jpg',
-    text: 'Transformaram a nossa foto de casamento num quadro incrível! Parece que saiu de um filme da Pixar. Todos os nossos amigos querem saber onde fizemos.',
-    author: 'João & Ana',
+    text: 'Simplesmente wow! Transformei a fotografia com poucas expectativas e mal vi o resultado do desenho a simular a parede de grafiti tive que comprar! Chegou em 4 dias, qualidade perfeita e o meu quarto ficou com outra vida.',
+    author: 'Andre',
     location: 'Porto',
     rating: 5,
-    product: 'Canvas com Moldura'
+    product: 'Poster'
   },
   {
     id: 3,
@@ -96,7 +96,7 @@ export default function ReviewsSection() {
         {/* Section Header - Updated as requested */}
         <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-5xl font-bold text-ghibli-wood mb-4 font-ghibli leading-tight">
-            Descobre o que dizem de nós<br />
+            Os nossos clientes<br />
           </h2>
         </div>
 
