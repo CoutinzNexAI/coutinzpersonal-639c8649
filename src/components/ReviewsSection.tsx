@@ -35,7 +35,7 @@ const reviews: Review[] = [
   {
     id: 3,
     image: '/reviews/review3.jpg',
-    text: 'O poster do meu filho ficou fantástico! A transformação foi tão realista que parece mesmo um personagem de desenho animado. Serviço 5 estrelas!',
+    text: 'O poster do meu filhoficou fantástico! A transformação foi tão realista que parece mesmo um personagem de desenho animado. Serviço 5 estrelas!',
     author: 'Carla Santos',
     location: 'Braga',
     rating: 5,
