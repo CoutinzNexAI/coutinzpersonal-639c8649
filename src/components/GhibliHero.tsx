@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth'; // <<< NOVO: Importar useAuth
 import { toast } from '@/components/ui/sonner'; // <<< NOVO: Para feedback de autenticação
 import { trackEvent, trackHover, trackFeatureAdoption } from '@/lib/posthog'; // <<< NOVO: Import tracking
 
-import { StyleExamplesModal } from './gallery/StyleExamplsModal'; // Mantido
+import { CommunityExamplesModal } from './community/CommunityExamplesModal'; // Mantido
 import { TransformationStudio } from './TransformationStudio';
 import StyleSelectorModal from './StyleSelectorModal';
 import LoginPromptModal from './LoginPromptModal'; // <<< NOVO: Importar o modal de login
@@ -497,7 +497,7 @@ const GhibliHero = () => {
         error={stylesError}
       />
 
-      <StyleExamplesModal
+      <CommunityExamplesModal
         isOpen={isExamplesOpen}
         onOpenChange={setIsExamplesOpen}
         onStartTransformationClick={() => {
