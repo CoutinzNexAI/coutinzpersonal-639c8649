@@ -17,7 +17,7 @@ const reviews: Review[] = [
   {
     id: 1,
     image: '/reviews/review1.jpg',
-    text: 'Comprei 2 mini canvas com diferentes versões do meu filho e simplesmente adorei! A qualidade é excelente e chegou em 3 dias. Recomendo!',
+    text: 'Comprei 2 mini canvas para oferecer a pessoas com diferentes versões do meu filho e simplesmente adorei! A qualidade é excelente e chegou em 3 dias. Recomendo!',
     author: 'Raquel',
     location: 'Espinho',
     rating: 5,
