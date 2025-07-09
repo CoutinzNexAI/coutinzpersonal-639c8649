@@ -184,6 +184,8 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   React.useEffect(() => {
     if (transformedImageUrl && userInfo?.id) {
       // 🚀 GERAÇÃO PARALELA REAL - todos os produtos geram simultaneamente
+      // ✅ JÁ OTIMIZADO: Não há sequencialidade aqui - todas as funções são chamadas
+      // imediatamente se as suas condições estiverem corretas
       
       // Gerar poster imediatamente
       if (posterMockupUrls.length === 0 && !posterMockupError && !isGeneratingPosterMockup) {

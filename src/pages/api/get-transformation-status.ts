@@ -29,7 +29,7 @@ function getManuallyParsedCookie(cookieString: string, cookieName: string): stri
 }
 
 // CONFIGURÁVEL: Atraso em milissegundos antes de ler da DB com supabaseAdmin
-const DB_READ_DELAY_MS = 3000; // 3 segundos
+const DB_READ_DELAY_MS = 500; // 500ms - otimizado (era 3000ms)
 
 export default async function handler(
   req: NextApiRequest,

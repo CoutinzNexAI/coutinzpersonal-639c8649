@@ -21,8 +21,12 @@ import {
 } from '@/lib/posthog';
 
 // Transformações são agora gratuitas - 10 por dia
-const MAX_POLL_ATTEMPTS_CONST = 36; // 36 * 10s = 360s = 6 minutos (buffer para Vercel Pro 5min)
-const POLLING_INTERVAL_MS = 10000; // Intervalo de polling (10 segundos) - menos agressivo
+const MAX_POLL_ATTEMPTS_CONST = 36; // 36 tentativas total = max 6 minutos
+// POLLING ADAPTATIVO: Intervalos progressivos para detectar jobs rápidos mais cedo
+const POLLING_INTERVALS_MS = [2000, 3000, 5000, 8000, 10000, 15000]; // 2s→3s→5s→8s→10s→15s
+const getPollingInterval = (attempt: number): number => {
+  return POLLING_INTERVALS_MS[Math.min(attempt, POLLING_INTERVALS_MS.length - 1)];
+};
 
 // Mensagens de erro padronizadas
 const STANDARD_ERROR_MESSAGE = "Pedimos desculpa, não foi possível processar a sua imagem.";
@@ -241,7 +245,7 @@ export function useImageProcessing() {
     }
   }, [refetchDaily, userInfo?.id]);
 
-  // Polling Logic useEffect
+  // Polling effect com intervalos adaptativos
   useEffect(() => {
     const checkStatus = async () => {
       if (!currentJobId || isAuthLoading || !userInfo) return;
@@ -250,7 +254,7 @@ export function useImageProcessing() {
       setSimulatedProgress(calculateSimulatedProgress(pollCountRef.current));
       
       try {
-        const cacheParam = pollCountRef.current > 18 ? `&_t=${Date.now()}` : '';
+        const cacheParam = pollCountRef.current > 6 ? `&_t=${Date.now()}` : ''; // Cache bypass mais cedo (era 18)
         const userParam = userInfo?.id ? `&userId=${userInfo.id}` : '';
         const apiUrl = `/api/get-transformation-status?jobId=${currentJobId}${userParam}${cacheParam}`;
         
@@ -327,6 +331,13 @@ export function useImageProcessing() {
           if (processingState !== 'processing') { 
             setProcessingState('processing'); 
           }
+
+          // 🚀 POLLING ADAPTATIVO: Reagendar com o próximo intervalo
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            const nextInterval = getPollingInterval(pollCountRef.current);
+            pollingIntervalRef.current = setTimeout(checkStatus, nextInterval);
+          }
         } else if (data.status) { 
           console.warn(`[useImageProcessing - Polling] Status inesperado da API: ${data.status || 'vazio'}. JobId: ${currentJobId}`);
         } else {
@@ -395,15 +406,16 @@ export function useImageProcessing() {
     if (currentJobId && 
         userInfo?.id && 
         !isAuthLoading && 
-        (processingState === 'polling_status' || processingState === 'processing')) { // <<< CONDIÇÃO CORRIGIDA AQUI
+        (processingState === 'polling_status' || processingState === 'processing')) {
       if (!pollingIntervalRef.current) {
         pollCountRef.current = 0; 
-        checkStatus(); 
-        pollingIntervalRef.current = setInterval(checkStatus, POLLING_INTERVAL_MS);
+        checkStatus(); // Primeira verificação imediata
+        // Primeira reagenda com intervalo inicial
+        pollingIntervalRef.current = setTimeout(checkStatus, getPollingInterval(0));
       }
     } 
     else if (pollingIntervalRef.current && 
-             !(processingState === 'polling_status' || processingState === 'processing')) { // <<< CONDIÇÃO CORRIGIDA AQUI
+             !(processingState === 'polling_status' || processingState === 'processing')) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
       }

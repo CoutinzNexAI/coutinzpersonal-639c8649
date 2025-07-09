@@ -79,13 +79,10 @@ const PaymentState: React.FC<PaymentStateProps> = ({
       {!isRedirecting && (
         <div className="space-y-4 w-full max-w-xs">
           <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
-            <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="flex items-center justify-center gap-2">
               <Coins className="w-5 h-5 text-green-600" />
               <span className="font-semibold text-green-800">Transformação Gratuita</span>
             </div>
-            <p className="text-xs text-green-700">
-              Tens transformações disponíveis para usar hoje
-            </p>
           </div>
           
         <Button

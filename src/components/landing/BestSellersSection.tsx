@@ -4,6 +4,7 @@ import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
+import { SmartProductLink } from '@/components/shared/SmartProductLink';
 
 interface Product {
   id: string;
@@ -71,7 +72,7 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
       transition={{ duration: 0.5, delay: index * 0.1 }}
       whileHover={{ y: -4 }}
     >
-      <Link href={product.href}>
+      <SmartProductLink productUrl={product.href}>
         <div 
           className="group bg-gradient-to-b from-white/90 via-ghibli-cream/70 to-white/90 rounded-2xl shadow-xl border border-ghibli-sand/30 overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer h-full hover:border-ghibli-moss/40 touch-manipulation active:scale-95"
           style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -155,7 +156,7 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
             </div>
           </div>
         </div>
-      </Link>
+      </SmartProductLink>
     </motion.div>
   );
 };
