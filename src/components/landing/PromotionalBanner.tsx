@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Componente para rotação de mensagens
 const MessageRotator: React.FC = () => {
   const messages = [
-    { emoji: '🚚', text: 'ENTREGA GRÁTIS' },
+    { emoji: '🚚', text: 'ENTREGA GRÁTIS >40€' },
     { emoji: '⚡', text: 'Receba em 3-5 dias úteis!' },
     { emoji: '💎', text: 'Produtos de alta qualidade' },
     { emoji: '💰', text: '15% OFF em várias unidades!' } // ✅ NOVA MENSAGEM

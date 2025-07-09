@@ -107,9 +107,9 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
         return;
       }
 
-      // 2. Calcular total final (envio grátis)
-      const shippingPrice = 0; // Envio sempre grátis
-      const finalTotal = cartSummary.subtotal + cartSummary.tax;
+      // 2. Calcular total final (com shipping condicional)
+      const shippingPrice = cartSummary.shipping; // Shipping condicional baseado no subtotal
+      const finalTotal = cartSummary.subtotal + cartSummary.shipping;
 
       // A preparar pagamento - loading state é suficiente
 
@@ -122,12 +122,12 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
         body: JSON.stringify({
           items: cartSummary.items,
           shippingMethod: {
-            uid: 'free_shipping',
-            name: 'Envio Grátis',
+            uid: shippingPrice === 0 ? 'free_shipping' : 'standard_shipping',
+            name: shippingPrice === 0 ? 'Envio Grátis' : 'Envio Standard',
             price: shippingPrice,
             deliveryDaysMin: 4,
             deliveryDaysMax: 7,
-            description: 'Envio gratuito em 4-7 dias úteis'
+            description: shippingPrice === 0 ? 'Envio gratuito em 4-7 dias úteis' : 'Envio standard em 4-7 dias úteis'
           },
           userId: userInfo.id,
           userName: currentUserData.full_name,
@@ -136,7 +136,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
           originalSubtotal: cartSummary.originalSubtotal,
           discountAmount: cartSummary.discountAmount,
           shipping: shippingPrice,
-          tax: cartSummary.tax,
+          tax: 0, // IVA incluído nos preços dos produtos
           total: finalTotal
         })
       });
@@ -392,23 +392,29 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                       
                       <div className="flex justify-between text-xs">
                         <span className="text-ghibli-earth">Envio</span>
-                        <span className="text-green-600 font-bold">GRÁTIS! ✨</span>
+                        {cartSummary.shipping === 0 ? (
+                          <span className="text-green-600 font-bold">GRÁTIS! ✨</span>
+                        ) : (
+                          <span className="font-semibold text-ghibli-wood">
+                            €{cartSummary.shipping.toFixed(2)}
+                          </span>
+                        )}
                       </div>
                       
-                      <div className="flex justify-between text-sm">
-                        <span className="text-ghibli-earth">IVA (23%)</span>
-                        <span className="font-semibold text-ghibli-wood">
-                          €{cartSummary.tax.toFixed(2)}
-                        </span>
-                      </div>
+                      {/* ✅ REMOVIDO: Linha do IVA - agora incluído nos preços */}
                       
                       <div className="border-t border-ghibli-sand/50 pt-2 mt-2">
                         <div className="flex justify-between text-lg font-bold">
                           <span className="text-ghibli-wood">Total</span>
                           <span className="text-ghibli-moss">
-                            €{(cartSummary.subtotal + cartSummary.tax).toFixed(2)}
+                            €{(cartSummary.subtotal + cartSummary.shipping).toFixed(2)}
                           </span>
                         </div>
+                        {cartSummary.subtotal < 40 && cartSummary.shipping > 0 && (
+                          <p className="text-xs text-ghibli-earth/70 text-center mt-1">
+                            Adiciona €{(40 - cartSummary.subtotal).toFixed(2)} para envio grátis!
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

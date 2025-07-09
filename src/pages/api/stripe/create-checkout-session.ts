@@ -149,14 +149,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
     });
 
-    // Adicionar envio como item separado
+    // Adicionar envio como item separado (se aplicável)
     if (shippingMethod && shipping > 0) {
       lineItems.push({
         price_data: {
           currency: 'eur',
           product_data: {
             name: shippingMethod.name,
-            description: `Envio gratuito em 4-7 dias úteis`
+            description: shippingMethod.description || 'Envio standard em 4-7 dias úteis'
           },
           unit_amount: Math.round(shipping * 100)
         },
@@ -164,20 +164,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Adicionar IVA como item separado para transparência
-    if (tax > 0) {
-      lineItems.push({
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: 'IVA (23%)',
-            description: 'Imposto sobre o Valor Acrescentado'
-          },
-          unit_amount: Math.round(tax * 100)
-        },
-        quantity: 1
-      });
-    }
+    // ✅ REMOVIDO: Linha do IVA - agora incluído nos preços dos produtos
+    // IVA está incluído no preço de cada produto, não é adicionado separadamente
 
     // Criar sessão Stripe Checkout
     const session = await stripe.checkout.sessions.create({
@@ -214,16 +202,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         enabled: true // ✅ FORÇAR: Recolha obrigatória do telefone
       },
       billing_address_collection: 'auto',
-      // Definir opções de envio
+      // ✅ ATUALIZADO: Definir opções de envio condicionalmente
       shipping_options: [
         {
           shipping_rate_data: {
             type: 'fixed_amount',
             fixed_amount: {
-              amount: Math.round(shipping * 100),
+              amount: Math.round(shipping * 100), // €0 se grátis, €3.99 se pago
               currency: 'eur',
             },
-            display_name: shippingMethod.name,
+            display_name: shippingMethod.name, // "Envio Grátis" ou "Envio Standard"
             delivery_estimate: {
               minimum: {
                 unit: 'business_day',

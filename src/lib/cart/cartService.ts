@@ -1,7 +1,7 @@
 import { CartItem, CartSummary } from './cartTypes';
 
 const CART_STORAGE_KEY = 'pictuz_cart';
-const TAX_RATE = 0.23; // 23% IVA Portugal
+// ✅ REMOVIDO: const TAX_RATE = 0.23; // IVA agora incluído nos preços
 
 export class CartService {
   // Get cart from localStorage
@@ -146,7 +146,13 @@ export class CartService {
     };
   }
 
-  // Calculate cart summary (WITHOUT shipping - será calculado dinamicamente)
+  // ✅ NOVA LÓGICA: Calculate shipping based on subtotal after discounts
+  static calculateShipping(subtotalAfterDiscounts: number): number {
+    // Envio grátis se subtotal >= €40, senão €3.99
+    return subtotalAfterDiscounts >= 40 ? 0 : 3.99;
+  }
+
+  // ✅ ATUALIZADO: Calculate cart summary (IVA incluído nos preços, shipping condicional)
   static getCartSummary(): CartSummary {
     const items = this.getCart();
     const originalSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -154,8 +160,11 @@ export class CartService {
     // Calculate discounts
     const { discountAmount, finalSubtotal } = this.calculateDiscounts(items);
     
-    const shipping = 0; // Será calculado dinamicamente pelo hook useShippingCalculation
-    const tax = finalSubtotal * TAX_RATE; // IVA aplicado ao subtotal com desconto
+    // ✅ NOVO: Calcular shipping baseado no subtotal COM desconto
+    const shipping = this.calculateShipping(finalSubtotal);
+    
+    // ✅ REMOVIDO: IVA agora está incluído nos preços
+    const tax = 0; // IVA incluído nos preços dos produtos
     const total = finalSubtotal + shipping + tax;
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -164,8 +173,8 @@ export class CartService {
       subtotal: Math.round(finalSubtotal * 100) / 100, // Subtotal já com desconto aplicado
       originalSubtotal: Math.round(originalSubtotal * 100) / 100,
       discountAmount: Math.round(discountAmount * 100) / 100,
-      shipping: Math.round(shipping * 100) / 100,
-      tax: Math.round(tax * 100) / 100,
+      shipping: Math.round(shipping * 100) / 100, // ✅ NOVO: Shipping condicional
+      tax: Math.round(tax * 100) / 100, // ✅ 0 - IVA incluído
       total: Math.round(total * 100) / 100,
       itemCount
     };
