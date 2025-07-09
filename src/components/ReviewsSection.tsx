@@ -26,7 +26,7 @@ const reviews: Review[] = [
   {
     id: 2,
     image: '/reviews/review2.jpg',
-    text: 'Simplesmente WOW ! Transformei a fotografia com poucas expectativas e mal vi o resultado a simular a parede de grafiti tive que comprar! Chegou em 4 dias, qualidade perfeita e o meu quarto ficou com outra vida.',
+    text: 'Simplesmente WOW! Transformei a fotografia com poucas expectativas e mal vi o resultado a simular a parede de grafiti tive que comprar! Chegou em 4 dias, qualidade perfeita e o meu quarto ficou com outra vida.',
     author: 'Andre',
     location: 'Porto',
     rating: 5,
@@ -35,11 +35,11 @@ const reviews: Review[] = [
   {
     id: 3,
     image: '/reviews/review3.jpg',
-    text: 'O poster do meu filhoficou fantástico! A transformação foi tão realista que parece mesmo um personagem de desenho animado. Serviço 5 estrelas!',
-    author: 'Carla Santos',
-    location: 'Braga',
+    text: 'Para relembrar da melhor viagem da minha vida, decidi transformar-me em LEGO! Poster com muita qualidade, boa experiência',
+    author: 'Pedro',
+    location: 'Vila Nova de Gaia',
     rating: 5,
-    product: 'Poster A3'
+    product: 'Poster'
   },
   {
     id: 4,
