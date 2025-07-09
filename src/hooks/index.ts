@@ -15,3 +15,6 @@ export { OrdersModalProvider, useOrdersModal } from './ordersModalContext';
 export * from './useProductPricing';
 export * from './useProductValidation';
 export * from './useProductCoordinates'; 
+
+// Smart Redirect Hook
+export { useSmartRedirect } from './useSmartRedirect'; 

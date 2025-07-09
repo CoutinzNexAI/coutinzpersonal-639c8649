@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Star, Heart, Zap, Users } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { SmartProductLink } from '@/components/shared/SmartProductLink';
 
 const HeroSection: React.FC = () => {
   // Function to scroll to reviews section
@@ -83,7 +84,7 @@ const HeroSection: React.FC = () => {
               variants={itemVariants}
             >
               {/* Canvas 9:16 - 2 colunas */}
-              <Link href="/shop/canvas/custom_canvas" className="col-span-2">
+              <SmartProductLink productUrl="/shop/canvas/custom_canvas" className="col-span-2">
                 <motion.div 
                   className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer w-full aspect-[9/16]"
                   whileHover={{ scale: 1.02, rotate: 1 }}
@@ -104,11 +105,11 @@ const HeroSection: React.FC = () => {
                     </span>
                   </div>
                 </motion.div>
-              </Link>
+              </SmartProductLink>
 
               {/* Imagens menores lado a lado */}
               <div className="col-span-2 flex flex-col gap-2">
-                <Link href="/shop/tecnologia/custom_phone_case" className="flex-1">
+                <SmartProductLink productUrl="/shop/tecnologia/custom_phone_case" className="flex-1">
                   <motion.div 
                     className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer w-full aspect-square"
                     whileHover={{ scale: 1.02, rotate: -1 }}
@@ -128,9 +129,9 @@ const HeroSection: React.FC = () => {
                       </span>
                     </div>
                   </motion.div>
-                </Link>
+                </SmartProductLink>
 
-                <Link href="/shop/mug/heart_mug" className="flex-1">
+                <SmartProductLink productUrl="/shop/mug/heart_mug" className="flex-1">
                   <motion.div 
                     className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer w-full aspect-square"
                     whileHover={{ scale: 1.02, rotate: 1 }}
@@ -150,7 +151,7 @@ const HeroSection: React.FC = () => {
                       </span>
                     </div>
                   </motion.div>
-                </Link>
+                </SmartProductLink>
               </div>
             </motion.div>
 
@@ -452,7 +453,7 @@ const HeroSection: React.FC = () => {
             variants={itemVariants}
           >
             {/* Imagem principal 9:16 - Canvas */}
-            <Link href="/shop/canvas/custom_canvas" className="col-span-1">
+            <SmartProductLink productUrl="/shop/canvas/custom_canvas" className="col-span-1">
               <motion.div 
                 className="relative rounded-3xl overflow-hidden shadow-2xl group cursor-pointer w-full aspect-[9/16] max-h-[480px]"
                 whileHover={{ scale: 1.01, y: -2 }}
@@ -481,12 +482,12 @@ const HeroSection: React.FC = () => {
                 </div>
                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-ghibli-moss/20 to-green-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10" />
               </motion.div>
-            </Link>
+            </SmartProductLink>
 
             {/* Sub-grelha para os 2 quadrados - MAIORES NO DESKTOP */}
             <div className="col-span-1 grid grid-rows-2 gap-4 h-full max-h-[520px]">
               {/* Quadrado 1:1 - Tecnologia */}
-              <Link href="/shop/tecnologia/custom_phone_case" className="row-span-1">
+              <SmartProductLink productUrl="/shop/tecnologia/custom_phone_case" className="row-span-1">
                 <motion.div 
                   className="relative aspect-square rounded-xl overflow-hidden shadow-xl group cursor-pointer h-full w-full max-h-[250px]"
                   whileHover={{ scale: 1.02, rotate: 1 }}
@@ -511,10 +512,10 @@ const HeroSection: React.FC = () => {
                     <h4 className="text-sm font-bold">Capa Telemóvel</h4>
                   </div>
                 </motion.div>
-              </Link>
+              </SmartProductLink>
 
               {/* Quadrado 1:1 - Caneca Coração */}
-              <Link href="/shop/mug/heart_mug" className="row-span-1">
+              <SmartProductLink productUrl="/shop/mug/heart_mug" className="row-span-1">
                 <motion.div 
                   className="relative aspect-square rounded-xl overflow-hidden shadow-xl group cursor-pointer h-full w-full max-h-[250px]"
                   whileHover={{ scale: 1.02, rotate: 0 }}
@@ -539,7 +540,7 @@ const HeroSection: React.FC = () => {
                     <h4 className="text-sm font-bold">Caneca Coração</h4>
                   </div>
                 </motion.div>
-              </Link>
+              </SmartProductLink>
             </div>
           </motion.div>
 
