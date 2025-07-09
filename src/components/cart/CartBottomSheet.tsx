@@ -226,9 +226,14 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
               if (discountPercent > 0) {
                 return (
                   <div className="text-right">
-                    <p className="text-xs text-red-500 line-through">
-                      €{originalPrice.toFixed(2)}
-                    </p>
+                    <div className="flex items-center gap-1 justify-end mb-0.5">
+                      <p className="text-xs text-red-500 line-through">
+                        €{originalPrice.toFixed(2)}
+                      </p>
+                      <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-bold">
+                        -{discountPercent}%
+                      </span>
+                    </div>
                     <p className="text-sm font-bold text-ghibli-moss">
                       €{discountedPrice.toFixed(2)}
                     </p>
@@ -360,7 +365,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
               {cartSummary && cartSummary.itemCount > 0 && (
                 <div className="flex-shrink-0 border-t border-ghibli-sand/30 bg-ghibli-cream/20">
                   {/* Resumo de preços compacto para mobile */}
-                  <div className="px-4 py-3">
+                  <div className="px-4 py-2">
                     {/* Subtotal original e desconto (se houver) */}
                     {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
                       <>
@@ -370,7 +375,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                             €{(cartSummary.originalSubtotal || 0).toFixed(2)}
                           </span>
                         </div>
-                        <div className="flex justify-between text-xs bg-green-50 rounded-lg px-2 py-1 mb-2">
+                        <div className="flex justify-between text-xs bg-green-50 rounded-lg px-2 py-1 mb-1.5">
                           <span className="text-green-700 font-medium">
                             🎉 Desconto
                           </span>
@@ -403,7 +408,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                       
                       {/* ✅ REMOVIDO: Linha do IVA - agora incluído nos preços */}
                       
-                      <div className="border-t border-ghibli-sand/50 pt-2 mt-2">
+                      <div className="border-t border-ghibli-sand/50 pt-1.5 mt-1.5">
                         <div className="flex justify-between text-lg font-bold">
                           <span className="text-ghibli-wood">Total</span>
                           <span className="text-ghibli-moss">
@@ -420,7 +425,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                   </div>
                   
                   {/* Botão de checkout */}
-                  <div className="px-4 pb-4">
+                  <div className="px-4 pb-3 pt-1">
                     <Button
                       onClick={handleCheckout}
                       disabled={isProcessingCheckout || !userInfo}
