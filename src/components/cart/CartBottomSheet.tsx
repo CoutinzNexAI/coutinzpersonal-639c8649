@@ -227,9 +227,9 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                 return (
                   <div className="text-right">
                     <div className="flex items-center gap-1 justify-end mb-0.5">
-                      <p className="text-xs text-red-500 line-through">
-                        €{originalPrice.toFixed(2)}
-                      </p>
+                    <p className="text-xs text-red-500 line-through">
+                      €{originalPrice.toFixed(2)}
+                    </p>
                       <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-bold">
                         -{discountPercent}%
                       </span>
@@ -398,7 +398,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                       <div className="flex justify-between text-xs">
                         <span className="text-ghibli-earth">Envio</span>
                         {cartSummary.shipping === 0 ? (
-                          <span className="text-green-600 font-bold">GRÁTIS! ✨</span>
+                        <span className="text-green-600 font-bold">GRÁTIS! ✨</span>
                         ) : (
                           <span className="font-semibold text-ghibli-wood">
                             €{cartSummary.shipping.toFixed(2)}

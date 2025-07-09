@@ -410,7 +410,7 @@ const HeroSection: React.FC = () => {
                 onClick={scrollToReviews}
               >
                 <Star className="w-5 h-5 text-yellow-500" />
-                <span className="text-ghibli-earth font-medium">Clientes 100% satisfeitos</span>
+                <span className="text-ghibli-earth font-medium"> 100% satisfação</span>
               </div>
             </motion.div>
 
