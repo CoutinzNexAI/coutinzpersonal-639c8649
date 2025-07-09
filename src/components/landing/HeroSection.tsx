@@ -227,8 +227,8 @@ const HeroSection: React.FC = () => {
                         ease: "easeInOut",
                         delay: 2
                       }}
-                    >
-                      ✨
+                  >
+                    ✨
                     </motion.span>
                     
                     {/* Efeito de brilho */}

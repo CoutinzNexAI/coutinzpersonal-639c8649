@@ -410,9 +410,9 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                             €{(cartSummary.subtotal + cartSummary.shipping).toFixed(2)}
                           </span>
                         </div>
-                        {cartSummary.subtotal < 40 && cartSummary.shipping > 0 && (
+                        {cartSummary.originalSubtotal < 40 && cartSummary.shipping > 0 && (
                           <p className="text-xs text-ghibli-earth/70 text-center mt-1">
-                            Adiciona €{(40 - cartSummary.subtotal).toFixed(2)} para envio grátis!
+                            Adiciona €{(40 - cartSummary.originalSubtotal).toFixed(2)} para envio grátis!
                           </p>
                         )}
                       </div>

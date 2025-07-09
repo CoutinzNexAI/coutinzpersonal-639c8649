@@ -356,10 +356,10 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                     <div className="flex justify-between text-sm">
                       <div>
                         <span className="text-ghibli-earth">Envio</span>
-                        {cartSummary.shipping === 0 && cartSummary.subtotal < 40 && (
+                        {cartSummary.shipping === 0 && cartSummary.originalSubtotal < 40 && (
                           <p className="text-xs text-ghibli-earth/70">Grátis em compras de €40+</p>
                         )}
-                        {cartSummary.shipping === 0 && cartSummary.subtotal >= 40 && (
+                        {cartSummary.shipping === 0 && cartSummary.originalSubtotal >= 40 && (
                           <p className="text-xs text-ghibli-earth/70">Envio gratuito!</p>
                         )}
                         {cartSummary.shipping > 0 && (
@@ -384,9 +384,9 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                           €{(cartSummary.subtotal + cartSummary.shipping).toFixed(2)}
                         </span>
                       </div>
-                      {cartSummary.subtotal < 40 && cartSummary.shipping > 0 && (
+                      {cartSummary.originalSubtotal < 40 && cartSummary.shipping > 0 && (
                         <p className="text-xs text-ghibli-earth/70 text-right mt-1">
-                          Adiciona €{(40 - cartSummary.subtotal).toFixed(2)} para envio grátis!
+                          Adiciona €{(40 - cartSummary.originalSubtotal).toFixed(2)} para envio grátis!
                         </p>
                       )}
                     </div>

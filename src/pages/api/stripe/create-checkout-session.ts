@@ -149,20 +149,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
     });
 
-    // Adicionar envio como item separado (se aplicável)
-    if (shippingMethod && shipping > 0) {
-      lineItems.push({
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: shippingMethod.name,
-            description: shippingMethod.description || 'Envio standard em 4-7 dias úteis'
-          },
-          unit_amount: Math.round(shipping * 100)
-        },
-        quantity: 1
-      });
-    }
+    // ✅ REMOVIDO: Shipping como line item - usar apenas shipping_options para evitar cobrança dupla
+    // if (shippingMethod && shipping > 0) {
+    //   lineItems.push({
+    //     price_data: {
+    //       currency: 'eur',
+    //       product_data: {
+    //         name: shippingMethod.name,
+    //         description: shippingMethod.description || 'Envio standard em 4-7 dias úteis'
+    //       },
+    //       unit_amount: Math.round(shipping * 100)
+    //     },
+    //     quantity: 1
+    //   });
+    // }
 
     // ✅ REMOVIDO: Linha do IVA - agora incluído nos preços dos produtos
     // IVA está incluído no preço de cada produto, não é adicionado separadamente

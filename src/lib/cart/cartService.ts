@@ -146,13 +146,13 @@ export class CartService {
     };
   }
 
-  // ✅ NOVA LÓGICA: Calculate shipping based on subtotal after discounts
-  static calculateShipping(subtotalAfterDiscounts: number): number {
-    // Envio grátis se subtotal >= €40, senão €3.99
-    return subtotalAfterDiscounts >= 40 ? 0 : 3.99;
+  // ✅ CORRIGIDO: Calculate shipping based on ORIGINAL subtotal (before discounts)
+  static calculateShipping(originalSubtotal: number): number {
+    // Envio grátis se subtotal ORIGINAL >= €40, senão €3.99
+    return originalSubtotal >= 40 ? 0 : 3.99;
   }
 
-  // ✅ ATUALIZADO: Calculate cart summary (IVA incluído nos preços, shipping condicional)
+  // ✅ ATUALIZADO: Calculate cart summary (IVA incluído nos preços, shipping baseado no valor original)
   static getCartSummary(): CartSummary {
     const items = this.getCart();
     const originalSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -160,8 +160,8 @@ export class CartService {
     // Calculate discounts
     const { discountAmount, finalSubtotal } = this.calculateDiscounts(items);
     
-    // ✅ NOVO: Calcular shipping baseado no subtotal COM desconto
-    const shipping = this.calculateShipping(finalSubtotal);
+    // ✅ CORRIGIDO: Calcular shipping baseado no subtotal ORIGINAL (sem desconto)
+    const shipping = this.calculateShipping(originalSubtotal);
     
     // ✅ REMOVIDO: IVA agora está incluído nos preços
     const tax = 0; // IVA incluído nos preços dos produtos
@@ -173,7 +173,7 @@ export class CartService {
       subtotal: Math.round(finalSubtotal * 100) / 100, // Subtotal já com desconto aplicado
       originalSubtotal: Math.round(originalSubtotal * 100) / 100,
       discountAmount: Math.round(discountAmount * 100) / 100,
-      shipping: Math.round(shipping * 100) / 100, // ✅ NOVO: Shipping condicional
+      shipping: Math.round(shipping * 100) / 100, // ✅ CORRIGIDO: Shipping baseado no valor original
       tax: Math.round(tax * 100) / 100, // ✅ 0 - IVA incluído
       total: Math.round(total * 100) / 100,
       itemCount
