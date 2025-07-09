@@ -38,10 +38,10 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
   
   // Configuração responsiva: 4x1 desktop, 2x1 mobile
   const itemsPerPage = isMobile ? 2 : 4;
-  const totalItemsToShow = isMobile ? 8 : 16; // 4 páginas fixas
-  const fixedTotalPages = 4;
+  const totalItemsToShow = 16; // Sempre 16 fotos
+  const fixedTotalPages = isMobile ? 8 : 4; // 8 páginas mobile, 4 desktop
   
-  // Fetch transformações quando abre o modal - buscar mais para preencher 4 páginas
+  // Fetch transformações quando abre o modal - sempre 16 fotos mais recentes
   useEffect(() => {
     if (isOpen) {
       const fetchCommunityExamples = async () => {
@@ -50,7 +50,7 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
           
           const params = new URLSearchParams({
             page: '1',
-            limit: totalItemsToShow.toString(), // Buscar exatamente o que precisamos
+            limit: '16', // Sempre buscar 16 fotos
             sort: 'recent',
             timeframe: 'all',
             search: ''
@@ -72,26 +72,26 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
       fetchCommunityExamples();
       setCurrentPage(0);
     }
-  }, [isOpen, totalItemsToShow]);
+  }, [isOpen]);
 
-  // Limitar transformações às mais recentes para 4 páginas fixas
-  const limitedTransformations = transformations.slice(0, totalItemsToShow);
+  // Limitar transformações às 16 mais recentes
+  const limitedTransformations = transformations.slice(0, 16);
   
-  // Calcular páginas - sempre 4 páginas fixas
+  // Calcular páginas - 4 desktop (4x4) ou 8 mobile (2x8)
   const totalPages = fixedTotalPages;
   const currentTransformations = limitedTransformations.slice(
     currentPage * itemsPerPage,
     (currentPage + 1) * itemsPerPage
   );
 
-  // Navegação - 4 páginas fixas
+  // Navegação - páginas dinâmicas (4 desktop, 8 mobile)
   const goToNext = useCallback(() => {
     setCurrentPage((prev) => (prev + 1) % fixedTotalPages);
-  }, []);
+  }, [fixedTotalPages]);
 
   const goToPrevious = useCallback(() => {
     setCurrentPage((prev) => (prev - 1 + fixedTotalPages) % fixedTotalPages);
-  }, []);
+  }, [fixedTotalPages]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -239,7 +239,7 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
                 </motion.div>
               </AnimatePresence>
 
-              {/* Indicador de página - sempre 4 páginas */}
+              {/* Indicador de página - 4 desktop / 8 mobile */}
               <div className="flex justify-center mt-8 gap-3">
                 {Array.from({ length: fixedTotalPages }).map((_, index) => (
                   <button

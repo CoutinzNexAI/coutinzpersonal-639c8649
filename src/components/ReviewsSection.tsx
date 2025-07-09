@@ -26,7 +26,7 @@ const reviews: Review[] = [
   {
     id: 2,
     image: '/reviews/review2.jpg',
-    text: 'Simplesmente WOW ! Transformei a fotografia com poucas expectativas e mal vi o resultado do desenho a simular a parede de grafiti tive que comprar! Chegou em 4 dias, qualidade perfeita e o meu quarto ficou com outra vida.',
+    text: 'Simplesmente WOW ! Transformei a fotografia com poucas expectativas e mal vi o resultado a simular a parede de grafiti tive que comprar! Chegou em 4 dias, qualidade perfeita e o meu quarto ficou com outra vida.',
     author: 'Andre',
     location: 'Porto',
     rating: 5,
