@@ -307,6 +307,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
             className="fixed bottom-0 left-0 right-0 bg-white z-[70] shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl overflow-hidden flex flex-col"
             style={{ height: '85vh' }}
             ref={bottomSheetRef}
+            data-cart-container="true"
           >
             {/* Header com handle - altura fixa */}
             <div className="flex flex-col flex-shrink-0">

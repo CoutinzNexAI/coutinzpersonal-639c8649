@@ -297,6 +297,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 h-full w-[480px] bg-white z-[70] shadow-2xl border-l border-ghibli-sand/20 hidden lg:flex flex-col"
             ref={sidebarRef}
+            data-cart-container="true"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-ghibli-sand/30 bg-gradient-to-r from-ghibli-cream to-ghibli-paper">

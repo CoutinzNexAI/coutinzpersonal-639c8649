@@ -44,7 +44,7 @@ const reviews: Review[] = [
   {
     id: 4,
     image: '/reviews/review4.jpg',
-    text: 'O meu namorado ofereceu me de prenda, fiquei super feliz! muito prático e qualidade da impressão incrivel! Pequeno-almoço perfeito!',
+    text: 'O meu namorado ofereceu me de prenda e fiquei super feliz! muito prático e qualidade da impressão incrivel. Perfeito para o meu Pequeno-almoço!',
     author: 'Ana',
     location: 'Lisboa',
     rating: 5,
