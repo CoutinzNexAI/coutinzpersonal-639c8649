@@ -9,7 +9,9 @@ import {
   Clock, 
   XCircle,
   ExternalLink,
-  Mail
+  Mail,
+  ChevronRight,
+  Calendar
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -30,6 +32,22 @@ interface UserOrder {
   customizations: Record<string, string | number | boolean>;
   order_reference?: string;
   customer_name?: string;
+  items?: Array<{
+    id: string;
+    productId: string;
+    productName: string;
+    productCategory: string;
+    userImageUrl: string;
+    price: number;
+    quantity: number;
+    customizations: Record<string, string | number | boolean>;
+    imageAdjustments?: {
+      x: number;
+      y: number;
+      scale: number;
+      rotation?: number;
+    };
+  }>;
 }
 
 interface OrderListViewProps {
@@ -79,13 +97,14 @@ const getStatusInfo = (status: string, printifyStatus: string) => {
   }
 };
 
-// Helper function to parse customizations into readable format
+// Helper function to parse customizations
 const parseCustomizations = (customizations: Record<string, string | number | boolean>): string[] => {
   const readable: string[] = [];
   
   for (const [key, value] of Object.entries(customizations)) {
+    if (!value) continue;
+    
     switch (key) {
-      case 'variantId':
       case 'x': // Remove coordenadas
       case 'y': // Remove coordenadas
       case 'angle': // Remove ângulo
@@ -161,124 +180,158 @@ Obrigado!`;
   return `mailto:pictuzinfo@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 };
 
+// Helper function to get products summary
+const getProductsSummary = (order: UserOrder) => {
+  // Se tem items array, usar esse (nova API)
+  if (order.items && order.items.length > 0) {
+    const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
+    const uniqueProducts = order.items.length;
+    
+    if (uniqueProducts === 1) {
+      return `${totalItems}x ${order.items[0].productName}`;
+    } else {
+      const firstProduct = order.items[0].productName;
+      return `${uniqueProducts} produtos diferentes (${totalItems} itens total) - ${firstProduct} +${uniqueProducts - 1} outros`;
+    }
+  }
+  
+  // Fallback para API antiga
+  return `${order.quantity}x ${order.product_name}`;
+};
+
 export const OrderListView: React.FC<OrderListViewProps> = ({ orders, onOrderSelect }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {orders.map((order) => {
+    <div className="space-y-3">
+      {orders.map((order, index) => {
         const statusInfo = getStatusInfo(order.status, order.printify_status);
         const StatusIcon = statusInfo.icon;
-        const customizations = parseCustomizations(order.customizations);
+        const productsSummary = getProductsSummary(order);
 
         return (
           <motion.div
             key={order.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl border border-ghibli-stone/20 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="bg-white rounded-lg border border-ghibli-stone/20 p-4 hover:shadow-md transition-all cursor-pointer group"
             onClick={() => onOrderSelect(order)}
           >
-            {/* Order Image */}
-            <div className="aspect-square relative overflow-hidden bg-ghibli-stone/10">
-              <img
-                src={order.user_image_url}
-                alt={order.product_name}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-              
-              {/* Status Badge Overlay */}
-              <div className="absolute top-3 right-3">
-                <Badge className={`${statusInfo.color} flex items-center gap-1 shadow-sm`}>
-                  <StatusIcon className="w-3 h-3" />
-                  {statusInfo.label}
+            {/* Desktop Layout */}
+            <div className="hidden sm:flex items-center gap-4">
+              {/* Status Badge */}
+              <div className="flex-shrink-0">
+                <Badge className={`${statusInfo.color} flex items-center gap-1.5 px-3 py-1`}>
+                  <StatusIcon className="w-4 h-4" />
+                  <span className="font-medium">{statusInfo.label}</span>
                 </Badge>
+              </div>
+
+              {/* Order Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <h3 className="font-semibold text-ghibli-earth text-base mb-1 truncate">
+                      Encomenda #{order.order_reference || order.id.slice(0, 8)}
+                    </h3>
+                    <p className="text-sm text-ghibli-earth/80 mb-1 leading-relaxed">
+                      {productsSummary}
+                    </p>
+                    <div className="flex items-center gap-3 text-xs text-ghibli-earth/60">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(order.created_at)}
+                      </span>
+                      {order.tracking_number && (
+                        <span className="flex items-center gap-1 text-blue-600">
+                          <Truck className="w-3 h-3" />
+                          Tracking: {order.tracking_number}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Price and Action */}
+                  <div className="text-right flex-shrink-0 flex items-center gap-3">
+                    <div>
+                      <p className="text-lg font-bold text-ghibli-moss">
+                        €{(order.total_amount || order.price).toFixed(2)}
+                      </p>
+                      {order.status === 'failed' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-1 text-red-600 border-red-200 hover:bg-red-50 text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = createSupportEmail(order);
+                          }}
+                        >
+                          <Mail className="w-3 h-3 mr-1" />
+                          Suporte
+                        </Button>
+                      )}
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-ghibli-earth/40 group-hover:text-ghibli-moss transition-colors" />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Order Info */}
-            <div className="p-4">
-              {/* Product Name & Reference */}
+            {/* Mobile Layout */}
+            <div className="sm:hidden">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 min-w-0 pr-3">
+                  <h3 className="font-semibold text-ghibli-earth text-sm mb-1">
+                    #{order.order_reference || order.id.slice(0, 8)}
+                  </h3>
+                  <Badge className={`${statusInfo.color} flex items-center gap-1 w-fit`}>
+                    <StatusIcon className="w-3 h-3" />
+                    <span className="text-xs">{statusInfo.label}</span>
+                  </Badge>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-base font-bold text-ghibli-moss">
+                    €{(order.total_amount || order.price).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-ghibli-earth/60">
+                    {formatDate(order.created_at)}
+                  </p>
+                </div>
+              </div>
+
               <div className="mb-3">
-                <h3 className="font-medium text-ghibli-earth text-sm line-clamp-2">
-                  {order.product_name}
-                </h3>
-                <p className="text-xs text-ghibli-earth/60 mt-1">
-                  #{order.order_reference || order.id.slice(0, 8)}
+                <p className="text-sm text-ghibli-earth/80 leading-relaxed">
+                  {productsSummary}
                 </p>
+                {order.tracking_number && (
+                  <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                    <Truck className="w-3 h-3" />
+                    Tracking: {order.tracking_number}
+                  </p>
+                )}
               </div>
 
-              {/* Customizations */}
-              {customizations.length > 0 && (
-                <div className="mb-3">
-                  <div className="space-y-1">
-                    {customizations.slice(0, 2).map((custom, index) => (
-                      <p key={index} className="text-xs text-ghibli-earth/80">
-                        {custom}
-                      </p>
-                    ))}
-                    {customizations.length > 2 && (
-                      <p className="text-xs text-ghibli-earth/60">
-                        +{customizations.length - 2} mais...
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Price & Date */}
-              <div className="flex justify-between items-center mb-3 text-sm">
-                <span className="font-bold text-ghibli-moss">
-                  €{(order.total_amount || order.price).toFixed(2)}
-                </span>
-                <span className="text-ghibli-earth/60">
-                  {formatDate(order.created_at)}
-                </span>
-              </div>
-
-              {/* Tracking */}
-              {order.tracking_number && (
-                <div className="mb-3 p-2 bg-blue-50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-blue-700 font-medium">
-                      Rastreamento: {order.tracking_number}
-                    </span>
-                    {order.tracking_url && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(order.tracking_url, '_blank');
-                        }}
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Failed Order - Support Contact */}
-              {order.status === 'failed' && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.location.href = createSupportEmail(order);
-                  }}
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Contactar Suporte
-                </Button>
-              )}
-
-              {/* Click hint */}
-              <div className="mt-3 pt-3 border-t border-ghibli-stone/10">
-                <p className="text-xs text-ghibli-earth/50 text-center">
-                  Clique para ver detalhes
+              <div className="flex items-center justify-between">
+                {order.status === 'failed' ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.location.href = createSupportEmail(order);
+                    }}
+                  >
+                    <Mail className="w-3 h-3 mr-1" />
+                    Contactar Suporte
+                  </Button>
+                ) : (
+                  <div />
+                )}
+                
+                <p className="text-xs text-ghibli-earth/50 flex items-center gap-1">
+                  Toque para detalhes
+                  <ChevronRight className="w-3 h-3" />
                 </p>
               </div>
             </div>

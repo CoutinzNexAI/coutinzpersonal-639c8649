@@ -66,7 +66,7 @@ export const OrdersModal: React.FC = () => {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: '3'
+        limit: '10'
       });
 
       const response = await fetch(`/api/orders/my-orders?${params}`, {
@@ -204,7 +204,7 @@ export const OrdersModal: React.FC = () => {
             {/* Footer with count and pagination */}
             <div className="border-t border-ghibli-stone/20 pt-3 sm:pt-4 flex-shrink-0">
               {/* Pagination controls */}
-              {!searchTerm && totalOrders > 3 && (
+              {!searchTerm && totalOrders > 10 && (
                 <div className="flex justify-center items-center gap-2 mb-3 sm:mb-4">
                   <Button
                     variant="outline"
@@ -222,7 +222,7 @@ export const OrdersModal: React.FC = () => {
                   </Button>
                   
                   <div className="flex items-center gap-1 text-xs sm:text-sm text-ghibli-earth px-2">
-                    <span>Página {currentPage} de {Math.ceil(totalOrders / 3)}</span>
+                    <span>Página {currentPage} de {Math.ceil(totalOrders / 10)}</span>
                   </div>
                   
                   <Button
@@ -233,7 +233,7 @@ export const OrdersModal: React.FC = () => {
                       setCurrentPage(nextPage);
                       fetchOrders(nextPage, searchTerm);
                     }}
-                    disabled={currentPage >= Math.ceil(totalOrders / 3) || loading}
+                    disabled={currentPage >= Math.ceil(totalOrders / 10) || loading}
                     className="flex items-center gap-1 text-xs sm:text-sm"
                   >
                     Seguinte
