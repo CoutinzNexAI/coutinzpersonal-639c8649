@@ -4,6 +4,7 @@ import { X, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { supabase } from '@/lib/supabase/client';
 import { CartItem, CartSummary } from '@/lib/cart/cartTypes';
 import Image from 'next/image';
@@ -35,6 +36,13 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
   const [userData, setUserData] = useState<UserData | null>(null);
   // Sempre expandido quando aberto - sem estado médio
   const isExpanded = true;
+
+  // Hook para fechar carrinho quando clicar fora (apenas no mobile)
+  const bottomSheetRef = useOutsideClick<HTMLDivElement>(() => {
+    if (isOpen) {
+      onClose();
+    }
+  }, isOpen);
 
   // Bloquear scroll do body quando carrinho está aberto no mobile
   useEffect(() => {
@@ -298,6 +306,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed bottom-0 left-0 right-0 bg-white z-[70] shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl overflow-hidden flex flex-col"
             style={{ height: '85vh' }}
+            ref={bottomSheetRef}
           >
             {/* Header com handle - altura fixa */}
             <div className="flex flex-col flex-shrink-0">

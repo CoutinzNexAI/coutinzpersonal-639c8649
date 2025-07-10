@@ -4,6 +4,7 @@ import { X, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { supabase } from '@/lib/supabase/client';
 import { CartItem, CartSummary } from '@/lib/cart/cartTypes';
 import { CartBottomSheet } from './CartBottomSheet';
@@ -34,6 +35,13 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   const { userInfo } = useAuth();
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+
+  // Hook para fechar carrinho quando clicar fora (apenas no desktop)
+  const sidebarRef = useOutsideClick<HTMLDivElement>(() => {
+    if (isOpen) {
+      onClose();
+    }
+  }, isOpen);
 
   // Carregar dados do utilizador quando necessário
   const loadUserData = async () => {
@@ -288,6 +296,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 h-full w-[480px] bg-white z-[70] shadow-2xl border-l border-ghibli-sand/20 hidden lg:flex flex-col"
+            ref={sidebarRef}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-ghibli-sand/30 bg-gradient-to-r from-ghibli-cream to-ghibli-paper">

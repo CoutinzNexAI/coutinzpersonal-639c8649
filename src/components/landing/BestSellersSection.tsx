@@ -19,6 +19,16 @@ interface Product {
 
 const bestSellers: Product[] = [
   {
+    id: 'poster_vertical',
+    name: 'Poster Vertical',
+    category: 'Posters',
+    price: 17.95, // ✅ ATUALIZADO
+    imagePersonalized: '/Bestseller/poster1824foto.png',
+    imageBlank: '/Bestseller/poster1824.png',
+    href: '/shop/poster',
+    badge: 'Novo'
+  },
+  {
     id: 'custom_canvas',
     name: 'Canvas Premium',
     category: 'Canvas',
@@ -48,16 +58,6 @@ const bestSellers: Product[] = [
     href: '/shop/tecnologia/custom_phone_case',
     badge: 'TOP'
   },
-  {
-    id: 'poster_vertical',
-    name: 'Poster Vertical',
-    category: 'Posters',
-    price: 17.95, // ✅ ATUALIZADO
-    imagePersonalized: '/Bestseller/poster1824foto.png',
-    imageBlank: '/Bestseller/poster1824.png',
-    href: '/shop/poster',
-    badge: 'Novo'
-  }
 ];
 
 // Componente individual do produto com hover effect

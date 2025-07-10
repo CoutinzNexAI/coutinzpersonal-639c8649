@@ -18,3 +18,6 @@ export * from './useProductCoordinates';
 
 // Smart Redirect Hook
 export { useSmartRedirect } from './useSmartRedirect'; 
+
+// Novo hook para detectar cliques fora
+export { useOutsideClick } from './useOutsideClick'; 
