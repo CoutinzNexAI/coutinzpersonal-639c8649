@@ -82,9 +82,9 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   // CANVAS SEM BORDA (Printify Real)
   'custom_canvas': {
     id: 'custom_canvas',
-    name: 'Canvas Personalizado',
+    name: 'Canvas Sem Borda',
     mockupInitialPath: '/mockupproduto/canva.png',
-    basePrice: 24.95, // ✅ NOVO: Canvas 6x6 base
+    basePrice: 20.00,
     category: 'canvas',
     // ✅ CONFIGURAÇÃO DE DESIGN: Canvas com fill e borda espelhada por padrão
     defaultDesign: {
@@ -97,13 +97,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 1159, // Canvas Stretched 0.75"
     printifyPrintProviderId: 105, // Jondo
     variants: [
-      { id: 101418, title: '6" x 6" (15cm x 15cm)', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 }, // ✅ €24.95
-      { id: 91656, title: '10″ x 10″ (25cm x 25cm)', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 8.00 }, // ✅ €32.95
-      { id: 91657, title: '12″ x 12″ (30cm x 30cm)', placeholderWidth: 3600, placeholderHeight: 3600, isGiftPackaging: false, priceAdjustment: 12.00 }, // ✅ €36.95
-      { id: 91658, title: '14" x 14" (36cm x 36cm)', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 14.00 }, // ✅ €38.95
-      { id: 91659, title: '16″ x 16″ (41cm x 41cm)', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 21.00 }, // ✅ €45.95
-      { id: 91660, title: '20″ x 20″ (51cm x 51cm)', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 30.00 }, // ✅ €54.95
-      { id: 91661, title: '24″ x 24″ (61cm x 61cm)', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 40.00 }, // ✅ €64.95
+      { id: 101418, title: '6" x 6" (15cm x 15cm)', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 4.95 }, // €24,95
+      { id: 91656, title: '10″ x 10″ (25cm x 25cm)', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 12.95 }, // €32,95
+      { id: 91657, title: '12″ x 12″ (30cm x 30cm)', placeholderWidth: 3600, placeholderHeight: 3600, isGiftPackaging: false, priceAdjustment: 16.95 }, // €36,95
+      { id: 91658, title: '14" x 14" (36cm x 36cm)', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 18.95 }, // €38,95
+      { id: 91659, title: '16″ x 16″ (41cm x 41cm)', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 25.95 }, // €45,95
+      { id: 91660, title: '20″ x 20″ (51cm x 51cm)', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 34.95 }, // €54,95
+      { id: 91661, title: '24″ x 24″ (61cm x 61cm)', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 44.95 }, // €64,95
     ],
     printAreasConfig: [{
       position: 'front',
@@ -123,12 +123,12 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     supportsManualAdjustment: false,
   },
 
-  // ✅ CANVAS COM MOLDURA (framed_canvas)
+  // CANVAS COM MOLDURA (Printify Real)
   'framed_canvas': {
     id: 'framed_canvas',
     name: 'Canvas com Moldura',
-    mockupInitialPath: '/mockupproduto/canvasmoldura.png',
-    basePrice: 24.95, // ✅ NOVO: Mesmo preço base do canvas normal
+    mockupInitialPath: '/mockupproduto/canvamoldura.png',
+    basePrice: 40.00,
     category: 'canvas',
     // ✅ CONFIGURAÇÃO DE DESIGN: Canvas com moldura também usa fill e borda espelhada
     defaultDesign: {
@@ -139,31 +139,42 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       print_on_side: 'mirror' // A regra especial para canvas - borda espelhada
     },
     printifyBlueprintId: 944, // Framed Canvas
-    printifyPrintProviderId: 87, // Stinky Ink Printing
+    printifyPrintProviderId: 105, // Jondo
     variants: [
-      // Pretos (mais baratos)
-      { id: 111888, title: '6" x 6" / Black / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 }, // ✅ €24.95
-      { id: 111890, title: '10" x 10" / Black / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 8.00 }, // ✅ €32.95
-      { id: 111891, title: '14" x 14" / Black / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 14.00 }, // ✅ €38.95
-      { id: 111892, title: '16" x 16" / Black / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 21.00 }, // ✅ €45.95
-      { id: 111893, title: '20" x 20" / Black / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 30.00 }, // ✅ €54.95
-      { id: 111894, title: '24" x 24" / Black / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 40.00 }, // ✅ €64.95
+      // 6" x 6" - Tamanho base
+      { id: 111888, title: '6" x 6" / Black / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
+      { id: 111896, title: '6" x 6" / Espresso / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 5.00 },
+      { id: 111904, title: '6" x 6" / White / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 5.00 },
       
-      // Espresso (mais caros)
-      { id: 111896, title: '6" x 6" / Espresso / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 2.00 }, // ✅ €26.95
-      { id: 111898, title: '10" x 10" / Espresso / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 10.00 }, // ✅ €34.95
-      { id: 111899, title: '14" x 14" / Espresso / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 16.00 }, // ✅ €40.95
-      { id: 111900, title: '16" x 16" / Espresso / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 23.00 }, // ✅ €47.95
-      { id: 111901, title: '20" x 20" / Espresso / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 32.00 }, // ✅ €56.95
-      { id: 111902, title: '24" x 24" / Espresso / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 42.00 }, // ✅ €66.95
+      // 10" x 10"
+      { id: 111890, title: '10" x 10" / Black / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 10.00 },
+      { id: 111898, title: '10" x 10" / Espresso / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 15.00 },
+      { id: 111906, title: '10" x 10" / White / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 15.00 },
       
-      // Brancos (mesmo preço que Espresso)
-      { id: 111904, title: '6" x 6" / White / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 2.00 }, // ✅ €26.95
-      { id: 111906, title: '10" x 10" / White / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 10.00 }, // ✅ €34.95
-      { id: 111907, title: '14" x 14" / White / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 16.00 }, // ✅ €40.95
-      { id: 111908, title: '16" x 16" / White / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 23.00 }, // ✅ €47.95
-      { id: 111909, title: '20" x 20" / White / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 32.00 }, // ✅ €56.95
-      { id: 111910, title: '24" x 24" / White / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 42.00 }, // ✅ €66.95
+      // 14" x 14"
+      { id: 111891, title: '14" x 14" / Black / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 20.00 },
+      { id: 111899, title: '14" x 14" / Espresso / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 25.00 },
+      { id: 111907, title: '14" x 14" / White / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 25.00 },
+      
+      // 16" x 16"
+      { id: 111892, title: '16" x 16" / Black / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 30.00 },
+      { id: 111900, title: '16" x 16" / Espresso / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 35.00 },
+      { id: 111908, title: '16" x 16" / White / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 35.00 },
+      
+      // 20" x 20"
+      { id: 111893, title: '20" x 20" / Black / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 40.00 },
+      { id: 111901, title: '20" x 20" / Espresso / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 45.00 },
+      { id: 111909, title: '20" x 20" / White / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 45.00 },
+      
+      // 24" x 24"
+      { id: 111894, title: '24" x 24" / Black / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 50.00 },
+      { id: 111902, title: '24" x 24" / Espresso / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 55.00 },
+      { id: 111910, title: '24" x 24" / White / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 55.00 },
+      
+      // 32" x 32"
+      { id: 88302, title: '32" x 32" / Black / 1.25"', placeholderWidth: 9600, placeholderHeight: 9600, isGiftPackaging: false, priceAdjustment: 60.00 },
+      { id: 107272, title: '32" x 32" / Espresso / 1.25"', placeholderWidth: 9600, placeholderHeight: 9600, isGiftPackaging: false, priceAdjustment: 65.00 },
+      { id: 107273, title: '32" x 32" / White / 1.25"', placeholderWidth: 9600, placeholderHeight: 9600, isGiftPackaging: false, priceAdjustment: 65.00 },
     ],
     printAreasConfig: [{
       position: 'front',
@@ -208,15 +219,13 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     supportsManualAdjustment: false,
   },
 
-  // ✅ CAPA DE TELEMÓVEL (custom_phone_case)
+  // CAPA DE TELEMÓVEL PERSONALIZADA (COM AJUSTE MANUAL E MÚLTIPLAS VARIANTES)
   'custom_phone_case': {
     id: 'custom_phone_case',
-    name: 'Capa de Telemóvel Personalizada',
-    mockupInitialPath: '/mockupproduto/telemovel.png',
-    printifyBlueprintId: 52,
-    printifyPrintProviderId: 99,
+    name: 'Capa de Telemóvel',
+    mockupInitialPath: '/mockupproduto/telemovel.png', // Imagem base no frontend
+    basePrice: 19.95, // Preço de venda em euros ✅ ATUALIZADO
     category: 'tecnologia',
-    basePrice: 19.95, // ✅ NOVO: €19.95 para todas as capas
     // ✅ CONFIGURAÇÃO DE DESIGN: Capa com ajuste manual, scale dinâmico
     defaultDesign: {
       scale: 1.0, // Scale será calculado dinamicamente
@@ -224,6 +233,8 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       y: 0.5, // Centro
       angle: 0, // Sem rotação inicial
     },
+    printifyBlueprintId: 370,
+    printifyPrintProviderId: 23,
     variants: [
       // iPhones (13 ao 16)
       { id: 75178, title: 'iPhone 13', placeholderWidth: 914, placeholderHeight: 1795, isGiftPackaging: false },
@@ -278,12 +289,12 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     ],
   },
 
-  // ✅ CANECA NORMAL (ceramic_mug)
+  // 1. CANECA CERÂMICA (EU)
   'ceramic_mug': {
     id: 'ceramic_mug',
-    name: 'Caneca Personalizada',
-    mockupInitialPath: '/mockupproduto/canecapersonalizada.png',
-    basePrice: 18.95, // ✅ NOVO: Caneca 330ml base
+    name: 'Caneca',
+    mockupInitialPath: '/assets/mockups/mug/caneca.svg',
+    basePrice: 18.95, // Euros - 330ml base ✅ ATUALIZADO
     category: 'mug',
     // ✅ CONFIGURAÇÃO DE DESIGN: Caneca com fill completo + ajustes ligeiros
     defaultDesign: {
@@ -295,8 +306,8 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 441,
     printifyPrintProviderId: 30, // OPT OnDemand
     variants: [
-      { id: 62327, title: 'Padrão (330ml)', placeholderWidth: 2717, placeholderHeight: 1146, isGiftPackaging: false }, // ✅ €18.95
-      { id: 62328, title: 'Grande (450ml)', placeholderWidth: 2811, placeholderHeight: 1276, isGiftPackaging: false }, // ✅ €22.95
+      { id: 62327, title: 'Padrão (330ml)', placeholderWidth: 2717, placeholderHeight: 1146, isGiftPackaging: false },
+      { id: 62328, title: 'Grande (450ml)', placeholderWidth: 2811, placeholderHeight: 1276, isGiftPackaging: false },
     ],
     printFileBleed: 2, // Ajustar conforme a Printify, 2mm é um bom default
     printFileResolution: 300,
@@ -318,8 +329,8 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'heart_mug': {
     id: 'heart_mug',
     name: 'Caneca Coração',
-    mockupInitialPath: '/mockupproduto/canecacoracao.png',
-    basePrice: 26.95, // ✅ NOVO: €26.95
+    mockupInitialPath: '/assets/mockups/mug/canecacoracao.svg',
+    basePrice: 26.95, // Euros ✅ ATUALIZADO
     category: 'mug',
     // ✅ CONFIGURAÇÃO DE DESIGN: Caneca coração com fill completo + ajustes ligeiros
     defaultDesign: {
@@ -353,8 +364,8 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'tote_bag': {
     id: 'tote_bag',
     name: 'Saco Tote Bag',
-    mockupInitialPath: '/mockupproduto/saco.png',
-    basePrice: 19.95, // ✅ NOVO: €19.95
+    mockupInitialPath: '/assets/mockups/bag/saco.svg',
+    basePrice: 19.95, // Euros ✅ ATUALIZADO
     category: 'bags', // Nova categoria
     // ✅ CONFIGURAÇÃO DE DESIGN: Saco tote com imagem centrada
     defaultDesign: {
@@ -389,8 +400,8 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'spiral_journal': {
     id: 'spiral_journal',
     name: 'Caderno',
-    mockupInitialPath: '/mockupproduto/caderno.png',
-    basePrice: 18.95, // ✅ NOVO: €18.95
+    mockupInitialPath: '/assets/mockups/journal/spiral_journal_blank.svg',
+    basePrice: 18.95, // Euros ✅ ATUALIZADO
     category: 'escritorio', // ✅ MUDANÇA: escritorio em vez de stationery
     // ✅ CONFIGURAÇÃO DE DESIGN: Caderno com fill para cobertura completa
     defaultDesign: {
@@ -425,8 +436,8 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'mouse_pad': {
     id: 'mouse_pad',
     name: 'Mouse Pad',
-    mockupInitialPath: '/mockupproduto/mousepad.png',
-    basePrice: 24.95, // ✅ NOVO: €24.95
+    mockupInitialPath: '/assets/mockups/mousepad/mouse_pad_blank.svg',
+    basePrice: 24.95, // Euros ✅ ATUALIZADO
     category: 'escritorio', // ✅ MUDANÇA: escritorio em vez de office
     // ✅ CONFIGURAÇÃO DE DESIGN: Mouse pad com fill
     defaultDesign: {
@@ -473,16 +484,16 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 1220,
     printifyPrintProviderId: 105,
     variants: [
-      { id: 92369, title: '7" x 5" (17,78 x 12,7 cm)', placeholderWidth: 2100, placeholderHeight: 1500, isGiftPackaging: false, price: 1795 }, // ✅ €17.95
-      { id: 101854, title: '11" x 9" (27,94 x 22,86 cm)', placeholderWidth: 3300, placeholderHeight: 2700, isGiftPackaging: false, price: 1795 }, // ✅ €17.95  
-      { id: 92375, title: '14" x 11" (35,56 x 27,94 cm)', placeholderWidth: 4200, placeholderHeight: 3300, isGiftPackaging: false, price: 1895 }, // ✅ €18.95
-      { id: 92377, title: '18" x 12" (45,72 x 30,48 cm)', placeholderWidth: 5400, placeholderHeight: 3600, isGiftPackaging: false, price: 1995 }, // ✅ €19.95
-      { id: 92379, title: '20" x 16" (50,8 x 40,64 cm)', placeholderWidth: 6000, placeholderHeight: 4800, isGiftPackaging: false, price: 2195 }, // ✅ €21.95
-      { id: 101834, title: '24" x 16" (60,96 x 40,64 cm)', placeholderWidth: 7200, placeholderHeight: 4800, isGiftPackaging: false, price: 2395 }, // ✅ €23.95
-      { id: 92381, title: '24" x 18" (60,96 x 45,72 cm)', placeholderWidth: 7200, placeholderHeight: 5400, isGiftPackaging: false, price: 2395 }, // ✅ €23.95
-      { id: 92383, title: '30" x 20" (76,2 x 50,8 cm)', placeholderWidth: 9000, placeholderHeight: 6000, isGiftPackaging: false, price: 2495 }, // ✅ €24.95
-      { id: 101846, title: '34" x 22" (86,36 x 55,88 cm)', placeholderWidth: 10200, placeholderHeight: 6600, isGiftPackaging: false, price: 2995 }, // ✅ €29.95
-      { id: 92387, title: '36" x 24" (91,44 x 60,96 cm)', placeholderWidth: 10800, placeholderHeight: 7200, isGiftPackaging: false, price: 2995 }, // ✅ €29.95
+      { id: 92369, title: '7" x 5" (17,78 x 12,7 cm)', placeholderWidth: 2100, placeholderHeight: 1500, isGiftPackaging: false, price: 1795 }, // 17,95€
+      { id: 101854, title: '11" x 9" (27,94 x 22,86 cm)', placeholderWidth: 3300, placeholderHeight: 2700, isGiftPackaging: false, price: 1795 }, // 17,95€
+      { id: 92375, title: '14" x 11" (35,56 x 27,94 cm)', placeholderWidth: 4200, placeholderHeight: 3300, isGiftPackaging: false, price: 1895 }, // 18,95€
+      { id: 92377, title: '18" x 12" (45,72 x 30,48 cm)', placeholderWidth: 5400, placeholderHeight: 3600, isGiftPackaging: false, price: 1995 }, // 19,95€
+      { id: 92379, title: '20" x 16" (50,8 x 40,64 cm)', placeholderWidth: 6000, placeholderHeight: 4800, isGiftPackaging: false, price: 2195 }, // 21,95€
+      { id: 101834, title: '24" x 16" (60,96 x 40,64 cm)', placeholderWidth: 7200, placeholderHeight: 4800, isGiftPackaging: false, price: 2395 }, // 23,95€
+      { id: 92381, title: '24" x 18" (60,96 x 45,72 cm)', placeholderWidth: 7200, placeholderHeight: 5400, isGiftPackaging: false, price: 2395 }, // 23,95€
+      { id: 92383, title: '30" x 20" (76,2 x 50,8 cm)', placeholderWidth: 9000, placeholderHeight: 6000, isGiftPackaging: false, price: 2495 }, // 24,95€
+      { id: 101846, title: '34" x 22" (86,36 x 55,88 cm)', placeholderWidth: 10200, placeholderHeight: 6600, isGiftPackaging: false, price: 2995 }, // 29,95€
+      { id: 92387, title: '36" x 24" (91,44 x 60,96 cm)', placeholderWidth: 10800, placeholderHeight: 7200, isGiftPackaging: false, price: 2995 }, // 29,95€
     ],
     printAreasConfig: [{
       position: 'front',
@@ -514,16 +525,16 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     printifyBlueprintId: 1220,
     printifyPrintProviderId: 105,
     variants: [
-      { id: 92389, title: '5" x 7" (12,7 x 17,8 cm)', placeholderWidth: 1500, placeholderHeight: 2100, isGiftPackaging: false, price: 1795 }, // ✅ €17.95 (5x7)
-      { id: 101856, title: '9" x 11" (22,9 x 27,9 cm)', placeholderWidth: 2700, placeholderHeight: 3300, isGiftPackaging: false, price: 1795 }, // ✅ €17.95 (9x11)
-      { id: 92395, title: '11" x 14" (27,9 x 35,6 cm)', placeholderWidth: 3300, placeholderHeight: 4200, isGiftPackaging: false, price: 1895 }, // ✅ €18.95 (11x14)
-      { id: 92397, title: '12" x 18" (30,5 x 45,7 cm)', placeholderWidth: 3600, placeholderHeight: 5400, isGiftPackaging: false, price: 1995 }, // ✅ €19.95 (12x18)
-      { id: 92399, title: '16" x 20" (40,6 x 50,8 cm)', placeholderWidth: 4800, placeholderHeight: 6000, isGiftPackaging: false, price: 2195 }, // ✅ €21.95 (16x20)
-      { id: 101836, title: '16" x 24" (40,6 x 61,0 cm)', placeholderWidth: 4800, placeholderHeight: 7200, isGiftPackaging: false, price: 2395 }, // ✅ €23.95 (16x24)
-      { id: 92401, title: '18" x 24" (45,7 x 61,0 cm)', placeholderWidth: 5400, placeholderHeight: 7200, isGiftPackaging: false, price: 2395 }, // ✅ €23.95 (18x24)
-      { id: 92403, title: '20" x 30" (50,8 x 76,2 cm)', placeholderWidth: 6000, placeholderHeight: 9000, isGiftPackaging: false, price: 2495 }, // ✅ €24.95 (20x30)
-      { id: 101848, title: '22" x 34" (55,9 x 86,4 cm)', placeholderWidth: 6600, placeholderHeight: 10200, isGiftPackaging: false, price: 2995 }, // ✅ €29.95 (22x34)
-      { id: 92407, title: '24" x 36" (61,0 x 91,4 cm)', placeholderWidth: 7200, placeholderHeight: 10800, isGiftPackaging: false, price: 2995 }, // ✅ €29.95 (24x36)
+      { id: 92389, title: '5" x 7" (12,7 x 17,8 cm)', placeholderWidth: 1500, placeholderHeight: 2100, isGiftPackaging: false, price: 1795 }, // 17,95€
+      { id: 101856, title: '9" x 11" (22,9 x 27,9 cm)', placeholderWidth: 2700, placeholderHeight: 3300, isGiftPackaging: false, price: 1795 }, // 17,95€
+      { id: 92395, title: '11" x 14" (27,9 x 35,6 cm)', placeholderWidth: 3300, placeholderHeight: 4200, isGiftPackaging: false, price: 1895 }, // 18,95€
+      { id: 92397, title: '12" x 18" (30,5 x 45,7 cm)', placeholderWidth: 3600, placeholderHeight: 5400, isGiftPackaging: false, price: 1995 }, // 19,95€
+      { id: 92399, title: '16" x 20" (40,6 x 50,8 cm)', placeholderWidth: 4800, placeholderHeight: 6000, isGiftPackaging: false, price: 2195 }, // 21,95€
+      { id: 101836, title: '16" x 24" (40,6 x 61,0 cm)', placeholderWidth: 4800, placeholderHeight: 7200, isGiftPackaging: false, price: 2395 }, // 23,95€
+      { id: 92401, title: '18" x 24" (45,7 x 61,0 cm)', placeholderWidth: 5400, placeholderHeight: 7200, isGiftPackaging: false, price: 2395 }, // 23,95€
+      { id: 92403, title: '20" x 30" (50,8 x 76,2 cm)', placeholderWidth: 6000, placeholderHeight: 9000, isGiftPackaging: false, price: 2495 }, // 24,95€
+      { id: 101848, title: '22" x 34" (55,9 x 86,4 cm)', placeholderWidth: 6600, placeholderHeight: 10200, isGiftPackaging: false, price: 2995 }, // 29,95€
+      { id: 92407, title: '24" x 36" (61,0 x 91,4 cm)', placeholderWidth: 7200, placeholderHeight: 10800, isGiftPackaging: false, price: 2995 }, // 29,95€
     ],
     printAreasConfig: [{
       position: 'front',

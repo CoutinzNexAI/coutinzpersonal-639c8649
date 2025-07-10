@@ -6,8 +6,8 @@ export const notebookConfig = {
   productCategory: 'escritorio',
 
   getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
-    // ✅ NOVO: Caderno tem preço fixo de €18.95
-    return 18.95;
+    // Caderno tem preço fixo de €18.95 ✅ ATUALIZADO
+    return product?.basePrice || 18.95;
   },
 
   discountTiers: [

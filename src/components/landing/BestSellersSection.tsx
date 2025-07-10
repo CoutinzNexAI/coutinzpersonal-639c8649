@@ -22,7 +22,7 @@ const bestSellers: Product[] = [
     id: 'custom_canvas',
     name: 'Canvas Premium',
     category: 'Canvas',
-    price: 20.00,
+    price: 24.95, // ✅ ATUALIZADO (6x6 base)
     imagePersonalized: '/Bestseller/canva16foto.png',
     imageBlank: '/Bestseller/canva16.png',
     href: '/shop/canvas/custom_canvas',
@@ -32,7 +32,7 @@ const bestSellers: Product[] = [
     id: 'heart_mug',
     name: 'Caneca Coração',
     category: 'Canecas',
-    price: 30.00,
+    price: 26.95, // ✅ ATUALIZADO
     imagePersonalized: '/Bestseller/canecacoracaofoto.png',
     imageBlank: '/Bestseller/canecacoracao.png',
     href: '/shop/mug/heart_mug',
@@ -42,7 +42,7 @@ const bestSellers: Product[] = [
     id: 'custom_phone_case',
     name: 'Capa Telemóvel',
     category: 'Tecnologia',
-    price: 25.00,
+    price: 19.95, // ✅ ATUALIZADO
     imagePersonalized: '/Bestseller/capatelemovelfoto.png',
     imageBlank: '/Bestseller/capatelemovel.png',
     href: '/shop/tecnologia/custom_phone_case',
@@ -52,7 +52,7 @@ const bestSellers: Product[] = [
     id: 'poster_vertical',
     name: 'Poster Vertical',
     category: 'Posters',
-    price: 20.00,
+    price: 17.95, // ✅ ATUALIZADO
     imagePersonalized: '/Bestseller/poster1824foto.png',
     imageBlank: '/Bestseller/poster1824.png',
     href: '/shop/poster',

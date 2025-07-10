@@ -85,7 +85,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'poster_vertical',
     name: 'Poster Vertical',
-    price: 20.00,
+    price: 17.95, // ✅ ATUALIZADO
     image: '/mockupproduto/postervertical.png',
     href: '/shop/poster/poster_vertical_semi_glossy'
   },
@@ -93,7 +93,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'heart_mug',
     name: 'Caneca Coração',
-    price: 30.00,
+    price: 26.95, // ✅ ATUALIZADO
     image: '/mockupproduto/canecacoracao.png',
     href: '/shop/mug/heart_mug',
     badge: '❤️'
@@ -102,7 +102,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'custom_canvas',
     name: 'Canvas',
-    price: 20.00,
+    price: 24.95, // ✅ ATUALIZADO (6x6 base)
     image: '/mockupproduto/canva.png',
     href: '/shop/canvas/custom_canvas',
     badge: 'Popular'
@@ -111,7 +111,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'custom_phone_case',
     name: 'Capa Telemóvel',
-    price: 25.00,
+    price: 19.95, // ✅ ATUALIZADO
     image: '/mockupproduto/telemovel.png',
     href: '/shop/tecnologia/custom_phone_case',
     badge: 'TOP'
@@ -120,7 +120,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'poster_horizontal',
     name: 'Poster Horizontal',
-    price: 20.00,
+    price: 17.95, // ✅ ATUALIZADO
     image: '/mockupproduto/posterhorizontal.png',
     href: '/shop/poster/poster_horizontal_semi_glossy'
   },
@@ -128,7 +128,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'ceramic_mug',
     name: 'Caneca',
-    price: 22.50,
+    price: 18.95, // ✅ ATUALIZADO (330ml base)
     image: '/mockupproduto/canecapersonalizada.png',
     href: '/shop/mug/ceramic_mug'
   },
@@ -136,7 +136,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'spiral_journal',
     name: 'Caderno',
-    price: 20.00,
+    price: 18.95, // ✅ ATUALIZADO
     image: '/mockupproduto/caderno.png',
     href: '/shop/escritorio/spiral_journal'
   },
@@ -144,7 +144,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'tote_bag',
     name: 'Saco Tote Bag',
-    price: 25.00,
+    price: 19.95, // ✅ ATUALIZADO
     image: '/mockupproduto/saco.png',
     href: '/shop/bag/tote_bag'
   },
@@ -152,7 +152,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'mouse_pad',
     name: 'Mouse Pad',
-    price: 30.00,
+    price: 24.95, // ✅ ATUALIZADO
     image: '/mockupproduto/mousepad.png',
     href: '/shop/escritorio/mouse_pad'
   },
@@ -160,7 +160,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'framed_canvas',
     name: 'Canvas com Moldura',
-    price: 40.00,
+    price: 40.00, // ✅ MANTIDO conforme pedido
     image: '/mockupproduto/canvamoldura.png',
     href: '/shop/canvas/framed_canvas',
     badge: 'Premium'
