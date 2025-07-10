@@ -673,56 +673,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           {/* Layout Mobile */}
           <div className="block lg:hidden">
 
-            {/* ✅ SELETOR DE VARIANTES MOBILE - PRIMEIRO (ANTES DO MOCKUP) */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="px-4 mb-6"
-            >
-              <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
-                {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
-                  <PhoneCaseVariantSelector
-                    product={product}
-                    selectedVariantId={selectedPrintifyVariantId}
-                    onVariantChange={(variantId) => handleAdjustment('size', variantId)}
-                    label={config.variantSelectorConfig?.label || "Modelo do Telemóvel"}
-                    emoji={config.variantSelectorConfig?.emoji || "📱"}
-                    customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
-                    customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
-                  />
-                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'FramedCanvasVariantSelector' ? (
-                  <FramedCanvasVariantSelector
-                    product={product}
-                    selectedVariantId={selectedPrintifyVariantId}
-                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
-                  />
-                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'ToteBagVariantSelector' ? (
-                  <ToteBagVariantSelector
-                    product={product}
-                    selectedVariantId={selectedPrintifyVariantId}
-                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
-                  />
-                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
-                  <NotebookVariantSelector
-                    product={product}
-                    selectedVariantId={selectedPrintifyVariantId}
-                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
-                  />
-                ) : (
-                  <ProductVariantSelector
-                    product={product}
-                    selectedVariantId={selectedPrintifyVariantId}
-                    onVariantChange={(variantId) => handleAdjustment('size', variantId)}
-                    label={config.variantSelectorConfig?.label || "Variante"}
-                    emoji={config.variantSelectorConfig?.emoji || "🎯"}
-                    customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
-                    customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
-                  />
-                )}
-              </div>
-            </motion.div>
-
             {/* ✅ CONTROLOS MOBILE */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -793,7 +743,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 selectedImageUrl={selectedImageUrl || ''}
                 selectedPrintifyVariantId={selectedPrintifyVariantId}
                 onAddToCart={handleAddToCart}
-                onSelectImage={handleOpenGallery}
                 size="mobile"
               />
             </motion.div>
@@ -805,6 +754,51 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               transition={{ duration: 0.6, delay: 0.6 }}
               className="px-4 space-y-4"
             >
+
+
+              {/* Seletor de Variantes Mobile */}
+              <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
+                {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
+                  <PhoneCaseVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                    label={config.variantSelectorConfig?.label || "Modelo do Telemóvel"}
+                    emoji={config.variantSelectorConfig?.emoji || "📱"}
+                    customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                    customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                  />
+                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'FramedCanvasVariantSelector' ? (
+                  <FramedCanvasVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                  />
+                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'ToteBagVariantSelector' ? (
+                  <ToteBagVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                  />
+                ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
+                  <NotebookVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                  />
+                ) : (
+                  <ProductVariantSelector
+                    product={product}
+                    selectedVariantId={selectedPrintifyVariantId}
+                    onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                    label={config.variantSelectorConfig?.label || "Variante"}
+                    emoji={config.variantSelectorConfig?.emoji || "🎯"}
+                    customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                    customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                  />
+                )}
+              </div>
+
               <ProductGuarantees guarantees={config.guaranteeItems()} />
             </motion.div>
           </div>
@@ -1026,24 +1020,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     </div>
                   </div>
 
-                  {/* Botão Principal */}
-                  <div className="pt-3">
-                    <ProductAddToCartButton
-                      canPurchase={!!canPurchase}
-                      isProcessingMockup={!!isProcessingMockup}
-                      loading={loading}
-                      userInfo={userInfo}
-                      selectedImageUrl={selectedImageUrl || ''}
-                      selectedPrintifyVariantId={selectedPrintifyVariantId}
-                      onAddToCart={handleAddToCart}
-                      onSelectImage={handleOpenGallery}
-                      size="desktop"
-                    />
-                  </div>
-
-
-
-                  {/* Seletor de Variantes */}
+                  {/* Seletor de Variantes - MOVIDO PARA CIMA */}
                   {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
                     <PhoneCaseVariantSelector
                       product={product}
@@ -1077,12 +1054,27 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                       product={product}
                       selectedVariantId={selectedPrintifyVariantId}
                       onVariantChange={(variantId) => handleAdjustment('size', variantId)}
-                      label={config.variantSelectorConfig?.label || "Variante"}
-                      emoji={config.variantSelectorConfig?.emoji || "🎯"}
+                      label={config.variantSelectorConfig?.label || "Tamanho"}
+                      emoji={config.variantSelectorConfig?.emoji || "📏"}
                       customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
                       customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
                     />
                   )}
+
+                  {/* Botão Principal */}
+                  <div className="pt-3">
+                    <ProductAddToCartButton
+                      canPurchase={!!canPurchase}
+                      isProcessingMockup={!!isProcessingMockup}
+                      loading={loading}
+                      userInfo={userInfo}
+                      selectedImageUrl={selectedImageUrl || ''}
+                      selectedPrintifyVariantId={selectedPrintifyVariantId}
+                      onAddToCart={handleAddToCart}
+                      onOpenGallery={handleOpenGallery} // ✅ NOVA PROP
+                      size="desktop"
+                    />
+                  </div>
 
                   {/* Status Arte */}
                   <ProductArtStatus 

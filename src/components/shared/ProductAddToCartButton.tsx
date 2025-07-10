@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Camera } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 interface ProductAddToCartButtonProps {
   // Estados de validação
@@ -15,7 +15,7 @@ interface ProductAddToCartButtonProps {
   
   // Callbacks
   onAddToCart: () => void;
-  onSelectImage?: () => void; // Nova prop para abrir galeria
+  onOpenGallery?: () => void; // ✅ NOVA PROP
   
   // Customização
   className?: string;
@@ -30,7 +30,7 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
   selectedImageUrl,
   selectedPrintifyVariantId,
   onAddToCart,
-  onSelectImage,
+  onOpenGallery,
   className = '',
   size = 'desktop'
 }) => {
@@ -59,37 +59,6 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
     );
   }
 
-  // Determina o comportamento do clique
-  const handleClick = () => {
-    if (!userInfo) {
-      // Se não está logado, redireciona ou mostra modal de login
-      return;
-    }
-    
-    if (!selectedImageUrl && onSelectImage) {
-      // Se não tem imagem selecionada, abre a galeria
-      onSelectImage();
-      return;
-    }
-    
-    if (canPurchase) {
-      // Se pode comprar, adiciona ao carrinho
-      onAddToCart();
-    }
-  };
-
-  // Determina se o botão deve estar habilitado
-  const isButtonEnabled = () => {
-    // Sempre habilitado se não está logado (para mostrar mensagem)
-    if (!userInfo) return true;
-    
-    // Habilitado se não tem imagem (para abrir galeria)
-    if (!selectedImageUrl) return true;
-    
-    // Habilitado se pode fazer compra
-    return canPurchase && !loading;
-  };
-
   // Determina o texto do botão baseado no estado
   const getButtonText = () => {
     if (loading) {
@@ -107,13 +76,7 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
     }
     
     if (!selectedImageUrl) {
-      const iconSize = size === 'mobile' ? 'w-5 h-5' : 'w-5 h-5 sm:w-6 sm:h-6';
-      return (
-        <>
-          <Camera className={iconSize} />
-          <span className="text-center">Escolher Foto</span>
-        </>
-      );
+      return <span className="text-center">Escolha uma Arte Primeiro</span>;
     }
     
     if (!selectedPrintifyVariantId) {
@@ -135,6 +98,19 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
     );
   };
 
+  // Determina a ação do botão e se está habilitado
+  const getButtonAction = () => {
+    if (!userInfo || loading) return { onClick: () => {}, disabled: true };
+    
+    // ✅ NOVA LÓGICA: Se não há arte, abrir galeria (se onOpenGallery disponível)
+    if (!selectedImageUrl && onOpenGallery) {
+      return { onClick: onOpenGallery, disabled: false };
+    }
+    
+    // Caso contrário, usar lógica normal
+    return { onClick: onAddToCart, disabled: !canPurchase };
+  };
+
   // Simplified button styles
   const getButtonStyles = () => {
     const baseStyles = 'group relative w-full font-bold rounded-xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0';
@@ -143,24 +119,29 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
       ? 'py-4 text-lg shadow-xl'
       : 'py-5 sm:py-6 text-base sm:text-lg lg:rounded-2xl shadow-lg sm:shadow-xl hover:shadow-xl sm:hover:shadow-2xl';
     
-    // Sempre usar style ativo se o botão está habilitado
-    const stateStyles = isButtonEnabled()
-      ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white cursor-pointer'
+    // ✅ NOVA LÓGICA: Se não há arte mas há onOpenGallery, usar cor "escolher arte"
+    const shouldShowArtSelection = !selectedImageUrl && onOpenGallery && userInfo;
+    
+    const stateStyles = shouldShowArtSelection
+      ? 'bg-gradient-to-br from-ghibli-wood via-ghibli-earth to-ghibli-wood hover:from-ghibli-earth hover:via-ghibli-earth hover:to-ghibli-earth text-white'
+      : canPurchase
+      ? 'bg-gradient-to-br from-ghibli-moss via-ghibli-moss-light to-ghibli-moss hover:from-ghibli-moss-light hover:via-ghibli-moss hover:to-ghibli-moss-light text-white'
       : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60';
     
     return `${baseStyles} ${sizeStyles} ${stateStyles} ${className}`;
   };
 
   const gapSize = size === 'mobile' ? 'gap-2' : 'gap-2 sm:gap-3';
+  const { onClick, disabled } = getButtonAction();
 
   return (
     <Button
-      onClick={handleClick}
-      disabled={!isButtonEnabled()}
+      onClick={onClick}
+      disabled={disabled}
       className={getButtonStyles()}
     >
       {/* Shimmer effect */}
-      {isButtonEnabled() && (
+      {(canPurchase || (!selectedImageUrl && onOpenGallery && userInfo)) && (
         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-1000"></div>
       )}
       

@@ -25,7 +25,7 @@ const heroSlides: HeroSlide[] = [
     id: 2,
     image: '/hero-carousel/slide-2.svg',
     title: 'Loja Completa PicTuz',
-    subtitle: 'Canecas, Capas, Canvas, Posters e muito mais',
+    subtitle: 'Canecas, T-shirts, Posters e muito mais',
     ctaText: 'Explorar Loja',
     ctaLink: '/shop',
     ctaStyle: 'secondary'

@@ -14,7 +14,7 @@ export interface PrintifyProductMapping {
   mockupInitialPath: string; // O teu mockup base para mostrar antes da Printify gerar
   price?: number; // Preço base do produto (opcional para produtos com variantes)
   basePrice?: number; // Preço base em euros (para produtos com variantes)
-  category: 'canvas' | 'poster' | 'mug' | 'phone-case' | 'tecnologia' | 'bags' | 'stationery' | 'office' | 'escritorio';
+  category: 'canvas' | 'apparel' | 'poster' | 'mug' | 'phone-case' | 'tecnologia' | 'bags' | 'stationery' | 'office' | 'escritorio';
 
   // ✅ NOVA PROPRIEDADE: A "receita" de design para este produto
   defaultDesign: DefaultDesignConfig;
@@ -43,10 +43,10 @@ export interface PrintifyProductMapping {
   gelatoPrintOffsetsMm?: { x: number; y: number }; // Deslocamentos reais da área de impressão em MM
 
   // Propriedades para Ajuste Manual (para Canecas/Capas)
-  supportsManualAdjustment: boolean; // TRUE para Canecas/Capas, FALSE para Canvas/Poster
+  supportsManualAdjustment: boolean; // TRUE para Canecas/Capas, FALSE para Canvas/Poster/T-shirt
   adjustmentLimits?: { minZoom: number; maxZoom: number; allowRotation?: boolean; };
 
-  // Áreas de Impressão (Para produtos complexos)
+  // Áreas de Impressão (Para produtos complexos como sweats)
   printAreasConfig?: Array<{
     position: string; // 'front', 'back', etc.
     allowsUserImage: boolean;
@@ -191,6 +191,31 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
       { label: 'Borda Espelhada', value: 'mirror' },
       { label: 'Sem Borda', value: 'off' },
     ],
+    supportsManualAdjustment: false,
+  },
+
+  // T-SHIRT UNISSEXO S
+    'tshirt_unisex_s_white_crewneck_premium': {
+    id: 'tshirt_unisex_s_white_crewneck_premium',
+    name: 'T-shirt Unissexo (S, Branco, Gola Redonda Premium)',
+    productUid: 'apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_prm_gsi_s_gco_white_gpr_4-0_bella-and-canvas_3001',
+    mockupInitialPath: '/assets/mockups/tshirt/tshirt_s_white_blank_front.png', // Adapta ao teu mockup
+    price: 28.00,
+    category: 'apparel',
+    // ✅ CONFIGURAÇÃO DE DESIGN: T-shirt com imagem menor no peito
+    defaultDesign: {
+      scale: 0.4, // Numa t-shirt, a imagem é mais pequena
+      x: 0.5, // Centro
+      y: 0.4, // Um pouco mais para cima no peito
+      angle: 0, // Sem rotação
+    },
+    gelatoTemplateId: '65304b9f-3bbe-4e47-ba23-e5ed267a18f5', // Template ID da t-shirt
+    templateVariantId: '2878ef11-ecc6-4e9f-9e68-b8b17c1b3727', // <--- ATUALIZA ESTE ID!
+    printArea: 'front', // <--- ATUALIZADO para Printify
+    printFileBleed: 4,
+    printFileResolution: 300,
+    gelatoPrintDimensionsMm: { width: 256, height: 256 }, // Dimensões do mockup (da camada joaomadalena.png)
+    gelatoPrintOffsetsMm: { x: 0, y: 0 }, // Se necessário, ajustar offset
     supportsManualAdjustment: false,
   },
 

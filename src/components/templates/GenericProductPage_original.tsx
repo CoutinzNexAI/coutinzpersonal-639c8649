@@ -681,15 +681,8 @@ export default async function handler(
           const getProductResponse: PrintifyProduct = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdProductId}.json`);
 
           if (getProductResponse.images && getProductResponse.images.length > 0) {
-            const allPreviewUrls = getProductResponse.images.map(img => img.src) as string[];
-            // LIMITAR A APENAS 3 MOCKUPS SOMENTE PARA CANVAS
-            if (productId === 'custom_canvas' || productId === 'framed_canvas') {
-              finalPreviewUrls = allPreviewUrls.slice(0, 3);
-              console.log(`✅ Canvas mockups ready! Found ${getProductResponse.images.length} preview(s), limiting to ${finalPreviewUrls.length} mockups (canvas only)`);
-            } else {
-              finalPreviewUrls = allPreviewUrls;
-              console.log(`✅ Mockups ready! Found ${getProductResponse.images.length} preview(s) - keeping all mockups (non-canvas product)`);
-            }
+            console.log(`✅ Mockups ready! Found ${getProductResponse.images.length} preview(s)`);
+            finalPreviewUrls = getProductResponse.images.map(img => img.src) as string[];
             break;
           }
         } catch (pollError) {

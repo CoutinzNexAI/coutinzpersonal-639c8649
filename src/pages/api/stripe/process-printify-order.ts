@@ -53,16 +53,21 @@ interface CartItem {
   userImageId?: string; // ID da transformação para tracking
   price: number;
   quantity: number;
-  customizations: {
-    variantId: number;
-    scale: number;
-    x: number;
-    y: number;
-    angle: number;
-    position?: string;
-    print_on_side?: 'mirror' | 'regular' | 'off';
-    canvasEdgeType?: 'regular' | 'mirror' | 'off';
-    frameColor?: string;
+  customizations: { // Guarda as escolhas do user
+    variantId: number; // ID da variante (cor/tamanho) da Printify
+    size?: string;
+    color?: string;
+    variant?: string;
+    phoneModel?: string; // Para capas de telemóvel
+    paperType?: string; // Para cadernos
+    selectedPhraseText?: string; // Para sweat de criança
+    canvasEdgeType?: 'regular' | 'mirror' | 'off'; // Para Canvas Sem Borda
+    frameColor?: string; // Para Canvas com Moldura
+    x?: number;
+    y?: number;
+    scale?: number;
+    angle?: number;
+    print_on_side?: 'mirror' | 'regular' | 'off'; // Para produtos que suportam print details (canvas)
   };
   printDetails?: {
     print_on_side?: 'mirror' | 'regular' | 'off'; // Para produtos com bordas especiais

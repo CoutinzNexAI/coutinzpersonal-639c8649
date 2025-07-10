@@ -24,6 +24,7 @@ export interface CartItem {
     variant?: string;
     phoneModel?: string; // Para capas de telemóvel
     paperType?: string; // Para cadernos
+    selectedPhraseText?: string; // Para sweat de criança
     canvasEdgeType?: 'regular' | 'mirror' | 'off'; // Para Canvas Sem Borda (LEGACY - agora usa print_on_side)
     frameColor?: string; // Para Canvas com Moldura
   };
