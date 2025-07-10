@@ -7,7 +7,7 @@ export const bagConfig = {
 
   // ✅ PREÇO: Base para sacos
   getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null) => {
-    return product.basePrice || 18; // €18 preço base para sacos
+    return 19.95; // ✅ NOVO: €19.95 preço base para sacos
   },
 
   // ✅ DESCONTOS: Escalonados por quantidade

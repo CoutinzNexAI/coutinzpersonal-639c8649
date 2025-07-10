@@ -682,8 +682,22 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               transition={{ duration: 0.6, delay: 0.4 }}
               className="mb-6"
             >
-              {/* Seletor de Variantes Mobile - MOVIDO PARA ANTES DOS CONTROLOS */}
-              <div className="px-4 mb-4">
+              {/* Controlos de Trocar Arte + Posição - PRIMEIRO */}
+              <ProductMobileControls
+                selectedImageUrl={selectedImageUrl}
+                userImageDimensions={userImageDimensions}
+                product={product}
+                imagePosition={imagePosition}
+                isGeneratingMockup={isGeneratingMockup}
+                userInfo={userInfo}
+                onOpenGallery={handleOpenGallery}
+                onAdjustPosition={(position) => handleAdjustment('position', position)}
+                            positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
+            showPositionControls={!!coordinateConfig}
+              />
+
+              {/* Seletor de Variantes Mobile - DEPOIS */}
+              <div className="px-4 mb-4 mt-4">
                 <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
                   {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
                     <PhoneCaseVariantSelector
@@ -726,19 +740,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   )}
                 </div>
               </div>
-
-              <ProductMobileControls
-                selectedImageUrl={selectedImageUrl}
-                userImageDimensions={userImageDimensions}
-                product={product}
-                imagePosition={imagePosition}
-                isGeneratingMockup={isGeneratingMockup}
-                userInfo={userInfo}
-                onOpenGallery={handleOpenGallery}
-                onAdjustPosition={(position) => handleAdjustment('position', position)}
-                            positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
-            showPositionControls={!!coordinateConfig}
-              />
               
               {!userInfo && (
                 <div className="px-4">

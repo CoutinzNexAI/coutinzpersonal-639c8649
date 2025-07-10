@@ -9,15 +9,19 @@ export const canvasConfig = {
 
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
     const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-    if (!selectedVariant) return product.basePrice || 20.00;
-    
-    // Canvas Sem Borda: basePrice 20 + priceAdjustment
-    if (selectedVariant.id >= 91656 && selectedVariant.id <= 101418) {
-      return 20.00 + (selectedVariant.priceAdjustment || 0);
+    if (!selectedVariant) return 24.95; // ✅ NOVO: Canvas 6x6 base
+
+    // Canvas Sem Borda: basePrice €24.95 + priceAdjustment
+    if (product.id === 'custom_canvas') {
+      return 24.95 + (selectedVariant.priceAdjustment || 0);
     }
     
-    // Canvas com Moldura: basePrice 40 + priceAdjustment
-    return 40.00 + (selectedVariant.priceAdjustment || 0);
+    // Canvas com Moldura: basePrice €24.95 + priceAdjustment  
+    if (product.id === 'framed_canvas') {
+      return 24.95 + (selectedVariant.priceAdjustment || 0);
+    }
+
+    return 24.95; // ✅ Fallback
   },
 
   discountTiers: [
