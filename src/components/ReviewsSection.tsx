@@ -44,11 +44,11 @@ const reviews: Review[] = [
   {
     id: 4,
     image: '/reviews/review4.jpg',
-    text: 'Adorei a capa do telemóvel! A minha foto ficou com um estilo super criativo. A qualidade de impressão é perfeita e chegou muito bem embalada.',
-    author: 'Ricardo Costa',
-    location: 'Aveiro',
+    text: 'O meu namorado ofereceu me de prenda, fiquei super feliz! muito prático e qualidade da impressão incrivel! Pequeno-almoço perfeito!',
+    author: 'Ana',
+    location: 'Lisboa',
     rating: 5,
-    product: 'Capa de Telemóvel'
+    product: 'Caneca Coração'
   }
 ];
 
