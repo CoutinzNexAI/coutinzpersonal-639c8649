@@ -155,55 +155,36 @@ export default function ProductCanvas({
     setError(null);
 
     try {
-      // Construir payload baseado no tipo de produto
-      let requestBody: Record<string, unknown>;
+      // Construir payload para produtos padrão (capa, caneca, etc.) - imagem única
+      const requestBody: Record<string, unknown> = {
+        productId: selectedProduct.id,
+        userImageUrl: userImageUrl,
+        userId: userId,
+        // ✅ CORREÇÃO: Enviar imageAdjustments para produtos que suportam ajustes manuais OU posters
+        imageAdjustments: (selectedProduct.supportsManualAdjustment || selectedProduct.id.includes('poster_')) ? imageAdjustments : undefined,
+        selectedPrintifyVariantId: selectedPrintifyVariantId,
+      };
 
-      if (selectedProduct.id === 'custom_youth_hoodie') {
-        // Para sweat de criança - múltiplas imagens
-        const logoConfig = selectedProduct.printAreasConfig?.find(area => area.position === 'front');
-        
-        requestBody = {
-          productId: selectedProduct.id,
-          selectedPrintifyVariantId: selectedPrintifyVariantId,
-          logoImageId: logoConfig?.staticImageId || '684d920a45ec86ab347594c5', // ID fixo do logo
-          customerImageUrl: userImageUrl,
-          customerImageAdjustments: allImageAdjustments?.customer,
-          selectedPhraseText: selectedPhraseText || 'Sem frase',
-          phraseImageAdjustments: allImageAdjustments?.phrase,
-          userId: userId,
-        };
-      } else {
-        // Para outros produtos (capa, caneca, etc.) - imagem única
-        requestBody = {
-          productId: selectedProduct.id,
-          userImageUrl: userImageUrl,
-          userId: userId,
-          // ✅ CORREÇÃO: Enviar imageAdjustments para produtos que suportam ajustes manuais OU posters
-          imageAdjustments: (selectedProduct.supportsManualAdjustment || selectedProduct.id.includes('poster_')) ? imageAdjustments : undefined,
-          selectedPrintifyVariantId: selectedPrintifyVariantId,
-        };
+      // Para Canvas products - SEMPRE carregar a imagem primeiro
+      if ((selectedProduct.id === 'custom_canvas' || selectedProduct.id === 'framed_canvas')) {
+        // Para Canvas, não passar printifyImageId - deixar a API carregar a imagem
+        // O backend irá primeiro fazer upload da imagem para Printify e depois usar o ID
+        requestBody.forceImageUpload = true; // Flag para forçar re-upload
 
-        // Para Canvas products - SEMPRE carregar a imagem primeiro
-        if ((selectedProduct.id === 'custom_canvas' || selectedProduct.id === 'framed_canvas')) {
-          // Para Canvas, não passar printifyImageId - deixar a API carregar a imagem
-          // O backend irá primeiro fazer upload da imagem para Printify e depois usar o ID
-          requestBody.forceImageUpload = true; // Flag para forçar re-upload
+        // *** ADICIONAR PRINTDETAILS PARA CANVAS (CUSTOM E FRAMED) ***
+          requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
+      }
 
-          // *** ADICIONAR PRINTDETAILS PARA CANVAS (CUSTOM E FRAMED) ***
-            requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
-        }
-
-        // Para Poster products, adicionar printifyImageId
-        if (selectedProduct.id.includes('poster_')) {
-          if (selectedImageId) {
-            // Usar selectedImageId diretamente se disponível
-            requestBody.printifyImageId = selectedImageId;
-          } else if (userImageUrl) {
-            // Fallback: extrair printifyImageId da URL da imagem
-            const printifyImageIdMatch = userImageUrl.match(/\/([a-f0-9]{24})$/);
-            if (printifyImageIdMatch) {
-              requestBody.printifyImageId = printifyImageIdMatch[1];
-            }
+      // Para Poster products, adicionar printifyImageId
+      if (selectedProduct.id.includes('poster_')) {
+        if (selectedImageId) {
+          // Usar selectedImageId diretamente se disponível
+          requestBody.printifyImageId = selectedImageId;
+        } else if (userImageUrl) {
+          // Fallback: extrair printifyImageId da URL da imagem
+          const printifyImageIdMatch = userImageUrl.match(/\/([a-f0-9]{24})$/);
+          if (printifyImageIdMatch) {
+            requestBody.printifyImageId = printifyImageIdMatch[1];
           }
         }
       }
@@ -229,24 +210,11 @@ export default function ProductCanvas({
       }
 
       if (data.previewUrls && data.printifyProductId) {
-        if (selectedProduct.id === 'custom_youth_hoodie') {
-          // Para sweat de criança
-          if (data.customerPrintifyImageId && data.dynamicPhrasePrintifyImageId) {
-            onPreviewReady({
-              previewUrls: data.previewUrls,
-              customerPrintifyImageId: data.customerPrintifyImageId,
-              dynamicPhrasePrintifyImageId: data.dynamicPhrasePrintifyImageId,
-              printifyProductId: data.printifyProductId,
-            });
-          }
-        } else {
-          // Para outros produtos - aceitar mesmo sem printifyImageId
-            onPreviewReady({
-              previewUrls: data.previewUrls,
-            printifyImageId: data.printifyImageId || '', // Pode ser null/undefined para alguns produtos
-              printifyProductId: data.printifyProductId,
-            });
-        }
+        onPreviewReady({
+          previewUrls: data.previewUrls,
+          printifyImageId: data.printifyImageId || '', // Pode ser null/undefined para alguns produtos
+          printifyProductId: data.printifyProductId,
+        });
         if (onMockupGenerated) {
           onMockupGenerated();
         }
@@ -266,8 +234,6 @@ export default function ProductCanvas({
     imageAdjustments, 
     selectedPrintifyVariantId, 
     onPreviewReady,
-    allImageAdjustments,
-    selectedPhraseText,
     selectedImageId,
     onMockupGenerated
     // ✅ Removido mockupGenerationKey para evitar re-creations do callback
@@ -277,10 +243,7 @@ export default function ProductCanvas({
   useEffect(() => {
     let shouldGenerate = false;
 
-    if (selectedProduct.id === 'custom_youth_hoodie') {
-      // Para sweat de criança, precisamos de imagem, variante e frase
-      shouldGenerate = !!(userImageUrl && userId && selectedProduct && selectedPrintifyVariantId && selectedPhraseText);
-    } else if (selectedProduct.id === 'custom_phone_case' || selectedProduct.id === 'tote_bag') {
+    if (selectedProduct.id === 'custom_phone_case' || selectedProduct.id === 'tote_bag') {
       // Para capas de telemóvel e sacos, só gera se uma variante foi selecionada
       shouldGenerate = !!(userImageUrl && userId && selectedProduct && selectedPrintifyVariantId);
     } else {
@@ -307,7 +270,7 @@ export default function ProductCanvas({
       setIsGenerating(true); // ✅ Bloquear outras chamadas
       handleGenerateMockup();
     }
-  }, [userImageUrl, userId, selectedProduct.id, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup, mockupGenerationKey, isLoadingMockups, isGenerating]);
+  }, [userImageUrl, userId, selectedProduct.id, selectedPrintifyVariantId, hasGenerated, handleGenerateMockup, mockupGenerationKey, isLoadingMockups, isGenerating]);
 
   // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
   const handlePreviousPreview = useCallback(() => {
@@ -328,42 +291,6 @@ export default function ProductCanvas({
 
   // Estado inicial - sem imagem selecionada - MAXIMIZADO SEM MODAL
   const renderEmptyState = () => {
-    // Para hoodie jovem, mostrar estado específico
-    if (selectedProduct.id === 'custom_youth_hoodie') {
-      return (
-        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
-          {/* Placeholder específico para hoodie */}
-          <div className="mb-6">
-            <img
-              src="/assets/mockups/hoodie/youth_hoodie_blank.svg"
-              alt="Personaliza a tua hoodie"
-              className="w-64 h-64 object-contain opacity-60"
-            />
-          </div>
-            
-          {/* Call to action específico para hoodie */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Personaliza a tua Hoodie Jovem
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Combina logo, arte AI e frase personalizada para criar uma hoodie única.
-            </p>
-            
-            {onSelectImage && (
-              <Button
-                onClick={onSelectImage}
-                className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                Escolher Foto
-              </Button>
-              )}
-            </div>
-        </div>
-      );
-    }
-
     // Para caneca coração, mostrar estado específico
     if (selectedProduct.id === 'heart_mug') {
       return (
@@ -660,9 +587,7 @@ export default function ProductCanvas({
         <Loader2 className="w-8 h-8 animate-spin text-ghibli-moss mx-auto mb-4" />
         <h3 className="font-semibold text-ghibli-earth mb-2">✨ A personalizar o seu produto...</h3>
         <p className="text-sm text-ghibli-earth/70">
-          {selectedProduct.id === 'custom_youth_hoodie' 
-            ? 'A criar a sua hoodie única com logo, arte e frase...' 
-            : selectedProduct.id === 'custom_phone_case'
+          {selectedProduct.id === 'custom_phone_case'
             ? 'A criar a sua capa personalizada...'
             : 'A aplicar a sua transformação AI...'
           }
