@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ProductAddToCartButtonProps {
   // Estados de validação
@@ -111,6 +112,27 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
     return { onClick: onAddToCart, disabled: !canPurchase };
   };
 
+  // Determina o estilo do botão baseado no estado
+  const getButtonStyle = () => {
+    if (!userInfo) {
+      return 'bg-ghibli-moss hover:bg-ghibli-moss/90 text-white';
+    }
+    
+    if (!selectedImageUrl) {
+      return 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white'; // ✅ VERDE PARA "ESCOLHA UMA ARTE PRIMEIRO"
+    }
+    
+    if (!selectedPrintifyVariantId) {
+      return 'bg-gray-300 text-gray-500 cursor-not-allowed';
+    }
+    
+    if (isProcessingMockup) {
+      return 'bg-orange-500 hover:bg-orange-600 text-white';
+    }
+    
+    return 'bg-ghibli-moss hover:bg-ghibli-moss/90 text-white';
+  };
+
   // Simplified button styles
   const getButtonStyles = () => {
     const baseStyles = 'group relative w-full font-bold rounded-xl transition-all duration-300 overflow-hidden transform hover:scale-[1.02] border-0';
@@ -136,9 +158,22 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
 
   return (
     <Button
-      onClick={onClick}
-      disabled={disabled}
-      className={getButtonStyles()}
+      {...getButtonAction()}
+      className={cn(
+        // Base styles
+        "w-full font-bold text-center transition-all duration-300 transform shadow-lg hover:shadow-xl border-0 relative overflow-hidden",
+        
+        // Size-based styles
+        size === 'mobile' 
+          ? "h-14 text-lg rounded-2xl px-6" 
+          : "h-16 text-lg sm:text-xl rounded-2xl px-8",
+          
+        // Dynamic styles based on state
+        getButtonStyle(),
+        
+        // Additional classes
+        className
+      )}
     >
       {/* Shimmer effect */}
       {(canPurchase || (!selectedImageUrl && onOpenGallery && userInfo)) && (
