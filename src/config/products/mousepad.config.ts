@@ -5,8 +5,8 @@ export const mousepadConfig = {
   productCategory: 'escritorio',
 
   getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
-    // ✅ NOVO: Mousepad tem preço fixo de €24.95
-    return 24.95;
+    // Mousepad tem preço fixo de €30.00 conforme printifyProducts.ts
+    return product?.basePrice || 30.00;
   },
 
   discountTiers: [

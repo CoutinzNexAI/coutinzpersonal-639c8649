@@ -7,7 +7,7 @@ export const phoneCaseConfig = {
 
   // ✅ PREÇOS: Preço fixo para todas as capas
   getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
-    return 19.95; // ✅ NOVO: €19.95 por capa, independente do modelo
+    return product.basePrice || 25; // €25 por capa, independente do modelo
   },
 
   // ✅ DESCONTOS: Para múltiplas capas

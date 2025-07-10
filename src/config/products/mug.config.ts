@@ -11,17 +11,16 @@ export const mugConfig = {
   
   // Função para calcular preço base baseado na variante
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => {
-    if (!selectedPrintifyVariantId) return 18.95; // ✅ Default 330ml
-    
-    const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-    if (!selectedVariant) return 18.95;
-    
-    // Se for 450ml (maior), adiciona €4 ao preço base
-    if (selectedVariant.title.includes('450ml') || selectedVariant.title.includes('Grande')) {
-      return 22.95; // ✅ €22.95 para 450ml
+    if (product?.id === 'heart_mug') {
+      return 30.00; // Heart mug sempre €30.00
     }
     
-    return 18.95; // ✅ €18.95 para 330ml
+    if (product?.id === 'ceramic_mug' && selectedPrintifyVariantId) {
+      // 330ml (id: 62327) = €22.50, 450ml (id: 62328) = €27.50
+      return selectedPrintifyVariantId === 62327 ? 22.50 : 27.50;
+    }
+    
+    return product?.basePrice || 30; // Fallback
   },
 
   // Regras de desconto para múltiplas canecas
