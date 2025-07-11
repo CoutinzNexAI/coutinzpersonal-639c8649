@@ -86,9 +86,6 @@ export default function ProductCanvas({
   
   // ✅ REF para rastrear última chave processada - previne loops infinitos
   const lastProcessedKeyRef = useRef<string | null>(null);
-  
-  // ✅ REF para rastrear se está a processar para evitar duplicações
-  const isProcessingRef = useRef<boolean>(false);
 
   // ✅ OTIMIZAÇÃO: Estado consolidado do Printify
   const [printifyData, setPrintifyData] = useState({
@@ -132,7 +129,6 @@ export default function ProductCanvas({
     setCurrentPreviewIndex(0);
     setIsGenerating(false); // ✅ Reset guard quando nova imagem/variante
     lastProcessedKeyRef.current = null; // ✅ Reset ref para permitir nova geração
-    isProcessingRef.current = false; // ✅ Reset processing ref
     // Reset apenas o índice quando as dependências mudam, mas não limpar os previews
     // O controlo de limpeza está agora centralizado no GenericProductPage
   }, [userImageUrl, selectedPrintifyVariantId, selectedPhraseText, mockupGenerationKey]);
@@ -153,13 +149,10 @@ export default function ProductCanvas({
   }, [printifyGeneratedPreviewUrls, preloadedImages]);
 
   const handleGenerateMockup = useCallback(async () => {
-    if (!userImageUrl || !userId || isLoadingMockups || isProcessingRef.current) {
-      console.log('🚫 [ProductCanvas] Blocking duplicate call:', { userImageUrl: !!userImageUrl, userId: !!userId, isLoadingMockups, isProcessing: isProcessingRef.current });
+    if (!userImageUrl || !userId || isLoadingMockups) {
+      console.log('🚫 [ProductCanvas] Blocking duplicate call:', { userImageUrl: !!userImageUrl, userId: !!userId, isLoadingMockups });
       return;
     }
-
-    // ✅ MARCAR COMO PROCESSANDO IMEDIATAMENTE
-    isProcessingRef.current = true;
 
     console.log('🚀 [ProductCanvas] Starting mockup generation:', mockupGenerationKey);
     setIsLoadingMockups(true);
@@ -268,7 +261,6 @@ export default function ProductCanvas({
     } finally {
       setIsLoadingMockups(false);
       setIsGenerating(false); // ✅ Reset guard local
-      isProcessingRef.current = false; // ✅ Reset ref guard
     }
   }, [
     userImageUrl, 
