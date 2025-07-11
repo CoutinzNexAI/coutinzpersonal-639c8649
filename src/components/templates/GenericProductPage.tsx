@@ -142,8 +142,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     const { imageUrl, imageId, fromTransformation } = router.query;
     
     if (imageUrl && typeof imageUrl === 'string' && !selectedImageUrl) {
-      console.log('🎯 [GenericProductPage] Aplicando imagem automática via query params:', { imageUrl, imageId, fromTransformation });
-      
       setSelectedImageUrl(imageUrl);
       setSelectedImageId((imageId as string) || null);
       
@@ -162,15 +160,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   useEffect(() => {
     if (selectedImageUrl && selectedPrintifyVariantId) {
       const newKey = `${selectedImageId || 'no-id'}-${selectedPrintifyVariantId}-${Date.now()}`;
-      console.log('🔑 [GenericProductPage] Generating new mockup key:', newKey);
-      
-      // Reset estados
-      setPrintifyPreviewUrls([]);
-      setPrintifyImageId('');
-      setPrintifyProductId('');
-      setHasGenerated(false);
       setMockupGenerationKey(newKey);
-      setCurrentPreviewIndex(0); // ✅ Reset preview index
     }
   }, [selectedImageUrl, selectedPrintifyVariantId, selectedImageId]);
 
@@ -234,7 +224,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   }) => {
     // ✅ CONTROLO PARTILHADO: Só atualizar se ainda não foi gerado
     if (!hasGenerated && data.previewUrls.length > 0) {
-      console.log('🎯 [GenericProductPage] Primeiro mockup gerado com sucesso:', mockupGenerationKey);
       setPrintifyPreviewUrls(data.previewUrls);
       setPrintifyImageId(data.printifyImageId || '');
       setPrintifyProductId(data.printifyProductId);
@@ -313,8 +302,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const handleOpenGallery = () => setIsGalleryModalOpen(true);
 
   const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
-    console.log('🎨 [GenericProductPage] Selecting image from gallery:', { imageId, selectedPrintifyVariantId });
-    
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
@@ -327,14 +314,10 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     setHasGenerated(false);
     
     // ✅ NOTA: mockupGenerationKey será gerado automaticamente pelo useEffect
-    console.log('🎨 [GenericProductPage] Image selection completed, waiting for useEffect to generate key');
-    
-    // Arte aplicada - visual feedback é suficiente
   };
 
   // ✅ CALLBACK PARA QUANDO MOCKUP É GERADO
   const handleMockupGenerated = useCallback(() => {
-    console.log('🎯 [GenericProductPage] Mockup gerado, marcando como hasGenerated=true');
     setHasGenerated(true);
     setIsGeneratingMockup(false);
   }, []);

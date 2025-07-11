@@ -165,89 +165,75 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
+    return res.status(405).json({ 
+      success: false, 
+      error: 'Método não permitido' 
+    });
   }
 
   try {
-    const { sessionId, userId } = req.body;
+    const { sessionId } = req.body;
 
     if (!sessionId) {
-      return res.status(400).json({ success: false, error: 'Session ID é obrigatório' });
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Session ID é obrigatório' 
+      });
     }
 
-    console.log(`🔄 Processando pedido para sessão: ${sessionId}`);
-
     // 1. RECUPERAR SESSÃO DO STRIPE
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items', 'customer', 'payment_intent']
-    });
-
-    if (!session) {
-      return res.status(404).json({ success: false, error: 'Sessão não encontrada' });
+    let session;
+    try {
+      session = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ['payment_intent', 'line_items', 'customer_details']
+      });
+    } catch (stripeError) {
+      console.error('❌ Erro ao recuperar sessão do Stripe:', stripeError);
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Sessão de pagamento inválida' 
+      });
     }
 
     if (session.payment_status !== 'paid') {
-      return res.status(400).json({ success: false, error: 'Pagamento não confirmado' });
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Pagamento não foi processado com sucesso' 
+      });
     }
 
-    // 2. RECUPERAR DADOS DO CHECKOUT TEMPORÁRIO
+    // 2. EXTRAIR METADATA E DADOS FINANCEIROS
     const metadata = session.metadata || {};
-    const checkoutReference = metadata.checkoutReference;
-    const orderReference = metadata.orderReference;
+    const { checkoutReference, orderReference } = metadata;
 
     if (!checkoutReference) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Referência do checkout não encontrada nos metadata da sessão' 
+        error: 'Referência do checkout não encontrada' 
       });
     }
 
-    if (!orderReference) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Referência do pedido não encontrada nos metadata da sessão' 
-      });
-    }
-
-    console.log(`📋 Recuperando dados do checkout: ${checkoutReference}`);
-
-    const { data: checkoutData, error: fetchError } = await supabaseAdmin
+    // 3. RECUPERAR DADOS TEMPORÁRIOS DO CHECKOUT
+    const { data: tempCheckout, error: fetchError } = await supabaseAdmin
       .from('checkout_sessions_temp')
       .select('*')
       .eq('checkout_reference', checkoutReference)
       .single();
 
-    if (fetchError || !checkoutData) {
+    if (fetchError || !tempCheckout) {
       console.error('❌ Erro ao recuperar dados do checkout:', fetchError);
-      return res.status(500).json({ 
+      return res.status(400).json({ 
         success: false, 
-        error: 'Erro ao recuperar dados do checkout. Sessão pode ter expirado.' 
+        error: 'Dados do checkout não encontrados' 
       });
     }
 
-    const tempData = checkoutData as CheckoutTempData;
-    const cartItems = tempData.cart_items;
-    const shippingMethodData = tempData.shipping_method;
-    const financialData = tempData.financial_data;
+    const { cart_items: cartItems, shipping_method: shippingMethod, financial_data: financialData } = tempCheckout;
 
-    console.log('✅ Dados do checkout recuperados:', {
-      cartItemsCount: cartItems.length,
-      checkoutReference,
-      orderReference,
-      total: financialData.total
-    });
-
-    // 3. EXTRAÇÃO DOS DADOS DO CLIENTE DO STRIPE
+    // 4. EXTRAÇÃO DOS DADOS DO CLIENTE DO STRIPE
     const shippingDetails = (session as ExtendedSession).shipping_details || null;
     const customerDetails = session.customer_details || null;
     
-    console.log('📦 Dados extraídos do Stripe:', {
-      hasShipping: !!shippingDetails,
-      hasCustomer: !!customerDetails,
-      sessionEmail: session.customer_email,
-      lineItemsCount: session.line_items?.data?.length || 0
-    });
-
     // Prioridade para extrair informações do cliente
     const customerEmail = customerDetails?.email || 
                          session.customer_email || 
@@ -336,7 +322,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Se a Printify rejeitar, será visível nos logs
     }
 
-    // 4. PREPARAR DADOS DO PEDIDO PARA DB
+    // 5. PREPARAR DADOS DO PEDIDO PARA DB
     // O orderReference agora vem dos metadata do Stripe
     
     // Extrair dados do primeiro item do carrinho (para campos obrigatórios)
@@ -359,7 +345,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const orderData = {
       // ✅ CAMPOS OBRIGATÓRIOS DA TABELA
-      user_id: userId || metadata.userId,
+      user_id: metadata.userId,
       transformation_id: transformationId, // ✅ OBRIGATÓRIO: UUID da transformação
       product_id: firstItem.productId, // ✅ OBRIGATÓRIO: ID do produto
       product_name: firstItem.productName, // ✅ OBRIGATÓRIO: Nome do produto
@@ -413,17 +399,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       updated_at: new Date().toISOString()
     };
 
-    console.log('💾 Salvando pedido na base de dados com schema Printify...');
-    console.log('📋 Dados do pedido preparados:', {
-      user_id: orderData.user_id,
-      transformation_id: orderData.transformation_id,
-      product_id: orderData.product_id,
-      order_reference: orderData.order_reference,
-      total_amount: orderData.total_amount,
-      cartItemsCount: cartItems.length
-    });
-
-    // 5. INSERÇÃO CRÍTICA NA BASE DE DADOS (DEVE SER BEM-SUCEDIDA)
+    // 6. INSERÇÃO CRÍTICA NA BASE DE DADOS (DEVE SER BEM-SUCEDIDA)
     const { data: savedOrder, error: dbError } = await supabaseAdmin
       .from('printify_orders') // ✅ ATUALIZADO: tabela printify_orders
       .insert(orderData)
@@ -439,33 +415,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    console.log('✅ Pedido salvo com sucesso na DB:', {
-      orderId: savedOrder.id,
-      orderReference: orderReference
-    });
-
-    // 6. LIMPEZA DOS DADOS TEMPORÁRIOS
+    // 7. LIMPEZA DOS DADOS TEMPORÁRIOS
     await supabaseAdmin
       .from('checkout_sessions_temp')
       .delete()
       .eq('checkout_reference', checkoutReference);
 
-    console.log('🧹 Dados temporários do checkout removidos');
-
-    // 7. CHAMADA BLOQUEANTE À API PRINTIFY
+    // 8. CHAMADA BLOQUEANTE À API PRINTIFY
     try {
-      console.log('🚀 Enviando pedido para Printify API...');
-      
       // Mapear método de envio (FORÇAR PARA STANDARD PARA TESTE FINAL)
       const shippingMethodId = 1; // FORÇADO PARA STANDARD (código 1) para o teste final
-      
-      // Log do mapeamento para debug
-      console.log('🚚 Mapeamento de método de envio:', {
-        originalUid: shippingMethodData.uid,
-        mappedId: SHIPPING_METHOD_MAP[shippingMethodData.uid],
-        forcedId: shippingMethodId,
-        note: 'FORÇADO PARA STANDARD (1) para teste final'
-      });
       
       // Construir line_items para Printify usando método "on-the-fly" SEMPRE
       // Agora todos os produtos são criados dinamicamente usando apenas:
@@ -474,15 +433,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const printifyLineItems = [];
 
       for (const cartItem of cartItems) {
-        console.log(`📦 Building on-the-fly line item for product: ${cartItem.productId}`);
         
         // Mapear ProductId para configuração Printify
         const productMapping = getPrintifyProduct(cartItem.productId);
         if (!productMapping) {
           throw new Error(`Product mapping not found for: ${cartItem.productId}`);
         }
-
-        console.log(`✅ Product mapping found: ${productMapping.name}`);
 
         if (!productMapping.printifyBlueprintId || !productMapping.printifyPrintProviderId) {
           throw new Error(`Product ${cartItem.productId} missing Printify blueprint/provider configuration`);
@@ -553,114 +509,75 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           lineItem.print_details = {
             print_on_side: cartItem.customizations.print_on_side
           };
-          console.log(`✅ Print details adicionados para ${cartItem.productId} (customizations):`, lineItem.print_details);
         }
         // FALLBACK: Se não houver customizations.print_on_side, usar printDetails (legacy)
         else if (productMapping.allowsPrintDetails && cartItem.printDetails?.print_on_side) {
           lineItem.print_details = {
             print_on_side: cartItem.printDetails.print_on_side
           };
-          console.log(`✅ Print details adicionados para ${cartItem.productId} (legacy printDetails):`, lineItem.print_details);
         }
         // FALLBACK FINAL: Para Canvas sem customizations, usar canvasEdgeType (legacy)
         else if (cartItem.productId === 'custom_canvas' && cartItem.customizations.canvasEdgeType) {
           lineItem.print_details = {
             print_on_side: cartItem.customizations.canvasEdgeType
           };
-          console.log(`✅ Canvas edge type aplicado (legacy): ${cartItem.customizations.canvasEdgeType}`);
         }
 
         printifyLineItems.push(lineItem);
-        console.log('✅ On-the-fly line item added:', lineItem);
       }
 
-      // Construir payload para Printify
-      const printifyPayload: PrintifyOrderCreationPayload = {
-        external_id: `PICTUZ-${Date.now()}-${savedOrder.user_id.substring(0, 8)}`,
+      // --- NOVO: Tentar calcular o custo de envio primeiro ---
+      const shippingCostsResponse = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/orders/shipping-cost.json`, {
+        method: 'POST',
+        body: JSON.stringify({
+          line_items: printifyLineItems,
+          address_to: printifyShippingAddress
+        })
+      });
+
+      if (!shippingCostsResponse || !shippingCostsResponse.shipping_cost) {
+        throw new Error('Falha ao calcular custos de envio com a Printify');
+      }
+
+      // Verificar se o método de envio está disponível
+      const availableShippingMethods = shippingCostsResponse.shipping_cost;
+      const requestedMethodName = shippingMethod.name || 'Envio Standard';
+      
+      // Buscar o método pelo nome ou ID
+      const chosenShippingMethod = availableShippingMethods.find((method: { service_name: string; service_id: number; cost: number }) => 
+        method.service_name === requestedMethodName || method.service_id === shippingMethodId
+      );
+
+      if (!chosenShippingMethod) {
+        console.error(`❌ ERRO: Método de envio "${requestedMethodName}" (${shippingMethodId}) NÃO DISPONÍVEL para esta morada/produto.`);
+        throw new Error(`Método de envio não disponível: ${requestedMethodName}`);
+      }
+
+      const chosenShippingCost = chosenShippingMethod.cost;
+      const chosenShippingMethodName = chosenShippingMethod.service_name;
+
+      // Criar o pedido na Printify
+      const printifyOrderPayload = {
+        external_id: orderReference,
         line_items: printifyLineItems,
         shipping_method: shippingMethodId,
+        send_shipping_notification: false,
         address_to: printifyShippingAddress
       };
 
-      console.log('📤 Enviando pedido para Printify com', printifyLineItems.length, 'itens');
-
-      // --- NOVO: Tentar calcular o custo de envio primeiro ---
-      console.log('🔄 Verificando custos de envio com a Printify API...');
-      const shippingCalculationPayload = {
-        line_items: printifyLineItems, // Use os mesmos line_items que vai usar no pedido final
-        address_to: printifyShippingAddress, // Use o mesmo address_to que vai usar no pedido final
-      };
-
-      const shippingCostsResponse = await printifyFetch(
-        `/shops/${process.env.PRINTIFY_SHOP_ID}/orders/shipping.json`,
-        {
-          method: 'POST',
-          body: JSON.stringify(shippingCalculationPayload),
-        }
-      );
-      console.log('✅ Resposta de Cálculo de Envio Printify:', shippingCostsResponse);
-
-      // A Printify devolve um objeto com os métodos disponíveis (standard, express, etc.)
-      // Ex: { "standard": 1000, "priority": 5000 }
-
-      // Valide se o shipping_method que está a usar (ex: 2 para 'priority') está na resposta
-      let validShippingMethodFound = false;
-      let chosenShippingCost = 0;
-      let chosenShippingMethodName = '';
-
-      // Mapear o número do método de volta para o nome que a Printify usa na resposta
-      const shippingMethodMap: { [key: number]: string } = {
-        1: 'standard',
-        2: 'priority',
-        3: 'printify_express',
-        4: 'economy',
-      };
-
-      const requestedMethodName = shippingMethodMap[shippingMethodId]; // O seu shipping_method (ex: 2 -> 'priority')
-
-      if (requestedMethodName && shippingCostsResponse[requestedMethodName]) {
-        validShippingMethodFound = true;
-        chosenShippingCost = shippingCostsResponse[requestedMethodName];
-        chosenShippingMethodName = requestedMethodName;
-        console.log(`✅ Método de envio "${chosenShippingMethodName}" (${shippingMethodId}) disponível. Custo: ${chosenShippingCost}`);
-      } else {
-        console.error(`❌ ERRO: Método de envio "${requestedMethodName}" (${shippingMethodId}) NÃO DISPONÍVEL para esta morada/produto.`);
-        throw new Error(`Failed to create order: Shipping method "${requestedMethodName}" is not available.`);
-      }
-      // --- FIM: Tentar calcular o custo de envio primeiro ---
-
-      // Chamar API Printify
-      const shopId = process.env.PRINTIFY_SHOP_ID;
-      if (!shopId) {
-        throw new Error('PRINTIFY_SHOP_ID not configured');
-      }
-
-      console.log('🚀 Chamando API Printify para criar pedido...');
-      const printifyOrderResult = await printifyFetch(`shops/${shopId}/orders.json`, {
+      const printifyOrderResult = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/orders.json`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(printifyPayload)
+        body: JSON.stringify(printifyOrderPayload)
       });
 
-      console.log('📥 Pedido Printify criado com sucesso. ID:', printifyOrderResult.id);
-
-      // ✅ FINALIZADOR: A resposta da Printify é o próprio objeto do pedido.
-      // Se printifyOrderResult tiver um id, assume que a criação foi um sucesso.
       if (!printifyOrderResult || !printifyOrderResult.id) {
-        // Se não houver um objeto ou ID de pedido, então é um erro real.
-        throw new Error('Failed to create order in Printify: No order ID returned.');
+        throw new Error('Falha ao criar pedido na Printify - resposta inválida');
       }
 
       const printifyOrderId = printifyOrderResult.id;
-      // O status na resposta de criação pode ser 'on-hold', 'pending', ou até undefined.
-      // Usar 'on-hold' como default se não for fornecido para refletir o estado real na Printify.
-      const printifyOrderStatus = printifyOrderResult.status || 'on-hold'; // Default para 'on-hold'
+      const printifyOrderStatus = printifyOrderResult.status;
 
-      console.log('✅ Pedido enviado para Printify com sucesso. ID:', printifyOrderId, 'Status:', printifyOrderStatus);
-
-      // 8. ATUALIZAR DB COM SUCESSO PRINTIFY
+      // 9. ATUALIZAR DB COM SUCESSO PRINTIFY
       const { error: updateError } = await supabaseAdmin
         .from('printify_orders')
         .update({
@@ -676,7 +593,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Não é crítico, mas deve ser registado
       }
 
-      // 9. RESPOSTA DE SUCESSO COMPLETO
+      // 10. RESPOSTA DE SUCESSO COMPLETO
       return res.status(200).json({
         success: true,
         message: "Pedido processado com sucesso e enviado para a Printify!",
@@ -697,7 +614,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (printifyError: unknown) {
       console.error('❌ ERRO CRÍTICO: Falha ao enviar pedido para a Printify API:', printifyError);
       
-      // 10. MARCAR COMO ERRO PRINTIFY NA DB
+      // 11. MARCAR COMO ERRO PRINTIFY NA DB
       const errorMessage = printifyError instanceof Error ? printifyError.message : 'Erro desconhecido na API Printify';
       
       await supabaseAdmin
@@ -709,7 +626,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })
         .eq('id', savedOrder.id);
 
-      // 11. RESPOSTA DE ERRO PRINTIFY (PAGAMENTO FOI PROCESSADO MAS PRINTIFY FALHOU)
+      // 12. RESPOSTA DE ERRO PRINTIFY (PAGAMENTO FOI PROCESSADO MAS PRINTIFY FALHOU)
       return res.status(500).json({
         success: false,
         message: "O pagamento foi processado, mas houve um erro ao enviar o pedido para a Printify. Contacte o suporte.",

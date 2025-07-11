@@ -235,11 +235,9 @@ export function useImageProcessing() {
     if (!jobId || !userInfo?.id) return;
     
     try {
-      console.log(`[useImageProcessing] Processing failure for job ${jobId} - no refund needed (free transformations)`);
       // No novo sistema das transformações diárias, não há necessidade de refund
       // A transformação falhada não foi "cobrada", era grátis
       await refetchDaily(); // Apenas atualizar status
-      console.log(`[useImageProcessing] Failure processed for job ${jobId}`);
     } catch (error) {
       console.error(`[useImageProcessing] Error processing failure for job ${jobId}:`, error);
     }
@@ -269,8 +267,6 @@ export function useImageProcessing() {
         const data: StatusResponse = await response.json();
         
         if (data.status === 'error' || data.status?.startsWith('failed')) {
-          console.log(`[useImageProcessing] Error detected, initiating refund for job ${currentJobId}`);
-
           // 🔥 TRACKING: Transformation failed during processing
           trackEvent('transformation_failed', {
             user_id: userInfo.id,
@@ -350,7 +346,6 @@ export function useImageProcessing() {
 
       if (pollCountRef.current >= MAX_POLL_ATTEMPTS_CONST && 
           (processingState === 'polling_status' || processingState === 'processing')) {
-        console.warn(`[useImageProcessing - Polling] Max attempts reached (${pollCountRef.current}). Trying final direct storage check...`);
         
         try { 
           const finalStoragePath = `public/${userInfo.id}/${currentJobId}`;
@@ -384,9 +379,6 @@ export function useImageProcessing() {
           console.error(`[useImageProcessing - FinalCheck] Final storage check failed:`, finalStorageError instanceof Error ? finalStorageError.message : String(finalStorageError));
         }
         
-        console.warn(`[useImageProcessing - Polling] Max attempts reached (${pollCountRef.current}). Final direct storage check failed or API timed out after 6 minutes.`);
-        console.log(`[useImageProcessing] Timeout detected, initiating refund for job ${currentJobId}`);
-
         setErrorMessage(STANDARD_ERROR_MESSAGE);
         setProcessingState('error'); 
         setActiveStep(3);

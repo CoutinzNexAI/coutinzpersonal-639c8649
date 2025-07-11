@@ -16,8 +16,6 @@ export async function generateImageFromText(text: string): Promise<string> {
     // - https://via.placeholder.com/1500x200/FFFFFF/000000?text=${encodedText}
     // - Implementação com Sharp ou Canvas no servidor
     
-    console.log(`🔄 Generating text image for: "${text}"`);
-    
     // Por enquanto, retornar um placeholder ou usar os IDs mapeados
     const phraseImageMapping: Record<string, string> = {
       'PicTuz - since 2025': '68548af2cc947707f0ee650f',
@@ -28,12 +26,10 @@ export async function generateImageFromText(text: string): Promise<string> {
     
     // Se o texto estiver no mapeamento, retornar o ID
     if (phraseImageMapping[text]) {
-      console.log(`✅ Using mapped phrase ID for: "${text}"`);
       return phraseImageMapping[text];
     }
     
     // Fallback para imagem transparente
-    console.log(`⚠️ No mapping found for phrase: "${text}", using transparent image`);
     return '68548b05a7a3520a5d3534c0'; // ID da imagem transparente
     
   } catch (error) {
@@ -47,6 +43,25 @@ export async function generateImageFromText(text: string): Promise<string> {
  * @param phraseText - Texto da frase
  * @returns Promise<string> - ID da imagem na Printify
  */
-export async function generatePhraseImage(phraseText: string): Promise<string> {
-  return generateImageFromText(phraseText);
+export async function generatePhraseImage(text: string): Promise<string> {
+  try {
+    // Mapeamento de frases para IDs de imagem da Printify
+    const phraseToImageId: { [key: string]: string } = {
+      'É apenas uma fase, mãe': '65a20850d3c0ea00080e8ac7',
+      'Não gosto de Domingo': '65a20850d3c0ea00080e8ac8',
+      'Dormir é para os fracos': '65a20850d3c0ea00080e8ac9',
+      'Café primeiro, questões depois': '65a20850d3c0ea00080e8aca',
+      'Sem frase': 'transparent'
+    };
+
+    if (phraseToImageId[text]) {
+      return phraseToImageId[text];
+    }
+    
+    // Se não encontrar mapeamento, usar imagem transparente
+    return 'transparent';
+  } catch (error) {
+    console.error('Erro ao gerar imagem de texto:', error);
+    return 'transparent';
+  }
 } 

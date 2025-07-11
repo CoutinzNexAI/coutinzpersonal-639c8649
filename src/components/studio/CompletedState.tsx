@@ -51,7 +51,6 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   const generatePosterMockup = React.useCallback(async () => {
     if (!transformedImageUrl || !userInfo?.id || isGeneratingPosterMockup) return;
 
-    console.log('🎯 [CompletedState] Iniciando geração automática de mockup do poster');
     setIsGeneratingPosterMockup(true);
     setPosterMockupError(false);
 
@@ -76,7 +75,6 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       
       if (data.success && data.previewUrls && data.previewUrls.length > 0) {
         setPosterMockupUrls(data.previewUrls);
-        console.log('✅ [CompletedState] Mockup do poster gerado com sucesso:', data.previewUrls);
         // Mostrar carousel quando primeiro mockup estiver pronto
         setShowProductCarousel(true);
       } else {
@@ -94,7 +92,6 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   const generateMugMockup = React.useCallback(async () => {
     if (!transformedImageUrl || !userInfo?.id || isGeneratingMugMockup) return;
 
-    console.log('🎯 [CompletedState] Iniciando geração automática de mockup da caneca');
     setIsGeneratingMugMockup(true);
     setMugMockupError(false);
 
@@ -106,7 +103,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
           productId: 'heart_mug',
           userImageUrl: transformedImageUrl,
           userId: userInfo.id,
-          selectedPrintifyVariantId: 77224, // Caneca Coração 11oz / White
+          selectedPrintifyVariantId: 91642, // Caneca Heart / White
           // Não passar imageAdjustments - deixar a API calcular automaticamente para fill perfeito
         })
       });
@@ -119,7 +116,6 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       
       if (data.success && data.previewUrls && data.previewUrls.length > 0) {
         setMugMockupUrls(data.previewUrls);
-        console.log('✅ [CompletedState] Mockup da caneca gerado com sucesso:', data.previewUrls);
         // Mostrar carousel quando primeiro mockup estiver pronto (se ainda não estiver visível)
         if (!showProductCarousel) {
           setShowProductCarousel(true);
@@ -139,7 +135,6 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   const generateNotebookMockup = React.useCallback(async () => {
     if (!transformedImageUrl || !userInfo?.id || isGeneratingNotebookMockup) return;
 
-    console.log('🎯 [CompletedState] Iniciando geração automática de mockup do caderno');
     setIsGeneratingNotebookMockup(true);
     setNotebookMockupError(false);
 
@@ -164,7 +159,6 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       
       if (data.success && data.previewUrls && data.previewUrls.length > 0) {
         setNotebookMockupUrls(data.previewUrls);
-        console.log('✅ [CompletedState] Mockup do caderno gerado com sucesso:', data.previewUrls);
         // Mostrar carousel quando primeiro mockup estiver pronto (se ainda não estiver visível)
         if (!showProductCarousel) {
           setShowProductCarousel(true);

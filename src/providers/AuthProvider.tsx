@@ -71,50 +71,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
           },
-          body: JSON.stringify({ userData }),
+          body: JSON.stringify({
+            user: {
+              id: user.id,
+              email: user.email,
+              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+              avatar_url: user.user_metadata?.avatar_url || null,
+              provider: user.app_metadata?.provider || 'email',
+              created_at: user.created_at
+            }
+          })
         });
 
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.message || 'Failed to sync user');
-        }
-
-        console.log("[syncUserWithDatabase] ✅ User profile synced successfully via API.");
-        
-        const isNewUser = result.isNewUser;
-
-        if (isNewUser) {
-          // 🔥 TRACKING: New user registration
-          trackEvent('user_registered', {
-            user_id: userData.id,
-            email: userData.email,
-            signup_method: 'google'
-          });
-
-          // Show welcome message only once per session
-          const welcomeShownKey = `welcome_shown_${userData.id}`;
-          const alreadyShown = sessionStorage.getItem(welcomeShownKey);
-          
-          if (!alreadyShown) {
-            sessionStorage.setItem(welcomeShownKey, 'true');
-            setTimeout(() => {
-              toast.success("🎉 Bem-vindo ao Pictuz!", {
-                description: "Tens 10 transformações gratuitas por dia para criares produtos incríveis!"
-              });
-            }, 1500);
-          }
+        if (response.ok) {
+          const userData = await response.json();
+          setUserInfo(userData.user);
         } else {
-          // 🔥 TRACKING: Returning user login
-          trackEvent('returning_user_login', {
-            user_id: userData.id,
-            email: userData.email
-          });
+          const errorData = await response.json();
+          console.error("[syncUserWithDatabase] Error syncing user via API:", errorData);
         }
-      } catch (syncError) {
-        console.error("[syncUserWithDatabase] Error syncing user via API:", syncError);
-        // Removido toast - não é necessário incomodar o utilizador com erros técnicos de sincronização
+      } catch (error) {
+        console.error('[syncUserWithDatabase] Exception:', error);
       }
     } catch (error) {
       console.error('[syncUserWithDatabase] Exception:', error);

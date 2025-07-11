@@ -7,105 +7,89 @@ import { printifyFetch } from '@/lib/printify/printifyApi';
 import { PrintifyProduct, PrintifyImagePlaceholder } from '@/lib/printify/printifyTypes';
 import generatePrintFileHandler from '@/pages/api/printify/generate-print-file';
 import { generatePhraseImage } from '@/utils/imageUtils';
-import https from 'https';
 import http from 'http';
+import { URL } from 'url';
 
 // ✅ FUNÇÃO PARA OBTER DIMENSÕES DA IMAGEM (VERSÃO INSTRUMENTADA)
-async function getImageDimensions(imageUrl: string): Promise<{ width: number; height: number }> {
-  console.log(`[getImageDimensions] 🕵️  Iniciando a deteção para o URL: ${imageUrl}`);
+const getImageDimensions = async (imageUrl: string): Promise<{ width: number; height: number }> => {
   return new Promise((resolve, reject) => {
-    // A parte do browser não é relevante aqui, pois isto só corre no servidor
-      const client = imageUrl.startsWith('https://') ? https : http;
+    const parsedUrl = new URL(imageUrl);
+    
+    http.get(parsedUrl, (res) => {
+      const { statusCode, headers } = res;
       
-      client.get(imageUrl, (response) => {
-      // ✅ NOVO LOG: Vamos ver o status code e os headers!
-      const { statusCode, headers } = response;
-      console.log(`[getImageDimensions] 🕵️  Resposta do servidor da imagem - Status: ${statusCode}`);
-      console.log(`[getImageDimensions] 🕵️  Headers de resposta (location, content-type):`, { 
-        location: headers.location, 
-        'content-type': headers['content-type'] 
-      });
-
-      // Se for um redirecionamento, o 'location' header estará presente
-      if (statusCode && statusCode >= 300 && statusCode < 400 && headers.location) {
+      if (statusCode === 301 || statusCode === 302) {
         console.error(`[getImageDimensions] ❌ ERRO: A URL retornou um redirecionamento para ${headers.location}. O http.get nativo não segue redirecionamentos. Isto é a causa provável!`);
-        // Idealmente, aqui farias um novo pedido para o URL de redirecionamento,
-        // mas por agora, vamos apenas identificar o problema.
-        reject(new Error(`Image URL returned a redirect to ${headers.location}`));
-        return; // Importante para não continuar
-      }
-
-      if (statusCode !== 200) {
-        console.error(`[getImageDimensions] ❌ ERRO: O pedido à imagem falhou com o status ${statusCode}.`);
-        // Consumir a resposta para libertar memória, mesmo em caso de erro.
-        response.resume();
-        reject(new Error(`Request to image URL failed with status code ${statusCode}`));
+        reject(new Error(`Redirect to ${headers.location} - fetch manually or use a library that follows redirects`));
         return;
       }
-
-        const chunks: Buffer[] = [];
-        response.on('data', (chunk: Buffer) => chunks.push(chunk));
-        response.on('end', () => {
-          const buffer = Buffer.concat(chunks);
-        console.log(`[getImageDimensions] 🕵️  Download da imagem concluído. Tamanho do buffer: ${buffer.length} bytes.`);
-          
-          // Detectar tipo de imagem e extrair dimensões
-          if (buffer.length >= 4) {
-            // PNG
-            if (buffer.toString('hex', 0, 8) === '89504e470d0a1a0a') {
-              const width = buffer.readUInt32BE(16);
-              const height = buffer.readUInt32BE(20);
-            console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como PNG (${width}x${height})`);
+      
+      if (statusCode !== 200) {
+        console.error(`[getImageDimensions] ❌ ERRO: O pedido à imagem falhou com o status ${statusCode}.`);
+        reject(new Error(`Request failed with status code: ${statusCode}`));
+        return;
+      }
+      
+      const chunks: Buffer[] = [];
+      
+      res.on('data', (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+      
+      res.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        
+        // PNG: starts with 89 50 4E 47 (‰PNG), dimensions at bytes 16-23
+        if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+          const width = buffer.readUInt32BE(16);
+          const height = buffer.readUInt32BE(20);
+          resolve({ width, height });
+          return;
+        }
+        
+        // JPEG: starts with FF D8, look for SOF (Start of Frame)
+        if (buffer[0] === 0xFF && buffer[1] === 0xD8) {
+          for (let i = 2; i < buffer.length - 8; i++) {
+            if (buffer[i] === 0xFF && (buffer[i + 1] === 0xC0 || buffer[i + 1] === 0xC2)) {
+              const height = buffer.readUInt16BE(i + 5);
+              const width = buffer.readUInt16BE(i + 7);
               resolve({ width, height });
-            return;
-            }
-            // JPEG
-            else if (buffer.toString('hex', 0, 4) === 'ffd8ffe0' || buffer.toString('hex', 0, 4) === 'ffd8ffe1') {
-              let offset = 2;
-              while (offset < buffer.length) {
-                const marker = buffer.readUInt16BE(offset);
-                if (marker === 0xffc0 || marker === 0xffc2) {
-                  const height = buffer.readUInt16BE(offset + 5);
-                  const width = buffer.readUInt16BE(offset + 7);
-                console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como JPEG (${width}x${height})`);
-                  resolve({ width, height });
-                  return;
-                }
-                offset += 2 + buffer.readUInt16BE(offset + 2);
-              }
-            }
-            // WebP
-            else if (buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
-              // WebP simples (VP8)
-              if (buffer.toString('ascii', 12, 16) === 'VP8 ') {
-                const width = buffer.readUInt16LE(26) & 0x3fff;
-                const height = buffer.readUInt16LE(28) & 0x3fff;
-              console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como WebP VP8 (${width}x${height})`);
-                resolve({ width, height });
-              }
-              // WebP lossless (VP8L)
-              else if (buffer.toString('ascii', 12, 16) === 'VP8L') {
-                const bits = buffer.readUInt32LE(21);
-                const width = (bits & 0x3fff) + 1;
-                const height = ((bits >> 14) & 0x3fff) + 1;
-              console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como WebP VP8L (${width}x${height})`);
-                resolve({ width, height });
-              }
+              return;
             }
           }
+        }
+        
+        // WebP: starts with RIFF, followed by WEBP
+        if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+            buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) {
           
-        console.warn('[getImageDimensions] ⚠️ O parsing manual do buffer falhou. Não foi detetado um formato conhecido.');
-          // Fallback: assumir dimensões padrão se não conseguir detectar
-          console.warn('⚠️ Could not detect image dimensions, using fallback 1024x1024');
-          resolve({ width: 1024, height: 1024 });
-        });
-    }).on('error', (err) => {
-      // ✅ NOVO LOG: Capturar erros de rede
+          // VP8 format
+          if (buffer[12] === 0x56 && buffer[13] === 0x50 && buffer[14] === 0x38 && buffer[15] === 0x20) {
+            const width = buffer.readUInt16LE(26) & 0x3FFF;
+            const height = buffer.readUInt16LE(28) & 0x3FFF;
+            resolve({ width, height });
+            return;
+          }
+          
+          // VP8L format
+          if (buffer[12] === 0x56 && buffer[13] === 0x50 && buffer[14] === 0x38 && buffer[15] === 0x4C) {
+            const bits = buffer.readUInt32LE(21);
+            const width = (bits & 0x3FFF) + 1;
+            const height = ((bits >> 14) & 0x3FFF) + 1;
+            resolve({ width, height });
+            return;
+          }
+        }
+        
+        console.warn('⚠️ Could not detect image dimensions, using fallback 1024x1024');
+        resolve({ width: 1024, height: 1024 });
+      });
+    }).on('error', (err: Error) => {
       console.error('[getImageDimensions] ❌ ERRO DE REDE:', err.message);
       reject(err);
     });
   });
-}
+};
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -268,7 +252,7 @@ export default async function handler(
       });
     }
 
-    console.log(`✅ Product found: ${product.name}`);
+
 
     // Obter detalhes das variantes da Printify
     const printifyVariantsResponse = await printifyFetch(
@@ -299,14 +283,11 @@ export default async function handler(
       throw new Error('Printify variant placeholders not found for the selected product.');
     }
 
-    console.log(`✅ Selected variant: ${targetVariantId}`);
+
 
     // LÓGICA ESPECÍFICA PARA SWEAT DE CRIANÇA
     if (productId === 'custom_youth_hoodie') {
-      console.log('🔄 Processing youth hoodie with multiple print areas...');
-
       // PASSO 1: Processar e fazer upload da imagem do cliente para Printify
-      console.log('🔄 Processing and uploading customer image to Printify...');
       
              // Obter o placeholder para a posição back (onde vai a imagem do cliente)
        const customerBackPlaceholder = selectedPrintifyVariant.placeholders.find(

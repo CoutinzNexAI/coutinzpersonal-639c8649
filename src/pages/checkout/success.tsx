@@ -43,11 +43,6 @@ const CheckoutSuccessPage: React.FC = () => {
       try {
         setLoading(true);
         
-        console.log('🔄 Processando pedido após pagamento...');
-        console.log('Frontend: Chamando endpoint de processamento de pedido:', '/api/stripe/process-printify-order');
-        console.log('Frontend: Método da chamada:', 'POST');
-        console.log('Frontend: Session ID:', session_id);
-        
         const response = await fetch('/api/stripe/process-printify-order', {
           method: 'POST',
           headers: {
@@ -61,11 +56,9 @@ const CheckoutSuccessPage: React.FC = () => {
         const result = await response.json();
         
         if (response.ok && result.success) {
-          console.log('✅ Pedido processado com sucesso:', result);
           setOrderResult(result);
           
           CartService.clearCart();
-          console.log('🛒 Carrinho limpo após sucesso da compra');
           
           toast.success('Pedido finalizado com sucesso!');
           
@@ -74,7 +67,6 @@ const CheckoutSuccessPage: React.FC = () => {
           setOrderResult(result);
           
           CartService.clearCart();
-          console.log('🛒 Carrinho limpo (pagamento processado, erro Printify)');
           
           toast.error('Pedido parcialmente processado. Contacte o suporte.');
           

@@ -85,20 +85,15 @@ function detectImageTypeFromBuffer(buffer: Buffer): string | null {
 
 // Função para validar o tipo de conteúdo do Buffer (ATUALIZADA)
 async function validateBufferContentType(buffer: Buffer): Promise<string | null> {
-    const detectedType = detectImageTypeFromBuffer(buffer);
+    const headerHex = buffer.toString('hex', 0, Math.min(buffer.length, 16));
     
-    if (!detectedType) {
-        const headerHex = buffer.toString('hex', 0, Math.min(12, buffer.length));
-        console.log(`[validateBufferContentType] ❌ Tipo de imagem não reconhecido. Header: ${headerHex}, size: ${buffer.length} bytes`);
-        return null;
-    }
+    if (headerHex.startsWith('ffd8ff')) return 'image/jpeg';
+    if (headerHex.startsWith('89504e47')) return 'image/png';
+    if (headerHex.startsWith('47494638')) return 'image/gif';
+    if (headerHex.startsWith('52494646') && headerHex.includes('57454250')) return 'image/webp';
+    if (headerHex.startsWith('424d')) return 'image/bmp';
     
-    // Verifica se é um tipo permitido
-    if (!ALLOWED_SERVER_MIME_TYPES.includes(detectedType)) {
-        return null;
-            }
-    
-    return detectedType;
+    return null;
 }
 
 
