@@ -30,29 +30,12 @@ export async function printifyFetch(endpoint: string, options: RequestInit = {},
   }
 
   try {
-    console.log(`[printifyFetch] Calling URL: ${url} (attempt ${retryCount + 1}/${maxRetries + 1})`);
-    console.log(`[printifyFetch] Headers:`, headersToSend);
-    console.log(`[printifyFetch] Method:`, options.method || 'GET');
-
-    // Log do corpo da requisição para POST/PUT/PATCH
-    if (options.body && ['POST', 'PUT', 'PATCH'].includes((options.method || 'GET').toUpperCase())) {
-      console.log(`[printifyFetch] Body:`, options.body);
-    }
-
     const response = await fetch(url, {
       ...options,
       headers: headersToSend,
     });
 
-    // 🔍 DEBUGGING: LER RESPOSTA COMO TEXTO PRIMEIRO
     const rawText = await response.text();
-    
-    // 🔍 DEBUGGING: IMPRIMIR TUDO PARA VER O QUE A PRINTIFY REALMENTE RESPONDEU
-    console.log('[DEBUG] ===== PRINTIFY RESPONSE DEBUG =====');
-    console.log('[DEBUG] Status:', response.status, response.statusText);
-    console.log('[DEBUG] Headers:', Object.fromEntries(response.headers.entries()));
-    console.log('[DEBUG] Raw Response Body from Printify:', rawText);
-    console.log('[DEBUG] ===== END PRINTIFY RESPONSE =====');
 
     // 🚀 TRATAR ERRO 429 (RATE LIMIT) COM RETRY AUTOMÁTICO
     if (response.status === 429 && retryCount < maxRetries) {
@@ -80,14 +63,11 @@ export async function printifyFetch(endpoint: string, options: RequestInit = {},
     }
 
     try {
-      // 🔍 DEBUGGING: TENTAR PARSE JSON COM TRATAMENTO DE ERRO
       const jsonData = JSON.parse(rawText);
-      console.log('[DEBUG] Parsed JSON successfully:', jsonData);
       return jsonData;
     } catch (parseError) {
-      console.error("❌ DEBUGGING: Falha ao interpretar resposta da Printify como JSON:", parseError);
-      console.error("❌ DEBUGGING: Raw text que causou o erro:", rawText);
-      throw new Error(`Recebida resposta inválida (não-JSON) da Printify: ${rawText}`);
+      console.error("❌ Printify: Resposta não é JSON válido");
+      throw new Error(`Resposta inválida da Printify API`);
     }
 
   } catch (error) {

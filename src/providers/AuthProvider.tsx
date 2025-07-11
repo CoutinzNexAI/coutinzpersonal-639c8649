@@ -47,12 +47,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       setUserInfo(userData); // Atualiza UI com dados básicos primeiro
 
-      // 🔒 PROTEÇÃO: Parar session recording para conta de teste
-      if (userData.email === 'diogolemecoutinho@gmail.com') {
-        console.log('PostHog: Session recording parado para cota de teste');
-        if (typeof window !== 'undefined') {
-          posthog.stopSessionRecording();
+      // 🔒 PROTEÇÃO: Parar session recording para contas admin (quota de teste)
+      // Fetch user role to check if admin
+      try {
+        const { data: userRole } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        if (userRole?.role === 'admin') {
+          if (typeof window !== 'undefined') {
+            posthog.stopSessionRecording();
+          }
         }
+      } catch (roleError) {
+        // Continue silently if role check fails
       }
 
       // Sync user with database via API endpoint (bypasses RLS)

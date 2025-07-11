@@ -208,7 +208,7 @@ export default function ProductCanvas({
         }
       }
 
-      console.log('🔍 [ProductCanvas DEBUG] generateMockups chamado com:', { requestBody });
+      // Gerar mockups para o produto
 
       const response = await fetch('/api/printify/mockups/generate', {
         method: 'POST',

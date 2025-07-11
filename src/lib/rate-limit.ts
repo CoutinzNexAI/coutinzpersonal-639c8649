@@ -151,18 +151,16 @@ export async function applyRateLimit(
     console.log(`[RateLimit] PERMITIDO para ${id}. Limite: ${limit}, Restantes: ${remaining}`);
     return true; // Pedido permitido
   } catch (error) {
-    console.error("[RateLimit] Erro ao aplicar rate limit com Upstash:", error);
-    // Em caso de erro com o serviço de rate limit (ex: Upstash offline),
-    // é uma decisão de design se bloqueias ou permites os pedidos.
-    // Permitir é muitas vezes mais seguro para não bloquear utilizadores legítimos por uma falha tua.
-    // Considera logar este erro num sistema de monitorização.
-    if (process.env.NODE_ENV === 'development') {
-        console.warn("[RateLimit] Permitindo pedido devido a erro no serviço de rate limit (desenvolvimento).");
-        return true;
-    }
-    // Em produção, talvez queiras ser mais cauteloso, mas bloquear pode afetar todos os utilizadores.
-    // Por agora, vamos permitir, mas isto deve ser monitorizado.
-    console.error("[RateLimit] CRÍTICO: Erro no serviço de rate limit. Permitindo pedido para evitar paragem total.");
-    return true; 
+    // ⚠️ CRÍTICO: Redis/Upstash falhou - permitir pedidos para evitar paragem total
+    console.error("[RateLimit] CRÍTICO: Upstash Redis indisponível. Permitindo pedido para evitar paragem total da aplicação.", {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      identifier: id,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV
+    });
+    
+    // 🚨 TODO: Integrar com sistema de alertas (Sentry, etc.)
+    // Em caso de falha do Redis, SEMPRE permitir para manter app funcionando
+    return true;
   }
 }

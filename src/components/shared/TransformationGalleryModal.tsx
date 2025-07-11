@@ -45,7 +45,7 @@ export default function TransformationGalleryModal({
 
     setLoading(true);
     try {
-      console.log('🔍 Fetching transformations for user:', userInfo.id);
+      // Carregar transformações do utilizador
 
       // Direct Supabase query
       const { data, error } = await supabase

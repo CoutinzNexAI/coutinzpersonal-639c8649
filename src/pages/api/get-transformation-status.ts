@@ -255,7 +255,7 @@ console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUs
             return res.status(200).json({ status: 'completed', output_url: urlData.publicUrl, error_message: null, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: selfHealActionTaken });
           }
         } else {
-            console.log(`${endpointName} JobId: ${jobId}. 🔍 SELF-HEAL CHECK 1: No files found in storage for 'processing' >30s job.`);
+            // Nenhum ficheiro encontrado no storage para job em processamento
         }
       } catch (storageError) {
         console.error(`${endpointName} JobId: ${jobId}. SELF-HEAL 1: Error checking storage:`, storageError instanceof Error ? storageError.message : storageError);
@@ -291,7 +291,7 @@ console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUs
             return res.status(200).json({ status: 'completed', output_url: urlData.publicUrl, error_message: null, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: selfHealActionTaken });
           }
         } else {
-             console.log(`${endpointName} JobId: ${jobId}. 🔍 SELF-HEAL CHECK 2: No files found in storage for 'completed' no_url job.`);
+             // Nenhum ficheiro encontrado para job 'completed' sem URL
         }
         // Se o self-heal não encontrar ficheiro, o job está 'completed' mas sem imagem. Retornar erro.
         console.error(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 2: Job is 'completed' but no image found in storage. Returning error.`);
@@ -336,7 +336,7 @@ console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUs
             return res.status(200).json({ status: 'completed', output_url: urlData.publicUrl, error_message: null, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: selfHealActionTaken });
           }
         } else {
-            console.log(`${endpointName} JobId: ${jobId}. 🔍 SELF-HEAL CHECK 3: No files found in storage for stuck job.`);
+            // Nenhum ficheiro encontrado para job com timeout
         }
       } catch (storageError) {
         console.error(`${endpointName} JobId: ${jobId}. SELF-HEAL 3 (stuck job): Error checking storage:`, storageError instanceof Error ? storageError.message : storageError);

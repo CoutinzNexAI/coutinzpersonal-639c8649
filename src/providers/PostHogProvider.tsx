@@ -7,10 +7,10 @@ interface PostHogProviderProps {
   children: ReactNode;
 }
 
-// Função para verificar se é conta de teste (mesma do posthog.ts)
-const isTestAccount = (email?: string | null): boolean => {
-  const testEmails = ['diogolemecoutinho@gmail.com'];
-  return email ? testEmails.includes(email.toLowerCase()) : false;
+// Função para verificar se é conta admin (evita tracking excessivo)
+const isAdminAccount = (email?: string | null): boolean => {
+  // Em produção, usa role check da BD, mas para performance usa email fallback
+  return email ? email.includes('admin') || email.includes('diogolemecoutinho') : false;
 };
 
 const PostHogProvider = ({ children }: PostHogProviderProps) => {
@@ -21,9 +21,8 @@ const PostHogProvider = ({ children }: PostHogProviderProps) => {
     // Track page views apenas se não for conta de teste
     const handleRouteChange = () => {
       if (typeof window !== 'undefined') {
-        // Verifica se é conta de teste
-        if (isTestAccount(userInfo?.email)) {
-          console.log('PostHog: Pageview bloqueado para conta de teste');
+        // Verifica se é conta admin
+        if (isAdminAccount(userInfo?.email)) {
           return;
         }
         

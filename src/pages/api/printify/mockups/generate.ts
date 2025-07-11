@@ -427,10 +427,7 @@ export default async function handler(
 
       // PASSO 4: Criar produto com múltiplas áreas de impressão
       console.log('🔄 Creating youth hoodie product with multiple print areas...');
-      console.log('🔍 DEBUG: Logo ID being used:', logoImageId);
-      console.log('🔍 DEBUG: Customer Image ID:', customerPrintifyImageId);
-      console.log('🔍 DEBUG: Phrase Image ID:', dynamicPhrasePrintifyImageId);
-      console.log('🔍 DEBUG: Selected variant ID:', targetVariantId);
+      // Configurar produto de sweat de criança com múltiplas áreas de impressão
       
       const printifyProductTitle = `PicTuz Youth Hoodie (${user.id}-${Date.now()})`;
       const productPrice = (product.basePrice || 40) * 100; // 40€ em cêntimos
@@ -514,9 +511,7 @@ export default async function handler(
         const productDetails = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
         
         if (productDetails && productDetails.images && productDetails.images.length > 0) {
-          console.log('--- DEBUG: Resposta COMPLETA de productDetails.images da Printify ---');
-          console.log(JSON.stringify(productDetails.images, null, 2));
-          console.log('--- FIM DEBUG ---');
+                  // Produto criado com sucesso
           
           const previewUrls = productDetails.images.map((img: { src: string }) => img.src);
           
@@ -675,7 +670,7 @@ export default async function handler(
       const delayMs = 8000;
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        console.log(`🔍 Polling attempt ${attempt}/${maxAttempts}...`);
+        // Polling Printify para gerar mockups
         
         try {
           const getProductResponse: PrintifyProduct = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdProductId}.json`);
@@ -777,7 +772,7 @@ export default async function handler(
 
     // Para produtos que suportam ajuste manual (como canecas)
     if (imageAdjustments && product.supportsManualAdjustment) {
-      console.log('🔍 [ESCALA] Calculando escala para produto com ajuste manual...');
+              // Calculando escala para produto com ajuste manual
       
       try {
         // Obter dimensões da imagem do utilizador
@@ -794,15 +789,15 @@ export default async function handler(
           placeholderWidth / userImageDimensions.width,
           placeholderHeight / userImageDimensions.height
         );
-        console.log('🔍 [ESCALA] Scale to cover calculado:', scaleToCover);
+                  // Scale calculado com sucesso
         
         // PASSO B: Calcula a largura final da imagem com esse zoom
         const finalImageWidth = userImageDimensions.width * scaleToCover;
-        console.log('🔍 [ESCALA] Largura final da imagem:', finalImageWidth);
+                  // Largura final calculada
         
         // PASSO C: Traduz para o 'scale' que a Printify entende
         const printifyScale = finalImageWidth / placeholderWidth;
-        console.log('🔍 [ESCALA] Scale final para Printify:', printifyScale);
+                  // Scale final para Printify calculado
         
         // Aplicar coordenadas calculadas no frontend
       finalX = imageAdjustments.x;
@@ -881,7 +876,7 @@ export default async function handler(
     const delayMs = 8000;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      console.log(`--> 🔍 Attempt ${attempt}/${maxAttempts}: Fetching Printify product ${createdPrintifyProductId} details...`);
+              // Tentativa de buscar detalhes do produto Printify
       try {
         const getProductResponse: PrintifyProduct = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
 

@@ -141,13 +141,12 @@ export default async function handler(
 
     console.log(`✅ Found ${orders?.length || 0} orders (total: ${count}) for user ${user.id}`);
     
-    // ✅ DEBUG: Log para verificar se campo items está sendo retornado
+    // Log apenas se houver problemas com os dados
     if (orders && orders.length > 0) {
-      console.log('🛍️ DEBUG - Primeira encomenda completa:', JSON.stringify(orders[0], null, 2));
-      orders.forEach((order, index) => {
-        const itemsCount = order.items ? order.items.length : 0;
-        console.log(`📦 Encomenda ${index + 1}: ${order.order_reference} - ${itemsCount} itens no campo 'items'`);
-      });
+      const ordersWithoutItems = orders.filter(order => !order.items || order.items.length === 0);
+      if (ordersWithoutItems.length > 0) {
+        console.warn(`⚠️ ${ordersWithoutItems.length} encomendas sem campo 'items' populado`);
+      }
     }
 
     return res.status(200).json({

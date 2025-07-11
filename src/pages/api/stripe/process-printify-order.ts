@@ -271,12 +271,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const finalPhone = customerPhone || PHONE_PLACEHOLDER; // Garante que há um número válido
 
-    // ✅ DEBUG: Log da extração de telefone
-    console.log('📞 Extração de telefone:', {
-      fromShipping: shippingDetails?.phone,
-      fromCustomer: customerDetails?.phone,
-      final: finalPhone
-    });
+    // Log telefone apenas se houver problema
+    if (!finalPhone || finalPhone === PHONE_PLACEHOLDER) {
+      console.warn('⚠️ Telefone não fornecido pelo cliente, usando placeholder');
+    }
 
     // ✅ NOVO: Extrair o valor do custom_field 'district'
     // 'session.custom_fields' é um array de objetos { key: 'district', value: 'Porto' }
@@ -294,26 +292,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Garantir que temos um endereço válido
     const rawAddress = shippingDetails?.address || customerDetails?.address || {};
 
-    // ✅ DEBUG: Log da extração de região
-    console.log('📍 Extração de região:', {
-      fromCustomField: rawDistrictValueFromStripe,
-      mappedDistrict: rawDistrictValueFromStripe ? REGION_MAP[rawDistrictValueFromStripe] : null,
-      fromStripeState: rawAddress.state,
-      fromMetadata: metadata.debug_region,
-      final: finalRegion,
-      reasoning: rawDistrictValueFromStripe ? 'Custom field district fornecido e mapeado' : rawAddress.state ? 'Stripe forneceu state' : metadata.debug_region ? 'Usando metadata debug' : 'Usando fallback vazio'
-    });
-    
-    // ✅ DEBUG: Log dos dados brutos do endereço do Stripe
-    console.log('📍 Dados brutos do endereço Stripe:', {
-      shippingAddress: shippingDetails?.address,
-      customerAddress: customerDetails?.address,
-      rawAddress,
-      customerPhone: finalPhone,
-      validPhone: finalPhone,
-      extractedRegion: rawAddress.state,
-      finalRegion: finalRegion
-    });
+    // Log região apenas se houver problemas
+    if (!finalRegion || finalRegion.length < 2) {
+      console.warn('⚠️ Região (distrito) não fornecida ou inválida:', finalRegion);
+    }
     
     if (!rawAddress.line1 || !rawAddress.city || !rawAddress.postal_code || !rawAddress.country) {
       console.error('❌ Endereço de envio incompleto:', rawAddress);
@@ -338,14 +320,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       region: finalRegion, // ✅ ROBUSTO: Use o 'state' do Stripe (distrito em PT) ou string vazia
     };
 
-    // ✅ DEBUG: Log do endereço construído para Printify
-    console.log('📋 Endereço Printify construído:', JSON.stringify(printifyShippingAddress, null, 2));
-    console.log('📋 Campos críticos verificados:', {
-      hasPhone: !!printifyShippingAddress.phone,
-      hasRegion: !!printifyShippingAddress.region,
-      phoneLength: printifyShippingAddress.phone?.length,
-      regionValue: printifyShippingAddress.region || 'VAZIO'
-    });
+    // Validação crítica do endereço Printify
+    if (!printifyShippingAddress.phone || !printifyShippingAddress.region) {
+      console.warn('⚠️ Endereço Printify com campos críticos em falta:', {
+        hasPhone: !!printifyShippingAddress.phone,
+        hasRegion: !!printifyShippingAddress.region
+      });
+    }
 
     // ✅ VALIDAÇÃO: Verificar se região foi fornecida pelo Stripe
     if (!finalRegion || finalRegion.length < 2) {
@@ -601,7 +582,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         address_to: printifyShippingAddress
       };
 
-      console.log('📤 Payload Printify:', JSON.stringify(printifyPayload, null, 2));
+      console.log('📤 Enviando pedido para Printify com', printifyLineItems.length, 'itens');
 
       // --- NOVO: Tentar calcular o custo de envio primeiro ---
       console.log('🔄 Verificando custos de envio com a Printify API...');
@@ -663,7 +644,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         body: JSON.stringify(printifyPayload)
       });
 
-      console.log('📥 Resposta da API Printify:', JSON.stringify(printifyOrderResult, null, 2));
+      console.log('📥 Pedido Printify criado com sucesso. ID:', printifyOrderResult.id);
 
       // ✅ FINALIZADOR: A resposta da Printify é o próprio objeto do pedido.
       // Se printifyOrderResult tiver um id, assume que a criação foi um sucesso.

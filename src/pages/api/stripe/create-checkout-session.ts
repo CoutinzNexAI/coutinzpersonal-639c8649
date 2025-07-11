@@ -60,12 +60,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('💾 Salvando dados do checkout temporariamente...');
 
-    // ✅ DEBUG: Log dos items do carrinho para verificar campos Printify
-    console.log('🛒 Items do carrinho recebidos:', JSON.stringify(items, null, 2));
-    
     // Verificar se algum item tem campos Printify
     const itemsWithPrintify = items.filter((item: CartItem) => item.printifyProductId && item.printifyVariantId);
-    console.log(`📊 Items com campos Printify: ${itemsWithPrintify.length}/${items.length}`);
 
     // Salvar dados do checkout temporariamente para recuperar depois
     const { error: tempSaveError } = await supabaseAdmin
@@ -190,8 +186,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         shippingMethodUid: shippingMethod.uid,
         shippingMethodName: shippingMethod.name,
         itemsCount: items.length.toString(),
-        // ✅ DEBUG: Metadata para testar region se Stripe não a fornecer
-        debug_region: 'Porto' // Fallback para teste - pode ser removido em produção
+        // Fallback region metadata
+        debug_region: 'Porto'
       },
       // Configurar recolha obrigatória de endereço de envio - APENAS PORTUGAL
       shipping_address_collection: {
