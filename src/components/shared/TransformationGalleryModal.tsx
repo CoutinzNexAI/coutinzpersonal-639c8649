@@ -197,15 +197,15 @@ export default function TransformationGalleryModal({
               <p className="text-ghibli-earth/70 text-center max-w-md">
                 Crie a sua primeira transformação AI para personalizar produtos.
               </p>
-              <Button
-                onClick={() => {
-                  handleClose();
-                  window.location.href = '/transformacoes';
-                }}
-                className="mt-4 bg-ghibli-moss hover:bg-ghibli-moss/90 text-white"
-              >
-                Ir para Transformações
-              </Button>
+                <Button
+                  onClick={() => {
+                    handleClose();
+                    window.location.href = '/transformacoes';
+                  }}
+                  className="mt-4 bg-ghibli-moss hover:bg-ghibli-moss/90 text-white"
+                >
+                  Ir para Transformações
+                </Button>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-1">

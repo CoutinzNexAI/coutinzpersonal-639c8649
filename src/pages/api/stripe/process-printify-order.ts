@@ -323,9 +323,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Validação crítica do endereço Printify
     if (!printifyShippingAddress.phone || !printifyShippingAddress.region) {
       console.warn('⚠️ Endereço Printify com campos críticos em falta:', {
-        hasPhone: !!printifyShippingAddress.phone,
+      hasPhone: !!printifyShippingAddress.phone,
         hasRegion: !!printifyShippingAddress.region
-      });
+    });
     }
 
     // ✅ VALIDAÇÃO: Verificar se região foi fornecida pelo Stripe

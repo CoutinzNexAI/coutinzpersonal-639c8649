@@ -57,9 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .single();
         
         if (userRole?.role === 'admin') {
-          if (typeof window !== 'undefined') {
-            posthog.stopSessionRecording();
-          }
+        if (typeof window !== 'undefined') {
+          posthog.stopSessionRecording();
+        }
         }
       } catch (roleError) {
         // Continue silently if role check fails

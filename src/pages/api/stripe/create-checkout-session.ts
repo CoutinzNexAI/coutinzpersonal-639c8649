@@ -128,7 +128,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         product_data: {
           name: item.productName,
             description: description,
-          images: item.userImageUrl ? [item.userImageUrl] : undefined,
           metadata: {
             productUid: item.productUid,
             userImageId: item.userImageId || '',

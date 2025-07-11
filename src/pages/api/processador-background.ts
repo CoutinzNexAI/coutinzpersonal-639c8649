@@ -164,24 +164,26 @@ async function updateJobStatus(
     }
 }
 
-async function getPromptFromDB(styleId: string, jobIdForLogging: string): Promise<string> {
+async function getPromptFromDB(styleId: string, jobIdForLogging: string): Promise<{ prompt: string; quality: string }> {
     if (!supabaseAdmin) {
         console.error(`[getPromptFromDB: ${jobIdForLogging}] CRITICAL: supabaseAdmin is not defined for style ${styleId}.`);
         throw new Error(`DB connection error for style ${styleId}`); // Lança erro
     }
     try {
         const { data: styleResult, error } = await supabaseAdmin
-            .from('styles').select('name, prompt_template').or(`id.eq.${styleId},name.ilike.%${styleId}%`).limit(1).single();
+            .from('styles').select('name, prompt_template, quality').or(`id.eq.${styleId},name.ilike.%${styleId}%`).limit(1).single();
 
         if (error) {
             console.error(`[getPromptFromDB: ${jobIdForLogging}] Error fetching style ${styleId}:`, error.message);
             throw new Error(`Failed to fetch style details for ${styleId}: ${error.message}`); // Lança erro
         }
         if (styleResult) {
-            return styleResult.prompt_template || `Transform image in ${styleResult.name} style.`;
+            const prompt = styleResult.prompt_template || `Transform image in ${styleResult.name} style.`;
+            const quality = styleResult.quality || 'medium'; // fallback para medium
+            return { prompt, quality };
         }
         console.warn(`[getPromptFromDB: ${jobIdForLogging}] Style ${styleId} not found. Using fallback prompt.`);
-        return `Transform image in ${styleId} style.`; // Fallback se não encontrado
+        return { prompt: `Transform image in ${styleId} style.`, quality: 'medium' }; // Fallback se não encontrado
     } catch (error) {
         console.error(`[getPromptFromDB: ${jobIdForLogging}] Exception fetching prompt for ${styleId}:`, (error as Error).message);
         throw error; // Re-lança o erro (pode ser o da query ou um novo)
@@ -236,8 +238,8 @@ async function processImage(jobId: string, jobData: JobData) {
         await updateJobStatus(jobId, 'processing', null, null, { detectedMimeType });
 
 
-        const promptText = await getPromptFromDB(jobData.style_requested, jobId);
-        outputMetadata = { ...outputMetadata, promptUsed: promptText, aiModelUsed: 'gpt-image-1' };
+        const { prompt: promptText, quality: imageQuality } = await getPromptFromDB(jobData.style_requested, jobId);
+        outputMetadata = { ...outputMetadata, promptUsed: promptText, aiModelUsed: 'gpt-image-1', qualityUsed: imageQuality };
 
         const tempFileExtension = detectedMimeType.split('/')[1] || 'tmp';
         tempFilePath = path.join(os.tmpdir(), `input_${jobId}_${Date.now()}.${tempFileExtension}`);
@@ -249,7 +251,7 @@ async function processImage(jobId: string, jobData: JobData) {
         formData.append('image', fs.createReadStream(tempFilePath));
         formData.append('n', 1);
         formData.append('size', '1024x1024');
-        formData.append('quality', 'high');
+        formData.append('quality', imageQuality); // ✅ Usar qualidade da base de dados
 
 
         const openaiApiKey = process.env.OPENAI_API_KEY;

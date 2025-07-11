@@ -1,7 +1,7 @@
 // Template genérico para páginas de produto - Loja PicTuz
 // Este componente será usado como base para todas as páginas de produto específicas 
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
@@ -79,19 +79,10 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const [isGeneratingMockup, setIsGeneratingMockup] = useState<boolean>(false);
   const [quantity, setQuantity] = useState(1);
 
-  // ✅ ESTADOS PARTILHADOS PARA CONTROLAR GERAÇÃO DE MOCKUPS - VERSÃO UNIFICADA
+  // ✅ ESTADOS PARTILHADOS PARA CONTROLAR GERAÇÃO DE MOCKUPS
   const [hasGenerated, setHasGenerated] = useState(false);
   const [mockupGenerationKey, setMockupGenerationKey] = useState('');
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
-  
-  // ✅ ESTADO ÚNICO DE LOADING - MESTRE DE TODOS OS OUTROS
-  const [globalMockupState, setGlobalMockupState] = useState<'idle' | 'generating_initial' | 'generating_change' | 'ready'>('idle');
-  
-  // ✅ REF PARA PREVENÇÃO ABSOLUTA DE DUPLICAÇÕES
-  const activeGenerationRef = useRef<string | null>(null);
-  
-  // ✅ ALTURA DINÂMICA PARA SELETORES DE VARIANTES
-  const [variantSelectorHeight, setVariantSelectorHeight] = useState(120);
 
   // Cálculos de preço usando a configuração
   const calculateDiscount = (qty: number) => {
@@ -108,106 +99,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const discountedPrice = basePrice * (1 - discount / 100);
   const totalPrice = discountedPrice * quantity;
   const savings = (basePrice * quantity) - totalPrice;
-
-  // ✅ FUNÇÃO MESTRE PARA TODAS AS GERAÇÕES DE MOCKUP
-  const generateMockupUnified = useCallback(async (
-    trigger: 'initial' | 'position_change' | 'variant_change',
-    position?: 'top' | 'center' | 'bottom' | 'left' | 'right',
-    variantId?: number
-  ) => {
-    if (!selectedImageUrl || !userInfo?.id) return;
-    
-    const generationId = `${trigger}-${Date.now()}-${Math.random()}`;
-    
-    // ✅ PREVENÇÃO ABSOLUTA DE DUPLICAÇÕES
-    if (activeGenerationRef.current) {
-      console.log('🚫 [GenericProductPage] Blocking duplicate generation, already active:', activeGenerationRef.current);
-      return;
-    }
-    
-    activeGenerationRef.current = generationId;
-    console.log('🚀 [GenericProductPage] Starting unified generation:', { trigger, generationId });
-    
-    // ✅ ESTADO GLOBAL BASEADO NO TRIGGER
-    if (trigger === 'initial') {
-      setGlobalMockupState('generating_initial');
-    } else {
-      setGlobalMockupState('generating_change');
-    }
-    
-    try {
-      let newAdjustments = imageAdjustments;
-      
-      // Calcular ajustes se necessário
-      if (position && config.calculatePrintifyCoords && userImageDimensions) {
-        newAdjustments = config.calculatePrintifyCoords(
-          position,
-          variantId || selectedPrintifyVariantId!,
-          userImageDimensions,
-          product
-        );
-        setImageAdjustments(newAdjustments);
-      }
-      
-      const response = await fetch('/api/printify/mockups/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          userImageUrl: selectedImageUrl,
-          userId: userInfo.id,
-          imageAdjustments: newAdjustments,
-          selectedPrintifyVariantId: variantId || selectedPrintifyVariantId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate mockup');
-      }
-
-      if (data.previewUrls && data.printifyProductId) {
-        setPrintifyPreviewUrls(data.previewUrls);
-        setPrintifyImageId(data.printifyImageId || '');
-        setPrintifyProductId(data.printifyProductId);
-        setCurrentMockupUrls(data.previewUrls);
-        setHasGenerated(true);
-        setCurrentPreviewIndex(0);
-        
-        // ✅ AGUARDAR IMAGEM CARREGAR
-        if (data.previewUrls[0]) {
-          const img = new Image();
-          const finishLoading = () => {
-            setGlobalMockupState('ready');
-            activeGenerationRef.current = null;
-            console.log('✅ [GenericProductPage] Generation completed:', generationId);
-          };
-          
-          img.onload = finishLoading;
-          img.onerror = finishLoading;
-          img.src = data.previewUrls[0];
-          
-          // Timeout de segurança
-          setTimeout(finishLoading, 5000);
-        } else {
-          setGlobalMockupState('ready');
-          activeGenerationRef.current = null;
-        }
-      }
-    } catch (error) {
-      console.error('Error in unified mockup generation:', error);
-      toast.error('Erro ao gerar mockup. Tente novamente.');
-      setGlobalMockupState('ready');
-      activeGenerationRef.current = null;
-    }
-  }, [selectedImageUrl, userInfo?.id, imageAdjustments, userImageDimensions, config, product, selectedPrintifyVariantId]);
 
   // Setup inicial do produto
   useEffect(() => {
@@ -262,7 +153,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       setPrintifyProductId('');
       setImageAdjustments(undefined);
       setHasGenerated(false);
-      setCurrentPreviewIndex(0);
       
       // Arte aplicada automaticamente - visual feedback é suficiente
     }
@@ -435,7 +325,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     setPrintifyProductId('');
     setImageAdjustments(undefined);
     setHasGenerated(false);
-    setCurrentPreviewIndex(0);
     
     // ✅ NOTA: mockupGenerationKey será gerado automaticamente pelo useEffect
     console.log('🎨 [GenericProductPage] Image selection completed, waiting for useEffect to generate key');
@@ -537,70 +426,47 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   };
 
   const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
-    // ✅ USAR SISTEMA UNIFICADO - SEM DUPLICAÇÕES
-    if (globalMockupState === 'generating_initial' || globalMockupState === 'generating_change') {
-      console.log('🚫 [GenericProductPage] Already generating, ignoring adjustment');
-      return;
-    }
-
-    // 1. Rate limit check
+    // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
     const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
     if (!allowed) {
       toast.error(message);
       return;
     }
 
-    // 2. Update state immediately for UI feedback
+    // ✅ APENAS verifica userImageDimensions para mudanças de POSIÇÃO
+    // Para mudanças de TAMANHO, permite sempre
+    if (type === 'position' && !userImageDimensions) {
+      toast.error('Aguarde o carregamento da imagem');
+      return;
+    }
+
     let newPosition = imagePosition;
     let newVariantId = selectedPrintifyVariantId;
 
     if (type === 'position' && typeof value === 'string') {
       newPosition = value as 'top' | 'center' | 'bottom' | 'left' | 'right';
       setImagePosition(newPosition);
-      // ✅ Calcular altura dinâmica para mudanças de posição
-      setVariantSelectorHeight(140);
     } else if (type === 'size' && typeof value === 'number') {
       newVariantId = value;
       setSelectedPrintifyVariantId(newVariantId);
+      // Resetar posição para centro quando muda variante
       setImagePosition('center');
       newPosition = 'center';
-      // ✅ Calcular altura dinâmica para mudanças de variante
-      setVariantSelectorHeight(160);
     }
 
-    // 3. Record the rate limit request
+    // 2. Se for permitido, regista o pedido
     GlobalRateLimiter.recordRequest();
 
-    // 4. Generate using unified system
+    // 3. E SÓ DEPOIS CHAMA A FUNÇÃO PARA GERAR A MOCKUP (O ATAQUE)
+    // ✅ SÓ gera mockup se tiver imagem selecionada E dimensões carregadas
     if (newVariantId !== null && selectedImageUrl && userImageDimensions) {
-      const trigger = type === 'position' ? 'position_change' : 'variant_change';
-      await generateMockupUnified(trigger, newPosition, newVariantId);
+      const isPositionChange = type === 'position';
+      await generateNewMockup(newPosition, newVariantId, isPositionChange);
     }
   };
 
-  // ✅ AUTO-TRIGGER INICIAL USANDO SISTEMA UNIFICADO
-  useEffect(() => {
-    if (
-      selectedImageUrl && 
-      selectedPrintifyVariantId && 
-      userInfo?.id && 
-      !hasGenerated &&
-      globalMockupState === 'idle'
-    ) {
-      console.log('🎯 [GenericProductPage] Auto-triggering initial mockup generation');
-      generateMockupUnified('initial');
-    }
-  }, [selectedImageUrl, selectedPrintifyVariantId, userInfo?.id, hasGenerated, globalMockupState, generateMockupUnified]);
-
-  // ✅ RESET DA ALTURA QUANDO GERAÇÃO COMPLETA
-  useEffect(() => {
-    if (globalMockupState === 'ready') {
-      setTimeout(() => setVariantSelectorHeight(120), 500);
-    }
-  }, [globalMockupState]);
-
-  // Condições auxiliares - usando estado global
-  const isProcessingMockup = globalMockupState === 'generating_initial' || globalMockupState === 'generating_change';
+  // Condições auxiliares
+  const isProcessingMockup = (!printifyProductId || !printifyImageId) && selectedImageUrl;
   const canPurchase = selectedImageUrl && printifyProductId && printifyImageId && selectedPrintifyVariantId && userInfo;
 
   if (!product) {
@@ -811,7 +677,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               )}
               
               {/* ✅ OVERLAY MOBILE para mudança de posição */}
-              {globalMockupState === 'generating_change' && (
+              {isGeneratingMockup && (
                 <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -827,6 +693,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
           {/* Layout Mobile */}
           <div className="block lg:hidden">
+
             {/* ✅ CONTROLOS MOBILE */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -840,20 +707,17 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 userImageDimensions={userImageDimensions}
                 product={product}
                 imagePosition={imagePosition}
-                isGeneratingMockup={isProcessingMockup}
+                isGeneratingMockup={isGeneratingMockup}
                 userInfo={userInfo}
                 onOpenGallery={handleOpenGallery}
                 onAdjustPosition={(position) => handleAdjustment('position', position)}
-                positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
-                showPositionControls={!!coordinateConfig}
+                            positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
+            showPositionControls={!!coordinateConfig}
               />
 
               {/* Seletor de Variantes Mobile - DEPOIS */}
               <div className="px-4 mb-4 mt-4">
-                <div 
-                  className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30 flex items-center transition-all duration-300"
-                  style={{ minHeight: `${variantSelectorHeight}px` }}
-                >
+                <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
                   {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
                     <PhoneCaseVariantSelector
                       product={product}
@@ -921,7 +785,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35 }}
               className="px-4 mb-4"
-              style={{ minHeight: '120px' }}
             >
               <ProductQuantityPricing
                 basePrice={basePrice}
@@ -937,7 +800,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               className="px-4 mb-6"
-              style={{ minHeight: '60px' }}
             >
               <ProductAddToCartButton
                 canPurchase={!!canPurchase}
@@ -947,7 +809,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 selectedImageUrl={selectedImageUrl || ''}
                 selectedPrintifyVariantId={selectedPrintifyVariantId}
                 onAddToCart={handleAddToCart}
-                onOpenGallery={handleOpenGallery}
+                onOpenGallery={handleOpenGallery} // ✅ NOVA PROP
                 size="mobile"
               />
             </motion.div>
@@ -972,90 +834,32 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               transition={{ duration: 0.6 }}
               className="lg:col-span-2 order-1"
             >
-              {/* ✅ PRODUCT CANVAS SIMPLIFICADO - SÓ DISPLAY */}
+              {/* ✅ PRODUCT CANVAS REAL QUE GERA MOCKUPS */}
               <div className={`relative w-full h-[700px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20 mb-6`}>
-                {printifyPreviewUrls.length > 0 ? (
-                  <div className="relative w-full h-full flex items-center justify-center bg-transparent">
-                    <img
-                      src={printifyPreviewUrls[currentPreviewIndex] || printifyPreviewUrls[0]}
-                      alt="Preview mockup"
-                      className="max-w-full max-h-full object-contain drop-shadow-2xl"
-                      style={{ maxHeight: '90%' }}
-                    />
-                    
-                    {printifyPreviewUrls.length > 1 && (
-                      <>
-                        <Button
-                          onClick={() => setCurrentPreviewIndex(prev => prev === 0 ? printifyPreviewUrls.length - 1 : prev - 1)}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-ghibli-earth shadow-lg border border-ghibli-sand/30"
-                          size="sm"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </Button>
-                        
-                        <Button
-                          onClick={() => setCurrentPreviewIndex(prev => prev === printifyPreviewUrls.length - 1 ? 0 : prev + 1)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-ghibli-earth shadow-lg border border-ghibli-sand/30"
-                          size="sm"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                ) : selectedImageUrl ? (
-                  <div className="relative w-full h-full flex items-center justify-center bg-white">
-                    <div className="relative">
-                      <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <RotateCw className="w-8 h-8 animate-spin text-ghibli-moss" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-ghibli-earth font-semibold text-lg">A gerar...</p>
-                        <p className="text-ghibli-earth/60 text-sm mt-1">A reposicionar arte</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
-                    <div className="mb-6">
-                      <img
-                        src="/mockupproduto/canecacoracao.png"
-                        alt="Produto personalizado"
-                        className="w-64 h-64 object-contain opacity-60"
-                      />
-                    </div>
-                    <div className="text-center max-w-md">
-                      <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-                        Personaliza o teu {product.name}
-                      </h3>
-                      <p className="text-ghibli-earth/70 leading-relaxed">
-                        Escolha uma das suas artes para dar vida ao produto.
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                {/* ✅ OVERLAY DESKTOP para mudança de posição */}
-                {globalMockupState === 'generating_change' && (
-                  <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <RotateCw className="w-8 h-8 animate-spin text-ghibli-moss" />
-                      </div>
-                      <p className="text-ghibli-earth font-semibold text-lg">A gerar...</p>
-                      <p className="text-ghibli-earth/60 text-sm mt-1">A reposicionar arte</p>
-                    </div>
-                  </div>
-                )}
+                <ProductCanvas
+                  key={mockupGenerationKey} // ✅ Chave única para evitar duplicações
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady}
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  hasGenerated={hasGenerated}
+                  onMockupGenerated={handleMockupGenerated}
+                  mockupGenerationKey={mockupGenerationKey}
+                  isGeneratingMockup={isGeneratingMockup}
+                />
               </div>
-
               {/* ✅ CONTROLOS DESKTOP */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
                 className="flex flex-row justify-center items-center gap-4"
-              >
+                >
                 {/* Botão Trocar Arte */}
                 <Button
                   onClick={handleOpenGallery}
@@ -1090,7 +894,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                           ? 'bg-ghibli-moss text-white shadow-md scale-110' 
                           : 'text-ghibli-earth hover:bg-ghibli-moss/10 hover:scale-105'
                         }`}
-                        disabled={isProcessingMockup}
+                        disabled={isGeneratingMockup}
                         title={title}
                       >
                         {icon === 'circle' ? (
@@ -1239,47 +1043,45 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   </div>
 
                   {/* Seletor de Variantes - MOVIDO PARA CIMA */}
-                  <div style={{ minHeight: `${variantSelectorHeight}px` }} className="transition-all duration-300">
-                    {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
-                      <PhoneCaseVariantSelector
-                        product={product}
-                        selectedVariantId={selectedPrintifyVariantId}
-                        onVariantChange={(variantId) => handleAdjustment('size', variantId)}
-                        label={config.variantSelectorConfig?.label || "Modelo do Telemóvel"}
-                        emoji={config.variantSelectorConfig?.emoji || "📱"}
-                        customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
-                        customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
-                      />
-                    ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'FramedCanvasVariantSelector' ? (
-                      <FramedCanvasVariantSelector
-                        product={product}
-                        selectedVariantId={selectedPrintifyVariantId}
-                        onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
-                      />
-                    ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'ToteBagVariantSelector' ? (
-                      <ToteBagVariantSelector
-                        product={product}
-                        selectedVariantId={selectedPrintifyVariantId}
-                        onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
-                      />
-                    ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
-                      <NotebookVariantSelector
-                        product={product}
-                        selectedVariantId={selectedPrintifyVariantId}
-                        onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
-                      />
-                    ) : (
-                      <ProductVariantSelector
-                        product={product}
-                        selectedVariantId={selectedPrintifyVariantId}
-                        onVariantChange={(variantId) => handleAdjustment('size', variantId)}
-                        label={config.variantSelectorConfig?.label || "Tamanho"}
-                        emoji={config.variantSelectorConfig?.emoji || "📏"}
-                        customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
-                        customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
-                      />
-                    )}
-                  </div>
+                  {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
+                    <PhoneCaseVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                      label={config.variantSelectorConfig?.label || "Modelo do Telemóvel"}
+                      emoji={config.variantSelectorConfig?.emoji || "📱"}
+                      customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                      customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                    />
+                  ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'FramedCanvasVariantSelector' ? (
+                    <FramedCanvasVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                    />
+                  ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'ToteBagVariantSelector' ? (
+                    <ToteBagVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                    />
+                  ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
+                    <NotebookVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                    />
+                  ) : (
+                    <ProductVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantChange={(variantId) => handleAdjustment('size', variantId)}
+                      label={config.variantSelectorConfig?.label || "Tamanho"}
+                      emoji={config.variantSelectorConfig?.emoji || "📏"}
+                      customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
+                      customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
+                    />
+                  )}
 
                   {/* Botão Principal */}
                   <div className="pt-3">
@@ -1291,7 +1093,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                       selectedImageUrl={selectedImageUrl || ''}
                       selectedPrintifyVariantId={selectedPrintifyVariantId}
                       onAddToCart={handleAddToCart}
-                      onOpenGallery={handleOpenGallery}
+                      onOpenGallery={handleOpenGallery} // ✅ NOVA PROP
                       size="desktop"
                     />
                   </div>
@@ -1325,4 +1127,4 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   );
 };
 
-export default GenericProductPage;
+export default GenericProductPage; 
