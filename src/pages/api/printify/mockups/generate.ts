@@ -2,7 +2,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import { getPrintifyProduct } from '@/lib/printify/printifyProducts';
+import { getPrintifyProduct, getCachedPrintifyVariants } from '@/lib/printify/printifyProducts';
 import { printifyFetch } from '@/lib/printify/printifyApi';
 import { PrintifyProduct, PrintifyImagePlaceholder } from '@/lib/printify/printifyTypes';
 import generatePrintFileHandler from '@/pages/api/printify/generate-print-file';
@@ -270,9 +270,10 @@ export default async function handler(
 
     console.log(`✅ Product found: ${product.name}`);
 
-    // Obter detalhes das variantes da Printify
-    const printifyVariantsResponse = await printifyFetch(
-      `/catalog/blueprints/${product.printifyBlueprintId}/print_providers/${product.printifyPrintProviderId}/variants.json?show-out-of-stock=1`
+    // Obter detalhes das variantes da Printify (com cache)
+    const printifyVariantsResponse = await getCachedPrintifyVariants(
+      product.printifyBlueprintId.toString(),
+      product.printifyPrintProviderId.toString()
     );
 
     // Determinar qual variante usar
@@ -697,11 +698,20 @@ export default async function handler(
         }
       }
 
+      // Limpar produto temporário Printify após sucesso
+      console.log(`🗑️ Limpando produto temporário Printify ${createdProductId}...`);
+      try {
+        await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdProductId}.json`, { method: 'DELETE' });
+        console.log('✅ Produto temporário Printify eliminado com sucesso.');
+      } catch (deleteError) {
+        console.warn('⚠️ Falha ao eliminar produto temporário Printify (não crítico):', deleteError instanceof Error ? deleteError.message : String(deleteError));
+      }
+
       return res.status(200).json({
         success: true,
         previewUrls: finalPreviewUrls.length > 0 ? finalPreviewUrls : [product.mockupInitialPath],
         printifyImageId: printifyImageId,
-        printifyProductId: createdProductId,
+        printifyProductId: createdProductId, // Retornar o ID mesmo que produto seja eliminado
       });
 
     } else {
@@ -869,29 +879,38 @@ export default async function handler(
     const createdPrintifyProductId = printifyProductResponse.id;
     console.log(`✅ STEP 3 Success: Printify product created. ID: ${createdPrintifyProductId}`);
 
-    // PASSO 4: Polling dos Mockups do Produto Printify
+    // PASSO 4: Polling dos Mockups do Produto Printify (OTIMIZADO)
     console.log('🔄 STEP 4: Polling Printify product for mockups...');
     let finalPreviewUrls: string[] = [];
-    const maxAttempts = 15;
-    const delayMs = 8000;
+    const maxAttempts = 12; // Reduzido de 15 para 12
+    let delayMs = 3000; // Começar com 3s em vez de 8s
+    const maxDelay = 15000; // Máximo de 15s
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-              // Tentativa de buscar detalhes do produto Printify
       try {
         const getProductResponse: PrintifyProduct = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
 
         if (getProductResponse.images && getProductResponse.images.length > 0) {
-          console.log(`✅ SUCCESS in Printify product polling! Mockups found on attempt ${attempt}!`);
-          finalPreviewUrls = getProductResponse.images.map(img => img.src) as string[];
+          console.log(`✅ Mockups ready on attempt ${attempt}! Found ${getProductResponse.images.length} preview(s)`);
+          
+          // LIMITAR A APENAS 3 MOCKUPS SOMENTE PARA CANVAS
+          if (productId === 'custom_canvas' || productId === 'framed_canvas') {
+            finalPreviewUrls = getProductResponse.images.map(img => img.src).slice(0, 3) as string[];
+          } else {
+            finalPreviewUrls = getProductResponse.images.map(img => img.src) as string[];
+          }
           break;
         }
       } catch (pollError) {
-        console.warn(`⚠️ WARNING: Error on Printify product polling attempt ${attempt}:`, pollError instanceof Error ? pollError.message : String(pollError));
-        }
+        console.warn(`⚠️ Polling attempt ${attempt} failed:`, pollError instanceof Error ? pollError.message : String(pollError));
+      }
 
-        if (attempt < maxAttempts) {
-        console.log(`⏳ Printify product mockups not ready yet. Waiting ${delayMs}ms before next attempt...`);
+      if (attempt < maxAttempts) {
+        console.log(`⏳ Waiting ${delayMs}ms for next attempt (${attempt + 1}/${maxAttempts})...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
+        
+        // Backoff exponencial: aumentar delay gradualmente
+        delayMs = Math.min(delayMs * 1.3, maxDelay);
       }
     }
     console.log(`🏁 Printify product polling completed. Found ${finalPreviewUrls.length} preview URLs.`);

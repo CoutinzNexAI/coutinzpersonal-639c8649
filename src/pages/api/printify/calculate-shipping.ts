@@ -32,6 +32,8 @@ interface ShippingCalculationResponse {
   success: boolean;
   cheapestCost?: number; // Apenas o custo mais barato em centavos
   error?: string;
+  retryAfter?: number; // Para rate limiting
+  details?: string; // Para detalhes de debug
 }
 
 export default async function handler(
@@ -158,10 +160,35 @@ export default async function handler(
         body: JSON.stringify(shippingPayload)
       });
     } catch (printifyError) {
-      console.error('❌ Erro na chamada Printify shipping API:', printifyError);
+      console.error('❌ Erro na chamada Printify shipping API:', {
+        error: printifyError instanceof Error ? printifyError.message : String(printifyError),
+        endpoint: `shops/${shopId}/orders/shipping.json`,
+        timestamp: new Date().toISOString(),
+        payload: JSON.stringify(shippingPayload).substring(0, 500) // Truncar para logs
+      });
+      
+      // Se for erro de rate limit, informar claramente
+      if (printifyError instanceof Error && printifyError.message.includes('429')) {
+        return res.status(429).json({
+          success: false,
+          error: 'Printify API temporariamente indisponível. Tente novamente em alguns segundos.',
+          retryAfter: 10
+        });
+      }
+      
+      // Se for erro de autenticação, é crítico
+      if (printifyError instanceof Error && printifyError.message.includes('401')) {
+        console.error('🚨 CRÍTICO: Credenciais Printify inválidas');
+        return res.status(500).json({
+          success: false,
+          error: 'Erro de configuração do serviço. Contacte o suporte.'
+        });
+      }
+      
       return res.status(500).json({
         success: false,
-        error: `Printify API error: ${printifyError instanceof Error ? printifyError.message : String(printifyError)}`
+        error: 'Erro temporário no cálculo de portes. Tente novamente.',
+        details: process.env.NODE_ENV === 'development' ? printifyError instanceof Error ? printifyError.message : String(printifyError) : undefined
       });
     }
 

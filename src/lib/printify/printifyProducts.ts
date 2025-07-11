@@ -1,5 +1,8 @@
 // src/lib/printify/printifyProducts.ts - FLUXO PRINTIFY DEFINITIVO
 
+import { unstable_cache } from 'next/cache';
+import { printifyFetch } from './printifyApi';
+
 export interface DefaultDesignConfig {
   scale: number; // O scale correto para este produto específico (ex: 1.05 para canvas com fill)
   x: number; // Posição X padrão (0.5 = centro)
@@ -566,6 +569,34 @@ export const getPrintifyProductsByCategory = (category: PrintifyProductMapping['
 export const getAvailablePrintifyProductIds = (): string[] => {
   return Object.keys(PIC_TUZ_PRINTIFY_PRODUCT_MAP);
 };
+
+// Cache do catálogo Printify por 1 hora (3600 segundos)
+export const getCachedPrintifyVariants = unstable_cache(
+  async (blueprintId: string, printProviderId: string) => {
+    const response = await printifyFetch(
+      `/catalog/blueprints/${blueprintId}/print_providers/${printProviderId}/variants.json?show-out-of-stock=1`
+    );
+    return response;
+  },
+  ['printify-variants'],
+  {
+    revalidate: 3600, // 1 hora
+    tags: ['printify-catalog']
+  }
+);
+
+// Cache das shops Printify por 24 horas
+export const getCachedPrintifyShops = unstable_cache(
+  async () => {
+    const response = await printifyFetch('shops.json');
+    return response;
+  },
+  ['printify-shops'],
+  {
+    revalidate: 86400, // 24 horas
+    tags: ['printify-catalog']
+  }
+);
 
 // Constantes úteis para o fluxo Printify
 export const GELATO_CONSTANTS = {
