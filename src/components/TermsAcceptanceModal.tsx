@@ -110,7 +110,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                 <Button
                   onClick={handleAccept}
                   disabled={loading}
-                  className="text-sm bg-black hover:bg-gray-800 text-white disabled:opacity-50 disabled:bg-gray-400 px-6 border-2 border-black"
+                  className="text-sm bg-ghibli-moss hover:bg-ghibli-moss/90 text-white disabled:opacity-50 disabled:bg-gray-400 px-6"
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
