@@ -18,8 +18,8 @@ interface CarouselExample {
 const EXAMPLES_DATA: CarouselExample[] = [
   {
     id: 1,
-    beforeSrc: '/fotousar/maiamota.jpg',
-    afterSrc: '/fotousar/maiagh.png',
+    beforeSrc: '/fotousar/casal.jpg',
+    afterSrc: '/fotousar/casal1.png',
     altBefore: 'Fotografia original de uma celebração de São João no Porto',
     altAfter: 'Fotografia de São João no Porto transformada para o estilo Ghibli',
     ariaLabel: 'Exemplo de transformação: São João no Porto para estilo Ghibli',
