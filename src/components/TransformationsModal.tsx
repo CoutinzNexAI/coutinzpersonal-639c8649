@@ -35,21 +35,9 @@ interface GridItemState extends FetchedTransformation {
 // Constantes para paginação
 const ITEMS_PER_PAGE = 6;
 
-// Lista de status que queremos buscar (todos exceto talvez os muito iniciais)
-// Ajusta conforme os teus ENUMs e o que consideras relevante mostrar
+// ✅ APENAS transformações bem-sucedidas - sem mostrar erros/falhas
 const RELEVANT_STATUSES = [
-    'awaiting_processing', 
-    'paid', // Se for um estado antes de processar
-    'processing_queued',
-    'processing', 
-    'completed', 
-    'error', 
-    // Adiciona todos os teus status 'failed_...' aqui
-    'failed_upload', 'failed_payment', 'failed_checkout_redirect', 
-    'failed_prompt', 'failed_api', 'failed_system', 'failed_db_update', 
-    'failed_download', 'failed_input_path', 'failed_trigger',
-    'failed_timeout_server', // O novo status de timeout do servidor
-    // Adiciona outros que façam sentido
+    'completed' // Apenas transformações que foram concluídas com sucesso
 ];
 
 

@@ -1,7 +1,7 @@
 // Rate Limiter para Mockups - GLOBAL (canecas, capas, cadernos, posters)
 class GlobalMockupRateLimiter {
   private requests: number[] = [];
-  private readonly maxRequests: number = 5; // Máximo 5 requests
+  private readonly maxRequests: number = 8; // ✅ Aumentado para permitir mais experimentação de posições
   private readonly timeWindow: number = 60000; // Por minuto (60 segundos)
 
   // ✅ VERIFICAR SE PODE FAZER REQUEST
