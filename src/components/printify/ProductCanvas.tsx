@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
@@ -83,6 +83,9 @@ export default function ProductCanvas({
   const [error, setError] = useState<string | null>(null);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
   const [isGenerating, setIsGenerating] = useState(false); // ✅ Guard local anti-duplicação
+  
+  // ✅ REF para rastrear última chave processada - previne loops infinitos
+  const lastProcessedKeyRef = useRef<string | null>(null);
 
   // ✅ OTIMIZAÇÃO: Estado consolidado do Printify
   const [printifyData, setPrintifyData] = useState({
@@ -125,6 +128,7 @@ export default function ProductCanvas({
   useEffect(() => {
     setCurrentPreviewIndex(0);
     setIsGenerating(false); // ✅ Reset guard quando nova imagem/variante
+    lastProcessedKeyRef.current = null; // ✅ Reset ref para permitir nova geração
     // Reset apenas o índice quando as dependências mudam, mas não limpar os previews
     // O controlo de limpeza está agora centralizado no GenericProductPage
   }, [userImageUrl, selectedPrintifyVariantId, selectedPhraseText, mockupGenerationKey]);
@@ -261,7 +265,6 @@ export default function ProductCanvas({
   }, [
     userImageUrl, 
     userId, 
-    isLoadingMockups, 
     selectedProduct.id, // ✅ Só o ID em vez do objeto completo
     imageAdjustments, 
     selectedPrintifyVariantId, 
@@ -270,11 +273,16 @@ export default function ProductCanvas({
     selectedPhraseText,
     selectedImageId,
     onMockupGenerated
-    // ✅ Removido mockupGenerationKey para evitar re-creations do callback
+    // ✅ REMOVIDO: isLoadingMockups, mockupGenerationKey para evitar re-creations
   ]);
 
-  // ✅ AUTO-GENERATE SIMPLIFICADO
+  // ✅ AUTO-GENERATE FINAL - Totalmente protegido contra loops
   useEffect(() => {
+    // ✅ Verificar se já processamos esta chave para evitar loops
+    if (!mockupGenerationKey || lastProcessedKeyRef.current === mockupGenerationKey) {
+      return;
+    }
+
     let shouldGenerate = false;
 
     if (selectedProduct.id === 'custom_youth_hoodie') {
@@ -291,7 +299,8 @@ export default function ProductCanvas({
     // ✅ USAR HASGENERATED EXTERNO OU FALLBACK PARA O COMPORTAMENTO ANTERIOR
     const isGenerated = hasGenerated !== undefined ? hasGenerated : false;
     
-    if (!isGenerated && shouldGenerate && mockupGenerationKey && !isLoadingMockups && !isGenerating) {
+    // ✅ FIX FINAL: Todas as verificações numa só condição
+    if (!isGenerated && shouldGenerate && !isLoadingMockups && !isGenerating) {
       console.log('🎯 [ProductCanvas] Auto-generating mockup with key:', mockupGenerationKey, {
         userImageUrl: !!userImageUrl,
         userId: !!userId,
@@ -299,15 +308,16 @@ export default function ProductCanvas({
         selectedPrintifyVariantId,
         hasGenerated,
         shouldGenerate,
-        isGenerated,
-        isLoadingMockups,
-        isGenerating
+        isGenerated
       });
       
-      setIsGenerating(true); // ✅ Bloquear outras chamadas
+      // ✅ Marcar chave como processada ANTES de chamar a função
+      lastProcessedKeyRef.current = mockupGenerationKey;
+      setIsGenerating(true);
+      
       handleGenerateMockup();
     }
-  }, [userImageUrl, userId, selectedProduct.id, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, handleGenerateMockup, mockupGenerationKey, isLoadingMockups, isGenerating]);
+  }, [userImageUrl, userId, selectedProduct.id, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, mockupGenerationKey]);
 
   // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
   const handlePreviousPreview = useCallback(() => {
