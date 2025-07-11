@@ -426,6 +426,12 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   };
 
   const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
+    // ✅ PREVENIR CHAMADAS DUPLICADAS
+    if (isGeneratingMockup) {
+      console.log('🚫 [GenericProductPage] Already generating mockup, ignoring adjustment');
+      return;
+    }
+
     // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
     const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
     if (!allowed) {
@@ -717,7 +723,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
               {/* Seletor de Variantes Mobile - DEPOIS */}
               <div className="px-4 mb-4 mt-4">
-                <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
+                <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30 min-h-[80px] flex items-center">
                   {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
                     <PhoneCaseVariantSelector
                       product={product}
@@ -785,6 +791,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35 }}
               className="px-4 mb-4"
+              style={{ minHeight: '120px' }}
             >
               <ProductQuantityPricing
                 basePrice={basePrice}
@@ -800,6 +807,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               className="px-4 mb-6"
+              style={{ minHeight: '60px' }}
             >
               <ProductAddToCartButton
                 canPurchase={!!canPurchase}
