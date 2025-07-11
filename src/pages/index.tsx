@@ -1,6 +1,6 @@
 // src/pages/index.tsx
 // Página inicial do Pictuz - Redireciona para home.tsx para manter organização
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
@@ -11,8 +11,42 @@ import BestSellersSection from '@/components/landing/BestSellersSection';
 import ReviewsSection from '@/components/ReviewsSection';
 import HowItWorks from '@/components/HowItWorks';
 import { FAQSection } from '@/components/FAQSection';
+import { TermsAcceptanceModal } from '@/components/TermsAcceptanceModal';
+import { useAuth } from '@/hooks/useAuth';
+import { useTermsAcceptance } from '@/hooks/useTermsAcceptance';
 
 const HomePage: React.FC = () => {
+  const { userInfo, isLoading: isAuthLoading } = useAuth();
+  const { acceptTerms, rejectTerms, checkTermsAcceptance, loading: termsLoading } = useTermsAcceptance();
+  
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
+  // Check terms acceptance after authentication
+  useEffect(() => {
+    if (userInfo && !isAuthLoading) {
+      checkTermsAcceptance().then(hasAccepted => {
+        if (!hasAccepted) {
+          setShowTermsModal(true);
+        }
+      });
+    }
+  }, [userInfo, isAuthLoading, checkTermsAcceptance]);
+
+  const handleTermsAccept = async () => {
+    try {
+      await acceptTerms();
+      setShowTermsModal(false);
+    } catch (error) {
+      // Error is handled in the hook
+      console.error('Failed to accept terms:', error);
+    }
+  };
+
+  const handleTermsReject = async () => {
+    await rejectTerms();
+    setShowTermsModal(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50 relative overflow-hidden">
       <Head>
@@ -94,6 +128,14 @@ const HomePage: React.FC = () => {
       </main>
 
       <Footer />
+
+      {/* Modal de Termos */}
+      <TermsAcceptanceModal
+        isOpen={showTermsModal}
+        onAccept={handleTermsAccept}
+        onReject={handleTermsReject}
+        loading={termsLoading}
+      />
     </div>
   );
 };

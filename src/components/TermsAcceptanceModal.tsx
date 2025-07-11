@@ -80,7 +80,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                         href="/termos-servicos" 
                         target="_blank"
                         onClick={() => trackLinkClick('terms')}
-                        className="text-ghibli-sky hover:text-ghibli-moss underline"
+                        className="text-ghibli-moss hover:text-ghibli-moss-light underline font-semibold"
                       >
                         Termos de Serviço
                       </Link>
@@ -89,7 +89,7 @@ export const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                         href="/politica-privacidade" 
                         target="_blank"
                         onClick={() => trackLinkClick('privacy')}
-                        className="text-ghibli-sky hover:text-ghibli-moss underline"
+                        className="text-ghibli-moss hover:text-ghibli-moss-light underline font-semibold"
                       >
                         Política de Privacidade
                       </Link>
