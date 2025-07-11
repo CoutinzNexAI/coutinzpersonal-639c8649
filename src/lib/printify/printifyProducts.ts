@@ -85,7 +85,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   // CANVAS SEM BORDA (Printify Real)
   'custom_canvas': {
     id: 'custom_canvas',
-    name: 'Canvas',
+    name: 'Canvas Sem Borda',
     mockupInitialPath: '/mockupproduto/canva.png',
     basePrice: 20.00,
     category: 'canvas',

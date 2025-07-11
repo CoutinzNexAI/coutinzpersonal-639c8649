@@ -78,21 +78,8 @@ export default function ProductCanvas({
   mockupGenerationKey,
   isGeneratingMockup = false
 }: ProductCanvasProps) {
-  const [isLoadingMockups, setIsLoadingMockups] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
-  const [error, setError] = useState<string | null>(null);
   const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
-  const [isGenerating, setIsGenerating] = useState(false); // ✅ Guard local anti-duplicação
-  
-  // ✅ REF para rastrear última chave processada - previne loops infinitos
-  const lastProcessedKeyRef = useRef<string | null>(null);
-
-  // ✅ OTIMIZAÇÃO: Estado consolidado do Printify
-  const [printifyData, setPrintifyData] = useState({
-    previewUrls: [] as string[],
-    imageId: '',
-    productId: ''
-  });
 
   // ✅ CALCULAÇÃO DE ESTILO NO CORPO PRINCIPAL - SEMPRE RECALCULADO
   // Converte as coordenadas da Printify (centro=0.5) para percentagens de desvio CSS (centro=0%)
@@ -123,15 +110,10 @@ export default function ProductCanvas({
     });
   }
 
-  // ✅ REMOVIDO: O reset agora é controlado pelo GenericProductPage através do estado partilhado
-  // Este useEffect causava a "falha de 0.1s" onde a imagem desaparecia e regenerava
+  // ✅ RESET SIMPLES QUANDO PROPS MUDAM
   useEffect(() => {
     setCurrentPreviewIndex(0);
-    setIsGenerating(false); // ✅ Reset guard quando nova imagem/variante
-    lastProcessedKeyRef.current = null; // ✅ Reset ref para permitir nova geração
-    // Reset apenas o índice quando as dependências mudam, mas não limpar os previews
-    // O controlo de limpeza está agora centralizado no GenericProductPage
-  }, [userImageUrl, selectedPrintifyVariantId, selectedPhraseText, mockupGenerationKey]);
+  }, [userImageUrl, selectedPrintifyVariantId, mockupGenerationKey]);
 
   // Preload images for instant navigation
   useEffect(() => {
@@ -147,177 +129,6 @@ export default function ProductCanvas({
       });
     }
   }, [printifyGeneratedPreviewUrls, preloadedImages]);
-
-  const handleGenerateMockup = useCallback(async () => {
-    if (!userImageUrl || !userId || isLoadingMockups) {
-      console.log('🚫 [ProductCanvas] Blocking duplicate call:', { userImageUrl: !!userImageUrl, userId: !!userId, isLoadingMockups });
-      return;
-    }
-
-    console.log('🚀 [ProductCanvas] Starting mockup generation:', mockupGenerationKey);
-    setIsLoadingMockups(true);
-    setError(null);
-
-    try {
-      // Construir payload baseado no tipo de produto
-      let requestBody: Record<string, unknown>;
-
-      if (selectedProduct.id === 'custom_youth_hoodie') {
-        // Para sweat de criança - múltiplas imagens
-        const logoConfig = selectedProduct.printAreasConfig?.find(area => area.position === 'front');
-        
-        requestBody = {
-          productId: selectedProduct.id,
-          selectedPrintifyVariantId: selectedPrintifyVariantId,
-          logoImageId: logoConfig?.staticImageId || '684d920a45ec86ab347594c5', // ID fixo do logo
-          customerImageUrl: userImageUrl,
-          customerImageAdjustments: allImageAdjustments?.customer,
-          selectedPhraseText: selectedPhraseText || 'Sem frase',
-          phraseImageAdjustments: allImageAdjustments?.phrase,
-          userId: userId,
-        };
-      } else {
-        // Para outros produtos (capa, caneca, etc.) - imagem única
-        requestBody = {
-          productId: selectedProduct.id,
-          userImageUrl: userImageUrl,
-          userId: userId,
-          // ✅ CORREÇÃO: Enviar imageAdjustments para produtos que suportam ajustes manuais OU posters
-          imageAdjustments: (selectedProduct.supportsManualAdjustment || selectedProduct.id.includes('poster_')) ? imageAdjustments : undefined,
-          selectedPrintifyVariantId: selectedPrintifyVariantId,
-        };
-
-        // Para Canvas products - SEMPRE carregar a imagem primeiro
-        if ((selectedProduct.id === 'custom_canvas' || selectedProduct.id === 'framed_canvas')) {
-          // Para Canvas, não passar printifyImageId - deixar a API carregar a imagem
-          // O backend irá primeiro fazer upload da imagem para Printify e depois usar o ID
-          requestBody.forceImageUpload = true; // Flag para forçar re-upload
-
-          // *** ADICIONAR PRINTDETAILS PARA CANVAS (CUSTOM E FRAMED) ***
-            requestBody.printDetails = { print_on_side: 'mirror' }; // Força a borda espelhada
-        }
-
-        // Para Poster products, adicionar printifyImageId
-        if (selectedProduct.id.includes('poster_')) {
-          if (selectedImageId) {
-            // Usar selectedImageId diretamente se disponível
-            requestBody.printifyImageId = selectedImageId;
-          } else if (userImageUrl) {
-            // Fallback: extrair printifyImageId da URL da imagem
-            const printifyImageIdMatch = userImageUrl.match(/\/([a-f0-9]{24})$/);
-            if (printifyImageIdMatch) {
-              requestBody.printifyImageId = printifyImageIdMatch[1];
-            }
-          }
-        }
-      }
-
-      // Gerar mockups para o produto
-
-      const response = await fetch('/api/printify/mockups/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data: GenerateMockupResponse = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate mockup');
-      }
-
-      if (data.previewUrls && data.printifyProductId) {
-        if (selectedProduct.id === 'custom_youth_hoodie') {
-          // Para sweat de criança
-          if (data.customerPrintifyImageId && data.dynamicPhrasePrintifyImageId) {
-            onPreviewReady({
-              previewUrls: data.previewUrls,
-              customerPrintifyImageId: data.customerPrintifyImageId,
-              dynamicPhrasePrintifyImageId: data.dynamicPhrasePrintifyImageId,
-              printifyProductId: data.printifyProductId,
-            });
-          }
-        } else {
-          // Para outros produtos - aceitar mesmo sem printifyImageId
-            onPreviewReady({
-              previewUrls: data.previewUrls,
-            printifyImageId: data.printifyImageId || '', // Pode ser null/undefined para alguns produtos
-              printifyProductId: data.printifyProductId,
-            });
-        }
-        if (onMockupGenerated) {
-          onMockupGenerated();
-        }
-      }
-    } catch (err) {
-      console.error('Error generating mockup:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
-    } finally {
-      setIsLoadingMockups(false);
-      setIsGenerating(false); // ✅ Reset guard local
-    }
-  }, [
-    userImageUrl, 
-    userId, 
-    selectedProduct.id, // ✅ Só o ID em vez do objeto completo
-    imageAdjustments, 
-    selectedPrintifyVariantId, 
-    onPreviewReady,
-    allImageAdjustments,
-    selectedPhraseText,
-    selectedImageId,
-    onMockupGenerated
-    // ✅ REMOVIDO: isLoadingMockups, mockupGenerationKey para evitar re-creations
-  ]);
-
-  // ✅ AUTO-GENERATE FINAL - Totalmente protegido contra loops
-  useEffect(() => {
-    // ✅ Verificar se já processamos esta chave para evitar loops
-    if (!mockupGenerationKey || lastProcessedKeyRef.current === mockupGenerationKey) {
-      return;
-    }
-
-    let shouldGenerate = false;
-
-    if (selectedProduct.id === 'custom_youth_hoodie') {
-      // Para sweat de criança, precisamos de imagem, variante e frase
-      shouldGenerate = !!(userImageUrl && userId && selectedProduct && selectedPrintifyVariantId && selectedPhraseText);
-    } else if (selectedProduct.id === 'custom_phone_case' || selectedProduct.id === 'tote_bag') {
-      // Para capas de telemóvel e sacos, só gera se uma variante foi selecionada
-      shouldGenerate = !!(userImageUrl && userId && selectedProduct && selectedPrintifyVariantId);
-    } else {
-      // Para outros produtos
-      shouldGenerate = !!(userImageUrl && userId && selectedProduct);
-    }
-
-    // ✅ USAR HASGENERATED EXTERNO OU FALLBACK PARA O COMPORTAMENTO ANTERIOR
-    const isGenerated = hasGenerated !== undefined ? hasGenerated : false;
-    
-    // ✅ FIX FINAL: Todas as verificações numa só condição
-    if (!isGenerated && shouldGenerate && !isLoadingMockups && !isGenerating) {
-      console.log('🎯 [ProductCanvas] Auto-generating mockup with key:', mockupGenerationKey, {
-        userImageUrl: !!userImageUrl,
-        userId: !!userId,
-        selectedProduct: !!selectedProduct,
-        selectedPrintifyVariantId,
-        hasGenerated,
-        shouldGenerate,
-        isGenerated
-      });
-      
-      // ✅ Marcar chave como processada ANTES de chamar a função
-      lastProcessedKeyRef.current = mockupGenerationKey;
-      setIsGenerating(true);
-      
-      handleGenerateMockup();
-    }
-  }, [userImageUrl, userId, selectedProduct.id, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, mockupGenerationKey]);
 
   // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
   const handlePreviousPreview = useCallback(() => {
@@ -777,11 +588,10 @@ export default function ProductCanvas({
           Erro ao criar produto
         </h3>
         <p className="text-red-600 text-sm mb-4 leading-relaxed">
-          {error}
+          Ocorreu um erro ao gerar o mockup. Tente novamente.
         </p>
         <Button
-          onClick={handleGenerateMockup}
-          disabled={isLoadingMockups}
+          onClick={() => window.location.reload()}
           className="bg-red-600 hover:bg-red-700 text-white"
         >
           <RotateCw className="w-4 h-4 mr-2" />
@@ -792,30 +602,18 @@ export default function ProductCanvas({
   );
 
   // Renderização principal
-  if (error) {
-    return renderErrorState();
-  }
 
   if (!userImageUrl) {
     return renderEmptyState();
   }
 
-  if (isLoadingMockups) {
-    return (
-      <div className="relative w-full h-full bg-transparent flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-ghibli-moss mx-auto mb-4" />
-          <p className="text-ghibli-earth/70 text-sm">A criar produto...</p>
-        </div>
-      </div>
-    );
-  }
+  // No more auto-generation - this is now just a display component
 
   if (printifyGeneratedPreviewUrls.length > 0) {
     return (
       <div className="relative w-full h-full">
         {renderGeneratedPreviews()}
-        {/* ✅ OVERLAY DE MUDANÇA DE POSIÇÃO sobre o mockup existente */}
+        {/* ✅ OVERLAY CONTROLADO PELO PARENT COMPONENT */}
         {isGeneratingMockup && (
           <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl">
             <div className="text-center">
