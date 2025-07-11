@@ -137,7 +137,24 @@ async function updateJobStatus(
     }
 
     if (errorMessage) updateData.error_message = errorMessage.substring(0, 500); // Limita tamanho da mensagem
-    if (metadata) updateData.output_metadata = metadata;
+    
+    // MERGE metadata instead of overwriting to preserve qualityUsed and other fields
+    if (metadata) {
+        // Get existing metadata from database first
+        try {
+            const { data: existingData } = await supabaseAdmin
+                .from('transformations')
+                .select('output_metadata')
+                .eq('id', jobId)
+                .single();
+            
+            const existingMetadata = existingData?.output_metadata || {};
+            updateData.output_metadata = { ...existingMetadata, ...metadata };
+        } catch (mergeError) {
+            // If we can't get existing metadata, just use the new metadata
+            updateData.output_metadata = metadata;
+        }
+    }
 
     // Normaliza 'failed_*' para 'error' para o status final, mas guarda o original em metadata
     let finalStatusToSet = status;
