@@ -151,7 +151,9 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
             {/* Price - Centralized and prominent */}
             <div className="flex items-center justify-center">
               <div className="text-xl lg:text-2xl font-bold text-ghibli-moss">
-                €{product.price.toFixed(2)}
+                {(product.id === 'poster_vertical' || product.id === 'custom_canvas' || product.id === 'heart_mug') 
+                  ? `a partir de €${product.price.toFixed(2)}` 
+                  : `€${product.price.toFixed(2)}`}
               </div>
             </div>
           </div>

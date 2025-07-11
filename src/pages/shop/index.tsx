@@ -366,7 +366,9 @@ const ShopPage: React.FC = () => {
                       {/* Preço centrado e destacado */}
                       <div className="flex items-center justify-center">
                         <span className="text-2xl font-bold bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent">
-                          €{product.price.toFixed(2)}
+                          {(product.id === 'poster_vertical' || product.id === 'poster_horizontal' || product.id === 'custom_canvas' || product.id === 'heart_mug') 
+                            ? `a partir de €${product.price.toFixed(2)}` 
+                            : `€${product.price.toFixed(2)}`}
                         </span>
                       </div>
                     </div>

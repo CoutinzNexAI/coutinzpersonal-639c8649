@@ -103,15 +103,34 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   // Setup inicial do produto
   useEffect(() => {
     if (product?.variants?.length) {
-      // Para poster vertical, usar o tamanho 11" x 14" (27,94 x 35,56 cm) como padrão no menu
+      // Para poster vertical, usar o tamanho 18" x 24" (45,7 x 61,0 cm) como padrão
       if (product.id === 'poster_vertical_semi_glossy') {
-        const targetVariant = product.variants.find(v => v.id === 92406); // 11" x 14" (27,94 x 35,56 cm)
+        const targetVariant = product.variants.find(v => v.id === 92401); // 18" x 24" (45,7 x 61,0 cm)
         if (targetVariant) {
           setSelectedPrintifyVariantId(targetVariant.id);
         } else {
           setSelectedPrintifyVariantId(product.variants[0].id); // Fallback para primeira
         }
-      } else {
+      }
+      // Para poster horizontal, usar o tamanho 24" x 18" (60,96 x 45,72 cm) como padrão
+      else if (product.id === 'poster_horizontal_semi_glossy') {
+        const targetVariant = product.variants.find(v => v.id === 92381); // 24" x 18" (60,96 x 45,72 cm)
+        if (targetVariant) {
+          setSelectedPrintifyVariantId(targetVariant.id);
+        } else {
+          setSelectedPrintifyVariantId(product.variants[0].id); // Fallback para primeira
+        }
+      }
+      // Para canvas, usar o tamanho 14" x 14" (36cm x 36cm) como padrão
+      else if (product.id === 'custom_canvas') {
+        const targetVariant = product.variants.find(v => v.id === 91658); // 14" x 14" (36cm x 36cm)
+        if (targetVariant) {
+          setSelectedPrintifyVariantId(targetVariant.id);
+        } else {
+          setSelectedPrintifyVariantId(product.variants[0].id); // Fallback para primeira
+        }
+      }
+      else {
         const firstVariant = product.variants[0];
         setSelectedPrintifyVariantId(firstVariant.id);
       }
