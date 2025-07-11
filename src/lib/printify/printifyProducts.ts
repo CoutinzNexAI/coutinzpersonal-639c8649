@@ -573,6 +573,12 @@ export const getAvailablePrintifyProductIds = (): string[] => {
 // Cache do catálogo Printify por 1 hora (3600 segundos)
 export const getCachedPrintifyVariants = unstable_cache(
   async (blueprintId: string, printProviderId: string) => {
+    // Verificar se está em build time
+    if (typeof window === 'undefined' && !process.env.PRINTIFY_API_TOKEN) {
+      console.warn('Cache de variantes Printify não disponível durante build');
+      return { variants: [] };
+    }
+    
     const response = await printifyFetch(
       `/catalog/blueprints/${blueprintId}/print_providers/${printProviderId}/variants.json?show-out-of-stock=1`
     );
@@ -588,6 +594,12 @@ export const getCachedPrintifyVariants = unstable_cache(
 // Cache das shops Printify por 24 horas
 export const getCachedPrintifyShops = unstable_cache(
   async () => {
+    // Verificar se está em build time
+    if (typeof window === 'undefined' && !process.env.PRINTIFY_API_TOKEN) {
+      console.warn('Cache de shops Printify não disponível durante build');
+      return { shops: [] };
+    }
+    
     const response = await printifyFetch('shops.json');
     return response;
   },

@@ -1,8 +1,11 @@
-const PRINTIFY_API_TOKEN = process.env.PRINTIFY_API_TOKEN;
 const PRINTIFY_BASE_URL = 'https://api.printify.com/v1/';
 
-if (!PRINTIFY_API_TOKEN) {
-  throw new Error('PRINTIFY_API_TOKEN is not defined in environment variables. Please set this in Vercel or your .env.local file.');
+function getPrintifyToken() {
+  const token = process.env.PRINTIFY_API_TOKEN;
+  if (!token) {
+    throw new Error('PRINTIFY_API_TOKEN is not defined in environment variables. Please set this in Vercel or your .env.local file.');
+  }
+  return token;
 }
 
 export async function printifyFetch(endpoint: string, options: RequestInit = {}, retryCount = 0) {
@@ -10,7 +13,7 @@ export async function printifyFetch(endpoint: string, options: RequestInit = {},
   const url = endpoint.startsWith('http') ? endpoint : PRINTIFY_BASE_URL + endpoint.replace(/^\//, '');
 
   const headersToSend: Record<string, string> = {
-    'Authorization': `Bearer ${PRINTIFY_API_TOKEN}`,
+    'Authorization': `Bearer ${getPrintifyToken()}`,
     'Content-Type': 'application/json',
     'User-Agent': 'PicTuz-App',
     // Adicionar headers para prevenir cache
