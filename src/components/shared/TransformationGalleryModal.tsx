@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Search, Loader2, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Loader2, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase/client';
@@ -31,7 +31,7 @@ export default function TransformationGalleryModal({
   const { userInfo, session } = useAuth();
   const [transformations, setTransformations] = useState<Transformation[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
@@ -64,7 +64,7 @@ export default function TransformationGalleryModal({
         .eq('community_status', 'private')
         .not('output_url', 'is', null)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(1000); // ✅ Aumentado para mostrar todas as transformações
 
       if (error) {
         console.error('❌ Supabase error:', error);
@@ -98,7 +98,7 @@ export default function TransformationGalleryModal({
     if (!session?.access_token) return;
 
     try {
-      const response = await fetch('/api/community/get-my-private-transformations?page=1&limit=50', {
+      const response = await fetch('/api/community/get-my-private-transformations?page=1&limit=1000', {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
         },
@@ -143,21 +143,11 @@ export default function TransformationGalleryModal({
     }
   }, [isOpen, userInfo?.id]);
 
-  // Filter transformations based on search term
-  const filteredTransformations = transformations.filter(transformation =>
-    transformation.style_requested.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   // Calculate pagination
-  const totalPages = Math.ceil(filteredTransformations.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(transformations.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentTransformations = filteredTransformations.slice(startIndex, endIndex);
-
-  // Reset to page 1 when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+  const currentTransformations = transformations.slice(startIndex, endIndex);
 
   const handleSelectImage = (transformation: Transformation) => {
     console.log('✅ Image selected:', transformation.id);
@@ -168,7 +158,6 @@ export default function TransformationGalleryModal({
 
   const handleClose = () => {
     setSelectedImageId(null);
-    setSearchTerm('');
     setCurrentPage(1);
     onClose();
   };
@@ -190,16 +179,7 @@ export default function TransformationGalleryModal({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Search bar */}
-        <div className="relative mb-4 shrink-0">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ghibli-earth/60 w-4 h-4" />
-          <Input
-            placeholder="Pesquisar por estilo..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 border-ghibli-stone/30 focus:border-ghibli-moss"
-          />
-        </div>
+
 
         {/* Content with scroll */}
         <div className="flex-1 overflow-y-auto min-h-0">
@@ -208,29 +188,24 @@ export default function TransformationGalleryModal({
               <Loader2 className="w-8 h-8 text-ghibli-moss animate-spin mb-4" />
               <p className="text-ghibli-earth/70">A carregar as suas transformações...</p>
             </div>
-          ) : filteredTransformations.length === 0 ? (
+          ) : transformations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <ImageIcon className="w-12 h-12 text-ghibli-earth/40 mb-4" />
               <h3 className="text-lg font-medium text-ghibli-earth mb-2">
-                {searchTerm ? 'Nenhuma transformação encontrada' : 'Ainda não tem transformações'}
+                Ainda não tem transformações
               </h3>
               <p className="text-ghibli-earth/70 text-center max-w-md">
-                {searchTerm 
-                  ? 'Tente pesquisar por outro termo ou limpe o filtro.'
-                  : 'Crie a sua primeira transformação AI para personalizar produtos.'
-                }
+                Crie a sua primeira transformação AI para personalizar produtos.
               </p>
-              {!searchTerm && (
-                <Button
-                  onClick={() => {
-                    handleClose();
-                    window.location.href = '/transformacoes';
-                  }}
-                  className="mt-4 bg-ghibli-moss hover:bg-ghibli-moss/90 text-white"
-                >
-                  Ir para Transformações
-                </Button>
-              )}
+              <Button
+                onClick={() => {
+                  handleClose();
+                  window.location.href = '/transformacoes';
+                }}
+                className="mt-4 bg-ghibli-moss hover:bg-ghibli-moss/90 text-white"
+              >
+                Ir para Transformações
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-1">
