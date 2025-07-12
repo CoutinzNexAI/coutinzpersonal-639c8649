@@ -93,26 +93,6 @@ export const useProductCoordinates = () => {
       rotation: 0
     };
 
-    console.log('🎯 [COORDINATES] Coordenadas calculadas:', {
-      position,
-      positionType,
-      variantId,
-      placeholderDimensions: { placeholderWidth, placeholderHeight },
-      userImageDimensions: { userImageWidth, userImageHeight },
-      scaleToCover,
-      scaledImageWidth,
-      scaledImageHeight,
-      overflowX,
-      overflowY,
-      maxOffsetX,
-      maxOffsetY,
-      shiftAmount,
-      finalX,
-      finalY,
-      printifyScale,
-      finalAdjustments
-    });
-
     return finalAdjustments;
   };
 

@@ -31,12 +31,12 @@ Esta pasta contém componentes reutilizáveis criados para simplificar o desenvo
 ### Modais e Overlays
 - **`TransformationGalleryModal`** - Modal para seleção de artes (já existia)
 
-## 🔧 Hooks Genéricos Disponíveis
-
-### Lógica de Negócio
-- **`useProductPricing`** - Hook para cálculo de preços e descontos automáticos
-- **`useProductValidation`** - Hook para validação de compra com mensagens de erro
-- **`useProductCoordinates`** - Hook para cálculo de coordenadas Printify (posicionamento)
+### Seletores de Variantes Específicos
+- **`product-customization/PhoneCaseVariantSelector`** - Seletor específico para capas de telemóvel
+- **`product-customization/FramedCanvasVariantSelector`** - Seletor específico para canvas com moldura  
+- **`product-customization/PosterVariantSelector`** - Seletor específico para posters
+- **`product-customization/NotebookVariantSelector`** - Seletor específico para cadernos
+- **`product-customization/ToteBagVariantSelector`** - Seletor específico para sacos
 
 ## 🚀 Como Usar
 
@@ -48,11 +48,12 @@ import { ProductPositionControls } from '@/components/shared/ProductPositionCont
 import { ProductQuantityPricing } from '@/components/shared/ProductQuantityPricing';
 import { ProductAddToCartButton } from '@/components/shared/ProductAddToCartButton';
 import { ProductLoadingState } from '@/components/shared/ProductLoadingState';
-import { 
-  useProductPricing, 
-  useProductValidation, 
-  useProductCoordinates 
-} from '@/hooks';
+import { ProductArtStatus } from '@/components/shared/ProductArtStatus';
+import { ProductDescription } from '@/components/shared/ProductDescription';
+import { ProductGuarantees } from '@/components/shared/ProductGuarantees';
+import { ProductVariantSelector } from '@/components/shared/ProductVariantSelector';
+import { ProductMobileInfo } from '@/components/shared/ProductMobileInfo';
+import { TransformationGalleryModal } from '@/components/shared/TransformationGalleryModal';
 // ... outros imports
 
 const MyProductPage = ({ product }) => {
@@ -63,60 +64,56 @@ const MyProductPage = ({ product }) => {
   const [selectedPrintifyVariantId, setSelectedPrintifyVariantId] = useState(null);
   const [imagePosition, setImagePosition] = useState('center');
   const [userImageDimensions, setUserImageDimensions] = useState(null);
+  const [isProcessingMockup, setIsProcessingMockup] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   // ... outros estados
   
-  // 🔥 NOVOS HOOKS GENÉRICOS
-  const { 
-    discount, 
-    discountedPrice, 
-    totalPrice, 
-    savings 
-  } = useProductPricing({
-    basePrice: getBasePrice(),
-    quantity,
-    discountTiers: [
-      { min: 2, discount: 10, label: 'canecas', emoji: '💡' },
-      { min: 3, discount: 15, label: 'canecas', emoji: '🔥' }
-    ]
-  });
+  // Lógica de preços (implementar conforme necessário)
+  const basePrice = 15.99; // Preço base do produto
+  const discountTiers = [
+    { min: 2, discount: 10, label: 'produtos', emoji: '💡' },
+    { min: 3, discount: 15, label: 'produtos', emoji: '🔥' }
+  ];
   
-  const { validateAndShowError } = useProductValidation();
-  
-  const { calculatePrintifyCoords } = useProductCoordinates();
-  
-  // Handlers simplificados
+  // Handlers
   const handleAddToCart = async () => {
-    const isValid = validateAndShowError({
-      selectedImageUrl,
-      selectedImageId,
-      userInfo,
-      selectedPrintifyVariantId,
-      printifyProductId,
-      printifyImageId,
-      productName: 'caneca'
-    });
-    
-    if (!isValid) return;
-    
-    // Calcular coordenadas se necessário
-    let finalCoordinates;
-    if (userImageDimensions && selectedPrintifyVariantId) {
-      finalCoordinates = calculatePrintifyCoords({
-        position: imagePosition,
-        variantId: selectedPrintifyVariantId,
-        imageDimensions: userImageDimensions,
-        product,
-        positionType: 'vertical' // ou 'horizontal' para capas
-      });
+    // Validar se pode comprar
+    if (!selectedImageUrl || !selectedImageId || !userInfo || !selectedPrintifyVariantId) {
+      toast.error('Por favor, complete todos os campos obrigatórios');
+      return;
     }
     
-    // Adicionar ao carrinho...
+    // Lógica de adicionar ao carrinho...
+    console.log('Adicionando ao carrinho:', {
+      quantity,
+      selectedImageUrl,
+      selectedImageId,
+      selectedPrintifyVariantId
+    });
+  };
+
+  const handleOpenGallery = () => {
+    setIsGalleryOpen(true);
+  };
+
+  const handleSelectImage = (imageUrl: string, imageId: string) => {
+    setSelectedImageUrl(imageUrl);
+    setSelectedImageId(imageId);
+    setIsGalleryOpen(false);
   };
 
   // Loading state
   if (!product) {
     return <ProductLoadingState message="A carregar produto..." />;
   }
+  
+  // Validação de compra
+  const canPurchase = Boolean(
+    selectedImageUrl && 
+    selectedImageId && 
+    userInfo && 
+    selectedPrintifyVariantId
+  );
   
   return (
     <>
@@ -126,7 +123,14 @@ const MyProductPage = ({ product }) => {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Canvas do produto */}
-          <ProductCanvas {...canvasProps} />
+          <ProductCanvas 
+            selectedProduct={product}
+            userImageUrl={selectedImageUrl}
+            userId={userInfo?.id}
+            selectedPrintifyVariantId={selectedPrintifyVariantId}
+            onPreviewReady={handlePreviewReady}
+            // ... outras props
+          />
           
           {/* Painel de controlo */}
           <div className="space-y-6">
@@ -135,7 +139,7 @@ const MyProductPage = ({ product }) => {
               userImageDimensions={userImageDimensions}
               product={product}
               imagePosition={imagePosition}
-              isGeneratingMockup={isGeneratingMockup}
+              isGeneratingMockup={isProcessingMockup}
               onOpenGallery={handleOpenGallery}
               onAdjustPosition={handleAdjustPosition}
               positionType="vertical" // ou "horizontal" para capas
@@ -146,24 +150,43 @@ const MyProductPage = ({ product }) => {
               onOpenGallery={handleOpenGallery}
             />
             
-            <ProductDescription items={customDescriptionItems} />
+            <ProductDescription 
+              items={[
+                "Impressão HD de alta qualidade",
+                "Cerâmica premium resistente",
+                "Cores vibrantes e duradouras"
+              ]} 
+            />
             
             <ProductVariantSelector
               product={product}
-              selectedVariantId={selectedVariantId}
-              onVariantChange={handleVariantChange}
+              selectedVariantId={selectedPrintifyVariantId}
+              onVariantChange={setSelectedPrintifyVariantId}
               label="Tamanho da Caneca"
               emoji="☕"
+            />
+            
+            <ProductQuantityPricing
+              basePrice={basePrice}
+              quantity={quantity}
+              onQuantityChange={setQuantity}
+              discountTiers={discountTiers}
+              canPurchase={canPurchase}
+              onAddToCart={handleAddToCart}
+              loading={isProcessingMockup}
+              userInfo={userInfo}
+              selectedImageUrl={selectedImageUrl}
             />
             
             <ProductAddToCartButton
               canPurchase={canPurchase}
               isProcessingMockup={isProcessingMockup}
-              loading={loading}
+              loading={isProcessingMockup}
               userInfo={userInfo}
               selectedImageUrl={selectedImageUrl}
               selectedPrintifyVariantId={selectedPrintifyVariantId}
               onAddToCart={handleAddToCart}
+              onOpenGallery={handleOpenGallery}
               size="desktop"
             />
             
@@ -174,200 +197,134 @@ const MyProductPage = ({ product }) => {
       
       {/* Mobile */}
       <div className="block lg:hidden">
-        <ProductCanvas {...mobileCanvasProps} />
+        <ProductCanvas 
+          selectedProduct={product}
+          userImageUrl={selectedImageUrl}
+          userId={userInfo?.id}
+          selectedPrintifyVariantId={selectedPrintifyVariantId}
+          onPreviewReady={handlePreviewReady}
+          // ... outras props mobile
+        />
         
         <ProductMobileControls
           selectedImageUrl={selectedImageUrl}
           userImageDimensions={userImageDimensions}
           product={product}
           imagePosition={imagePosition}
-          isGeneratingMockup={isGeneratingMockup}
+          isGeneratingMockup={isProcessingMockup}
           userInfo={userInfo}
           onOpenGallery={handleOpenGallery}
           onAdjustPosition={handleAdjustPosition}
           positionType="vertical"
         />
         
+        <ProductMobileInfo
+          selectedImageUrl={selectedImageUrl}
+          product={product}
+          selectedVariantId={selectedPrintifyVariantId}
+          onVariantChange={setSelectedPrintifyVariantId}
+          onOpenGallery={handleOpenGallery}
+        />
+        
         <ProductQuantityPricing
           basePrice={basePrice}
           quantity={quantity}
           onQuantityChange={setQuantity}
-        />
-        
-        <ProductMobileInfo
+          discountTiers={discountTiers}
+          canPurchase={canPurchase}
+          onAddToCart={handleAddToCart}
+          loading={isProcessingMockup}
+          userInfo={userInfo}
           selectedImageUrl={selectedImageUrl}
-          product={product}
-          selectedVariantId={selectedVariantId}
-          onOpenGallery={handleOpenGallery}
-          onVariantChange={handleVariantChange}
-          variantLabel="Tamanho do Produto"
-          variantEmoji="📏"
         />
         
         <ProductAddToCartButton
-          {...buttonProps}
+          canPurchase={canPurchase}
+          isProcessingMockup={isProcessingMockup}
+          loading={isProcessingMockup}
+          userInfo={userInfo}
+          selectedImageUrl={selectedImageUrl}
+          selectedPrintifyVariantId={selectedPrintifyVariantId}
+          onAddToCart={handleAddToCart}
+          onOpenGallery={handleOpenGallery}
           size="mobile"
         />
       </div>
+      
+      {/* Modal de Galeria */}
+      <TransformationGalleryModal
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        onSelectImage={handleSelectImage}
+      />
     </>
   );
 };
 ```
 
-## 🔧 Como Usar os Hooks Genéricos
+## 🔧 Props Principais dos Componentes
 
-### useProductPricing
+### ProductAddToCartButton
 ```tsx
-const { discount, discountedPrice, totalPrice, savings } = useProductPricing({
-  basePrice: 25.00,
-  quantity: 3,
-  discountTiers: [
-    { min: 2, discount: 10, label: 'posters', emoji: '🖼️' },
-    { min: 3, discount: 15, label: 'posters', emoji: '🔥' }
-  ]
-});
-// Resultado: discount=15, discountedPrice=21.25, totalPrice=63.75, savings=11.25
-```
-
-### useProductValidation
-```tsx
-const { validateAndShowError, validatePurchase } = useProductValidation();
-
-// Método 1: Com toast automático
-const isValid = validateAndShowError({
-  selectedImageUrl,
-  selectedImageId,
-  userInfo,
-  selectedPrintifyVariantId,
-  printifyProductId,
-  printifyImageId,
-  productName: 'poster',
-  customValidationMessage: 'Escolha uma arte para o poster!' // opcional
-});
-
-// Método 2: Só validação (sem toast)
-const errorMessage = validatePurchase({ /* mesmo objeto */ });
-if (errorMessage) {
-  // Handle error manually
+interface ProductAddToCartButtonProps {
+  canPurchase: boolean;
+  isProcessingMockup: boolean;
+  loading: boolean;
+  userInfo: { id: string } | null;
+  selectedImageUrl: string;
+  selectedPrintifyVariantId: number | null;
+  onAddToCart: () => void;
+  onOpenGallery?: () => void;
+  className?: string;
+  size?: 'mobile' | 'desktop';
 }
 ```
-
-### useProductCoordinates
-```tsx
-const { calculatePrintifyCoords } = useProductCoordinates();
-
-const coordinates = calculatePrintifyCoords({
-  position: 'top', // 'top'|'center'|'bottom'|'left'|'right'
-  variantId: 62327,
-  imageDimensions: { width: 1016, height: 1016 },
-  product: productObject,
-  positionType: 'vertical', // 'vertical' para canecas, 'horizontal' para capas
-  shiftAmount: 0.35 // opcional, default 0.35
-});
-// Retorna: { x: 0.5, y: 0.3, scale: 1.2, rotation: 0 }
-```
-
-### ProductLoadingState
-```tsx
-if (!product) {
-  return <ProductLoadingState message="A carregar canvas..." />;
-}
-```
-
-## ⚙️ Configurações Importantes
-
-### ProductPositionControls
-- `positionType="vertical"` para canecas (top/center/bottom)
-- `positionType="horizontal"` para capas de telemóvel (left/center/right)
 
 ### ProductQuantityPricing
-- Personalizar `discountTiers` para diferentes produtos:
 ```tsx
-discountTiers={[
-  { min: 2, discount: 10, label: 'canecas', emoji: '💡' },
-  { min: 3, discount: 15, label: 'canecas', emoji: '🔥' }
-]}
+interface ProductQuantityPricingProps {
+  basePrice: number;
+  quantity: number;
+  onQuantityChange: (quantity: number) => void;
+  discountTiers?: Array<{ min: number; discount: number; label: string; emoji: string }>;
+  canPurchase?: boolean;
+  onAddToCart?: () => void;
+  loading?: boolean;
+  userInfo?: { id: string; email: string } | null;
+  selectedImageUrl?: string;
+}
 ```
 
-### ProductDescription
-- Personalizar itens para cada produto:
+### TransformationGalleryModal
 ```tsx
-items={[
-  { text: 'Canvas de <span class="font-bold">alta qualidade</span>', color: 'moss' },
-  { text: 'Impressão profissional resistente', color: 'moss' },
-  { text: 'Perfeito para decoração', color: 'wood', emoji: '🎨' }
-]}
+interface TransformationGalleryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelectImage: (imageUrl: string, imageId: string) => void;
+}
 ```
 
-## 🎯 Benefícios
+## 📝 Notas Importantes
 
-### Componentes
-1. **Código mais limpo** - Componentes pequenos e focados
-2. **Reutilização fácil** - Copy-paste para novos produtos
-3. **Manutenção simples** - Mudanças em um lugar afetam todos os produtos
-4. **Performance melhor** - Componentes otimizados
-5. **Desenvolvimento rápido** - Menos código repetitivo
+1. **Estados Necessários**: Cada página de produto precisa gerir quantidade, imagem selecionada, variante selecionada e estados de carregamento.
 
-### Hooks Genéricos
-1. **Eliminação de duplicação** - Lógica de preços/validação/coordenadas em um só lugar
-2. **Consistência automática** - Todos os produtos usam a mesma lógica
-3. **Fácil customização** - Props configuráveis para cada produto
-4. **Manutenção reduzida** - Bug fix em um hook = fix em todos os produtos
-5. **Testabilidade** - Hooks podem ser testados independentemente
+2. **Validação**: A validação de compra deve verificar se todos os campos obrigatórios estão preenchidos antes de permitir adicionar ao carrinho.
 
-## 📝 Próximos Passos
+3. **Responsividade**: Todos os componentes têm versões desktop e mobile otimizadas.
 
-### Imediatos
-1. **Aplicar hooks genéricos** - Substituir lógica duplicada nos outros produtos:
-   - ✅ `useProductPricing` - Eliminar `calculateDiscount` duplicado
-   - ✅ `useProductValidation` - Eliminar `validatePurchase` duplicado  
-   - ✅ `useProductCoordinates` - Eliminar `calculatePrintifyCoords` duplicado
-   - ✅ `ProductLoadingState` - Eliminar JSX de loading duplicado
+4. **Hooks Externos**: Os componentes dependem de hooks como `useAuth`, `useCart`, e `toast` que devem ser implementados na aplicação.
 
-2. **Refatorar produtos existentes**:
-   - 🔄 Canvas (`/shop/canvas/[productId].tsx`)
-   - 🔄 Posters (`/shop/poster/[productId].tsx`)
-   - 🔄 Capas (`/shop/tecnologia/[productId].tsx`)
-   - 🔄 Sacos (`/shop/bag/[productId].tsx`)
-   - 🔄 Escritório (`/shop/escritorio/[productId].tsx`)
+5. **Customização**: Cada produto pode ter suas próprias variações dos componentes através das props disponíveis.
 
-### Futuros
-3. **Criar mais hooks se necessário**:
-   - `useProductMockups` - Para geração de mockups
-   - `useProductCart` - Para lógica de carrinho
-   - `useProductVariants` - Para gestão de variantes
+## 🎯 Exemplo de Integração Rápida
 
-4. **Otimizações**:
-   - Lazy loading de componentes pesados
-   - Memoização de cálculos complexos
-   - Cache de validações
-
-## 🚀 Template Rápido para Novos Produtos
+Para produtos simples, pode usar apenas os componentes essenciais:
 
 ```tsx
-// 1. Import dos hooks e componentes
-import { 
-  useProductPricing, 
-  useProductValidation, 
-  useProductCoordinates 
-} from '@/hooks';
-import { ProductLoadingState } from '@/components/shared/ProductLoadingState';
-
-// 2. Estados padrão
-const [quantity, setQuantity] = useState(1);
-const [selectedImageUrl, setSelectedImageUrl] = useState('');
-// ... outros estados
-
-// 3. Hooks genéricos  
-const pricing = useProductPricing({ basePrice, quantity, discountTiers });
-const { validateAndShowError } = useProductValidation();
-const { calculatePrintifyCoords } = useProductCoordinates();
-
-// 4. Loading state
-if (!product) return <ProductLoadingState />;
-
-// 5. Usar componentes genéricos no JSX
-<ProductHeader product={product} />
-<ProductPositionControls {...controlProps} />
+// Versão minimalista
+<ProductCanvas {...canvasProps} />
 <ProductAddToCartButton {...buttonProps} />
-``` 
+<TransformationGalleryModal {...galleryProps} />
+```
+
+Para produtos complexos, use a suite completa de componentes para máxima funcionalidade e UX. 

@@ -292,7 +292,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         setIsCartOpen(true);
       }
     } catch (error) {
-      console.error('Erro ao adicionar ao carrinho:', error);
       toast.error('Erro ao adicionar ao carrinho. Tente novamente.');
     } finally {
       setLoading(false);
@@ -402,7 +401,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         }
       }
     } catch (error) {
-      console.error('Error generating new mockup:', error);
       toast.error('Erro ao gerar novo mockup. Tente novamente.');
       setIsGeneratingMockup(false);
     }

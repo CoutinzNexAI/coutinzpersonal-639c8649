@@ -49,7 +49,6 @@ export const useDailyTransformations = () => {
       });
 
       if (dbError) {
-        console.error('[useDailyTransformations] Erro ao verificar limite:', dbError);
         setError('Erro ao verificar limite diário');
         return null;
       }
@@ -59,7 +58,6 @@ export const useDailyTransformations = () => {
       return limitStatus;
 
     } catch (err) {
-      console.error('[useDailyTransformations] Erro na verificação:', err);
       setError('Erro interno ao verificar limite');
       return null;
     } finally {
@@ -87,7 +85,6 @@ export const useDailyTransformations = () => {
       });
 
       if (dbError) {
-        console.error('[useDailyTransformations] Erro ao usar transformação:', dbError);
         setError('Erro ao processar transformação');
         return null;
       }
@@ -107,7 +104,6 @@ export const useDailyTransformations = () => {
       return result;
 
     } catch (err) {
-      console.error('[useDailyTransformations] Erro ao usar transformação:', err);
       setError('Erro interno ao processar transformação');
       return null;
     } finally {

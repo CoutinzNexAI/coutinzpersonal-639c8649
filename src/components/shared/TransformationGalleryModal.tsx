@@ -39,7 +39,6 @@ export default function TransformationGalleryModal({
   // Fetch user transformations using direct Supabase query
   const fetchTransformations = async () => {
     if (!userInfo?.id) {
-      console.log('❌ No user ID available');
       return;
     }
 
@@ -67,24 +66,20 @@ export default function TransformationGalleryModal({
         .limit(1000); // ✅ Aumentado para mostrar todas as transformações
 
       if (error) {
-        console.error('❌ Supabase error:', error);
         toast.error('Erro ao carregar transformações', {
           description: error.message
         });
         return;
       }
 
-      console.log('✅ Transformations loaded:', data?.length || 0);
       setTransformations(data || []);
 
       // Fallback: try API if direct query fails or returns empty
       if (!data || data.length === 0) {
-        console.log('🔄 Trying API fallback...');
         await fetchTransformationsViaAPI();
       }
 
     } catch (error) {
-      console.error('❌ Error fetching transformations:', error);
       toast.error('Erro ao carregar transformações');
       // Try API fallback
       await fetchTransformationsViaAPI();
@@ -106,7 +101,6 @@ export default function TransformationGalleryModal({
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ API transformations loaded:', data.transformations?.length || 0);
         
         // Convert API format to our format
         const convertedTransformations = (data.transformations || []).map((t: {
@@ -126,18 +120,15 @@ export default function TransformationGalleryModal({
         }));
         
         setTransformations(convertedTransformations);
-      } else {
-        console.error('❌ API fetch failed:', response.status);
       }
     } catch (error) {
-      console.error('❌ API error:', error);
+      // Silent error handling - API fallback failed
     }
   };
 
   // Fetch transformations when modal opens
   useEffect(() => {
     if (isOpen && userInfo) {
-      console.log('🚀 Modal opened, fetching transformations...');
       setCurrentPage(1); // Reset to first page
       fetchTransformations();
     }
@@ -150,7 +141,6 @@ export default function TransformationGalleryModal({
   const currentTransformations = transformations.slice(startIndex, endIndex);
 
   const handleSelectImage = (transformation: Transformation) => {
-    console.log('✅ Image selected:', transformation.id);
     setSelectedImageId(transformation.id);
     onSelectImage(transformation.output_url, transformation.id);
     onClose();

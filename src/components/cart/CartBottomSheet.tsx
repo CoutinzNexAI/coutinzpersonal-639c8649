@@ -349,7 +349,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
             </div>
             
             {cartSummary && cartSummary.itemCount > 0 && (
-              <div className="flex-shrink-0 border-t border-ghibli-sand/30 bg-ghibli-cream/20">
+              <div className="flex-shrink-0 border-t border-ghibli-sand/30 bg-ghibli-cream/20 pb-[env(safe-area-inset-bottom)]">
                 <div className="px-4 py-3">
                   {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
                     <>

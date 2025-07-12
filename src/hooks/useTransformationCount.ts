@@ -22,13 +22,11 @@ export const useTransformationCount = () => {
         .eq('user_id', userInfo.id);
 
       if (error) {
-        console.error('[useTransformationCount] Error counting transformations:', error);
         setCount(0);
       } else {
         setCount(transformationCount || 0);
       }
     } catch (error) {
-      console.error('[useTransformationCount] Error:', error);
       setCount(0);
     } finally {
       setIsLoading(false);

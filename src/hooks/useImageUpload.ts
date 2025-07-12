@@ -61,13 +61,11 @@ const isValidFileSignature = (headerHex: string, browserMimeType: string): boole
   const actualImageType = detectImageTypeFromHeader(headerHex);
   
   if (!actualImageType) {
-    console.warn(`[isValidFileSignature] Nenhum tipo de imagem válido detectado. Header: ${headerHex.substring(0, 16)}`);
     return false;
   }
   
   // Verifica se o tipo detectado é permitido
   if (!ALLOWED_FILE_TYPES_MIME.includes(actualImageType)) {
-    console.warn(`[isValidFileSignature] Tipo detectado não permitido: ${actualImageType}`);
     return false;
   }
   
@@ -127,8 +125,6 @@ export function useImageUpload() {
     try {
       const headerHex = await getFileHeaderHex(file);
       if (!isValidFileSignature(headerHex, file.type)) {
-        console.warn(`Assinatura de ficheiro inválida para ${file.name} (MIME: ${file.type}, Header: ${headerHex})`);
-
         // 🔥 TRACKING: Invalid file signature
         trackEvent('file_validation_error', {
           error_type: 'invalid_file_signature',
@@ -140,8 +136,6 @@ export function useImageUpload() {
         return 'O conteúdo do ficheiro não parece ser uma imagem válida ou o formato está corrompido.';
       }
     } catch (error) {
-      console.error("Erro ao validar assinatura do ficheiro:", error);
-
       // 🔥 TRACKING: Signature validation exception
       trackEvent('file_validation_error', {
         error_type: 'signature_validation_exception',

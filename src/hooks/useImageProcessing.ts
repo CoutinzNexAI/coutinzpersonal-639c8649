@@ -141,7 +141,7 @@ export function useImageProcessing() {
         setCurrentRating(data.user_rating || 0);
       }
     } catch (error) {
-      console.error('[useImageProcessing] Error fetching rating:', error);
+      // Silent error handling for rating fetch
     }
   }, [userInfo?.id]);
 
@@ -160,7 +160,6 @@ export function useImageProcessing() {
         if (fetchError) throw fetchError;
         setAvailableStyles(data || []);
       } catch (err: unknown) {
-        console.error("❌ [useImageProcessing] Erro ao buscar estilos:", err);
         const errorMessageText = err instanceof Error ? err.message : 'Falha ao carregar estilos.';
         setStylesError(errorMessageText);
         toast.error("Erro ao Carregar Estilos", { description: errorMessageText });
@@ -214,7 +213,6 @@ export function useImageProcessing() {
         }
         }
     } catch (err) {
-      console.error("❌ [useImageProcessing] Erro ao carregar estado do localStorage:", err);
         localStorage.removeItem('studioState');
     }
   }, [availableStyles, stylesLoading]);
@@ -226,7 +224,7 @@ export function useImageProcessing() {
         const stateToSave = { selectedStyleId: selectedStyle?.id || null };
         localStorage.setItem('studioState', JSON.stringify(stateToSave));
     } catch (err) {
-      console.error("❌ [useImageProcessing] Erro ao salvar estado no localStorage:", err);
+      // Silent error handling for localStorage save
     }
   }, [selectedStyle]);
 
@@ -239,7 +237,7 @@ export function useImageProcessing() {
       // A transformação falhada não foi "cobrada", era grátis
       await refetchDaily(); // Apenas atualizar status
     } catch (error) {
-      console.error(`[useImageProcessing] Error processing failure for job ${jobId}:`, error);
+      // Silent error handling for failure processing
     }
   }, [refetchDaily, userInfo?.id]);
 
@@ -260,7 +258,6 @@ export function useImageProcessing() {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ message: `Erro HTTP ${response.status} ao buscar status. Sem corpo JSON.` }));
-          console.error(`[useImageProcessing - Polling] Error data from API for ${currentJobId}:`, errorData);
           throw new Error(errorData.message || `Erro HTTP ${response.status}`);
         }
 
@@ -335,13 +332,13 @@ export function useImageProcessing() {
             pollingIntervalRef.current = setTimeout(checkStatus, nextInterval);
           }
         } else if (data.status) { 
-          console.warn(`[useImageProcessing - Polling] Status inesperado da API: ${data.status || 'vazio'}. JobId: ${currentJobId}`);
+          // Unexpected status from API - silent handling
         } else {
-          console.warn(`[useImageProcessing - Polling] API returned no status for JobId: ${currentJobId}. Response:`, data);
+          // API returned no status - silent handling
         }
       } catch (apiError) { 
         const errorMsg = apiError instanceof Error ? apiError.message : "Erro de rede ou formato de resposta inválido.";
-        console.error(`[useImageProcessing - Polling] ❌ API call error for ${currentJobId}:`, errorMsg);
+        // Silent error handling for API call errors
       }
 
       if (pollCountRef.current >= MAX_POLL_ATTEMPTS_CONST && 
@@ -355,7 +352,7 @@ export function useImageProcessing() {
           });
 
           if(finalLisError){
-            console.error(`[useImageProcessing - FinalCheck] Error listing files in ${finalStoragePath}:`, finalLisError.message);
+            // Silent error handling for final check
           } else if (files && files.length > 0) {
             const fileName = files[0].name;
             const { data: urlData } = supabase.storage.from('results').getPublicUrl(`${finalStoragePath}/${fileName}`);
@@ -376,7 +373,7 @@ export function useImageProcessing() {
             }
         }
         } catch (finalStorageError) {
-          console.error(`[useImageProcessing - FinalCheck] Final storage check failed:`, finalStorageError instanceof Error ? finalStorageError.message : String(finalStorageError));
+          // Silent error handling for final storage check
         }
         
         setErrorMessage(STANDARD_ERROR_MESSAGE);
@@ -506,15 +503,6 @@ export function useImageProcessing() {
 
 
   const handleStartTransformation = useCallback(async () => {
-    console.log('[useImageProcessing - handleStartTransformation] Attempting to start transformation. Current state:', { 
-      hasImage: !!uploadedImage, 
-      hasStyle: !!selectedStyle, 
-      styleName: selectedStyle?.name,
-      isAuthLoading, 
-      userId: userInfo?.id,
-      currentProcessingState: processingState 
-    });
-
     // 🔥 TRACKING: Transformation start attempt
     trackTransformationProcessStart({
       user_id: userInfo?.id || null,
@@ -545,7 +533,6 @@ export function useImageProcessing() {
       });
 
       // Aguarda silenciosamente que a autenticação termine
-      console.log('[useImageProcessing] Aguardando verificação de autenticação...');
       return;
     }
     if (!userInfo?.id) { 
@@ -560,8 +547,6 @@ export function useImageProcessing() {
     }
 
     if (!['idle', 'error', 'completed'].includes(processingState)) {
-        console.warn(`[useImageProcessing - handleStartTransformation] Transformation already in progress or in a non-startable state: ${processingState}. Aborting.`);
-
         // 🔥 TRACKING: Transformation already in progress
         trackFunnelAbandonment('transformation_start', 'already_in_progress', {
           error_type: 'already_in_progress',
@@ -701,7 +686,9 @@ export function useImageProcessing() {
 
         if (tempUploadedFilePath) { 
           supabase.storage.from('images').remove([tempUploadedFilePath])
-              .catch(delErr => console.error(`[Cleanup] Falha ao apagar imagem órfã ${tempUploadedFilePath}:`, delErr));
+              .catch(delErr => {
+                // Silent error handling for cleanup
+              });
         }
           throw new Error(jobError?.message || "Falha ao criar o registo da transformação na base de dados.");
       }
@@ -807,8 +794,7 @@ export function useImageProcessing() {
 
     } catch (error: unknown) {
       const errorMsg = error instanceof Error ? error.message : "Erro desconhecido";
-      console.error('[useImageProcessing - handleStartTransformation] ❌ Erro durante a transformação:', errorMsg);
-
+      
       // 🔥 TRACKING: Transformation error
       trackTransformationProcessComplete({
         user_id: userInfo?.id || null,
@@ -826,7 +812,6 @@ export function useImageProcessing() {
 
       // Process failure if job was created
       if (tempNewJobId && processingState !== 'checking_balance' && processingState !== 'idle') {
-        console.log(`[useImageProcessing] Start error detected, processing failure for job ${tempNewJobId}`);
         await handleFailure(tempNewJobId);
       }
 
@@ -854,7 +839,7 @@ export function useImageProcessing() {
             .update({ status: failureStatus, error_message: errorMsg.substring(0,500), completed_at: new Date().toISOString() }) 
             .eq('id', tempNewJobId);
         } catch (updateDbErr) {
-          console.error("[useImageProcessing - handleStartTransformation] Falha ao atualizar status do job para erro na DB:", updateDbErr); 
+          // Silent error handling for DB update failure
         }
       }
     } finally {
@@ -900,7 +885,6 @@ export function useImageProcessing() {
       });
 
       toast.error("Nenhuma imagem transformada para baixar.");
-      console.warn('[handleDownload] No transformed image available');
       return;
     }
 
@@ -953,8 +937,6 @@ export function useImageProcessing() {
       
       // Imagem baixada - a ação de download é feedback suficiente
     } catch (error) {
-      console.error('[handleDownload] Erro ao baixar imagem:', error);
-
       // 🔥 TRACKING: Download error
       trackTransformationProcessComplete({
         user_id: userInfo?.id || null,

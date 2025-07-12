@@ -112,16 +112,7 @@ export default function ProductCanvas({
   };
 
   // ✅ DEBUG: Log para verificar se o estilo está a ser calculado
-  if (imageAdjustments && selectedProduct.id.includes('poster_')) {
-    console.log('🎨 [ProductCanvas] Estilo da imagem calculado:', {
-      imageAdjustments,
-      xPercent,
-      yPercent,
-      scale,
-      rotation,
-      transformCSS: imageStyle.transform
-    });
-  }
+  // (Debug logs removed for production)
 
   // ✅ REMOVIDO: O reset agora é controlado pelo GenericProductPage através do estado partilhado
   // Este useEffect causava a "falha de 0.1s" onde a imagem desaparecia e regenerava
@@ -150,11 +141,8 @@ export default function ProductCanvas({
 
   const handleGenerateMockup = useCallback(async () => {
     if (!userImageUrl || !userId || isLoadingMockups) {
-      console.log('🚫 [ProductCanvas] Blocking duplicate call:', { userImageUrl: !!userImageUrl, userId: !!userId, isLoadingMockups });
       return;
     }
-
-    console.log('🚀 [ProductCanvas] Starting mockup generation:', mockupGenerationKey);
     setIsLoadingMockups(true);
     setError(null);
 
@@ -256,7 +244,6 @@ export default function ProductCanvas({
         }
       }
     } catch (err) {
-      console.error('Error generating mockup:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
       setIsLoadingMockups(false);
@@ -301,16 +288,6 @@ export default function ProductCanvas({
     
     // ✅ FIX FINAL: Todas as verificações numa só condição
     if (!isGenerated && shouldGenerate && !isLoadingMockups && !isGenerating) {
-      console.log('🎯 [ProductCanvas] Auto-generating mockup with key:', mockupGenerationKey, {
-        userImageUrl: !!userImageUrl,
-        userId: !!userId,
-        selectedProduct: !!selectedProduct,
-        selectedPrintifyVariantId,
-        hasGenerated,
-        shouldGenerate,
-        isGenerated
-      });
-      
       // ✅ Marcar chave como processada ANTES de chamar a função
       lastProcessedKeyRef.current = mockupGenerationKey;
       setIsGenerating(true);

@@ -76,7 +76,6 @@ export const useShippingCalculation = (): UseShippingCalculationResult => {
       }
 
     } catch (error) {
-      console.error('Failed to calculate shipping:', error);
       setShippingError(error instanceof Error ? error.message : 'Unknown error');
       setShippingCost(null);
     } finally {

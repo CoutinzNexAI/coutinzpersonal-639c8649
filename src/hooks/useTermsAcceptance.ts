@@ -26,7 +26,6 @@ export const useTermsAcceptance = () => {
         .eq('id', userInfo.id);
 
       if (error) {
-        console.error('Error updating terms :', error);
         toast.error('Erro ao guardar aceitação', {
           description: 'Tente novamente ou contacte o suporte.'
         });
@@ -47,8 +46,6 @@ export const useTermsAcceptance = () => {
       return true;
 
     } catch (error) {
-      console.error('Terms acceptance error:', error);
-      
       trackEvent('terms_acceptance_error', {
         user_id: userInfo.id,
         error_message: error instanceof Error ? error.message : 'Unknown error'
@@ -89,14 +86,12 @@ export const useTermsAcceptance = () => {
         .single();
 
       if (error) {
-        console.error('Error checking terms acceptance:', error);
         return false;
       }
 
       return data?.accepted_terms === true;
 
     } catch (error) {
-      console.error('Terms check error:', error);
       return false;
     }
   }, [userInfo]);

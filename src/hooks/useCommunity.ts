@@ -78,7 +78,6 @@ export const useCommunity = () => {
         throw new Error(data.error || 'Failed to fetch transformations');
       }
     } catch (error) {
-      console.error('Error fetching transformations:', error);
       toast.error('Erro ao carregar transformações');
     } finally {
       setLoadingTransformations(false);
@@ -122,7 +121,6 @@ export const useCommunity = () => {
         throw new Error(data.error || 'Failed to toggle like');
       }
     } catch (error) {
-      console.error('Error toggling like:', error);
       toast.error('Erro ao dar like');
     } finally {
       setTogglingLike(prev => ({ ...prev, [transformationId]: false }));
