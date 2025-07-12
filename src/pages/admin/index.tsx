@@ -238,62 +238,7 @@ const AdminDashboard = () => {
       setPostHogMetrics(metrics);
     } catch (error) {
       console.error('Erro ao carregar métricas PostHog:', error);
-      toast.error('Erro ao carregar analytics');
-      
-      // Fallback para dados mockados se a API falhar
-      const mockMetrics: PostHogMetrics = {
-        conversionFunnel: {
-          productViews: 2847,
-          cartAdditions: 423,
-          checkoutStarted: 287,
-          purchaseCompleted: 156,
-          conversionRate: 5.48,
-          abandonmentRate: 45.6
-        },
-        productPerformance: {
-          topViewedProducts: [
-            { product: 'Canvas Personalizado', views: 1243, conversions: 89, conversionRate: 7.16 },
-            { product: 'Poster Retrato', views: 892, conversions: 45, conversionRate: 5.04 },
-            { product: 'Caneca Coração', views: 712, conversions: 22, conversionRate: 3.09 }
-          ],
-          topSellingProducts: [
-            { product: 'Canvas Personalizado', sales: 89, revenue: 2670 },
-            { product: 'Poster Retrato', sales: 45, revenue: 1350 },
-            { product: 'Caneca Coração', sales: 22, revenue: 440 }
-          ]
-        },
-        userSegmentation: {
-          newUsers: 1892,
-          returningUsers: 955,
-          avgSessionTime: 4.2,
-          bounceRate: 32.4,
-          mostActiveHours: [
-            { hour: 20, activity: 156 },
-            { hour: 21, activity: 189 },
-            { hour: 22, activity: 145 }
-          ]
-        },
-        revenueInsights: {
-          totalRevenue: 12456.78,
-          avgOrderValue: 28.45,
-          ltv: 156.78,
-          revenueGrowth: 23.5,
-          topRevenueProducts: [
-            { product: 'Canvas Personalizado', revenue: 2670, orders: 89 },
-            { product: 'Poster Retrato', revenue: 1350, orders: 45 },
-            { product: 'Caneca Coração', revenue: 440, orders: 22 }
-          ]
-        },
-        realTimeMetrics: {
-          activeUsers: 47,
-          currentSessions: 62,
-          liveEvents: 234,
-          serverLoad: 78.5,
-          responseTime: 245
-        }
-      };
-
-      setPostHogMetrics(mockMetrics);
+      toast.error('Erro ao carregar analytics - ' + (error instanceof Error ? error.message : 'erro desconhecido'));
     } finally {
       setPostHogLoading(false);
     }
