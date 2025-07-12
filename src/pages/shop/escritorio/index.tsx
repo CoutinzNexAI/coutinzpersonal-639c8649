@@ -24,13 +24,6 @@ const EscritorioShopPage: React.FC = () => {
   
   const productIds = Object.keys(allProductsData);
 
-  console.log('🏢 [ESCRITORIO PAGE] Produtos encontrados:', {
-    escritorioProducts: Object.keys(escritorioProducts),
-    legacyNotebook: Object.keys(legacyNotebookProducts),
-    legacyMousepad: Object.keys(legacyMousepadProducts),
-    total: productIds.length
-  });
-
   return (
     <>
       <Head>

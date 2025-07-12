@@ -383,6 +383,12 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     // Generate mockup if conditions are met
     if (newVariantId !== null && selectedImageUrl && userImageDimensions) {
       setIsGeneratingMockup(true);
+      
+      // ✅ FIX: Timeout de segurança para resetar isGeneratingMockup
+      setTimeout(() => {
+        setIsGeneratingMockup(false);
+      }, 5000); // 5 segundos timeout
+      
       // The ProductCanvas component will handle the mockup generation
     }
   }, [imagePosition, selectedPrintifyVariantId, userImageDimensions, selectedImageUrl]);
