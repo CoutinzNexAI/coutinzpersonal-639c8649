@@ -245,15 +245,15 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   // ✅ CONTROLO ÚNICO DE MOCKUP GENERATION KEY
   useEffect(() => {
     if (selectedImageUrl && selectedPrintifyVariantId) {
-      const newKey = `${selectedImageId || 'no-id'}-${selectedPrintifyVariantId}-${Date.now()}`;
+      const newKey = `${selectedImageId || 'no-id'}-${selectedPrintifyVariantId}-${imagePosition}-${Date.now()}`;
       console.log('🔑 [GenericProductPage] New mockupGenerationKey:', { 
         oldKey: mockupGenerationKey, 
         newKey,
-        triggers: { selectedImageUrl: !!selectedImageUrl, selectedPrintifyVariantId }
+        triggers: { selectedImageUrl: !!selectedImageUrl, selectedPrintifyVariantId, imagePosition }
       });
       setMockupGenerationKey(newKey);
     }
-  }, [selectedImageUrl, selectedPrintifyVariantId, selectedImageId]);
+  }, [selectedImageUrl, selectedPrintifyVariantId, selectedImageId, imagePosition]);
 
   // ✅ RESET PREVIEW INDEX QUANDO URLS MUDAM
   useEffect(() => {
@@ -290,9 +290,18 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       const finalImageWidth = userImageWidth * scaleToCover;
       const printifyScale = finalImageWidth / placeholderWidth;
       
+      // ✅ APLICAR POSIÇÃO AOS AJUSTES
+      let xPosition = 0.5;
+      let yPosition = 0.5;
+      
+      if (imagePosition === 'left') xPosition = 0.35;
+      else if (imagePosition === 'right') xPosition = 0.65;
+      else if (imagePosition === 'top') yPosition = 0.35;
+      else if (imagePosition === 'bottom') yPosition = 0.65;
+      
       const newAdjustments = {
-        x: 0.5,
-        y: 0.5,
+        x: xPosition,
+        y: yPosition,
         scale: printifyScale,
         rotation: 0
       };
@@ -302,12 +311,13 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         placeholderHeight,
         scaleToCover,
         printifyScale,
+        imagePosition,
         newAdjustments
       });
       
       setImageAdjustments(newAdjustments);
     }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId]); // ✅ REMOVIDO imagePosition para evitar loops
+  }, [selectedImageUrl, product, selectedPrintifyVariantId, imagePosition]); // ✅ ADICIONADO imagePosition
 
   // Detectar dimensões da imagem
   useEffect(() => {
@@ -433,6 +443,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       newPosition = value as 'top' | 'center' | 'bottom' | 'left' | 'right';
       console.log('📍 [handleAdjustment] Position change:', { from: imagePosition, to: newPosition });
       setImagePosition(newPosition);
+      // ✅ RESET hasGenerated para permitir nova geração
+      console.log('🔄 [handleAdjustment] Resetting hasGenerated for position change');
+      setHasGenerated(false);
     } else if (type === 'size' && typeof value === 'number') {
       newVariantId = value;
       console.log('📏 [handleAdjustment] Size change:', { from: selectedPrintifyVariantId, to: newVariantId });
@@ -440,6 +453,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       // Reset position when variant changes
       setImagePosition('center');
       newPosition = 'center';
+      // ✅ RESET hasGenerated para permitir nova geração
+      console.log('🔄 [handleAdjustment] Resetting hasGenerated for size change');
+      setHasGenerated(false);
     }
 
     // Record the request
