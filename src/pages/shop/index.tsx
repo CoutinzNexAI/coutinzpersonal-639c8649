@@ -156,15 +156,7 @@ const individualProducts: IndividualProduct[] = [
     image: '/mockupproduto/mousepad.png',
     href: '/shop/escritorio/mouse_pad'
   },
-  // 10. Canvas com Moldura
-  {
-    id: 'framed_canvas',
-    name: 'Canvas com Moldura',
-    price: 40.00, // ✅ MANTIDO conforme pedido
-    image: '/mockupproduto/canvamoldura.png',
-    href: '/shop/canvas/framed_canvas',
-    badge: 'Premium'
-  }
+
 ];
 
 const ShopPage: React.FC = () => {

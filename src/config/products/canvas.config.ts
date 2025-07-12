@@ -80,7 +80,7 @@ export const canvasConfig = {
   },
 
   getVariantSelectorComponent: (product: PrintifyProductMapping) => {
-    return product.id === 'framed_canvas' ? 'FramedCanvasVariantSelector' : 'ProductVariantSelector';
+    return 'ProductVariantSelector';
   },
   
   VariantSelectorComponent: 'ProductVariantSelector' // fallback

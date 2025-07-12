@@ -188,7 +188,7 @@ export default function ProductCanvas({
         };
 
         // Para Canvas products - SEMPRE carregar a imagem primeiro
-        if ((selectedProduct.id === 'custom_canvas' || selectedProduct.id === 'framed_canvas')) {
+        if (selectedProduct.id === 'custom_canvas') {
           // Para Canvas, não passar printifyImageId - deixar a API carregar a imagem
           // O backend irá primeiro fazer upload da imagem para Printify e depois usar o ID
           requestBody.forceImageUpload = true; // Flag para forçar re-upload
@@ -447,7 +447,7 @@ export default function ProductCanvas({
     }
 
     // Para canvas, mostrar estado específico sem botão
-    if (selectedProduct.id === 'custom_canvas' || selectedProduct.id === 'framed_canvas') {
+    if (selectedProduct.id === 'custom_canvas') {
       return (
         <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
           {/* Placeholder image do canvas */}

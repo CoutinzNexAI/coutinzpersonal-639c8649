@@ -58,9 +58,7 @@ const CanvasShopPage: React.FC = () => {
               const product = canvasProducts[productId];
               
                   // Get correct mockup image
-                  const mockupImage = product.id === 'framed_canvas' 
-                    ? '/mockupproduto/canvamoldura.png'
-                    : '/mockupproduto/canva.png';
+                  const mockupImage = '/mockupproduto/canva.png';
               
               return (
                 <motion.div
@@ -105,12 +103,7 @@ const CanvasShopPage: React.FC = () => {
                                 <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
                                 <span>Impressão resistente e durável</span>
                               </div>
-                              {product.id === 'framed_canvas' && (
-                                <div className="flex items-center gap-2">
-                                  <div className="w-1.5 h-1.5 bg-amber-600 rounded-full"></div>
-                                  <span className="font-medium text-amber-700">Moldura premium + máxima qualidade 🖼️</span>
-                                </div>
-                              )}
+
                               {product.id === 'custom_canvas' && (
                                 <div className="flex items-center gap-2">
                                   <div className="w-1.5 h-1.5 bg-purple-600 rounded-full"></div>
@@ -179,9 +172,7 @@ const CanvasShopPage: React.FC = () => {
                 const product = canvasProducts[productId];
                 
                 // Get correct mockup image
-                const mockupImage = product.id === 'framed_canvas' 
-                  ? '/mockupproduto/canvamoldura.png'
-                  : '/mockupproduto/canva.png';
+                const mockupImage = '/mockupproduto/canva.png';
                 
                 return (
                   <motion.div
@@ -225,12 +216,7 @@ const CanvasShopPage: React.FC = () => {
                               <div className="w-1.5 h-1.5 bg-ghibli-moss rounded-full"></div>
                               <span>Impressão durável</span>
                             </div>
-                            {product.id === 'framed_canvas' && (
-                              <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-amber-600 rounded-full"></div>
-                                <span className="font-medium text-amber-700">🖼️ Premium + moldura</span>
-                              </div>
-                            )}
+
                             {product.id === 'custom_canvas' && (
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-purple-600 rounded-full"></div>

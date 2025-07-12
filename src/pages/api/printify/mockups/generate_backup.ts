@@ -538,7 +538,7 @@ export default async function handler(
         customerPrintifyImageId: customerPrintifyImageId,
         dynamicPhrasePrintifyImageId: dynamicPhrasePrintifyImageId
       });
-    } else if (productId === 'custom_canvas' || productId === 'framed_canvas' ||
+            } else if (productId === 'custom_canvas' ||
                productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy' ||
                productId === 'ceramic_mug' || productId === 'heart_mug' ||
                productId === 'custom_phone_case' ||
@@ -629,7 +629,7 @@ export default async function handler(
           price: 1000, // Preço dummy para mockup
           is_enabled: true
         }],
-        ...(productId === 'custom_canvas' || productId === 'framed_canvas' ? { print_details: { print_on_side: 'mirror' } } : {}),
+                  ...(productId === 'custom_canvas' ? { print_details: { print_on_side: 'mirror' } } : {}),
         print_areas: [{
           variant_ids: [targetVariantId],
           placeholders: [{
@@ -671,7 +671,7 @@ export default async function handler(
           if (getProductResponse.images && getProductResponse.images.length > 0) {
             const allPreviewUrls = getProductResponse.images.map(img => img.src) as string[];
             // LIMITAR A APENAS 3 MOCKUPS SOMENTE PARA CANVAS
-            if (productId === 'custom_canvas' || productId === 'framed_canvas') {
+            if (productId === 'custom_canvas') {
               finalPreviewUrls = allPreviewUrls.slice(0, 3);
               console.log(`✅ Canvas mockups ready! Found ${getProductResponse.images.length} preview(s), limiting to ${finalPreviewUrls.length} mockups (canvas only)`);
             } else {

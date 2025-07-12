@@ -126,76 +126,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     supportsManualAdjustment: false,
   },
 
-  // CANVAS COM MOLDURA (Printify Real)
-  'framed_canvas': {
-    id: 'framed_canvas',
-    name: 'Canvas com Moldura',
-    mockupInitialPath: '/mockupproduto/canvamoldura.png',
-    basePrice: 40.00,
-    category: 'canvas',
-    // ✅ CONFIGURAÇÃO DE DESIGN: Canvas com moldura também usa fill e borda espelhada
-    defaultDesign: {
-      scale: 1.05, // Um pouco de zoom para garantir que cobre tudo (efeito fill)
-      x: 0.5, // Centro
-      y: 0.5, // Centro
-      angle: 0, // Sem rotação
-      print_on_side: 'mirror' // A regra especial para canvas - borda espelhada
-    },
-    printifyBlueprintId: 944, // Framed Canvas
-    printifyPrintProviderId: 105, // Jondo
-    variants: [
-      // 6" x 6" - Tamanho base
-      { id: 111888, title: '6" x 6" / Black / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 0.00 },
-      { id: 111896, title: '6" x 6" / Espresso / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 5.00 },
-      { id: 111904, title: '6" x 6" / White / 1.25"', placeholderWidth: 1800, placeholderHeight: 1800, isGiftPackaging: false, priceAdjustment: 5.00 },
-      
-      // 10" x 10"
-      { id: 111890, title: '10" x 10" / Black / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 10.00 },
-      { id: 111898, title: '10" x 10" / Espresso / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 15.00 },
-      { id: 111906, title: '10" x 10" / White / 1.25"', placeholderWidth: 3000, placeholderHeight: 3000, isGiftPackaging: false, priceAdjustment: 15.00 },
-      
-      // 14" x 14"
-      { id: 111891, title: '14" x 14" / Black / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 20.00 },
-      { id: 111899, title: '14" x 14" / Espresso / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 25.00 },
-      { id: 111907, title: '14" x 14" / White / 1.25"', placeholderWidth: 4200, placeholderHeight: 4200, isGiftPackaging: false, priceAdjustment: 25.00 },
-      
-      // 16" x 16"
-      { id: 111892, title: '16" x 16" / Black / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 30.00 },
-      { id: 111900, title: '16" x 16" / Espresso / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 35.00 },
-      { id: 111908, title: '16" x 16" / White / 1.25"', placeholderWidth: 4800, placeholderHeight: 4800, isGiftPackaging: false, priceAdjustment: 35.00 },
-      
-      // 20" x 20"
-      { id: 111893, title: '20" x 20" / Black / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 40.00 },
-      { id: 111901, title: '20" x 20" / Espresso / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 45.00 },
-      { id: 111909, title: '20" x 20" / White / 1.25"', placeholderWidth: 6000, placeholderHeight: 6000, isGiftPackaging: false, priceAdjustment: 45.00 },
-      
-      // 24" x 24"
-      { id: 111894, title: '24" x 24" / Black / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 50.00 },
-      { id: 111902, title: '24" x 24" / Espresso / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 55.00 },
-      { id: 111910, title: '24" x 24" / White / 1.25"', placeholderWidth: 7200, placeholderHeight: 7200, isGiftPackaging: false, priceAdjustment: 55.00 },
-      
-      // 32" x 32"
-      { id: 88302, title: '32" x 32" / Black / 1.25"', placeholderWidth: 9600, placeholderHeight: 9600, isGiftPackaging: false, priceAdjustment: 60.00 },
-      { id: 107272, title: '32" x 32" / Espresso / 1.25"', placeholderWidth: 9600, placeholderHeight: 9600, isGiftPackaging: false, priceAdjustment: 65.00 },
-      { id: 107273, title: '32" x 32" / White / 1.25"', placeholderWidth: 9600, placeholderHeight: 9600, isGiftPackaging: false, priceAdjustment: 65.00 },
-    ],
-    printAreasConfig: [{
-      position: 'front',
-      allowsUserImage: true,
-      defaultX: 0.5,
-      defaultY: 0.5,
-      defaultScale: 1.0,
-      defaultAngle: 0,
-      fitMethod: 'slice',
-    }],
-    allowsPrintDetails: true,
-    printDetailsOptions: [
-      { label: 'Borda Regular', value: 'regular' },
-      { label: 'Borda Espelhada', value: 'mirror' },
-      { label: 'Sem Borda', value: 'off' },
-    ],
-    supportsManualAdjustment: false,
-  },
+
 
   // T-SHIRT UNISSEXO S
     'tshirt_unisex_s_white_crewneck_premium': {
