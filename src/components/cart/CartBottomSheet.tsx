@@ -303,15 +303,14 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ y: '80%' }}
-          animate={{ y: '8%' }}
-          exit={{ y: '90%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed bottom-0 left-0 right-0 bg-white z-[70] shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl overflow-hidden flex flex-col"
-          style={{ height: '85vh' }}
-          ref={bottomSheetRef}
-          data-cart-container="true"
-        >
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 30, stiffness: 250 }}
+        className="fixed bottom-0 left-0 right-0 bg-white z-[70] shadow-2xl border-t border-ghibli-sand/20 lg:hidden rounded-t-3xl flex flex-col max-h-[90vh]"
+        ref={bottomSheetRef}
+        data-cart-container="true"
+      >
           <div className="flex flex-col flex-shrink-0">
             <div className="flex justify-center py-2">
               <div className="w-12 h-1 bg-ghibli-sand rounded-full" />
@@ -370,7 +369,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
             </div>
             
             {cartSummary && cartSummary.itemCount > 0 && (
-              <div className="flex-shrink-0 border-t border-ghibli-sand/30 bg-ghibli-cream/20 pb-[env(safe-area-inset-bottom)]">
+              <div className="flex-shrink-0 border-t border-ghibli-sand/30 bg-ghibli-cream/20">
                 <div className="px-4 py-3">
                   {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
                     <>
@@ -426,7 +425,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                   </div>
                 </div>
                 
-                <div className="px-4 pb-2 pt-1">
+                <div className="px-4 pt-2 pb-[calc(env(safe-area-inset-bottom,1rem))]">
                   <Button
                     onClick={handleCheckout}
                     disabled={isProcessingCheckout || !userInfo}

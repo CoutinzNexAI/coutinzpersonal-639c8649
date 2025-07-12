@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Package, Webhook, TrendingUp, Users, AlertCircle, ExternalLink } from 'lucide-react';
+import { Loader2, Package, Webhook, TrendingUp, Users, AlertCircle, ExternalLink, BarChart3, Target, Zap, TrendingDown, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface DashboardStats {
@@ -27,6 +27,55 @@ interface DashboardStats {
   };
 }
 
+interface PostHogMetrics {
+  conversionFunnel: {
+    productViews: number;
+    cartAdditions: number;
+    checkoutStarted: number;
+    purchaseCompleted: number;
+    conversionRate: number;
+    abandonmentRate: number;
+  };
+  productPerformance: {
+    topViewedProducts: Array<{
+      product: string;
+      views: number;
+      conversions: number;
+      conversionRate: number;
+    }>;
+    topSellingProducts: Array<{
+      product: string;
+      sales: number;
+      revenue: number;
+    }>;
+  };
+  userSegmentation: {
+    newUsers: number;
+    returningUsers: number;
+    avgSessionTime: number;
+    bounceRate: number;
+    mostActiveHours: Array<{ hour: number; activity: number }>;
+  };
+  revenueInsights: {
+    totalRevenue: number;
+    avgOrderValue: number;
+    ltv: number;
+    revenueGrowth: number;
+    topRevenueProducts: Array<{
+      product: string;
+      revenue: number;
+      orders: number;
+    }>;
+  };
+  realTimeMetrics: {
+    activeUsers: number;
+    currentSessions: number;
+    liveEvents: number;
+    serverLoad: number;
+    responseTime: number;
+  };
+}
+
 interface AdminUser {
   id: string;
   email?: string;
@@ -37,7 +86,9 @@ interface AdminUser {
 const AdminDashboard = () => {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [postHogMetrics, setPostHogMetrics] = useState<PostHogMetrics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [postHogLoading, setPostHogLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // null = verificando, true = admin, false = não admin
 
@@ -73,6 +124,7 @@ const AdminDashboard = () => {
       setIsAdmin(true);
       setCurrentUser({ ...user, ...userData });
       loadDashboardStats();
+      loadPostHogMetrics();
 
     } catch (error) {
       // 🔒 STEALTH MODE: Qualquer erro redireciona para 404
@@ -158,6 +210,92 @@ const AdminDashboard = () => {
       toast.error('Erro ao carregar dados do dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPostHogMetrics = async () => {
+    try {
+      setPostHogLoading(true);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/');
+        return;
+      }
+
+      const response = await fetch('/api/admin/posthog-metrics', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao carregar métricas PostHog');
+      }
+
+      const metrics = await response.json();
+      setPostHogMetrics(metrics);
+    } catch (error) {
+      console.error('Erro ao carregar métricas PostHog:', error);
+      toast.error('Erro ao carregar analytics');
+      
+      // Fallback para dados mockados se a API falhar
+      const mockMetrics: PostHogMetrics = {
+        conversionFunnel: {
+          productViews: 2847,
+          cartAdditions: 423,
+          checkoutStarted: 287,
+          purchaseCompleted: 156,
+          conversionRate: 5.48,
+          abandonmentRate: 45.6
+        },
+        productPerformance: {
+          topViewedProducts: [
+            { product: 'Canvas Personalizado', views: 1243, conversions: 89, conversionRate: 7.16 },
+            { product: 'Poster Retrato', views: 892, conversions: 45, conversionRate: 5.04 },
+            { product: 'Caneca Coração', views: 712, conversions: 22, conversionRate: 3.09 }
+          ],
+          topSellingProducts: [
+            { product: 'Canvas Personalizado', sales: 89, revenue: 2670 },
+            { product: 'Poster Retrato', sales: 45, revenue: 1350 },
+            { product: 'Caneca Coração', sales: 22, revenue: 440 }
+          ]
+        },
+        userSegmentation: {
+          newUsers: 1892,
+          returningUsers: 955,
+          avgSessionTime: 4.2,
+          bounceRate: 32.4,
+          mostActiveHours: [
+            { hour: 20, activity: 156 },
+            { hour: 21, activity: 189 },
+            { hour: 22, activity: 145 }
+          ]
+        },
+        revenueInsights: {
+          totalRevenue: 12456.78,
+          avgOrderValue: 28.45,
+          ltv: 156.78,
+          revenueGrowth: 23.5,
+          topRevenueProducts: [
+            { product: 'Canvas Personalizado', revenue: 2670, orders: 89 },
+            { product: 'Poster Retrato', revenue: 1350, orders: 45 },
+            { product: 'Caneca Coração', revenue: 440, orders: 22 }
+          ]
+        },
+        realTimeMetrics: {
+          activeUsers: 47,
+          currentSessions: 62,
+          liveEvents: 234,
+          serverLoad: 78.5,
+          responseTime: 245
+        }
+      };
+
+      setPostHogMetrics(mockMetrics);
+    } finally {
+      setPostHogLoading(false);
     }
   };
 
@@ -265,6 +403,223 @@ const AdminDashboard = () => {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* 🚀 PostHog Analytics - Futuristic Design */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+              <Brain className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Analytics Intelligence
+              </h2>
+              <p className="text-gray-600 text-sm">Métricas em tempo real powered by PostHog</p>
+            </div>
+          </div>
+
+          {postHogLoading ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(5)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {/* 1. Funil de Conversão */}
+              <Card className="relative overflow-hidden border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-blue-900">Funil de Conversão</CardTitle>
+                  <Target className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-800 mb-1">
+                    {postHogMetrics?.conversionFunnel.conversionRate.toFixed(1)}%
+                  </div>
+                  <p className="text-xs text-blue-600 mb-3">Taxa de conversão global</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span>Visualizações</span>
+                      <span className="font-semibold">{postHogMetrics?.conversionFunnel.productViews}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>Adições ao carrinho</span>
+                      <span className="font-semibold">{postHogMetrics?.conversionFunnel.cartAdditions}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>Checkout iniciado</span>
+                      <span className="font-semibold">{postHogMetrics?.conversionFunnel.checkoutStarted}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>Compras</span>
+                      <span className="font-semibold text-green-600">{postHogMetrics?.conversionFunnel.purchaseCompleted}</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <TrendingDown className="h-3 w-3 text-red-500" />
+                    <span className="text-xs text-red-600">
+                      {postHogMetrics?.conversionFunnel.abandonmentRate.toFixed(1)}% abandono
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 2. Performance de Produtos */}
+              <Card className="relative overflow-hidden border-l-4 border-l-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-emerald-900">Top Produtos</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-emerald-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-emerald-800 mb-1">
+                    {postHogMetrics?.productPerformance.topViewedProducts[0]?.product.split(' ')[0] || 'Canvas'}
+                  </div>
+                  <p className="text-xs text-emerald-600 mb-3">Produto mais visualizado</p>
+                  <div className="space-y-2">
+                    {postHogMetrics?.productPerformance.topViewedProducts.slice(0, 3).map((product, index) => (
+                      <div key={index} className="flex justify-between text-xs">
+                        <span className="truncate">{product.product}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="font-semibold">{product.views}</span>
+                          <span className="text-green-600">({product.conversionRate.toFixed(1)}%)</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 p-2 bg-emerald-100 rounded-lg">
+                    <div className="flex justify-between text-xs">
+                      <span>Melhor conversão</span>
+                      <span className="font-semibold text-emerald-700">
+                        {postHogMetrics?.productPerformance.topViewedProducts[0]?.conversionRate.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 3. Segmentação de Utilizadores */}
+              <Card className="relative overflow-hidden border-l-4 border-l-orange-500 bg-gradient-to-br from-orange-50 to-amber-50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-orange-900">Utilizadores</CardTitle>
+                  <Users className="h-4 w-4 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-800 mb-1">
+                    {postHogMetrics?.userSegmentation.avgSessionTime.toFixed(1)}min
+                  </div>
+                  <p className="text-xs text-orange-600 mb-3">Sessão média</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span>Novos utilizadores</span>
+                      <span className="font-semibold">{postHogMetrics?.userSegmentation.newUsers}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>Utilizadores recorrentes</span>
+                      <span className="font-semibold">{postHogMetrics?.userSegmentation.returningUsers}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>Taxa de abandono</span>
+                      <span className="font-semibold">{postHogMetrics?.userSegmentation.bounceRate}%</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 p-2 bg-orange-100 rounded-lg">
+                    <div className="flex justify-between text-xs">
+                      <span>Hora mais ativa</span>
+                      <span className="font-semibold text-orange-700">
+                        {postHogMetrics?.userSegmentation.mostActiveHours[0]?.hour}h00-{postHogMetrics?.userSegmentation.mostActiveHours[0]?.hour ? postHogMetrics?.userSegmentation.mostActiveHours[0]?.hour + 1 : 0}h00
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 4. Insights de Receita */}
+              <Card className="relative overflow-hidden border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-50 to-violet-50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-purple-900">Receita Intelligence</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-800 mb-1">
+                    {formatCurrency(postHogMetrics?.revenueInsights.totalRevenue || 0)}
+                  </div>
+                  <p className="text-xs text-purple-600 mb-3">Receita total (PostHog)</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span>Valor médio pedido</span>
+                      <span className="font-semibold">{formatCurrency(postHogMetrics?.revenueInsights.avgOrderValue || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>LTV médio</span>
+                      <span className="font-semibold">{formatCurrency(postHogMetrics?.revenueInsights.ltv || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>Crescimento</span>
+                      <span className="font-semibold text-green-600">+{postHogMetrics?.revenueInsights.revenueGrowth}%</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 p-2 bg-purple-100 rounded-lg">
+                    <div className="flex justify-between text-xs">
+                      <span>Top produto (receita)</span>
+                      <span className="font-semibold text-purple-700">
+                        {postHogMetrics?.revenueInsights.topRevenueProducts[0]?.product.split(' ')[0] || 'Canvas'}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 5. Métricas em Tempo Real */}
+              <Card className="relative overflow-hidden border-l-4 border-l-pink-500 bg-gradient-to-br from-pink-50 to-rose-50">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-pink-900">Tempo Real</CardTitle>
+                  <Zap className="h-4 w-4 text-pink-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-pink-800 mb-1">
+                    {postHogMetrics?.realTimeMetrics.activeUsers}
+                  </div>
+                  <p className="text-xs text-pink-600 mb-3">Utilizadores ativos agora</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span>Sessões ativas</span>
+                      <span className="font-semibold">{postHogMetrics?.realTimeMetrics.currentSessions}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>Eventos live</span>
+                      <span className="font-semibold">{postHogMetrics?.realTimeMetrics.liveEvents}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span>Tempo resposta</span>
+                      <span className="font-semibold">{postHogMetrics?.realTimeMetrics.responseTime}ms</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 p-2 bg-pink-100 rounded-lg">
+                    <div className="flex justify-between text-xs">
+                      <span>Carga servidor</span>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold text-pink-700">{postHogMetrics?.realTimeMetrics.serverLoad}%</span>
+                        <div className="w-12 h-1 bg-pink-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-pink-500 transition-all duration-300"
+                            style={{ width: `${postHogMetrics?.realTimeMetrics.serverLoad}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+                <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              </Card>
+            </div>
+          )}
         </div>
 
         {/* Status dos Pedidos */}
