@@ -148,14 +148,12 @@ async function updateJobStatus(
                 .eq('id', jobId)
                 .single();
             
-            const existingMetadata = existingData?.output_metadata || {};
-            updateData.output_metadata = { ...existingMetadata, ...metadata };
-            console.log(`[updateJobStatus: ${jobId}] MERGE - existing: ${JSON.stringify(existingMetadata)}, new: ${JSON.stringify(metadata)}, merged: ${JSON.stringify(updateData.output_metadata)}`);
-        } catch (mergeError) {
-            // If we can't get existing metadata, just use the new metadata
-            updateData.output_metadata = metadata;
-            console.log(`[updateJobStatus: ${jobId}] MERGE FAILED - using new metadata only: ${JSON.stringify(metadata)}`);
-        }
+                    const existingMetadata = existingData?.output_metadata || {};
+        updateData.output_metadata = { ...existingMetadata, ...metadata };
+    } catch (mergeError) {
+        // If we can't get existing metadata, just use the new metadata
+        updateData.output_metadata = metadata;
+    }
     }
 
     // Normaliza 'failed_*' para 'error' para o status final, mas guarda o original em metadata
@@ -322,15 +320,14 @@ async function processImage(jobId: string, jobData: JobData) {
             finalStatus = 'failed_exception';
         }
         console.error(`[processImage: ${jobId}] Error during processing. Status: ${finalStatus}. Message: ${errorMessage}`);
-    } finally {
-        if (tempFilePath) {
-            try { fs.unlinkSync(tempFilePath); }
-            catch (unlinkErr) { console.warn(`[processImage: ${jobId}] Failed to clean up temp file in finally: ${(unlinkErr as Error).message}`);}
+            } finally {
+            if (tempFilePath) {
+                try { fs.unlinkSync(tempFilePath); }
+                catch (unlinkErr) { console.warn(`[processImage: ${jobId}] Failed to clean up temp file in finally: ${(unlinkErr as Error).message}`);}
+            }
+            
+            await updateJobStatus(jobId, finalStatus, outputFilePath, errorMessage, outputMetadata);
         }
-        
-        console.log(`[processImage: ${jobId}] FINALLY - finalStatus: ${finalStatus}, outputMetadata: ${JSON.stringify(outputMetadata)}`);
-        await updateJobStatus(jobId, finalStatus, outputFilePath, errorMessage, outputMetadata);
-    }
 }
 
 export default async function handler(

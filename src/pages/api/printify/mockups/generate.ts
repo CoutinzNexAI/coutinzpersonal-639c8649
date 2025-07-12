@@ -12,19 +12,12 @@ import http from 'http';
 
 // ✅ FUNÇÃO PARA OBTER DIMENSÕES DA IMAGEM (VERSÃO INSTRUMENTADA)
 async function getImageDimensions(imageUrl: string): Promise<{ width: number; height: number }> {
-  console.log(`[getImageDimensions] 🕵️  Iniciando a deteção para o URL: ${imageUrl}`);
   return new Promise((resolve, reject) => {
     // A parte do browser não é relevante aqui, pois isto só corre no servidor
       const client = imageUrl.startsWith('https://') ? https : http;
       
       client.get(imageUrl, (response) => {
-      // ✅ NOVO LOG: Vamos ver o status code e os headers!
       const { statusCode, headers } = response;
-      console.log(`[getImageDimensions] 🕵️  Resposta do servidor da imagem - Status: ${statusCode}`);
-      console.log(`[getImageDimensions] 🕵️  Headers de resposta (location, content-type):`, { 
-        location: headers.location, 
-        'content-type': headers['content-type'] 
-      });
 
       // Se for um redirecionamento, o 'location' header estará presente
       if (statusCode && statusCode >= 300 && statusCode < 400 && headers.location) {
@@ -47,7 +40,6 @@ async function getImageDimensions(imageUrl: string): Promise<{ width: number; he
         response.on('data', (chunk: Buffer) => chunks.push(chunk));
         response.on('end', () => {
           const buffer = Buffer.concat(chunks);
-        console.log(`[getImageDimensions] 🕵️  Download da imagem concluído. Tamanho do buffer: ${buffer.length} bytes.`);
           
           // Detectar tipo de imagem e extrair dimensões
           if (buffer.length >= 4) {
@@ -55,7 +47,6 @@ async function getImageDimensions(imageUrl: string): Promise<{ width: number; he
             if (buffer.toString('hex', 0, 8) === '89504e470d0a1a0a') {
               const width = buffer.readUInt32BE(16);
               const height = buffer.readUInt32BE(20);
-            console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como PNG (${width}x${height})`);
               resolve({ width, height });
             return;
             }
@@ -67,7 +58,6 @@ async function getImageDimensions(imageUrl: string): Promise<{ width: number; he
                 if (marker === 0xffc0 || marker === 0xffc2) {
                   const height = buffer.readUInt16BE(offset + 5);
                   const width = buffer.readUInt16BE(offset + 7);
-                console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como JPEG (${width}x${height})`);
                   resolve({ width, height });
                   return;
                 }
@@ -80,7 +70,6 @@ async function getImageDimensions(imageUrl: string): Promise<{ width: number; he
               if (buffer.toString('ascii', 12, 16) === 'VP8 ') {
                 const width = buffer.readUInt16LE(26) & 0x3fff;
                 const height = buffer.readUInt16LE(28) & 0x3fff;
-              console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como WebP VP8 (${width}x${height})`);
                 resolve({ width, height });
               }
               // WebP lossless (VP8L)
@@ -88,15 +77,12 @@ async function getImageDimensions(imageUrl: string): Promise<{ width: number; he
                 const bits = buffer.readUInt32LE(21);
                 const width = (bits & 0x3fff) + 1;
                 const height = ((bits >> 14) & 0x3fff) + 1;
-              console.log(`[getImageDimensions] ✅ Sucesso! Imagem detetada como WebP VP8L (${width}x${height})`);
                 resolve({ width, height });
               }
             }
           }
           
-        console.warn('[getImageDimensions] ⚠️ O parsing manual do buffer falhou. Não foi detetado um formato conhecido.');
           // Fallback: assumir dimensões padrão se não conseguir detectar
-          console.warn('⚠️ Could not detect image dimensions, using fallback 1024x1024');
           resolve({ width: 1024, height: 1024 });
         });
     }).on('error', (err) => {
@@ -268,8 +254,6 @@ export default async function handler(
       });
     }
 
-    console.log(`✅ Product found: ${product.name}`);
-
     // Obter detalhes das variantes da Printify (com cache)
     const printifyVariantsResponse = await getCachedPrintifyVariants(
       product.printifyBlueprintId.toString(),
@@ -300,14 +284,9 @@ export default async function handler(
       throw new Error('Printify variant placeholders not found for the selected product.');
     }
 
-    console.log(`✅ Selected variant: ${targetVariantId}`);
-
     // LÓGICA ESPECÍFICA PARA SWEAT DE CRIANÇA
     if (productId === 'custom_youth_hoodie') {
-      console.log('🔄 Processing youth hoodie with multiple print areas...');
-
       // PASSO 1: Processar e fazer upload da imagem do cliente para Printify
-      console.log('🔄 Processing and uploading customer image to Printify...');
       
              // Obter o placeholder para a posição back (onde vai a imagem do cliente)
        const customerBackPlaceholder = selectedPrintifyVariant.placeholders.find(
@@ -349,7 +328,6 @@ export default async function handler(
 
         if (generateCustomerFileData?.success && generateCustomerFileData?.printifyImageId) {
           customerPrintifyImageId = generateCustomerFileData.printifyImageId;
-          console.log('✅ Customer image processed and uploaded:', customerPrintifyImageId);
         } else {
           console.warn('⚠️ Print file processing failed, using direct upload fallback');
           // Fallback para upload direto
@@ -365,7 +343,6 @@ export default async function handler(
             throw new Error('Failed to upload customer image to Printify');
           }
           customerPrintifyImageId = customerUploadResponse.id;
-          console.log('✅ Customer image uploaded (fallback):', customerPrintifyImageId);
         }
       } else {
         // Fallback se não encontrar placeholder
@@ -382,19 +359,15 @@ export default async function handler(
         throw new Error('Failed to upload customer image to Printify');
       }
         customerPrintifyImageId = customerUploadResponse.id;
-        console.log('✅ Customer image uploaded (direct):', customerPrintifyImageId);
       }
 
       // PASSO 2: Gerar e fazer upload da imagem da frase (se não for "Sem frase")
       let dynamicPhrasePrintifyImageId = '';
       
       if (selectedPhraseText && selectedPhraseText !== 'Sem frase') {
-        console.log('🔄 Generating phrase image for:', selectedPhraseText);
-        
         try {
           // Gerar a imagem da frase dinamicamente
           dynamicPhrasePrintifyImageId = await generatePhraseImage(selectedPhraseText);
-          console.log('✅ Phrase image ID generated:', dynamicPhrasePrintifyImageId);
         } catch (phraseError) {
           console.warn('⚠️ Failed to generate phrase image, using fallback:', phraseError);
           // Fallback para o mapeamento estático
@@ -406,12 +379,10 @@ export default async function handler(
         };
         
         dynamicPhrasePrintifyImageId = phraseImageMapping[selectedPhraseText] || '68548b05a7a3520a5d3534c0';
-          console.log('✅ Fallback phrase image ID:', dynamicPhrasePrintifyImageId);
         }
       } else {
         // "Sem frase" - usar imagem transparente
         dynamicPhrasePrintifyImageId = '68548b05a7a3520a5d3534c0';
-        console.log('✅ Using transparent image for "no phrase"');
       }
 
       // PASSO 3: Obter placeholders para front e back
@@ -427,7 +398,6 @@ export default async function handler(
       }
 
       // PASSO 4: Criar produto com múltiplas áreas de impressão
-      console.log('🔄 Creating youth hoodie product with multiple print areas...');
       // Configurar produto de sweat de criança com múltiplas áreas de impressão
       
       const printifyProductTitle = `PicTuz Youth Hoodie (${user.id}-${Date.now()})`;
@@ -499,16 +469,12 @@ export default async function handler(
       }
 
       const createdPrintifyProductId = printifyProductResponse.id;
-      console.log(`✅ Youth hoodie product created. ID: ${createdPrintifyProductId}`);
 
       // PASSO 5: Polling dos mockups
-      console.log('🔄 Polling for youth hoodie mockups...');
       const maxAttempts = 15;
       const delayMs = 10000; // Aumentar para dar tempo à Printify para gerar mockups complexos
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        console.log(`🔄 Attempt ${attempt}/${maxAttempts}: Checking mockup status...`);
-        
         const productDetails = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
         
         if (productDetails && productDetails.images && productDetails.images.length > 0) {
@@ -517,7 +483,6 @@ export default async function handler(
           const previewUrls = productDetails.images.map((img: { src: string }) => img.src);
           
           if (previewUrls.length > 0) {
-            console.log(`✅ Mockups ready! Found ${previewUrls.length} preview(s) - ALL mockup views included`);
             // RETORNA IMEDIATAMENTE quando mockups estão prontos
             return res.status(200).json({
               success: true,
@@ -531,7 +496,6 @@ export default async function handler(
         
         // Se não houver imagens ainda, espera ANTES da próxima tentativa
         if (attempt < maxAttempts) {
-          console.log(`⏳ Mockups not ready yet, waiting ${delayMs}ms...`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       }
@@ -552,8 +516,6 @@ export default async function handler(
                productId === 'custom_phone_case' ||
                productId === 'spiral_journal' || productId === 'mouse_pad') {
       // LÓGICA UNIFICADA PARA CANVAS/POSTER/CANECAS/CAPAS/CADERNOS/MOUSEPADS (USA SRC, NÃO ID)
-      console.log(`🔄 Processing ${productId} with unified robust logic (src + calculated scale)`);
-
       // Validar que temos a imagem URL
       if (!userImageUrl) {
         throw new Error(`userImageUrl is required for ${productId} products`);
@@ -565,7 +527,6 @@ export default async function handler(
       }
 
       // ✅ PASSO 1: FAZER UPLOAD DA IMAGEM PARA PRINTIFY MEDIA LIBRARY (OBRIGATÓRIO PARA PRODUCTS API)
-      console.log('🔄 Uploading image to Printify Media Library...');
           const uploadPayload = {
         file_name: `mockup-${productId}-${Date.now()}.png`,
         url: userImageUrl, // Printify vai fazer download do URL
@@ -581,7 +542,6 @@ export default async function handler(
       }
       
       const printifyImageId = uploadResponse.id;
-      console.log(`✅ Image uploaded. ID: ${printifyImageId}`);
 
       // ✅ PASSO 2: OBTER DIMENSÕES REAIS DA IMAGEM PARA CÁLCULO PRECISO
       let userImageWidth = 1024; // Fallback
@@ -591,7 +551,6 @@ export default async function handler(
         const imageDimensions = await getImageDimensions(userImageUrl);
         userImageWidth = imageDimensions.width;
         userImageHeight = imageDimensions.height;
-        console.log(`✅ Image dimensions: ${userImageWidth}x${userImageHeight}`);
       } catch (error) {
         console.warn('⚠️ Could not detect image dimensions, using fallback 1024x1024');
       }
@@ -624,7 +583,6 @@ export default async function handler(
         scale: imageAdjustments?.scale || calculatedScale, // ✅ USA A ESCALA CALCULADA!
         angle: imageAdjustments?.rotation || printAreaConfig.defaultAngle
       };
-      console.log('✅ Final values:', finalValues);
 
       // ✅ PASSO 4: CRIAR PRODUTO TEMPORÁRIO NA PRINTIFY USANDO O ID DA MEDIA LIBRARY
       const printifyProductPayload = {
@@ -663,7 +621,6 @@ export default async function handler(
       }
 
       const createdProductId = printifyProductResponse.id;
-      console.log(`✅ Product created: ${createdProductId}`);
 
       // Polling para obter mockups
       let finalPreviewUrls: string[] = [];
@@ -681,10 +638,8 @@ export default async function handler(
             // LIMITAR A APENAS 3 MOCKUPS SOMENTE PARA CANVAS
             if (productId === 'custom_canvas' || productId === 'framed_canvas') {
               finalPreviewUrls = allPreviewUrls.slice(0, 3);
-              console.log(`✅ Canvas mockups ready! Found ${getProductResponse.images.length} preview(s), limiting to ${finalPreviewUrls.length} mockups (canvas only)`);
             } else {
               finalPreviewUrls = allPreviewUrls;
-              console.log(`✅ Mockups ready! Found ${getProductResponse.images.length} preview(s) - keeping all mockups (non-canvas product)`);
             }
             break;
           }
@@ -693,7 +648,6 @@ export default async function handler(
         }
 
         if (attempt < maxAttempts) {
-          console.log(`⏳ Waiting ${delayMs}ms for next attempt...`);
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       }

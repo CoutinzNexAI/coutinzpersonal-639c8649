@@ -133,13 +133,13 @@ export default async function handler(
       return res.status(500).json({ message: 'Internal authentication error.' });
   }
 
-  console.log(`${endpointName} User identified: ${authenticatedUserIdFromSession}. Applying rate limit...`);
+  
 const permitted = await applyRateLimit(req, res, getStatusApiRateLimiter, authenticatedUserIdFromSession);
 if (!permitted) {
   console.warn(`${endpointName} Rate limit exceeded for user: ${authenticatedUserIdFromSession}`);
   return; // applyRateLimit já enviou a resposta 429
 }
-console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUserIdFromSession}`);
+
 
   try {
     
@@ -250,7 +250,7 @@ console.log(`${endpointName} Rate limit check passed for user: ${authenticatedUs
                  console.error(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 1: FAILED to update DB:`, updateError.message);
                  selfHealActionTaken += " - DB Update FAILED";
             } else {
-                 console.log(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 1: DB Update SUCCESSFUL.`);
+         
             }
             return res.status(200).json({ status: 'completed', output_url: urlData.publicUrl, error_message: null, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: selfHealActionTaken });
           }

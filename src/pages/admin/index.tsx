@@ -39,6 +39,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // null = verificando, true = admin, false = não admin
 
   useEffect(() => {
     checkAdminAccess();
@@ -49,7 +50,8 @@ const AdminDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        router.push('/');
+        setIsAdmin(false);
+        router.push('/404');
         return;
       }
 
@@ -61,17 +63,21 @@ const AdminDashboard = () => {
         .single();
 
       if (error || !userData || userData.role !== 'admin') {
-        toast.error('Acesso negado. Apenas administradores.');
-        router.push('/');
+        // 🔒 STEALTH MODE: Redirecionar para 404 sem aviso
+        // Age como se a página não existisse
+        setIsAdmin(false);
+        router.push('/404');
         return;
       }
 
+      setIsAdmin(true);
       setCurrentUser({ ...user, ...userData });
       loadDashboardStats();
 
     } catch (error) {
-      console.error('Erro na verificação de admin:', error);
-      router.push('/');
+      // 🔒 STEALTH MODE: Qualquer erro redireciona para 404
+      setIsAdmin(false);
+      router.push('/404');
     }
   };
 
@@ -161,6 +167,11 @@ const AdminDashboard = () => {
       currency: 'EUR'
     }).format(amount);
   };
+
+  // 🔒 STEALTH MODE: Não mostrar nada se não for admin ou ainda verificando
+  if (isAdmin === null || isAdmin === false) {
+    return null; // Página "não existe" para não-admins
+  }
 
   if (loading) {
     return (

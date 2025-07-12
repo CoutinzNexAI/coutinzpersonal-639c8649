@@ -56,6 +56,7 @@ const AdminOrdersPage = () => {
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [_currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null); // null = verificando, true = admin, false = não admin
   
   // Filtros
   const [filters, setFilters] = useState({
@@ -84,7 +85,8 @@ const AdminOrdersPage = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        router.push('/');
+        setIsAdmin(false);
+        router.push('/404');
         return;
       }
 
@@ -96,17 +98,21 @@ const AdminOrdersPage = () => {
         .single();
 
       if (error || !userData || userData.role !== 'admin') {
-        toast.error('Acesso negado. Apenas administradores.');
-        router.push('/');
+        // 🔒 STEALTH MODE: Redirecionar para 404 sem aviso
+        // Age como se a página não existisse
+        setIsAdmin(false);
+        router.push('/404');
         return;
       }
 
+      setIsAdmin(true);
       setCurrentUser({ ...user, role: userData.role });
       loadOrders();
 
     } catch (error) {
-      console.error('Erro na verificação de admin:', error);
-      router.push('/');
+      // 🔒 STEALTH MODE: Qualquer erro redireciona para 404
+      setIsAdmin(false);
+      router.push('/404');
     }
   };
 
@@ -225,6 +231,11 @@ const AdminOrdersPage = () => {
       currency: currency || 'EUR'
     }).format(price);
   };
+
+  // 🔒 STEALTH MODE: Não mostrar nada se não for admin ou ainda verificando
+  if (isAdmin === null || isAdmin === false) {
+    return null; // Página "não existe" para não-admins
+  }
 
   if (loading && orders.length === 0) {
     return (

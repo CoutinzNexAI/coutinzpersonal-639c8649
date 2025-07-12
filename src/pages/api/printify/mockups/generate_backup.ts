@@ -12,19 +12,12 @@ import http from 'http';
 
 // ✅ FUNÇÃO PARA OBTER DIMENSÕES DA IMAGEM (VERSÃO INSTRUMENTADA)
 async function getImageDimensions(imageUrl: string): Promise<{ width: number; height: number }> {
-  console.log(`[getImageDimensions] 🕵️  Iniciando a deteção para o URL: ${imageUrl}`);
   return new Promise((resolve, reject) => {
     // A parte do browser não é relevante aqui, pois isto só corre no servidor
       const client = imageUrl.startsWith('https://') ? https : http;
       
       client.get(imageUrl, (response) => {
-      // ✅ NOVO LOG: Vamos ver o status code e os headers!
       const { statusCode, headers } = response;
-      console.log(`[getImageDimensions] 🕵️  Resposta do servidor da imagem - Status: ${statusCode}`);
-      console.log(`[getImageDimensions] 🕵️  Headers de resposta (location, content-type):`, { 
-        location: headers.location, 
-        'content-type': headers['content-type'] 
-      });
 
       // Se for um redirecionamento, o 'location' header estará presente
       if (statusCode && statusCode >= 300 && statusCode < 400 && headers.location) {

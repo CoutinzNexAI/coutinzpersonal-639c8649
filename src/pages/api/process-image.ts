@@ -40,7 +40,7 @@ export default async function handler(
   }
 
   try {
-    console.log(`${endpointName} 🔧 Creating Supabase SSR client for auth...`);
+  
     const supabaseAuthClient = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -139,9 +139,7 @@ export default async function handler(
       console.error(`${endpointName} ❌ Error updating job ${jobId} status to 'processing':`, updateError.message);
       // Não retorna erro 500 aqui necessariamente, pois o processador de background pode ser chamado mesmo assim
       // ou podemos decidir não chamar. Por agora, logamos e continuamos
-    } else {
-      console.log(`${endpointName} ✅ Job ${jobId} status updated to 'processing'.`);
-    }
+          }
 
     // Chamar a API de processamento em background (processador-background.ts)
     // Esta chamada deve ser protegida, por exemplo, com um secret interno,
@@ -171,7 +169,7 @@ export default async function handler(
       }
     )
     .then(response => {
-      console.log(`${endpointName} ✅ Background processor for job ${jobId} initiated successfully. Status: ${response.status}`);
+
     })
     .catch(error => {
       const axiosErrorMsg = error.response?.data?.message || error.message || 'Unknown error';

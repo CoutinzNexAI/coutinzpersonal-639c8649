@@ -116,7 +116,7 @@ async function processOrderEvent(event: PrintifyWebhookEvent): Promise<void> {
   const orderId = orderData.id;
   const externalId = orderData.external_id;
 
-  console.log(`📦 Processando evento de pedido: ${event.type} para order ${orderId}`);
+
 
   try {
     // Encontrar pedido na nossa DB pelo printify_order_id ou external_id
@@ -192,11 +192,9 @@ async function processOrderEvent(event: PrintifyWebhookEvent): Promise<void> {
       .update(updateData)
       .eq('id', dbOrder.id);
 
-    if (updateError) {
-      console.error('Erro ao atualizar pedido na DB:', updateError);
-    } else {
-      console.log(`✅ Pedido ${dbOrder.id} atualizado com status: ${orderData.status}`);
-    }
+          if (updateError) {
+        console.error('Erro ao atualizar pedido na DB:', updateError);
+      }
 
   } catch (error) {
     console.error('Erro ao processar evento de pedido:', error);
@@ -208,7 +206,7 @@ async function processShipmentEvent(event: PrintifyWebhookEvent): Promise<void> 
   const shipmentData = event.resource.data as ShipmentResourceData;
   const orderId = shipmentData.order_id;
 
-  console.log(`🚚 Processando evento de envio: ${event.type} para order ${orderId}`);
+
 
   try {
     // Encontrar pedido na nossa DB
@@ -244,11 +242,9 @@ async function processShipmentEvent(event: PrintifyWebhookEvent): Promise<void> 
       .update(updateData)
       .eq('id', dbOrder.id);
 
-    if (updateError) {
-      console.error('Erro ao atualizar tracking na DB:', updateError);
-    } else {
-      console.log(`✅ Tracking atualizado para pedido ${dbOrder.id}: ${shipmentData.tracking_number}`);
-    }
+          if (updateError) {
+        console.error('Erro ao atualizar tracking na DB:', updateError);
+      }
 
   } catch (error) {
     console.error('Erro ao processar evento de envio:', error);
@@ -311,7 +307,7 @@ export default async function handler(
       });
     }
 
-    console.log(`🔔 Webhook recebido: ${event.type} para resource ${event.resource.type}:${event.resource.id}`);
+
 
     // Processar evento baseado no tipo
     switch (event.type) {
@@ -333,7 +329,7 @@ export default async function handler(
       case 'product:deleted':
       case 'product:updated':
         // Para eventos de produto, pode implementar lógica específica se necessário
-        console.log(`📦 Evento de produto recebido: ${event.type} para produto ${event.resource.id}`);
+  
         break;
 
       default:
