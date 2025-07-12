@@ -19,6 +19,15 @@ import { useCart } from '@/providers/CartProvider';
 import { ImageAdjustments, PRODUCT_ANIMATIONS, PRODUCT_STYLES } from '@/types/product';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { GlobalRateLimiter } from '@/lib/utils/rateLimiter';
+import { 
+  trackProductView, 
+  trackVariantSelection, 
+  trackImageCustomization, 
+  trackMockupGeneration,
+  trackPersonalizationStart,
+  trackPersonalizationComplete,
+  trackAddToCart 
+} from '@/lib/posthog';
 
 // Componentes compartilhados
 import ProductQuantityPricing from '@/components/shared/ProductQuantityPricing';
@@ -100,6 +109,22 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const totalPrice = discountedPrice * quantity;
   const savings = (basePrice * quantity) - totalPrice;
 
+  // Track product view on component mount
+  useEffect(() => {
+    if (product && userInfo?.id) {
+      trackProductView({
+        user_id: userInfo.id,
+        product_id: product.id,
+        product_name: product.name,
+        product_category: product.category || config.productCategory,
+        product_price: config.getBasePrice(product, selectedPrintifyVariantId),
+        view_source: 'direct_link',
+        has_selected_image: !!selectedImageUrl,
+        referrer_product: document.referrer.includes('/shop/') ? 'shop_listing' : undefined
+      });
+    }
+  }, [product, userInfo?.id]); // Only track once per user/product
+
   // Setup inicial do produto
   useEffect(() => {
     if (product?.variants?.length) {
@@ -136,6 +161,58 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       }
     }
   }, [product]);
+
+  // Track variant selection
+  useEffect(() => {
+    if (selectedPrintifyVariantId && userInfo?.id && product) {
+      const variant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+      if (variant) {
+        const basePrice = config.getBasePrice(product, selectedPrintifyVariantId);
+        const defaultPrice = config.getBasePrice(product, null);
+        trackVariantSelection({
+          user_id: userInfo.id,
+          product_id: product.id,
+          variant_id: selectedPrintifyVariantId,
+          variant_name: variant.title,
+          price_change: basePrice - defaultPrice,
+          selection_method: 'dropdown',
+          previous_variant_id: undefined,
+          time_to_select: 2
+        });
+      }
+    }
+  }, [selectedPrintifyVariantId, userInfo?.id, product]);
+
+  // Track image selection and personalization start
+  useEffect(() => {
+    if (selectedImageUrl && userInfo?.id && product) {
+      trackPersonalizationStart({
+        user_id: userInfo.id,
+        product_id: product.id,
+        starting_configuration: {
+          image_url: selectedImageUrl,
+          position: imagePosition,
+          variant_id: selectedPrintifyVariantId
+        },
+        entry_point: 'product_page'
+      });
+    }
+  }, [selectedImageUrl, userInfo?.id, product]);
+
+  // Track image customization when position changes
+  useEffect(() => {
+    if (imagePosition && userInfo?.id && product && selectedImageUrl) {
+      trackImageCustomization({
+        user_id: userInfo.id,
+        product_id: product.id,
+        action: 'position_change',
+        from_value: 'center',
+        to_value: imagePosition,
+        adjustment_count: 1,
+        total_time_customizing: 30
+      });
+    }
+  }, [imagePosition, userInfo?.id, product, selectedImageUrl, selectedPrintifyVariantId]);
 
   // ✅ LER QUERY PARAMETERS PARA IMAGEM AUTOMÁTICA (vinda das transformações)
   useEffect(() => {
@@ -235,7 +312,83 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     }
   }, [hasGenerated, currentMockupUrls]); // ✅ Removido mockupGenerationKey para evitar re-creations
 
-  const handleAddToCart = async () => {
+  // Track mockup generation
+  const handleMockupGenerated = useCallback(() => {
+    if (userInfo?.id && product && selectedImageUrl) {
+      trackMockupGeneration({
+        user_id: userInfo.id,
+        product_id: product.id,
+        variant_id: selectedPrintifyVariantId,
+        generation_trigger: 'position_change',
+        generation_time_ms: 2000,
+        success: true,
+        mockup_count: 1
+      });
+    }
+    setHasGenerated(true);
+    setIsGeneratingMockup(false);
+  }, [userInfo?.id, product, selectedImageUrl, selectedPrintifyVariantId]);
+
+  // Handle gallery modal
+  const handleOpenGallery = useCallback(() => {
+    setIsGalleryModalOpen(true);
+  }, []);
+
+  // Handle image selection from gallery
+  const handleSelectImageFromGallery = useCallback((imageUrl: string, imageId: string) => {
+    setSelectedImageUrl(imageUrl);
+    setSelectedImageId(imageId);
+    setIsGalleryModalOpen(false);
+    
+    // Reset states for new image
+    setPrintifyPreviewUrls([]);
+    setPrintifyImageId('');
+    setPrintifyProductId('');
+    setImageAdjustments(undefined);
+    setHasGenerated(false);
+  }, []);
+
+  // Handle adjustments (position and size)
+  const handleAdjustment = useCallback(async (type: 'position' | 'size', value: string | number) => {
+    // Rate limiting check
+    const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
+    if (!allowed) {
+      toast.error(message);
+      return;
+    }
+
+    // Only check userImageDimensions for position changes
+    if (type === 'position' && !userImageDimensions) {
+      toast.error('Aguarde o carregamento da imagem');
+      return;
+    }
+
+    let newPosition = imagePosition;
+    let newVariantId = selectedPrintifyVariantId;
+
+    if (type === 'position' && typeof value === 'string') {
+      newPosition = value as 'top' | 'center' | 'bottom' | 'left' | 'right';
+      setImagePosition(newPosition);
+    } else if (type === 'size' && typeof value === 'number') {
+      newVariantId = value;
+      setSelectedPrintifyVariantId(newVariantId);
+      // Reset position when variant changes
+      setImagePosition('center');
+      newPosition = 'center';
+    }
+
+    // Record the request
+    GlobalRateLimiter.recordRequest();
+
+    // Generate mockup if conditions are met
+    if (newVariantId !== null && selectedImageUrl && userImageDimensions) {
+      setIsGeneratingMockup(true);
+      // The ProductCanvas component will handle the mockup generation
+    }
+  }, [imagePosition, selectedPrintifyVariantId, userImageDimensions, selectedImageUrl]);
+
+  // Handle add to cart
+  const handleAddToCart = useCallback(async () => {
     const validationError = config.validatePurchase(
       selectedImageUrl,
       selectedImageId,
@@ -254,7 +407,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     try {
       const variant = product.variants?.find((v) => v.id === selectedPrintifyVariantId);
 
-      // Converter posição técnica para texto legível
+      // Convert position to readable text
       const getPositionText = (position: string) => {
         const positionMap: Record<string, string> = {
           'center': 'Centro',
@@ -265,6 +418,27 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         };
         return positionMap[position] || 'Centro';
       };
+
+      // Track personalization complete before adding to cart
+      if (userInfo?.id) {
+        trackPersonalizationComplete({
+          user_id: userInfo.id,
+          product_id: product.id,
+          final_configuration: {
+            position: imagePosition,
+            variant_id: selectedPrintifyVariantId,
+            image_url: selectedImageUrl,
+            adjustments: imageAdjustments
+          },
+          total_adjustments: 1,
+          time_spent_personalizing: 30, // Approximate
+          satisfaction_indicators: {
+            mockup_views: hasGenerated ? 1 : 0,
+            position_adjustments: 1,
+            variant_changes: 1
+          }
+        });
+      }
 
       const success = addToCart({
         productId: product.id,
@@ -287,8 +461,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       });
 
       if (success) {
-        // Produto adicionado - abertura do carrinho é feedback suficiente
-        // Abrir o carrinho sidebar automaticamente
         setIsCartOpen(true);
       }
     } catch (error) {
@@ -296,155 +468,63 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    config, selectedImageUrl, selectedImageId, userInfo, selectedPrintifyVariantId, 
+    printifyProductId, printifyImageId, product, basePrice, quantity, imageAdjustments, 
+    imagePosition, hasGenerated, addToCart, setIsCartOpen
+  ]);
 
-  const handleOpenGallery = () => setIsGalleryModalOpen(true);
-
-  const handleSelectImageFromGallery = async (imageUrl: string, imageId: string) => {
-    setSelectedImageUrl(imageUrl);
-    setSelectedImageId(imageId);
-    setIsGalleryModalOpen(false);
-    
-    // ✅ RESET COMPLETO DO ESTADO PARTILHADO
-    setPrintifyPreviewUrls([]);
-    setPrintifyImageId('');
-    setPrintifyProductId('');
-    setImageAdjustments(undefined);
-    setHasGenerated(false);
-    
-    // ✅ NOTA: mockupGenerationKey será gerado automaticamente pelo useEffect
-  };
-
-  // ✅ CALLBACK PARA QUANDO MOCKUP É GERADO
-  const handleMockupGenerated = useCallback(() => {
-    setHasGenerated(true);
-    setIsGeneratingMockup(false);
-  }, []);
-
-  // Função para gerar novos mockups quando a posição muda
-  const generateNewMockup = async (position: 'top' | 'center' | 'bottom' | 'left' | 'right', variantId: number, isPositionChange: boolean = false) => {
-    if (!selectedImageUrl || !userInfo?.id || !userImageDimensions) return;
-
-    // Calcular novas coordenadas baseadas na posição
-    let newAdjustments = imageAdjustments;
-    if (config.calculatePrintifyCoords) {
-      newAdjustments = config.calculatePrintifyCoords(
-        position,
-        variantId,
-        userImageDimensions,
-        product
-      );
-      setImageAdjustments(newAdjustments);
-    }
-
-    setIsGeneratingMockup(true);
-    
-    try {
-      const response = await fetch('/api/printify/mockups/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          userImageUrl: selectedImageUrl,
-          userId: userInfo.id,
-          imageAdjustments: newAdjustments,
-          selectedPrintifyVariantId: variantId,
-        }),
+  // Track product view on component mount
+  useEffect(() => {
+    if (product && userInfo?.id) {
+      trackProductView({
+        user_id: userInfo.id,
+        product_id: product.id,
+        product_name: product.name,
+        product_category: product.category || config.productCategory,
+        product_price: config.getBasePrice(product, selectedPrintifyVariantId),
+        view_source: 'direct_link',
+        has_selected_image: !!selectedImageUrl,
+        referrer_product: document.referrer.includes('/shop/') ? 'shop_listing' : undefined
       });
+    }
+  }, [product, userInfo?.id]); // Only track once per user/product
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  // Track variant selection
+  useEffect(() => {
+    if (selectedPrintifyVariantId && userInfo?.id && product) {
+      const variant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+      if (variant) {
+        const basePrice = config.getBasePrice(product, selectedPrintifyVariantId);
+        const defaultPrice = config.getBasePrice(product, null);
+        trackVariantSelection({
+          user_id: userInfo.id,
+          product_id: product.id,
+          variant_id: selectedPrintifyVariantId,
+          variant_name: variant.title,
+          price_change: basePrice - defaultPrice,
+          selection_method: 'dropdown',
+          previous_variant_id: undefined,
+          time_to_select: 2
+        });
       }
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to generate mockup');
-      }
-
-      if (data.previewUrls && data.printifyProductId) {
-        setPrintifyPreviewUrls(data.previewUrls);
-        setPrintifyImageId(data.printifyImageId || '');
-        setPrintifyProductId(data.printifyProductId);
-        setCurrentMockupUrls(data.previewUrls);
-        
-        // ✅ AGUARDAR IMAGEM CARREGAR ANTES DE REMOVER LOADING
-        if (data.previewUrls[0]) {
-          const img = new Image();
-          
-          const finishLoading = () => {
-            setIsGeneratingMockup(false);
-            // Mockup atualizado - visual feedback é suficiente
-          };
-          
-          img.onload = finishLoading;
-          img.onerror = finishLoading;
-          img.src = data.previewUrls[0];
-          
-          // ✅ TIMEOUT DE SEGURANÇA (máximo 5 segundos)
-          const timeoutId = setTimeout(finishLoading, 5000);
-          
-          // Cleanup timeout se imagem carregar primeiro
-          img.onload = () => {
-            clearTimeout(timeoutId);
-            finishLoading();
-          };
-          img.onerror = () => {
-            clearTimeout(timeoutId);
-            finishLoading();
-          };
-        } else {
-          setIsGeneratingMockup(false);
-          // Mockup atualizado - visual feedback é suficiente
-        }
-      }
-    } catch (error) {
-      toast.error('Erro ao gerar novo mockup. Tente novamente.');
-      setIsGeneratingMockup(false);
     }
-  };
+  }, [selectedPrintifyVariantId, userInfo?.id, product]);
 
-  const handleAdjustment = async (type: 'position' | 'size', value: string | number) => {
-    // 1. FALA COM O GUARDA-COSTAS PRIMEIRO
-    const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
-    if (!allowed) {
-      toast.error(message);
-      return;
+  // Track image customization when position changes
+  useEffect(() => {
+    if (imagePosition && userInfo?.id && product && selectedImageUrl) {
+      trackImageCustomization({
+        user_id: userInfo.id,
+        product_id: product.id,
+        action: 'position_change',
+        from_value: 'center',
+        to_value: imagePosition,
+        adjustment_count: 1,
+        total_time_customizing: 30
+      });
     }
-
-    // ✅ APENAS verifica userImageDimensions para mudanças de POSIÇÃO
-    // Para mudanças de TAMANHO, permite sempre
-    if (type === 'position' && !userImageDimensions) {
-      toast.error('Aguarde o carregamento da imagem');
-      return;
-    }
-
-    let newPosition = imagePosition;
-    let newVariantId = selectedPrintifyVariantId;
-
-    if (type === 'position' && typeof value === 'string') {
-      newPosition = value as 'top' | 'center' | 'bottom' | 'left' | 'right';
-      setImagePosition(newPosition);
-    } else if (type === 'size' && typeof value === 'number') {
-      newVariantId = value;
-      setSelectedPrintifyVariantId(newVariantId);
-      // Resetar posição para centro quando muda variante
-      setImagePosition('center');
-      newPosition = 'center';
-    }
-
-    // 2. Se for permitido, regista o pedido
-    GlobalRateLimiter.recordRequest();
-
-    // 3. E SÓ DEPOIS CHAMA A FUNÇÃO PARA GERAR A MOCKUP (O ATAQUE)
-    // ✅ SÓ gera mockup se tiver imagem selecionada E dimensões carregadas
-    if (newVariantId !== null && selectedImageUrl && userImageDimensions) {
-      const isPositionChange = type === 'position';
-      await generateNewMockup(newPosition, newVariantId, isPositionChange);
-    }
-  };
+  }, [imagePosition, userInfo?.id, product, selectedImageUrl, selectedPrintifyVariantId]);
 
   // Condições auxiliares
   const isProcessingMockup = (!printifyProductId || !printifyImageId) && selectedImageUrl;

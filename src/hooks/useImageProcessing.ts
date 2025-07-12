@@ -17,7 +17,9 @@ import {
   trackDropOff,
   trackHover,
   trackFeatureAdoption,
-  trackEvent 
+  trackEvent,
+  trackApiPerformance,
+  trackError 
 } from '@/lib/posthog';
 
 // Transformações são agora gratuitas - 10 por dia
@@ -249,12 +251,25 @@ export function useImageProcessing() {
       pollCountRef.current += 1;
       setSimulatedProgress(calculateSimulatedProgress(pollCountRef.current));
       
+      const startTime = Date.now();
       try {
         const cacheParam = pollCountRef.current > 6 ? `&_t=${Date.now()}` : ''; // Cache bypass mais cedo (era 18)
         const userParam = userInfo?.id ? `&userId=${userInfo.id}` : '';
         const apiUrl = `/api/get-transformation-status?jobId=${currentJobId}${userParam}${cacheParam}`;
         
         const response = await fetch(apiUrl);
+        const responseTime = Date.now() - startTime;
+
+        // Track API performance
+        trackApiPerformance({
+          user_id: userInfo?.id,
+          endpoint: '/api/get-transformation-status',
+          method: 'GET',
+          response_time_ms: responseTime,
+          status_code: response.status,
+          success: response.ok,
+          retry_count: pollCountRef.current
+        });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ message: `Erro HTTP ${response.status} ao buscar status. Sem corpo JSON.` }));
@@ -264,7 +279,18 @@ export function useImageProcessing() {
         const data: StatusResponse = await response.json();
         
         if (data.status === 'error' || data.status?.startsWith('failed')) {
-          // 🔥 TRACKING: Transformation failed during processing
+          // Track transformation failure
+          trackError({
+            user_id: userInfo.id,
+            error_type: 'api',
+            error_message: data.error_message || 'Transformation failed',
+            page_path: window.location.pathname,
+            user_action: 'transformation_processing',
+            severity: 'medium',
+            recoverable: true
+          });
+
+          // Track transformation failed event
           trackEvent('transformation_failed', {
             user_id: userInfo.id,
             job_id: currentJobId,
@@ -275,8 +301,8 @@ export function useImageProcessing() {
           });
 
           setErrorMessage(STANDARD_ERROR_MESSAGE);
-            setProcessingState('error');
-            setActiveStep(3);
+          setProcessingState('error');
+          setActiveStep(3);
           toast.error("Falha na Transformação", {description: SIMPLE_ERROR_TOAST_MESSAGE});
 
           // Process failure automatically
@@ -288,7 +314,7 @@ export function useImageProcessing() {
           }
           setIsLoading(false);
         } else if (data.status === 'completed' && data.output_url) {
-          // 🔥 TRACKING: Transformation completed successfully
+          // Track transformation completion
           trackEvent('transformation_completed', {
             user_id: userInfo.id,
             job_id: currentJobId,
@@ -302,15 +328,15 @@ export function useImageProcessing() {
           setProcessingState('completed');
           setActiveStep(3);
           setSimulatedProgress(100);
-          // Transformação concluída - visual feedback é suficiente
+          
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
           }
           setIsLoading(false);
           fetchTransformationRating(currentJobId);
-        } else if (['processing', 'processing_queued'].includes(data.status || '')) {
-          // 🔥 TRACKING: Processing progress (only log every 5 polls to avoid spam)
+        } else if (data.status === 'processing' || data.status === 'in_progress') {
+          // Track processing progress (only log every 5 polls to avoid spam)
           if (pollCountRef.current % 5 === 0) {
             trackEvent('transformation_progress', {
               user_id: userInfo.id,
@@ -325,7 +351,7 @@ export function useImageProcessing() {
             setProcessingState('processing'); 
           }
 
-          // 🚀 POLLING ADAPTATIVO: Reagendar com o próximo intervalo
+          // Schedule next poll
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             const nextInterval = getPollingInterval(pollCountRef.current);
@@ -337,8 +363,30 @@ export function useImageProcessing() {
           // API returned no status - silent handling
         }
       } catch (apiError) { 
+        const responseTime = Date.now() - startTime;
         const errorMsg = apiError instanceof Error ? apiError.message : "Erro de rede ou formato de resposta inválido.";
-        // Silent error handling for API call errors
+        
+        // Track API error
+        trackApiPerformance({
+          user_id: userInfo?.id,
+          endpoint: '/api/get-transformation-status',
+          method: 'GET',
+          response_time_ms: responseTime,
+          status_code: 500,
+          success: false,
+          error_type: 'network_error',
+          retry_count: pollCountRef.current
+        });
+
+        trackError({
+          user_id: userInfo?.id,
+          error_type: 'api',
+          error_message: errorMsg,
+          page_path: window.location.pathname,
+          user_action: 'transformation_polling',
+          severity: 'medium',
+          recoverable: true
+        });
       }
 
       if (pollCountRef.current >= MAX_POLL_ATTEMPTS_CONST && 

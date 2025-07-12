@@ -82,7 +82,6 @@ export async function printifyFetch(endpoint: string, options: RequestInit = {},
 export async function testPrintifyConnection() {
   try {
     const data = await printifyFetch('shops.json', { method: 'GET' });
-    console.log('✅ Printify connection successful:', data);
     return true;
   } catch (err) {
     console.error('❌ Printify connection failed:', err);

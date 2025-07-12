@@ -126,8 +126,6 @@ export async function applyRateLimit(
 
   const id = identifier || clientIp; 
 
-  console.log(`[RateLimit] Aplicando limite para o identificador: ${id.startsWith('unknown') ? `IP_FALLBACK (${id})` : id }`);
-
   try {
     const { success, limit, remaining, reset } = await effectiveLimiter.limit(id);
 
@@ -148,7 +146,6 @@ export async function applyRateLimit(
       return false; // Pedido bloqueado
     }
 
-    console.log(`[RateLimit] PERMITIDO para ${id}. Limite: ${limit}, Restantes: ${remaining}`);
     return true; // Pedido permitido
   } catch (error) {
     // ⚠️ CRÍTICO: Redis/Upstash falhou - permitir pedidos para evitar paragem total

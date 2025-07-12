@@ -8,6 +8,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { CartService } from '@/lib/cart/cartService';
+import { useAuth } from '@/hooks/useAuth';
+import { trackPurchaseCompleted } from '@/lib/posthog';
 
 interface OrderResult {
   success: boolean;
@@ -35,6 +37,7 @@ const CheckoutSuccessPage: React.FC = () => {
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { userInfo } = useAuth();
 
   useEffect(() => {
     if (!session_id) return;
@@ -57,6 +60,24 @@ const CheckoutSuccessPage: React.FC = () => {
         
         if (response.ok && result.success) {
           setOrderResult(result);
+          
+          // Track purchase completed
+          if (userInfo?.id) {
+            trackPurchaseCompleted({
+              user_id: userInfo.id,
+              order_id: result.orderId,
+              order_reference: result.orderReference,
+              payment_method: 'card',
+              total_amount: result.total || 0,
+              discount_amount: result.discount || 0,
+              shipping_cost: result.shipping || 0,
+              items_count: 1, // Approximate
+              items_by_category: { 'personalized': 1 },
+              customer_type: 'returning', // Could be determined from user data
+              order_processing_time: 300, // Approximate processing time
+              transformation_to_purchase_time: 600 // Approximate
+            });
+          }
           
           CartService.clearCart();
           
@@ -86,7 +107,7 @@ const CheckoutSuccessPage: React.FC = () => {
     };
 
     processOrder();
-  }, [session_id]);
+  }, [session_id, userInfo]);
 
   if (loading) {
     return (

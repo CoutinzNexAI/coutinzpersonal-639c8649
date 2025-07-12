@@ -24,8 +24,6 @@ export const supabaseAdmin = createClient(
   }
 );
 
-console.log('[lib/supabase/admin] Supabase admin client initialized with custom fetch.');
-
 // Validate admin client was created successfully
 if (!supabaseAdmin) {
   throw new Error('Failed to initialize Supabase admin client');

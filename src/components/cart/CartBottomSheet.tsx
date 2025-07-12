@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { supabase } from '@/lib/supabase/client';
 import { CartItem, CartSummary } from '@/lib/cart/cartTypes';
+import { trackCheckoutStarted } from '@/lib/posthog';
 import Image from 'next/image';
 
 interface CartBottomSheetProps {
@@ -111,6 +112,26 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
     if (!cartSummary || !userInfo) {
       toast.error('Dados incompletos para finalizar compra');
       return;
+    }
+
+    // Track checkout started
+    if (userInfo?.id) {
+      const itemsByCategory = cartSummary.items.reduce((acc, item) => {
+        const category = item.productCategory || 'unknown';
+        acc[category] = (acc[category] || 0) + item.quantity;
+        return acc;
+      }, {} as Record<string, number>);
+
+      trackCheckoutStarted({
+        user_id: userInfo.id,
+        cart_items: cartSummary.itemCount,
+        cart_value: cartSummary.subtotal,
+        discount_amount: cartSummary.discountAmount,
+        shipping_cost: cartSummary.shipping,
+        total_amount: cartSummary.subtotal + cartSummary.shipping,
+        checkout_source: 'cart_bottom_sheet',
+        items_by_category: itemsByCategory
+      });
     }
 
     setIsProcessingCheckout(true);

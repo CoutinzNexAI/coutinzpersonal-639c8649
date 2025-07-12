@@ -29,7 +29,6 @@ export const trackEvent = (eventName: string, properties?: Record<string, string
     const userId = posthog.get_property('$user_id') || properties?.user_id;
     
     if (isTestAccount(userEmail as string, userId as string)) {
-      console.log('PostHog: Evento bloqueado para conta de teste:', eventName, properties);
       return;
     }
     
@@ -42,7 +41,6 @@ export const identifyUser = (userId: string, properties?: Record<string, string 
     const userEmail = properties?.email;
     
     if (isTestAccount(userEmail as string, userId)) {
-      console.log('PostHog: Identificação bloqueada para conta de teste:', userId, properties);
       // Para contas de teste, vamos parar o session recording se estiver ativo
       posthog.stopSessionRecording();
       return;
@@ -323,6 +321,589 @@ export function trackSessionEnd(duration: number, data: Record<string, unknown> 
   });
 }
 
+// 🛒 E-COMMERCE TRACKING FUNCTIONS
+
+export function trackAddToCart(data: {
+  user_id: string;
+  product_id: string;
+  product_name: string;
+  product_category: string;
+  variant_id?: number;
+  variant_name?: string;
+  price: number;
+  quantity: number;
+  cart_total_items: number;
+  cart_total_value: number;
+  customizations: Record<string, unknown>;
+  time_on_product_page?: number;
+  mockup_views?: number;
+  position_adjustments?: number;
+}) {
+  trackEvent('add_to_cart', {
+    ...data,
+    customizations: JSON.stringify(data.customizations),
+    revenue_event: true,
+    timestamp: new Date().toISOString(),
+    session_id: generateSessionId(),
+    ...getDeviceInfo(),
+    ...getAcquisitionContext()
+  });
+}
+
+export function trackRemoveFromCart(data: {
+  user_id: string;
+  product_id: string;
+  product_name: string;
+  price: number;
+  quantity: number;
+  cart_total_items: number;
+  cart_total_value: number;
+  removal_reason?: 'user_action' | 'quantity_change' | 'clear_cart';
+}) {
+  trackEvent('remove_from_cart', {
+    ...data,
+    revenue_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackCartView(data: {
+  user_id: string;
+  cart_items: number;
+  cart_value: number;
+  view_source: 'sidebar' | 'bottom_sheet' | 'page';
+  items_by_category: Record<string, number>;
+  discount_applied?: number;
+  shipping_cost?: number;
+}) {
+  trackEvent('cart_view', {
+    ...data,
+    items_by_category: JSON.stringify(data.items_by_category),
+    revenue_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackCheckoutStarted(data: {
+  user_id: string;
+  cart_items: number;
+  cart_value: number;
+  discount_amount: number;
+  shipping_cost: number;
+  total_amount: number;
+  checkout_source: 'cart_sidebar' | 'cart_bottom_sheet' | 'product_page';
+  items_by_category: Record<string, number>;
+}) {
+  trackEvent('checkout_started', {
+    ...data,
+    items_by_category: JSON.stringify(data.items_by_category),
+    revenue_event: true,
+    conversion_event: true,
+    timestamp: new Date().toISOString(),
+    session_id: generateSessionId(),
+    ...getDeviceInfo(),
+    ...getAcquisitionContext()
+  });
+}
+
+export function trackPurchaseCompleted(data: {
+  user_id: string;
+  order_id: string;
+  order_reference: string;
+  payment_method: string;
+  total_amount: number;
+  discount_amount: number;
+  shipping_cost: number;
+  items_count: number;
+  items_by_category: Record<string, number>;
+  customer_type: 'new' | 'returning';
+  order_processing_time?: number;
+  transformation_to_purchase_time?: number;
+}) {
+  trackEvent('purchase_completed', {
+    ...data,
+    items_by_category: JSON.stringify(data.items_by_category),
+    revenue_event: true,
+    conversion_event: true,
+    high_value_event: true,
+    timestamp: new Date().toISOString(),
+    session_id: generateSessionId(),
+    ...getDeviceInfo(),
+    ...getAcquisitionContext()
+  });
+}
+
+export function trackCartAbandonment(data: {
+  user_id: string;
+  cart_items: number;
+  cart_value: number;
+  time_in_cart: number;
+  abandonment_stage: 'cart_view' | 'checkout_started' | 'payment_info' | 'final_step';
+  last_interaction: string;
+  items_by_category: Record<string, number>;
+}) {
+  trackEvent('cart_abandonment', {
+    ...data,
+    items_by_category: JSON.stringify(data.items_by_category),
+    revenue_event: true,
+    abandonment_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// 🎨 PRODUCT INTERACTION TRACKING
+
+export function trackProductView(data: {
+  user_id?: string;
+  product_id: string;
+  product_name: string;
+  product_category: string;
+  product_price: number;
+  view_source: 'shop_page' | 'category_page' | 'search' | 'direct_link';
+  has_selected_image: boolean;
+  referrer_product?: string;
+}) {
+  trackEvent('product_view', {
+    ...data,
+    engagement_event: true,
+    timestamp: new Date().toISOString(),
+    session_id: generateSessionId(),
+    ...getDeviceInfo(),
+    ...getAcquisitionContext()
+  });
+}
+
+export function trackVariantSelection(data: {
+  user_id: string;
+  product_id: string;
+  variant_id: number;
+  variant_name: string;
+  price_change: number;
+  selection_method: 'dropdown' | 'button' | 'auto';
+  previous_variant_id?: number;
+  time_to_select?: number;
+}) {
+  trackEvent('variant_selected', {
+    ...data,
+    personalization_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackImageCustomization(data: {
+  user_id: string;
+  product_id: string;
+  action: 'position_change' | 'scale_change' | 'rotation_change' | 'crop_change';
+  from_value: number | string;
+  to_value: number | string;
+  adjustment_count: number;
+  total_time_customizing: number;
+}) {
+  trackEvent('image_customization', {
+    ...data,
+    personalization_event: true,
+    engagement_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackMockupGeneration(data: {
+  user_id: string;
+  product_id: string;
+  variant_id?: number;
+  generation_trigger: 'image_upload' | 'variant_change' | 'position_change' | 'manual';
+  generation_time_ms: number;
+  success: boolean;
+  error_message?: string;
+  mockup_count: number;
+}) {
+  trackEvent('mockup_generation', {
+    ...data,
+    technical_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackMockupInteraction(data: {
+  user_id: string;
+  product_id: string;
+  interaction_type: 'view' | 'zoom' | 'navigate' | 'share' | 'download';
+  mockup_index: number;
+  total_mockups: number;
+  time_viewing_ms: number;
+}) {
+  trackEvent('mockup_interaction', {
+    ...data,
+    engagement_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// 🎯 PERSONALIZATION & CUSTOMIZATION TRACKING
+
+export function trackPersonalizationStart(data: {
+  user_id: string;
+  product_id: string;
+  starting_configuration: Record<string, unknown>;
+  entry_point: 'product_page' | 'gallery' | 'transformation_complete';
+}) {
+  trackEvent('personalization_start', {
+    ...data,
+    starting_configuration: JSON.stringify(data.starting_configuration),
+    personalization_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackPersonalizationComplete(data: {
+  user_id: string;
+  product_id: string;
+  final_configuration: Record<string, unknown>;
+  total_adjustments: number;
+  time_spent_personalizing: number;
+  satisfaction_indicators: {
+    mockup_views: number;
+    position_adjustments: number;
+    variant_changes: number;
+  };
+}) {
+  trackEvent('personalization_complete', {
+    ...data,
+    final_configuration: JSON.stringify(data.final_configuration),
+    satisfaction_indicators: JSON.stringify(data.satisfaction_indicators),
+    personalization_event: true,
+    engagement_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackDesignPreference(data: {
+  user_id: string;
+  product_category: string;
+  preference_type: 'position' | 'scale' | 'variant' | 'style';
+  preference_value: string | number;
+  frequency: number;
+  confidence_score: number;
+}) {
+  trackEvent('design_preference_learned', {
+    ...data,
+    personalization_event: true,
+    ml_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// 📊 PERFORMANCE & TECHNICAL TRACKING
+
+export function trackPagePerformance(data: {
+  user_id?: string;
+  page_path: string;
+  load_time_ms: number;
+  first_contentful_paint_ms: number;
+  largest_contentful_paint_ms: number;
+  cumulative_layout_shift: number;
+  first_input_delay_ms?: number;
+  connection_type: string;
+  device_memory?: number;
+}) {
+  trackEvent('page_performance', {
+    ...data,
+    performance_event: true,
+    timestamp: new Date().toISOString(),
+    ...getDeviceInfo()
+  });
+}
+
+export function trackApiPerformance(data: {
+  user_id?: string;
+  endpoint: string;
+  method: string;
+  response_time_ms: number;
+  status_code: number;
+  success: boolean;
+  error_type?: string;
+  retry_count?: number;
+}) {
+  trackEvent('api_performance', {
+    ...data,
+    performance_event: true,
+    technical_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackError(data: {
+  user_id?: string;
+  error_type: 'javascript' | 'api' | 'network' | 'validation' | 'payment';
+  error_message: string;
+  error_stack?: string;
+  page_path: string;
+  user_action?: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  recoverable: boolean;
+}) {
+  trackEvent('error_occurred', {
+    ...data,
+    error_event: true,
+    timestamp: new Date().toISOString(),
+    session_id: generateSessionId(),
+    ...getDeviceInfo()
+  });
+}
+
+// 💰 REVENUE INTELLIGENCE TRACKING
+
+export function trackRevenueOpportunity(data: {
+  user_id: string;
+  opportunity_type: 'upsell' | 'cross_sell' | 'bundle' | 'upgrade';
+  suggested_product_id: string;
+  current_cart_value: number;
+  potential_additional_revenue: number;
+  confidence_score: number;
+  trigger_event: string;
+}) {
+  trackEvent('revenue_opportunity', {
+    ...data,
+    revenue_event: true,
+    ml_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackPriceReaction(data: {
+  user_id: string;
+  product_id: string;
+  price_shown: number;
+  reaction_type: 'positive' | 'negative' | 'neutral';
+  time_spent_on_price: number;
+  proceeded_to_cart: boolean;
+  discount_interest_indicators: number;
+}) {
+  trackEvent('price_reaction', {
+    ...data,
+    revenue_event: true,
+    behavioral_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackDiscountEffectiveness(data: {
+  user_id: string;
+  discount_type: 'percentage' | 'fixed' | 'bulk' | 'free_shipping';
+  discount_amount: number;
+  original_price: number;
+  final_price: number;
+  conversion_boost: boolean;
+  triggered_purchase: boolean;
+}) {
+  trackEvent('discount_effectiveness', {
+    ...data,
+    revenue_event: true,
+    conversion_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// 🔄 ADVANCED USER JOURNEY TRACKING
+
+export function trackValueRealization(data: {
+  user_id: string;
+  milestone: 'first_transformation' | 'first_mockup' | 'first_purchase' | 'first_repeat_purchase';
+  time_to_milestone_hours: number;
+  value_indicators: {
+    engagement_score: number;
+    satisfaction_indicators: number;
+    usage_frequency: number;
+  };
+  next_predicted_action: string;
+}) {
+  trackEvent('value_realization', {
+    ...data,
+    value_indicators: JSON.stringify(data.value_indicators),
+    lifecycle_event: true,
+    high_value_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackFeatureAdoptionDepth(data: {
+  user_id: string;
+  feature_name: string;
+  adoption_level: 'discovered' | 'tried' | 'adopted' | 'mastered';
+  usage_frequency: number;
+  feature_value_score: number;
+  time_to_adoption_hours: number;
+}) {
+  trackEvent('feature_adoption_depth', {
+    ...data,
+    adoption_event: true,
+    engagement_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackCrossSessionBehavior(data: {
+  user_id: string;
+  session_count: number;
+  avg_session_duration: number;
+  behavior_pattern: string;
+  engagement_trend: 'increasing' | 'decreasing' | 'stable';
+  retention_risk_score: number;
+  value_growth_trajectory: string;
+}) {
+  trackEvent('cross_session_behavior', {
+    ...data,
+    behavioral_event: true,
+    retention_event: true,
+    ml_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// 🎪 ENGAGEMENT & INTERACTION TRACKING
+
+export function trackEngagementQuality(data: {
+  user_id: string;
+  page_path: string;
+  engagement_score: number;
+  interactions_count: number;
+  meaningful_actions: number;
+  time_spent_active: number;
+  scroll_depth_max: number;
+  content_consumed_percent: number;
+}) {
+  trackEvent('engagement_quality', {
+    ...data,
+    engagement_event: true,
+    behavioral_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackContentInteraction(data: {
+  user_id?: string;
+  content_type: 'gallery' | 'product' | 'tutorial' | 'testimonial' | 'faq';
+  content_id: string;
+  interaction_type: 'view' | 'click' | 'share' | 'bookmark' | 'download';
+  interaction_depth: number;
+  time_engaged: number;
+}) {
+  trackEvent('content_interaction', {
+    ...data,
+    engagement_event: true,
+    content_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// 🔬 A/B TESTING & EXPERIMENTATION
+
+export function trackExperimentExposure(data: {
+  user_id?: string;
+  experiment_id: string;
+  experiment_name: string;
+  variant: string;
+  treatment_group: string;
+  exposure_context: string;
+}) {
+  trackEvent('experiment_exposure', {
+    ...data,
+    experiment_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackExperimentConversion(data: {
+  user_id: string;
+  experiment_id: string;
+  variant: string;
+  conversion_type: string;
+  conversion_value?: number;
+  time_to_conversion: number;
+}) {
+  trackEvent('experiment_conversion', {
+    ...data,
+    experiment_event: true,
+    conversion_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// 📱 MOBILE-SPECIFIC TRACKING
+
+export function trackMobileGesture(data: {
+  user_id?: string;
+  gesture_type: 'swipe' | 'pinch' | 'double_tap' | 'long_press';
+  element_target: string;
+  gesture_success: boolean;
+  intended_action: string;
+}) {
+  trackEvent('mobile_gesture', {
+    ...data,
+    mobile_event: true,
+    interaction_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export function trackMobileUsability(data: {
+  user_id?: string;
+  usability_issue: 'touch_target_small' | 'scroll_difficulty' | 'load_slow' | 'navigation_unclear';
+  severity: 'low' | 'medium' | 'high';
+  page_path: string;
+  device_info: string;
+}) {
+  trackEvent('mobile_usability', {
+    ...data,
+    mobile_event: true,
+    usability_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// 🌟 SATISFACTION & FEEDBACK TRACKING
+
+export function trackSatisfactionSignal(data: {
+  user_id: string;
+  signal_type: 'explicit' | 'implicit';
+  satisfaction_score: number;
+  context: string;
+  feedback_text?: string;
+  improvement_suggestions?: string[];
+}) {
+  trackEvent('satisfaction_signal', {
+    ...data,
+    improvement_suggestions: data.improvement_suggestions ? JSON.stringify(data.improvement_suggestions) : null,
+    satisfaction_event: true,
+    feedback_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// 🎯 MARKETING ATTRIBUTION TRACKING
+
+export function trackMarketingAttribution(data: {
+  user_id?: string;
+  attribution_model: 'first_click' | 'last_click' | 'linear' | 'time_decay';
+  touchpoints: Array<{
+    source: string;
+    medium: string;
+    campaign: string;
+    timestamp: string;
+    value_contribution: number;
+  }>;
+  conversion_value: number;
+  attribution_confidence: number;
+}) {
+  trackEvent('marketing_attribution', {
+    ...data,
+    touchpoints: JSON.stringify(data.touchpoints),
+    attribution_event: true,
+    marketing_event: true,
+    timestamp: new Date().toISOString(),
+  });
+}
+
 // 🛠️ UTILITY FUNCTIONS
 
 function generateSessionId(): string {
@@ -413,6 +994,5 @@ export function getPostHogDebugInfo(): Record<string, unknown> {
 export function forceStopSessionRecording(): void {
   if (typeof window !== 'undefined') {
     posthog.stopSessionRecording();
-    console.log('PostHog: Session recording forçadamente parado');
   }
 } 
