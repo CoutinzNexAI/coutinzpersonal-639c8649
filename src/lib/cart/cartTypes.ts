@@ -7,6 +7,7 @@ export interface CartItem {
   userImageId?: string; // ID da transformação para tracking
   price: number;
   quantity: number;
+  finalPrice?: number; // ✅ NOVO: Preço final com desconto aplicado (calculado pelo frontend)
   customizations: { // Guarda as escolhas do user
     variantId: number; // ID da variante (cor/tamanho) da Printify
     

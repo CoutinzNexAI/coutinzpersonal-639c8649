@@ -105,8 +105,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ message: 'Error syncing user', detail: upsertError.message });
     }
 
-    console.log("[User Sync API] ✅ User profile synced successfully in DB.");
-
     return res.status(200).json({
       success: true,
       isNewUser

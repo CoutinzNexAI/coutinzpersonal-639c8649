@@ -15,7 +15,7 @@ interface CartItem {
   productName: string;
   price: number;
   quantity: number;
-  productUid: string;
+  productId: string; // ✅ CORRIGIDO: usar productId como no frontend
   userImageId?: string;
   userImageUrl?: string;
   customizations?: { 
@@ -31,6 +31,31 @@ interface CartItem {
   printifyProductId?: string;
   printifyVariantId?: number;
   printifyImageId?: string;
+  // ✅ NOVO: Preço final calculado pelo frontend (incluindo desconto)
+  finalPrice?: number;
+}
+
+// ✅ NOVO: Função para validar preços do frontend
+function validateItemPricing(item: CartItem, productGroups: Record<string, CartItem[]>): { isValid: boolean; expectedPrice: number; discountPercent: number } {
+  // Calcular desconto esperado baseado na quantidade do grupo
+  const sameProductItems = productGroups[item.productId] || [];
+  const totalSameProductQty = sameProductItems.reduce((sum, groupItem) => sum + groupItem.quantity, 0);
+  
+  let discountPercent = 0;
+  if (totalSameProductQty >= 3) {
+    discountPercent = 15;
+  } else if (totalSameProductQty >= 2) {
+    discountPercent = 10;
+  }
+  
+  // Calcular preço esperado
+  const expectedPrice = item.price * (1 - discountPercent / 100);
+  
+  // Validar se o preço do frontend corresponde ao esperado (tolerância de 1 cêntimo)
+  const frontendPrice = item.finalPrice || item.price;
+  const isValid = Math.abs(frontendPrice - expectedPrice) < 0.01;
+  
+  return { isValid, expectedPrice, discountPercent };
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -60,9 +85,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('💾 Salvando dados do checkout temporariamente...');
 
-    // Verificar se algum item tem campos Printify
-    const itemsWithPrintify = items.filter((item: CartItem) => item.printifyProductId && item.printifyVariantId);
-
     // Salvar dados do checkout temporariamente para recuperar depois
     const { error: tempSaveError } = await supabaseAdmin
       .from('checkout_sessions_temp')
@@ -90,9 +112,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('✅ Dados do checkout salvos temporariamente:', checkoutReference);
 
-    // Calcular descontos por grupo de produtos
+    // ✅ NOVO: Agrupar produtos para validação de preços
     const productGroups = items.reduce((groups: Record<string, CartItem[]>, item: CartItem) => {
-      const key = item.productUid;
+      const key = item.productId;
       if (!groups[key]) {
         groups[key] = [];
       }
@@ -100,67 +122,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return groups;
     }, {});
 
-    // Criar line items para o Stripe
+    // ✅ NOVO: Validar preços calculados pelo frontend
+    for (const item of items) {
+      const validation = validateItemPricing(item, productGroups);
+      
+      if (!validation.isValid) {
+        console.error(`❌ Discrepância de preço detectada para item ${item.productId}:`, {
+          frontendPrice: item.finalPrice || item.price,
+          expectedPrice: validation.expectedPrice,
+          discountPercent: validation.discountPercent
+        });
+        return res.status(400).json({ 
+          error: `Erro de validação: preço inconsistente para ${item.productName}. Recarregue a página e tente novamente.` 
+        });
+      }
+    }
+
+    console.log('✅ Validação de preços bem-sucedida');
+
+    // Criar line items para o Stripe usando preços validados do frontend
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: CartItem) => {
       // Construir descrição com posição
       const position = item.customizations?.position || 'Centro';
       const variant = item.customizations?.variant || item.customizations?.size || 'Tamanho padrão';
       const description = `Produto personalizado com arte PicTuz - ${variant} - Posição: ${position}`;
       
-      // Calcular desconto para este item baseado no grupo do produto
-      const sameProductItems = productGroups[item.productUid] || [];
-      const totalSameProductQty = sameProductItems.reduce((sum, groupItem) => sum + groupItem.quantity, 0);
-      
-      let discountPercent = 0;
-      if (totalSameProductQty >= 3) {
-        discountPercent = 15;
-      } else if (totalSameProductQty >= 2) {
-        discountPercent = 10;
-      }
-      
-      // Aplicar desconto ao preço
-      const originalPrice = item.price;
-      const discountedPrice = originalPrice * (1 - discountPercent / 100);
+      // ✅ USAR PREÇO FINAL VALIDADO DO FRONTEND
+      const finalPrice = item.finalPrice || item.price;
       
       return {
-      price_data: {
-        currency: 'eur',
-        product_data: {
-          name: item.productName,
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: item.productName,
             description: description,
-          metadata: {
-            productUid: item.productUid,
-            userImageId: item.userImageId || '',
+            metadata: {
+              productId: item.productId,
+              userImageId: item.userImageId || '',
               transformationId: item.userImageId || '',
-              position: position,
-              originalPrice: originalPrice.toString(),
-              discountPercent: discountPercent.toString(),
-              discountedPrice: discountedPrice.toString()
-          }
+              position: position
+            }
+          },
+          unit_amount: Math.round(finalPrice * 100), // Usar preço final validado
         },
-          unit_amount: Math.round(discountedPrice * 100), // Usar preço com desconto
-      },
-      quantity: item.quantity,
+        quantity: item.quantity,
       };
     });
-
-    // ✅ REMOVIDO: Shipping como line item - usar apenas shipping_options para evitar cobrança dupla
-    // if (shippingMethod && shipping > 0) {
-    //   lineItems.push({
-    //     price_data: {
-    //       currency: 'eur',
-    //       product_data: {
-    //         name: shippingMethod.name,
-    //         description: shippingMethod.description || 'Envio standard em 4-7 dias úteis'
-    //       },
-    //       unit_amount: Math.round(shipping * 100)
-    //     },
-    //     quantity: 1
-    //   });
-    // }
-
-    // ✅ REMOVIDO: Linha do IVA - agora incluído nos preços dos produtos
-    // IVA está incluído no preço de cada produto, não é adicionado separadamente
 
     // Criar sessão Stripe Checkout
     const session = await stripe.checkout.sessions.create({
@@ -170,28 +177,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success_url: `${req.headers.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.referer || req.headers.origin + '/shop'}`,
       customer_email: userEmail,
+      // ✅ SIMPLIFICADO: Apenas metadados essenciais para o webhook
       metadata: {
-        userId,
-        userName,
-        checkoutReference, // Referência única para recuperar dados depois
-        orderReference, // Referência do pedido para guardar na DB
-        orderType: 'gelato',
-        subtotal: subtotal.toString(),
-        originalSubtotal: originalSubtotal?.toString() || subtotal.toString(),
-        discountAmount: discountAmount?.toString() || '0',
-        shipping: shipping.toString(),
-        tax: tax.toString(),
-        total: total.toString(),
-        shippingMethodUid: shippingMethod.uid,
-        shippingMethodName: shippingMethod.name,
-        itemsCount: items.length.toString(),
-        // Fallback region metadata
-        debug_region: 'Porto'
+        userId: userId,
+        checkoutReference: checkoutReference,
+        orderReference: orderReference,
       },
       // Configurar recolha obrigatória de endereço de envio - APENAS PORTUGAL
       shipping_address_collection: {
         allowed_countries: ['PT'],
-        // ✅ BLOQUEADO PARA PORTUGAL APENAS
       },
       phone_number_collection: {
         enabled: true // ✅ FORÇAR: Recolha obrigatória do telefone

@@ -52,10 +52,8 @@ export default async function handler(
             const originalValue = parsedCookiesObjectOriginal[name];
             if (name.startsWith('sb-') && name.includes('-auth-token') && originalValue === undefined) {
               const manualValue = getManuallyParsedCookie(cookieStrToParse, name);
-              console.log(`${endpointName} 🍪 Cookie Getter - Value for "${name}" (manual parse): ${manualValue !== undefined ? 'Found' : 'Not found'}`);
               return manualValue;
             }
-            console.log(`${endpointName} 🍪 Cookie Getter - Value for "${name}" (original parse): ${originalValue !== undefined ? 'Found' : 'Not found'}`);
             return originalValue;
           },
           set: (name: string, value: string, options) => {
@@ -140,7 +138,7 @@ export default async function handler(
     if (updateError) {
       console.error(`${endpointName} ❌ Error updating job ${jobId} status to 'processing':`, updateError.message);
       // Não retorna erro 500 aqui necessariamente, pois o processador de background pode ser chamado mesmo assim
-      // ou podemos decidir não chamar. Por agora, logamos e continuamos.
+      // ou podemos decidir não chamar. Por agora, logamos e continuamos
     } else {
       console.log(`${endpointName} ✅ Job ${jobId} status updated to 'processing'.`);
     }

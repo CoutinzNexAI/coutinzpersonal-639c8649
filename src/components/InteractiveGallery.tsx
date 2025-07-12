@@ -19,10 +19,10 @@ const GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: 2,
-    title: "Lego",
-    style: "Veja a transformação e o detalhe do lego",
-    before: "fotousar/rapazcao.png",
-    after: "fotousar/rapazcao3.png"
+    title: "Rei de Portugal",
+    style: "Estilo para dominar a tuga!",
+    before: "fotousar/rapazfaculdade.png",
+    after: "fotousar/rapazfaculdaderei.png"
   },
   {
     id: 3,
@@ -52,7 +52,22 @@ const GALLERY_ITEMS: GalleryItem[] = [
     before: "fotousar/maiamota.jpg",
     after: "fotousar/maiaazulejo.jpg"
   },
+  {
+    id: 7,
+    title: "Simspon",
+    style: "Simpson World",
+    before: "fotousar/rapazcao.png",
+    after: "fotousar/rapazcao4.png"
+  },
+  {
+    id: 8,
+    title: "Lego",
+    style: "Veja a transformação e o detalhe do lego",
+    before: "fotousar/raparigalisboa.png",
+    after: "fotousar/raparigalisboa3.png"
+  },
 ];
+
 
 const itemsPerPage = 3; // Itens por página para desktop
 const itemsPerPageMobile = 1; // Itens por página para mobile (para swipe de item a item)
