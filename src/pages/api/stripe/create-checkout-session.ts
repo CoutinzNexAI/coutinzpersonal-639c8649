@@ -15,7 +15,7 @@ interface CartItem {
   productName: string;
   price: number;
   quantity: number;
-  productUid: string;
+  productId: string; // ✅ CORRIGIDO: usar productId (consistente com cartTypes.ts)
   userImageId?: string;
   userImageUrl?: string;
   customizations?: { 
@@ -92,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Calcular descontos por grupo de produtos
     const productGroups = items.reduce((groups: Record<string, CartItem[]>, item: CartItem) => {
-      const key = item.productUid;
+      const key = item.productId; // ✅ CORRIGIDO: usar productId
       if (!groups[key]) {
         groups[key] = [];
       }
@@ -108,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const description = `Produto personalizado com arte PicTuz - ${variant} - Posição: ${position}`;
       
       // Calcular desconto para este item baseado no grupo do produto
-      const sameProductItems = productGroups[item.productUid] || [];
+      const sameProductItems = productGroups[item.productId] || []; // ✅ CORRIGIDO: usar productId
       const totalSameProductQty = sameProductItems.reduce((sum, groupItem) => sum + groupItem.quantity, 0);
       
       let discountPercent = 0;
@@ -129,7 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           name: item.productName,
             description: description,
           metadata: {
-            productUid: item.productUid,
+            productId: item.productId, // ✅ CORRIGIDO: usar productId
             userImageId: item.userImageId || '',
               transformationId: item.userImageId || '',
               position: position,
