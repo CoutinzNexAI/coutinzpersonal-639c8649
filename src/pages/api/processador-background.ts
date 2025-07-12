@@ -148,13 +148,13 @@ async function updateJobStatus(
                 .eq('id', jobId)
                 .single();
             
-            const existingMetadata = existingData?.output_metadata || {};
+            const existingMetadata = (existingData?.output_metadata as Record<string, unknown>) || {};
             updateData.output_metadata = { ...existingMetadata, ...metadata };
             console.log(`[updateJobStatus: ${jobId}] MERGE - existing: ${JSON.stringify(existingMetadata)}, new: ${JSON.stringify(metadata)}, merged: ${JSON.stringify(updateData.output_metadata)}`);
         } catch (mergeError) {
             // If we can't get existing metadata, just use the new metadata
             updateData.output_metadata = metadata;
-            console.log(`[updateJobStatus: ${jobId}] MERGE FAILED - using new metadata only: ${JSON.stringify(metadata)}`);
+            console.log(`[updateJobStatus: ${jobId}] MERGE FAILED - using new metadata only: ${JSON.stringify(metadata)}, error: ${(mergeError as Error).message}`);
         }
     }
 
@@ -249,11 +249,12 @@ async function processImage(jobId: string, jobData: JobData) {
         }
         // --- FIM DA VALIDAÇÃO SERVER-SIDE ---
 
-        await updateJobStatus(jobId, 'processing', null, null, { detectedMimeType });
-
-
+        // Don't call updateJobStatus here - collect all metadata first
         const { prompt: promptText, quality: imageQuality } = await getPromptFromDB(jobData.style_requested, jobId);
-        outputMetadata = { ...outputMetadata, promptUsed: promptText, aiModelUsed: 'gpt-image-1', qualityUsed: imageQuality };
+        outputMetadata = { ...outputMetadata, detectedMimeType, promptUsed: promptText, aiModelUsed: 'gpt-image-1', qualityUsed: imageQuality };
+        
+        // Update status to processing with initial metadata
+        await updateJobStatus(jobId, 'processing', null, null, outputMetadata);
 
         const tempFileExtension = detectedMimeType.split('/')[1] || 'tmp';
         tempFilePath = path.join(os.tmpdir(), `input_${jobId}_${Date.now()}.${tempFileExtension}`);
