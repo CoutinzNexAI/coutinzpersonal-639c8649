@@ -1,38 +1,27 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { 
-  HeartIcon, 
-  ChatBubbleLeftIcon 
-} from '@heroicons/react/24/outline';
+import { HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { CommunityTransformation } from '@/hooks/useCommunity';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
-
-// =====================================================
-// COMMUNITY TRANSFORMATION CARD
-// Card individual para cada transformação na grelha
-// =====================================================
 
 interface CommunityTransformationCardProps {
   transformation: CommunityTransformation;
   isLiked: boolean;
   isTogglingLike: boolean;
   onLike: (transformationId: string) => void;
-  onView?: (transformation: CommunityTransformation) => void;
 }
 
 const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = ({
   transformation,
   isLiked,
   isTogglingLike,
-  onLike,
-  onView
+  onLike
 }) => {
   const { userInfo, signInWithGoogle } = useAuth();
 
-  // FORMATAÇÃO
   const formatTimeAgo = (dateString: string) => {
     const now = new Date();
     const date = new Date(dateString);
@@ -50,7 +39,6 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
     return `${(count / 1000000).toFixed(1)}M`;
   };
 
-  // HANDLERS
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -80,7 +68,6 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
       whileHover={{ y: -2, scale: 1.01 }}
       layout
     >
-      {/* Image Container */}
       <div className="relative aspect-square overflow-hidden">
         <Image
           src={transformation.output_url}
@@ -91,10 +78,8 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
           priority={false}
         />
         
-        {/* Gradient Overlay on Hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
-        {/* Quick Actions - Mobile Optimized */}
         <div className="absolute top-3 right-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 z-40">
           <motion.button
             onClick={handleLikeClick}
@@ -124,31 +109,25 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
         </div>
       </div>
 
-      {/* Content - Mobile Optimized */}
       <div className="p-3 sm:p-4 lg:p-5">
-        {/* Title */}
         {transformation.public_title && (
           <h3 className="text-base sm:text-lg font-semibold text-ghibli-wood mb-2 line-clamp-2 group-hover:text-amber-600 transition-colors">
             {transformation.public_title}
           </h3>
         )}
 
-        {/* Description - Hidden on very small screens */}
         {transformation.public_description && (
           <p className="hidden sm:block text-ghibli-earth text-sm mb-3 line-clamp-2">
             {transformation.public_description}
           </p>
         )}
 
-        {/* Style Tag */}
         <div className="inline-block px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-amber-400/20 to-yellow-600/20 rounded-full text-xs font-medium text-amber-700 mb-3 border border-amber-400/30">
           {transformation.style_name}
         </div>
 
-        {/* Stats Row - Mobile Optimized */}
         <div className="flex items-center justify-between text-ghibli-earth text-sm mb-3">
           <div className="flex items-center space-x-3 sm:space-x-4">
-            {/* Likes */}
             <motion.span 
               className="flex items-center"
               animate={{ scale: isTogglingLike ? [1, 1.2, 1] : 1 }}
@@ -157,17 +136,13 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
               <HeartIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 text-red-500" />
               <span className="text-xs sm:text-sm">{formatCount(transformation.like_count)}</span>
             </motion.span>
-
-            {/* Comments - Removido porque não há mais comentários */}
           </div>
 
-          {/* Time Ago */}
           <span className="text-xs text-ghibli-earth/60">
             {formatTimeAgo(transformation.published_at)}
           </span>
         </div>
 
-        {/* User Info - No Avatar */}
         <div className="flex items-center justify-between">
           <span className="text-ghibli-earth text-xs sm:text-sm font-medium truncate">
             por {transformation.user_full_name || 'Utilizador'}
@@ -175,7 +150,6 @@ const CommunityTransformationCard: React.FC<CommunityTransformationCardProps> = 
         </div>
       </div>
 
-      {/* Hover Border Effect */}
       <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-amber-400/30 transition-all duration-300 pointer-events-none" />
     </motion.div>
   );

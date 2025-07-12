@@ -66,6 +66,13 @@ const GALLERY_ITEMS: GalleryItem[] = [
     before: "fotousar/raparigalisboa.png",
     after: "fotousar/raparigalisboa3.png"
   },
+  {
+    id: 9,
+    title: "GTA",
+    style: "Transformação no mundo GTA",
+    before: "fotousar/raparigaalgarve.png",
+    after: "fotousar/raparigaalgarve7.jpg"
+  },
 ];
 
 

@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { X, ChevronLeft, ChevronRight, Loader2, Heart, ImageOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useCommunity, CommunityTransformation } from '@/hooks/useCommunity';
+import { CommunityTransformation } from '@/hooks/useCommunity';
 
 // =====================================================
 // COMMUNITY EXAMPLES MODAL
@@ -30,18 +29,14 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
   onOpenChange,
   onStartTransformationClick,
 }) => {
-  // Estados locais para o modal
   const [transformations, setTransformations] = useState<CommunityTransformation[]>([]);
   const [loadingTransformations, setLoadingTransformations] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const isMobile = useIsMobile();
   
-  // Configuração responsiva: 4x1 desktop, 2x1 mobile
   const itemsPerPage = isMobile ? 2 : 4;
-  const totalItemsToShow = 16; // Sempre 16 fotos
-  const fixedTotalPages = isMobile ? 8 : 4; // 8 páginas mobile, 4 desktop
+  const fixedTotalPages = isMobile ? 8 : 4;
   
-  // Fetch transformações quando abre o modal - sempre 16 fotos mais recentes
   useEffect(() => {
     if (isOpen) {
       const fetchCommunityExamples = async () => {
@@ -50,7 +45,7 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
           
           const params = new URLSearchParams({
             page: '1',
-            limit: '16', // Sempre buscar 16 fotos
+            limit: '16',
             sort: 'recent',
             timeframe: 'all',
             search: ''
@@ -74,17 +69,13 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
     }
   }, [isOpen]);
 
-  // Limitar transformações às 16 mais recentes
   const limitedTransformations = transformations.slice(0, 16);
   
-  // Calcular páginas - 4 desktop (4x4) ou 8 mobile (2x8)
-  const totalPages = fixedTotalPages;
   const currentTransformations = limitedTransformations.slice(
     currentPage * itemsPerPage,
     (currentPage + 1) * itemsPerPage
   );
 
-  // Navegação - páginas dinâmicas (4 desktop, 8 mobile)
   const goToNext = useCallback(() => {
     setCurrentPage((prev) => (prev + 1) % fixedTotalPages);
   }, [fixedTotalPages]);
@@ -93,7 +84,6 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
     setCurrentPage((prev) => (prev - 1 + fixedTotalPages) % fixedTotalPages);
   }, [fixedTotalPages]);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
@@ -119,7 +109,6 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
       <DialogContent 
         className="sm:max-w-[95vw] md:max-w-[85vw] lg:max-w-[80vw] max-h-[90vh] p-0 flex flex-col bg-gradient-to-br from-white via-ghibli-cream/30 to-white backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20"
       >
-        {/* Header */}
         <DialogHeader className="relative p-6 border-b border-ghibli-sand/20 bg-gradient-to-b from-white/95 to-ghibli-cream/50 backdrop-blur-sm">
           <div className="text-center">
             <div className="inline-flex items-center justify-center bg-gradient-to-r from-ghibli-moss/10 to-green-100 p-3 rounded-full mb-3">
@@ -134,7 +123,6 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
           </div>
         </DialogHeader>
 
-        {/* Conteúdo principal */}
         <div className="flex-1 p-6 md:p-8">
           {loadingTransformations ? (
             <div className="flex flex-col items-center justify-center py-20">
@@ -159,7 +147,6 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
             </div>
           ) : (
             <div className="relative">
-              {/* Navegação - setas modernas sempre visíveis */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -177,7 +164,6 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
                 <ChevronRight className="h-5 w-5" />
               </Button>
 
-              {/* Grid das transformações */}
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentPage}
@@ -199,47 +185,40 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
                       transition={{ delay: index * 0.1 }}
                       className="group cursor-pointer"
                     >
-                                             {/* Card moderno da comunidade */}
-                       <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-white/50 hover:border-ghibli-moss/30 hover:scale-[1.02]">
-                         {/* Imagem */}
-                         <div className="relative aspect-square overflow-hidden">
-                           <Image
-                             src={transformation.output_url}
-                             alt={transformation.public_title || 'Transformação'}
-                             fill
-                             className="object-cover transition-transform duration-500 group-hover:scale-110"
-                             sizes="(max-width: 768px) 50vw, 25vw"
-                           />
-                           {/* Overlay com likes - design moderno */}
-                           <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-ghibli-wood px-2.5 py-1.5 rounded-full text-xs flex items-center gap-1.5 shadow-lg">
-                             <Heart className="w-3 h-3 text-red-500" />
-                             <span className="font-medium">{transformation.like_count || 0}</span>
-                           </div>
-                         </div>
-                         
-                         {/* Info card - design limpo */}
-                         <div className="p-4">
-                           {/* Título - só mostrar se existir */}
-                           {transformation.public_title && (
-                             <h3 className="font-semibold text-ghibli-wood text-sm mb-2 line-clamp-2 leading-relaxed">
-                               {transformation.public_title}
-                             </h3>
-                           )}
-                           
-                                                       {/* Estilo - design moderno */}
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-white bg-gradient-to-r from-ghibli-moss to-green-600 px-3 py-1.5 rounded-full font-medium shadow-sm">
-                                {transformation.style_name || 'Estilo'}
-                              </span>
-                            </div>
-                         </div>
-                       </div>
+                      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-white/50 hover:border-ghibli-moss/30 hover:scale-[1.02]">
+                        <div className="relative aspect-square overflow-hidden">
+                          <Image
+                            src={transformation.output_url}
+                            alt={transformation.public_title || 'Transformação'}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                            sizes="(max-width: 768px) 50vw, 25vw"
+                          />
+                          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-ghibli-wood px-2.5 py-1.5 rounded-full text-xs flex items-center gap-1.5 shadow-lg">
+                            <Heart className="w-3 h-3 text-red-500" />
+                            <span className="font-medium">{transformation.like_count || 0}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4">
+                          {transformation.public_title && (
+                            <h3 className="font-semibold text-ghibli-wood text-sm mb-2 line-clamp-2 leading-relaxed">
+                              {transformation.public_title}
+                            </h3>
+                          )}
+                          
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-white bg-gradient-to-r from-ghibli-moss to-green-600 px-3 py-1.5 rounded-full font-medium shadow-sm">
+                              {transformation.style_name || 'Estilo'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </motion.div>
                   ))}
                 </motion.div>
               </AnimatePresence>
 
-              {/* Indicador de página - 4 desktop / 8 mobile */}
               <div className="flex justify-center mt-8 gap-3">
                 {Array.from({ length: fixedTotalPages }).map((_, index) => (
                   <button
@@ -258,7 +237,6 @@ export const CommunityExamplesModal: React.FC<CommunityExamplesModalProps> = ({
           )}
         </div>
 
-        {/* Footer com botão CTA */}
         <div className="p-6 border-t border-ghibli-sand/20 bg-gradient-to-t from-ghibli-cream/30 to-transparent">
           <div className="flex justify-center">
             <Button

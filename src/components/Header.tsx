@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import UserMenu from "./UserMenu";
 
 import { CartButton } from './cart/CartButton';
@@ -40,8 +40,7 @@ const Header: React.FC = () => {
     cartSummary,
     cartCount,
     removeFromCart,
-    updateQuantity,
-    clearCart
+    updateQuantity
   } = useCart();
 
   // Detecta se estamos na homepage ou páginas da loja para aplicar estilo específico
@@ -323,7 +322,6 @@ const Header: React.FC = () => {
         cartSummary={cartSummary}
         onRemoveItem={removeFromCart}
         onUpdateQuantity={updateQuantity}
-        onClearCart={clearCart}
       />
     </motion.header>
   );

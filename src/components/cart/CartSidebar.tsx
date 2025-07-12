@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,6 @@ interface CartSidebarProps {
   cartSummary: CartSummary | null;
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
-  onClearCart: () => void;
 }
 
 interface UserData {
@@ -24,13 +23,35 @@ interface UserData {
   email: string;
 }
 
+// Utilitário para calcular desconto de um item (mesmo do CartBottomSheet)
+const calculateItemDiscount = (item: CartItem, allItems: CartItem[]) => {
+  const sameProductItems = allItems.filter(cartItem => cartItem.productId === item.productId);
+  const totalSameProductQty = sameProductItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
+  
+  let discountPercent = 0;
+  if (totalSameProductQty >= 3) {
+    discountPercent = 15;
+  } else if (totalSameProductQty >= 2) {
+    discountPercent = 10;
+  }
+  
+  const originalPrice = item.price * item.quantity;
+  const discountedPrice = originalPrice * (1 - discountPercent / 100);
+  
+  return {
+    originalPrice,
+    discountedPrice,
+    discountPercent,
+    hasDiscount: discountPercent > 0
+  };
+};
+
 export const CartSidebar: React.FC<CartSidebarProps> = ({
   isOpen,
   onClose,
   cartSummary,
   onRemoveItem,
-  onUpdateQuantity,
-  onClearCart
+  onUpdateQuantity
 }) => {
   const { userInfo } = useAuth();
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
@@ -43,7 +64,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
     }
   }, isOpen);
 
-  // Carregar dados do utilizador quando necessário
+  // Carregar dados do utilizador
   const loadUserData = async () => {
     if (!userInfo?.id || userData) return userData;
 
@@ -55,21 +76,19 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
         .single();
 
       if (error) {
-        console.error('Erro ao carregar dados do utilizador:', error);
         toast.error('Erro ao carregar dados do perfil');
         return null;
       }
 
       setUserData(data);
       return data;
-    } catch (error) {
-      console.error('Erro inesperado ao carregar dados:', error);
+    } catch {
       toast.error('Erro ao carregar dados do perfil');
       return null;
     }
   };
 
-  // Lógica de checkout (reutilizando a lógica existente)
+  // Lógica de checkout (consistente com CartBottomSheet)
   const handleCheckout = async () => {
     if (!cartSummary || !userInfo) {
       toast.error('Dados incompletos para finalizar compra');
@@ -79,26 +98,19 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
     setIsProcessingCheckout(true);
 
     try {
-      // Carregar dados do user se necessário
       const currentUserData = await loadUserData();
       if (!currentUserData) {
         toast.error('Erro ao carregar dados do perfil');
         return;
       }
 
-      // 1. Validar carrinho (usando a mesma lógica)
       if (cartSummary.itemCount === 0) {
         toast.error('Carrinho vazio!');
         return;
       }
 
-      // 2. Calcular total final (com shipping condicional)
-      const shippingPrice = cartSummary.shipping; // Shipping condicional baseado no subtotal
       const finalTotal = cartSummary.subtotal + cartSummary.shipping;
 
-      // A preparar pagamento - loading state é suficiente
-
-      // 3. Criar sessão de pagamento Stripe (mesma API)
       const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -107,12 +119,12 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
         body: JSON.stringify({
           items: cartSummary.items,
           shippingMethod: {
-            uid: shippingPrice === 0 ? 'free_shipping' : 'standard_shipping',
-            name: shippingPrice === 0 ? 'Envio Grátis' : 'Envio Standard',
-            price: shippingPrice,
+            uid: cartSummary.shipping === 0 ? 'free_shipping' : 'standard_shipping',
+            name: cartSummary.shipping === 0 ? 'Envio Grátis' : 'Envio Standard',
+            price: cartSummary.shipping,
             deliveryDaysMin: 4,
             deliveryDaysMax: 7,
-            description: shippingPrice === 0 ? 'Envio gratuito em 4-7 dias úteis' : 'Envio standard em 4-7 dias úteis'
+            description: cartSummary.shipping === 0 ? 'Envio gratuito em 4-7 dias úteis' : 'Envio standard em 4-7 dias úteis'
           },
           userId: userInfo.id,
           userName: currentUserData.full_name,
@@ -120,8 +132,8 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
           subtotal: cartSummary.subtotal,
           originalSubtotal: cartSummary.originalSubtotal,
           discountAmount: cartSummary.discountAmount,
-          shipping: shippingPrice,
-          tax: 0, // IVA incluído nos preços dos produtos
+          shipping: cartSummary.shipping,
+          tax: 0,
           total: finalTotal
         })
       });
@@ -134,17 +146,13 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
       const result = await response.json();
       
       if (result.url) {
-        // Fechar sidebar antes de redirecionar
         onClose();
-        // Redirecionar para Stripe Checkout
         window.location.href = result.url;
       } else {
         throw new Error('URL de pagamento não recebida');
       }
       
     } catch (error) {
-      console.error('Erro no checkout:', error);
-      
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast.error('Erro ao processar compra: ' + errorMessage);
     } finally {
@@ -153,125 +161,105 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   };
 
   // Componente para cada item do carrinho
-  const CartItemCard = ({ item }: { item: CartItem }) => (
-    <motion.div
-      layout
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="bg-ghibli-cream/30 rounded-xl p-4 border border-ghibli-sand/40"
-    >
-      <div className="flex gap-3">
-        {/* Imagem do produto */}
-        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-white shadow-sm">
-          <Image
-            src={item.userImageUrl}
-            alt={item.productName}
-            fill
-            className="object-cover"
-          />
-        </div>
-        
-        {/* Detalhes do produto */}
-        <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-ghibli-wood text-sm truncate mb-1">
-            {item.productName}
-          </h4>
+  const CartItemCard = ({ item }: { item: CartItem }) => {
+    const discount = useMemo(() => 
+      calculateItemDiscount(item, cartSummary?.items || []), 
+      [item, cartSummary?.items]
+    );
+
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        className="bg-ghibli-cream/30 rounded-xl p-4 border border-ghibli-sand/40"
+      >
+        <div className="flex gap-3">
+          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-white shadow-sm">
+            <Image
+              src={item.userImageUrl}
+              alt={item.productName}
+              fill
+              className="object-cover"
+            />
+          </div>
           
-          {/* Variante/tamanho */}
-          {item.customizations?.variant && (
-            <p className="text-xs text-ghibli-earth mb-1">
-              <span className="font-medium">Variante:</span> {item.customizations.variant}
-            </p>
-          )}
-          
-          {/* Posição da foto */}
-          {item.customizations?.position && (
-            <p className="text-xs text-ghibli-earth mb-1">
-              <span className="font-medium">Posição:</span> {item.customizations.position}
-            </p>
-          )}
-          
-          {/* Controles de quantidade */}
-          <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                disabled={item.quantity <= 1}
-                className="h-6 w-6 p-0 rounded-md"
-              >
-                <Minus className="w-3 h-3" />
-              </Button>
-              
-              <span className="text-xs font-bold text-ghibli-earth min-w-[1.5rem] text-center">
-                {item.quantity}
-              </span>
-              
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                className="h-6 w-6 p-0 rounded-md"
-              >
-                <Plus className="w-3 h-3" />
-              </Button>
-            </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-semibold text-ghibli-wood text-sm truncate mb-1">
+              {item.productName}
+            </h4>
             
-            <button
-              onClick={() => onRemoveItem(item.id)}
-              className="text-ghibli-poppy hover:text-red-700 transition-colors p-1"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {item.customizations?.variant && (
+              <p className="text-xs text-ghibli-earth mb-1">
+                <span className="font-medium">Variante:</span> {item.customizations.variant}
+              </p>
+            )}
+            
+            {item.customizations?.position && (
+              <p className="text-xs text-ghibli-earth mb-1">
+                <span className="font-medium">Posição:</span> {item.customizations.position}
+              </p>
+            )}
+            
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                  disabled={item.quantity <= 1}
+                  className="h-6 w-6 p-0 rounded-md"
+                >
+                  <Minus className="w-3 h-3" />
+                </Button>
+                
+                <span className="text-xs font-bold text-ghibli-earth min-w-[1.5rem] text-center">
+                  {item.quantity}
+                </span>
+                
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                  className="h-6 w-6 p-0 rounded-md"
+                >
+                  <Plus className="w-3 h-3" />
+                </Button>
+              </div>
+              
+              <button
+                onClick={() => onRemoveItem(item.id)}
+                className="text-ghibli-poppy hover:text-red-700 transition-colors p-1"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="text-right">
+            {discount.hasDiscount ? (
+              <div>
+                <p className="text-xs text-red-500 line-through">
+                  €{discount.originalPrice.toFixed(2)}
+                </p>
+                <p className="font-bold text-ghibli-moss">
+                  €{discount.discountedPrice.toFixed(2)}
+                </p>
+                <p className="text-xs text-green-600">
+                  -{discount.discountPercent}%
+                </p>
+              </div>
+            ) : (
+              <p className="font-bold text-ghibli-moss">
+                €{discount.originalPrice.toFixed(2)}
+              </p>
+            )}
           </div>
         </div>
-        
-        {/* Preço */}
-        <div className="text-right">
-          {/* Verificar se há desconto para este item */}
-          {(() => {
-            // Calcular desconto baseado na quantidade do mesmo produto
-            const sameProductItems = cartSummary?.items.filter(cartItem => cartItem.productId === item.productId) || [];
-            const totalSameProductQty = sameProductItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
-            
-            let discountPercent = 0;
-            if (totalSameProductQty >= 3) {
-              discountPercent = 15;
-            } else if (totalSameProductQty >= 2) {
-              discountPercent = 10;
-            }
-            
-            const originalPrice = item.price * item.quantity;
-            const discountedPrice = originalPrice * (1 - discountPercent / 100);
-            
-            if (discountPercent > 0) {
-              return (
-                <div>
-                  <p className="text-xs text-red-500 line-through">
-                    €{originalPrice.toFixed(2)}
-                  </p>
-                  <p className="font-bold text-ghibli-moss">
-                    €{discountedPrice.toFixed(2)}
-                  </p>
-                  <p className="text-xs text-green-600">
-                    -{discountPercent}%
-                  </p>
-                </div>
-              );
-            } else {
-              return (
-                <p className="font-bold text-ghibli-moss">
-                  €{originalPrice.toFixed(2)}
-                </p>
-              );
-            }
-          })()}
-        </div>
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   return (
     <>
@@ -282,14 +270,11 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
         cartSummary={cartSummary}
         onRemoveItem={onRemoveItem}
         onUpdateQuantity={onUpdateQuantity}
-        onClearCart={onClearCart}
       />
       
       {/* Desktop: Sidebar */}
       <AnimatePresence>
         {isOpen && (
-          <>
-          {/* Sidebar */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -299,7 +284,6 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
             ref={sidebarRef}
             data-cart-container="true"
           >
-            {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-ghibli-sand/30 bg-gradient-to-r from-ghibli-cream to-ghibli-paper">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-ghibli-moss/10 rounded-full flex items-center justify-center">
@@ -321,9 +305,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
               </button>
             </div>
             
-            {/* Conteúdo */}
             <div className="flex-1 overflow-hidden flex flex-col">
-              {/* Lista de produtos */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {cartSummary?.items.length === 0 ? (
                   <div className="text-center py-12">
@@ -351,10 +333,8 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 )}
               </div>
               
-              {/* Footer com preços e checkout */}
               {cartSummary && cartSummary.itemCount > 0 && (
                 <div className="border-t border-ghibli-sand/30 p-6 bg-ghibli-cream/20">
-                  {/* Resumo de preços */}
                   <div className="bg-ghibli-sand/30 rounded-xl p-4 space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-ghibli-earth">Subtotal</span>
@@ -385,8 +365,6 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                       )}
                     </div>
                     
-                    {/* ✅ REMOVIDO: Linha do IVA - agora incluído nos preços */}
-                    
                     <div className="border-t border-ghibli-sand/50 pt-3">
                       <div className="flex justify-between text-lg font-bold">
                         <span className="text-ghibli-wood">Total</span>
@@ -402,7 +380,6 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                     </div>
                   </div>
                   
-                  {/* Botão de checkout */}
                   <Button
                     onClick={handleCheckout}
                     disabled={isProcessingCheckout || !userInfo}
@@ -435,9 +412,8 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
               )}
             </div>
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
     </>
   );
 };

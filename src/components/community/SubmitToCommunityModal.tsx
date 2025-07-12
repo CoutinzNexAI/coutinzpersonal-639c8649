@@ -10,6 +10,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
+import { toast } from '@/components/ui/sonner';
 
 // =====================================================
 // SUBMIT TO COMMUNITY MODAL
@@ -56,8 +57,6 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
 
       if (data.success) {
         setPrivateTransformations(data.transformations || []);
-      } else {
-        console.error('Erro ao carregar transformações privadas:', data.error);
       }
     } catch (error) {
       console.error('Erro ao fazer fetch das transformações:', error);
@@ -87,11 +86,11 @@ const SubmitToCommunityModal: React.FC<SubmitToCommunityModalProps> = ({
         setStep('success');
         onSuccess(data.message || 'Publicado na comunidade com sucesso!');
       } else {
-        alert(`Erro: ${data.error}`);
+        toast.error(data.error || 'Erro ao publicar na comunidade');
       }
     } catch (error) {
       console.error('Error submitting transformation:', error);
-      alert('Erro ao submeter transformação');
+      toast.error('Erro ao submeter transformação');
     } finally {
       setSubmitting(false);
     }
