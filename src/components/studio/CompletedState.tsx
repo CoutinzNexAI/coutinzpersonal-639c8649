@@ -103,7 +103,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
           productId: 'heart_mug',
           userImageUrl: transformedImageUrl,
           userId: userInfo.id,
-          selectedPrintifyVariantId: 91642, // Caneca Heart / White
+          selectedPrintifyVariantId: 77224, // Caneca Heart / White
           // Não passar imageAdjustments - deixar a API calcular automaticamente para fill perfeito
         })
       });
