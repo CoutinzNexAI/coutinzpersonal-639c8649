@@ -2,23 +2,18 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Maximize, Minimize, AlertTriangle } from 'lucide-react';
 import { ReactCompareSlider, ReactCompareSliderImage, ReactCompareSliderHandle } from 'react-compare-slider';
-import { Button } from '@/components/ui/button'; // Certifique-se que este caminho está correto
-import { cn } from '@/lib/utils'; // Assumindo que tem a função cn para classnames
+import { Button } from '@/components/ui/button';
+import { getImageSrc } from '@/lib/utils'; // ✅ NOVO: Import da função utilitária
+import { cn } from '@/lib/utils';
 
 // Definindo e exportando a interface GalleryItem aqui
 export interface GalleryItem {
-  id: number | string; // ID pode ser número ou string
+  id: number | string;
   title: string;
   style: string;
   before: string;
   after: string;
 }
-
-// Reutilizando a função getImageSrc do GalleryCard.tsx ou definindo uma similar
-const getImageSrcModal = (path: string | undefined | null): string => {
-  if (!path) return 'https://placehold.co/800x800/333/555?text=Imagem+Indisponível'; // Placeholder mais genérico para modal
-  return path.startsWith('http') || path.startsWith('/') ? path : `/${path}`;
-};
 
 interface ImageCompareModalProps {
   isOpen: boolean;
@@ -60,8 +55,8 @@ const ImageCompareModal: React.FC<ImageCompareModalProps> = ({
   const toggleFullscreen = useCallback(() => {
     const element = modalContentRef.current?.querySelector('.fullscreen-target') || document.documentElement;
     if (!document.fullscreenElement) {
-      element.requestFullscreen().catch(err => {
-        console.error(`Erro ao tentar ativar ecrã completo: ${err.message}`);
+      element.requestFullscreen().catch(() => {
+        // Fullscreen request failed - this is expected in some browsers/contexts
       });
     } else {
       if (document.exitFullscreen) {
@@ -110,8 +105,8 @@ const ImageCompareModal: React.FC<ImageCompareModalProps> = ({
 
   if (!isOpen) return null;
 
-  const beforeImgSrc = currentItem ? getImageSrcModal(currentItem.before) : getImageSrcModal(null);
-  const afterImgSrc = currentItem ? getImageSrcModal(currentItem.after) : getImageSrcModal(null);
+  const beforeImgSrc = currentItem ? getImageSrc(currentItem.before) : getImageSrc(null);
+  const afterImgSrc = currentItem ? getImageSrc(currentItem.after) : getImageSrc(null);
   const modalTitleId = "image-compare-modal-title";
 
   return (

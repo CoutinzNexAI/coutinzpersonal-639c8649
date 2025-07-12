@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { getImageSrc } from '@/lib/utils'; // ✅ NOVO: Import da função utilitária
 import { cn } from '@/lib/utils';
 import { Sparkles, Wand2, Lightbulb } from 'lucide-react';
 
@@ -49,12 +50,6 @@ const TIPS: string[] = [
 ];
 
 const SLIDE_INTERVAL = 5500; // 5.5 segundos
-
-// Helper function para obter o src da imagem
-const getImageSrcModal = (path: string | undefined | null): string => {
-  if (!path) return 'https://placehold.co/300x300/EEE/31343C?text=Indisponível'; 
-  return path.startsWith('http') || path.startsWith('/') ? path : `/${path}`;
-};
 
 interface Step0CarouselProps {
   onStartClick: () => void;
@@ -119,12 +114,10 @@ export const Step0Carousel: React.FC<Step0CarouselProps> = ({ onStartClick }) =>
 
 
   const currentExample = EXAMPLES_DATA[currentIndex];
-  const placeholderSrc = 'https://placehold.co/300x300/EEE/31343C?text=Indisponível';
 
   const handleImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    event.currentTarget.src = placeholderSrc;
+    event.currentTarget.src = getImageSrc(null); // Usar fallback padrão
     event.currentTarget.srcset = ""; // Limpa o srcset também
-    // Adicionar classes para estilização de erro se necessário
   };
 
   const slideVariants = {
@@ -193,15 +186,14 @@ export const Step0Carousel: React.FC<Step0CarouselProps> = ({ onStartClick }) =>
             {/* Imagem "Antes" - Quadrada */}
             <div className="relative w-1/2 h-full aspect-square group flex items-center justify-center overflow-hidden rounded-lg bg-black/5">
               <Image
-                src={getImageSrcModal(currentExample.beforeSrc)}
+                src={getImageSrc(currentExample.beforeSrc)}
                 alt={currentExample.altBefore}
                 fill
                 style={{ objectFit: "contain" }} // 'contain' para ver a imagem toda dentro do quadrado
-                className="transition-transform duration-300 group-hover:scale-105"
-                priority={currentIndex === 0}
                 onError={handleImageError}
-                sizes="(max-width: 640px) 40vw, 200px" // Ajustar sizes
                 unoptimized={currentExample.beforeSrc.startsWith('https://placehold.co')}
+                sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 15vw"
+                className="transition-transform duration-300 group-hover:scale-105"
               />
               <span className="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white text-[10px] sm:text-xs px-1 py-0.5 rounded-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 Original
@@ -211,19 +203,15 @@ export const Step0Carousel: React.FC<Step0CarouselProps> = ({ onStartClick }) =>
             {/* Imagem "Depois" - Quadrada */}
             <div className="relative w-1/2 h-full aspect-square group flex items-center justify-center overflow-hidden rounded-lg bg-black/5">
               <Image
-                src={getImageSrcModal(currentExample.afterSrc)}
+                src={getImageSrc(currentExample.afterSrc)}
                 alt={currentExample.altAfter}
                 fill
                 style={{ objectFit: "contain" }}
-                className="transition-transform duration-300 group-hover:scale-105"
-                priority={currentIndex === 0}
                 onError={handleImageError}
-                sizes="(max-width: 640px) 40vw, 200px" // Ajustar sizes
                 unoptimized={currentExample.afterSrc.startsWith('https://placehold.co')}
+                sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 15vw"
+                className="transition-transform duration-300 group-hover:scale-105"
               />
-              <span className="absolute bottom-1 right-1 bg-ghibli-sky bg-opacity-80 text-white text-[10px] sm:text-xs px-1 py-0.5 rounded-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                Transformada
-              </span>
             </div>
           </motion.div>
         </AnimatePresence>

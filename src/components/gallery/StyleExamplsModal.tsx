@@ -20,14 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getImageSrc } from '@/lib/utils'; // ✅ NOVO: Import da função utilitária
 import { cn } from '@/lib/utils';
 import { STYLE_EXAMPLES_DATA } from '@/lib/data/exampleData';
-
-// Helper function para obter o src da imagem
-const getImageSrc = (path: string | undefined | null): string => {
-  if (!path) return 'https://placehold.co/200x200/F5F5DC/8B4513?text=Em+Breve';
-  return path.startsWith('http') || path.startsWith('/') ? path : `/${path}`;
-};
 
 interface StyleExamplesModalProps {
   isOpen: boolean;

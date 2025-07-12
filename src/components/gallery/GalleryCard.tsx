@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { GalleryItem } from './ImageCompareModal'; // Certifique-se que este caminho está correto
 import { Card } from '@/components/ui/card'; // Certifique-se que este caminho está correto
 import { Sparkles } from 'lucide-react';
+import { getImageSrc } from '@/lib/utils'; // ✅ NOVO: Import da função utilitária
 import Image from 'next/image';
 
 interface GalleryCardProps {
@@ -15,14 +16,8 @@ interface GalleryCardProps {
 const GalleryCard: React.FC<GalleryCardProps> = ({ item, onClick, priority = false }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  // Funções para determinar o src da imagem, tratando URLs absolutos e relativos
-  const getImageSrc = (path: string): string => {
-    if (!path) return '/placeholder-image.png'; // Imagem de fallback caso o path seja nulo ou indefinido
-    return path.startsWith('http') || path.startsWith('/') ? path : `/${path}`;
-  };
-
-  const beforeSrc = getImageSrc(item.before);
-  const afterSrc = getImageSrc(item.after);
+  const beforeSrc = getImageSrc(item.before, '/placeholder-image.png');
+  const afterSrc = getImageSrc(item.after, '/placeholder-image.png');
 
   const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
