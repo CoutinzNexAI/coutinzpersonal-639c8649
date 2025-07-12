@@ -249,8 +249,6 @@ if (!permitted) {
             if(updateError){
                  console.error(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 1: FAILED to update DB:`, updateError.message);
                  selfHealActionTaken += " - DB Update FAILED";
-            } else {
-         
             }
             return res.status(200).json({ status: 'completed', output_url: urlData.publicUrl, error_message: null, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: selfHealActionTaken });
           }
