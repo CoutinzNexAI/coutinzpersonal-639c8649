@@ -264,12 +264,13 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   // Calcular imageAdjustments usando a configuração
   useEffect(() => {
-    if (selectedImageUrl && product && selectedPrintifyVariantId) {
+    if (selectedImageUrl && product && selectedPrintifyVariantId && userImageDimensions) {
       console.log('🔄 [GenericProductPage] Calculating imageAdjustments:', {
         selectedImageUrl: !!selectedImageUrl,
         productId: product.id,
         selectedPrintifyVariantId,
-        currentImagePosition: imagePosition
+        currentImagePosition: imagePosition,
+        userImageDimensions
       });
 
       const selectedVariant = product.variants?.find((v) => v.id === selectedPrintifyVariantId);
@@ -278,46 +279,68 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         return;
       }
 
-      const { placeholderWidth, placeholderHeight } = selectedVariant;
-      const userImageWidth = 1016;
-      const userImageHeight = 1016;
+      // ✅ USAR A FUNÇÃO calculatePrintifyCoords DO CONFIG SE DISPONÍVEL
+      if (config.calculatePrintifyCoords && coordinateConfig) {
+        const newAdjustments = config.calculatePrintifyCoords(
+          imagePosition,
+          selectedPrintifyVariantId,
+          userImageDimensions,
+          product
+        );
+        
+        console.log('🎨 [GenericProductPage] Setting imageAdjustments (from config):', {
+          imagePosition,
+          coordinateConfig,
+          userImageDimensions,
+          newAdjustments
+        });
+        
+        setImageAdjustments(newAdjustments);
+      } else {
+        // ✅ FALLBACK PARA CÁLCULO MANUAL CORRETO
+        const { placeholderWidth, placeholderHeight } = selectedVariant;
+        const { width: userImageWidth, height: userImageHeight } = userImageDimensions;
 
-      const scaleToCover = Math.max(
-        placeholderWidth / userImageWidth,
-        placeholderHeight / userImageHeight
-      );
+        const scaleToCover = Math.max(
+          placeholderWidth / userImageWidth,
+          placeholderHeight / userImageHeight
+        );
 
-      const finalImageWidth = userImageWidth * scaleToCover;
-      const printifyScale = finalImageWidth / placeholderWidth;
-      
-      // ✅ APLICAR POSIÇÃO AOS AJUSTES
-      let xPosition = 0.5;
-      let yPosition = 0.5;
-      
-      if (imagePosition === 'left') xPosition = 0.35;
-      else if (imagePosition === 'right') xPosition = 0.65;
-      else if (imagePosition === 'top') yPosition = 0.35;
-      else if (imagePosition === 'bottom') yPosition = 0.65;
-      
-      const newAdjustments = {
-        x: xPosition,
-        y: yPosition,
-        scale: printifyScale,
-        rotation: 0
-      };
+        const finalImageWidth = userImageWidth * scaleToCover;
+        const printifyScale = finalImageWidth / placeholderWidth;
+        
+        // ✅ APLICAR POSIÇÃO CORRETA BASEADA NO TIPO
+        let xPosition = 0.5;
+        let yPosition = 0.5;
+        
+        if (coordinateConfig?.positionType === 'vertical') {
+          // Para canecas, posters horizontais (movimento vertical)
+          if (imagePosition === 'top') yPosition = 0.35;
+          else if (imagePosition === 'bottom') yPosition = 0.65;
+        } else if (coordinateConfig?.positionType === 'horizontal') {
+          // Para capas, posters verticais (movimento horizontal)
+          if (imagePosition === 'left') xPosition = 0.35;
+          else if (imagePosition === 'right') xPosition = 0.65;
+        }
+        
+        const newAdjustments = {
+          x: xPosition,
+          y: yPosition,
+          scale: printifyScale,
+          rotation: 0
+        };
 
-      console.log('🎨 [GenericProductPage] Setting imageAdjustments:', {
-        placeholderWidth,
-        placeholderHeight,
-        scaleToCover,
-        printifyScale,
-        imagePosition,
-        newAdjustments
-      });
-      
-      setImageAdjustments(newAdjustments);
+        console.log('🎨 [GenericProductPage] Setting imageAdjustments (fallback):', {
+          imagePosition,
+          coordinateConfig,
+          userImageDimensions,
+          newAdjustments
+        });
+        
+        setImageAdjustments(newAdjustments);
+      }
     }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId, imagePosition]); // ✅ ADICIONADO imagePosition
+  }, [selectedImageUrl, product, selectedPrintifyVariantId, imagePosition, userImageDimensions, coordinateConfig, config]);
 
   // Detectar dimensões da imagem
   useEffect(() => {
