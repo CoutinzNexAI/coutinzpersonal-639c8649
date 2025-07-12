@@ -201,7 +201,16 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   // Track image customization when position changes
   useEffect(() => {
+    console.log('🎯 [imagePosition useEffect] Position changed:', {
+      imagePosition,
+      userInfo: !!userInfo?.id,
+      product: !!product,
+      selectedImageUrl: !!selectedImageUrl,
+      selectedPrintifyVariantId
+    });
+
     if (imagePosition && userInfo?.id && product && selectedImageUrl) {
+      console.log('📊 [imagePosition useEffect] Tracking image customization');
       trackImageCustomization({
         user_id: userInfo.id,
         product_id: product.id,
@@ -237,6 +246,11 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   useEffect(() => {
     if (selectedImageUrl && selectedPrintifyVariantId) {
       const newKey = `${selectedImageId || 'no-id'}-${selectedPrintifyVariantId}-${Date.now()}`;
+      console.log('🔑 [GenericProductPage] New mockupGenerationKey:', { 
+        oldKey: mockupGenerationKey, 
+        newKey,
+        triggers: { selectedImageUrl: !!selectedImageUrl, selectedPrintifyVariantId }
+      });
       setMockupGenerationKey(newKey);
     }
   }, [selectedImageUrl, selectedPrintifyVariantId, selectedImageId]);
@@ -251,8 +265,18 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   // Calcular imageAdjustments usando a configuração
   useEffect(() => {
     if (selectedImageUrl && product && selectedPrintifyVariantId) {
+      console.log('🔄 [GenericProductPage] Calculating imageAdjustments:', {
+        selectedImageUrl: !!selectedImageUrl,
+        productId: product.id,
+        selectedPrintifyVariantId,
+        currentImagePosition: imagePosition
+      });
+
       const selectedVariant = product.variants?.find((v) => v.id === selectedPrintifyVariantId);
-      if (!selectedVariant) return;
+      if (!selectedVariant) {
+        console.log('❌ [GenericProductPage] No variant found:', selectedPrintifyVariantId);
+        return;
+      }
 
       const { placeholderWidth, placeholderHeight } = selectedVariant;
       const userImageWidth = 1016;
@@ -266,14 +290,24 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       const finalImageWidth = userImageWidth * scaleToCover;
       const printifyScale = finalImageWidth / placeholderWidth;
       
-      setImageAdjustments({
+      const newAdjustments = {
         x: 0.5,
         y: 0.5,
         scale: printifyScale,
         rotation: 0
+      };
+
+      console.log('🎨 [GenericProductPage] Setting imageAdjustments:', {
+        placeholderWidth,
+        placeholderHeight,
+        scaleToCover,
+        printifyScale,
+        newAdjustments
       });
+      
+      setImageAdjustments(newAdjustments);
     }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId]);
+  }, [selectedImageUrl, product, selectedPrintifyVariantId]); // ✅ REMOVIDO imagePosition para evitar loops
 
   // Detectar dimensões da imagem
   useEffect(() => {
@@ -299,22 +333,44 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     customerPrintifyImageId?: string;
     dynamicPhrasePrintifyImageId?: string;
   }) => {
+    console.log('🖼️ [handlePreviewReady] START:', {
+      previewUrlsCount: data.previewUrls.length,
+      printifyProductId: data.printifyProductId,
+      printifyImageId: data.printifyImageId,
+      hasGenerated,
+      currentMockupUrlsCount: currentMockupUrls.length
+    });
+
     // ✅ CONTROLO PARTILHADO: Só atualizar se ainda não foi gerado
     if (!hasGenerated && data.previewUrls.length > 0) {
+      console.log('✅ [handlePreviewReady] Updating preview states');
       setPrintifyPreviewUrls(data.previewUrls);
       setPrintifyImageId(data.printifyImageId || '');
       setPrintifyProductId(data.printifyProductId);
       setHasGenerated(true);
       
       if (currentMockupUrls.length === 0) {
+        console.log('📷 [handlePreviewReady] Setting initial mockup URLs');
         setCurrentMockupUrls(data.previewUrls);
       }
+    } else {
+      console.log('⏭️ [handlePreviewReady] Skipping update - already generated or no URLs');
     }
+    
+    console.log('🖼️ [handlePreviewReady] END');
   }, [hasGenerated, currentMockupUrls]); // ✅ Removido mockupGenerationKey para evitar re-creations
 
   // Track mockup generation
   const handleMockupGenerated = useCallback(() => {
+    console.log('🎉 [handleMockupGenerated] START:', {
+      userInfo: !!userInfo?.id,
+      productId: product?.id,
+      selectedImageUrl: !!selectedImageUrl,
+      selectedPrintifyVariantId
+    });
+
     if (userInfo?.id && product && selectedImageUrl) {
+      console.log('📊 [handleMockupGenerated] Tracking mockup generation');
       trackMockupGeneration({
         user_id: userInfo.id,
         product_id: product.id,
@@ -325,8 +381,11 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         mockup_count: 1
       });
     }
+    
+    console.log('🏁 [handleMockupGenerated] Setting states');
     setHasGenerated(true);
     setIsGeneratingMockup(false);
+    console.log('🎉 [handleMockupGenerated] END');
   }, [userInfo?.id, product, selectedImageUrl, selectedPrintifyVariantId]);
 
   // Handle gallery modal
@@ -350,15 +409,19 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   // Handle adjustments (position and size)
   const handleAdjustment = useCallback(async (type: 'position' | 'size', value: string | number) => {
+    console.log('🔧 [handleAdjustment] START:', { type, value, imagePosition, selectedPrintifyVariantId });
+    
     // Rate limiting check
     const { allowed, message } = GlobalRateLimiter.checkRequestLimit();
     if (!allowed) {
+      console.log('⚠️ [handleAdjustment] Rate limited:', message);
       toast.error(message);
       return;
     }
 
     // Only check userImageDimensions for position changes
     if (type === 'position' && !userImageDimensions) {
+      console.log('⚠️ [handleAdjustment] No userImageDimensions available');
       toast.error('Aguarde o carregamento da imagem');
       return;
     }
@@ -368,9 +431,11 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
     if (type === 'position' && typeof value === 'string') {
       newPosition = value as 'top' | 'center' | 'bottom' | 'left' | 'right';
+      console.log('📍 [handleAdjustment] Position change:', { from: imagePosition, to: newPosition });
       setImagePosition(newPosition);
     } else if (type === 'size' && typeof value === 'number') {
       newVariantId = value;
+      console.log('📏 [handleAdjustment] Size change:', { from: selectedPrintifyVariantId, to: newVariantId });
       setSelectedPrintifyVariantId(newVariantId);
       // Reset position when variant changes
       setImagePosition('center');
@@ -379,18 +444,26 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
     // Record the request
     GlobalRateLimiter.recordRequest();
+    console.log('✅ [handleAdjustment] Request recorded');
 
     // Generate mockup if conditions are met
     if (newVariantId !== null && selectedImageUrl && userImageDimensions) {
+      console.log('🎨 [handleAdjustment] Triggering mockup generation:', { 
+        variantId: newVariantId, 
+        hasImageUrl: !!selectedImageUrl, 
+        hasDimensions: !!userImageDimensions 
+      });
       setIsGeneratingMockup(true);
-      
-      // ✅ FIX: Timeout de segurança para resetar isGeneratingMockup
-      setTimeout(() => {
-        setIsGeneratingMockup(false);
-      }, 5000); // 5 segundos timeout
-      
       // The ProductCanvas component will handle the mockup generation
+    } else {
+      console.log('❌ [handleAdjustment] Conditions not met for mockup generation:', {
+        variantId: newVariantId,
+        hasImageUrl: !!selectedImageUrl,
+        hasDimensions: !!userImageDimensions
+      });
     }
+    
+    console.log('🔧 [handleAdjustment] END');
   }, [imagePosition, selectedPrintifyVariantId, userImageDimensions, selectedImageUrl]);
 
   // Handle add to cart
