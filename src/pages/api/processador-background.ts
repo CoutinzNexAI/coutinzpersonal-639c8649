@@ -93,7 +93,7 @@ async function validateBufferContentType(buffer: Buffer): Promise<string | null>
     if (headerHex.startsWith('52494646') && headerHex.includes('57454250')) return 'image/webp';
     if (headerHex.startsWith('424d')) return 'image/bmp';
     
-    return null;
+        return null;
 }
 
 
@@ -148,13 +148,13 @@ async function updateJobStatus(
                 .eq('id', jobId)
                 .single();
             
-            const existingMetadata = (existingData?.output_metadata as Record<string, unknown>) || {};
+            const existingMetadata = existingData?.output_metadata || {};
             updateData.output_metadata = { ...existingMetadata, ...metadata };
             console.log(`[updateJobStatus: ${jobId}] MERGE - existing: ${JSON.stringify(existingMetadata)}, new: ${JSON.stringify(metadata)}, merged: ${JSON.stringify(updateData.output_metadata)}`);
         } catch (mergeError) {
             // If we can't get existing metadata, just use the new metadata
             updateData.output_metadata = metadata;
-            console.log(`[updateJobStatus: ${jobId}] MERGE FAILED - using new metadata only: ${JSON.stringify(metadata)}, error: ${(mergeError as Error).message}`);
+            console.log(`[updateJobStatus: ${jobId}] MERGE FAILED - using new metadata only: ${JSON.stringify(metadata)}`);
         }
     }
 
@@ -193,11 +193,15 @@ async function getPromptFromDB(styleId: string, jobIdForLogging: string): Promis
         }
         if (styleResult) {
             const prompt = styleResult.prompt_template || `Transform image in ${styleResult.name} style.`;
-            const quality = styleResult.quality || 'medium'; // fallback para medium
+            const quality = styleResult.quality; // TESTE: sem fallback para confirmar se busca da BD
+            console.log(`[getPromptFromDB: ${jobIdForLogging}] TESTE - Style: ${styleId}, Quality from DB: ${quality}`);
+            if (!quality) {
+                throw new Error(`Quality not found for style ${styleId} - this should not happen!`);
+            }
             return { prompt, quality };
         }
         console.warn(`[getPromptFromDB: ${jobIdForLogging}] Style ${styleId} not found. Using fallback prompt.`);
-        return { prompt: `Transform image in ${styleId} style.`, quality: 'medium' }; // Fallback se não encontrado
+        throw new Error(`Style ${styleId} not found in database`); // TESTE: sem fallback
     } catch (error) {
         console.error(`[getPromptFromDB: ${jobIdForLogging}] Exception fetching prompt for ${styleId}:`, (error as Error).message);
         throw error; // Re-lança o erro (pode ser o da query ou um novo)
@@ -249,12 +253,17 @@ async function processImage(jobId: string, jobData: JobData) {
         }
         // --- FIM DA VALIDAÇÃO SERVER-SIDE ---
 
-        // Don't call updateJobStatus here - collect all metadata first
         const { prompt: promptText, quality: imageQuality } = await getPromptFromDB(jobData.style_requested, jobId);
-        outputMetadata = { ...outputMetadata, detectedMimeType, promptUsed: promptText, aiModelUsed: 'gpt-image-1', qualityUsed: imageQuality };
         
-        // Update status to processing with initial metadata
-        await updateJobStatus(jobId, 'processing', null, null, outputMetadata);
+        // Atualizar para processing COM todos os metadados já incluídos
+        await updateJobStatus(jobId, 'processing', null, null, { 
+            detectedMimeType, 
+            promptUsed: promptText, 
+            aiModelUsed: 'gpt-image-1', 
+            qualityUsed: imageQuality 
+        });
+        
+        outputMetadata = { ...outputMetadata, promptUsed: promptText, aiModelUsed: 'gpt-image-1', qualityUsed: imageQuality };
 
         const tempFileExtension = detectedMimeType.split('/')[1] || 'tmp';
         tempFilePath = path.join(os.tmpdir(), `input_${jobId}_${Date.now()}.${tempFileExtension}`);

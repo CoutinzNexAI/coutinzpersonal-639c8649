@@ -117,7 +117,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         const targetVariant = product.variants.find(v => v.id === 92381); // 24" x 18" (60,96 x 45,72 cm)
         if (targetVariant) {
           setSelectedPrintifyVariantId(targetVariant.id);
-        } else {
+      } else {
           setSelectedPrintifyVariantId(product.variants[0].id); // Fallback para primeira
         }
       }

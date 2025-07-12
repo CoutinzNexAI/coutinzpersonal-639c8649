@@ -14,7 +14,7 @@ import { URL } from 'url';
 const getImageDimensions = async (imageUrl: string): Promise<{ width: number; height: number }> => {
   return new Promise((resolve, reject) => {
     const parsedUrl = new URL(imageUrl);
-    
+      
     http.get(parsedUrl, (res) => {
       const { statusCode, headers } = res;
       
@@ -23,29 +23,29 @@ const getImageDimensions = async (imageUrl: string): Promise<{ width: number; he
         reject(new Error(`Redirect to ${headers.location} - fetch manually or use a library that follows redirects`));
         return;
       }
-      
+
       if (statusCode !== 200) {
         console.error(`[getImageDimensions] ❌ ERRO: O pedido à imagem falhou com o status ${statusCode}.`);
         reject(new Error(`Request failed with status code: ${statusCode}`));
         return;
       }
-      
-      const chunks: Buffer[] = [];
+
+        const chunks: Buffer[] = [];
       
       res.on('data', (chunk: Buffer) => {
         chunks.push(chunk);
       });
       
       res.on('end', () => {
-        const buffer = Buffer.concat(chunks);
+          const buffer = Buffer.concat(chunks);
         
         // PNG: starts with 89 50 4E 47 (‰PNG), dimensions at bytes 16-23
         if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
-          const width = buffer.readUInt32BE(16);
-          const height = buffer.readUInt32BE(20);
-          resolve({ width, height });
-          return;
-        }
+              const width = buffer.readUInt32BE(16);
+              const height = buffer.readUInt32BE(20);
+              resolve({ width, height });
+            return;
+            }
         
         // JPEG: starts with FF D8, look for SOF (Start of Frame)
         if (buffer[0] === 0xFF && buffer[1] === 0xD8) {
@@ -53,9 +53,9 @@ const getImageDimensions = async (imageUrl: string): Promise<{ width: number; he
             if (buffer[i] === 0xFF && (buffer[i + 1] === 0xC0 || buffer[i + 1] === 0xC2)) {
               const height = buffer.readUInt16BE(i + 5);
               const width = buffer.readUInt16BE(i + 7);
-              resolve({ width, height });
-              return;
-            }
+                  resolve({ width, height });
+                  return;
+                }
           }
         }
         
@@ -67,23 +67,23 @@ const getImageDimensions = async (imageUrl: string): Promise<{ width: number; he
           if (buffer[12] === 0x56 && buffer[13] === 0x50 && buffer[14] === 0x38 && buffer[15] === 0x20) {
             const width = buffer.readUInt16LE(26) & 0x3FFF;
             const height = buffer.readUInt16LE(28) & 0x3FFF;
-            resolve({ width, height });
+                resolve({ width, height });
             return;
-          }
+              }
           
           // VP8L format
           if (buffer[12] === 0x56 && buffer[13] === 0x50 && buffer[14] === 0x38 && buffer[15] === 0x4C) {
-            const bits = buffer.readUInt32LE(21);
+                const bits = buffer.readUInt32LE(21);
             const width = (bits & 0x3FFF) + 1;
             const height = ((bits >> 14) & 0x3FFF) + 1;
-            resolve({ width, height });
+                resolve({ width, height });
             return;
+            }
           }
-        }
-        
-        console.warn('⚠️ Could not detect image dimensions, using fallback 1024x1024');
-        resolve({ width: 1024, height: 1024 });
-      });
+          
+          console.warn('⚠️ Could not detect image dimensions, using fallback 1024x1024');
+          resolve({ width: 1024, height: 1024 });
+        });
     }).on('error', (err: Error) => {
       console.error('[getImageDimensions] ❌ ERRO DE REDE:', err.message);
       reject(err);

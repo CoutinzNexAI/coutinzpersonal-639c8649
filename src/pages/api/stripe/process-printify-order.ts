@@ -186,7 +186,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       session = await stripe.checkout.sessions.retrieve(sessionId, {
         expand: ['payment_intent', 'line_items', 'customer_details']
-      });
+    });
     } catch (stripeError) {
       console.error('❌ Erro ao recuperar sessão do Stripe:', stripeError);
       return res.status(400).json({ 
@@ -233,7 +233,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 4. EXTRAÇÃO DOS DADOS DO CLIENTE DO STRIPE
     const shippingDetails = (session as ExtendedSession).shipping_details || null;
     const customerDetails = session.customer_details || null;
-    
+
     // Prioridade para extrair informações do cliente
     const customerEmail = customerDetails?.email || 
                          session.customer_email || 
