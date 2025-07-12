@@ -67,6 +67,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Sync user with database via API endpoint (bypasses RLS)
       try {
+        if (!session?.access_token) {
+          console.warn('[syncUserWithDatabase] No session or access_token available, skipping API sync');
+          return;
+        }
+        
         const response = await fetch('/api/users/sync', {
           method: 'POST',
           headers: {

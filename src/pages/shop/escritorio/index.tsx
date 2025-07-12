@@ -48,7 +48,7 @@ const EscritorioShopPage: React.FC = () => {
           <Header />
         </div>
         
-        <main className="container mx-auto px-4 py-12 md:py-16 lg:py-20">
+        <main className="container mx-auto px-4 pt-20 pb-12 md:py-16 lg:py-20">
           {/* Header */}
           <div className="text-center mb-20 lg:mb-24">
             <motion.h1 

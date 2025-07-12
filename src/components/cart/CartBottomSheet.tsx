@@ -375,8 +375,8 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
               {cartSummary && cartSummary.itemCount > 0 && (
                 <div className="flex-shrink-0 border-t border-ghibli-sand/30 bg-ghibli-cream/20">
                   {/* Resumo de preços compacto para mobile */}
-                  <div className="px-4 py-2">
-                    {/* Subtotal original e desconto (se houver) */}
+                  <div className="px-4 py-3">
+                    {/* Subtotal original e desconto (se houver) - ONLY show if discount exists and > 0 */}
                     {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
                       <>
                         <div className="flex justify-between text-xs mb-1">
@@ -416,8 +416,6 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                         )}
                       </div>
                       
-                      {/* ✅ REMOVIDO: Linha do IVA - agora incluído nos preços */}
-                      
                       <div className="border-t border-ghibli-sand/50 pt-1.5 mt-1.5">
                         <div className="flex justify-between text-lg font-bold">
                           <span className="text-ghibli-wood">Total</span>
@@ -434,8 +432,8 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                     </div>
                   </div>
                   
-                  {/* Botão de checkout */}
-                  <div className="px-4 pb-3 pt-1">
+                  {/* Botão de checkout - REDUCED bottom padding for better mobile alignment */}
+                  <div className="px-4 pb-4 pt-2">
                     <Button
                       onClick={handleCheckout}
                       disabled={isProcessingCheckout || !userInfo}

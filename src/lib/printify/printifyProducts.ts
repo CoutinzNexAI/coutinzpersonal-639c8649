@@ -227,7 +227,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'ceramic_mug': {
     id: 'ceramic_mug',
     name: 'Caneca',
-    mockupInitialPath: '/assets/mockups/mug/caneca.svg',
+    mockupInitialPath: '/mockupproduto/canecapersonalizada.png',
     basePrice: 18.95, // Euros - 330ml base ✅ ATUALIZADO
     category: 'mug',
     // ✅ CONFIGURAÇÃO DE DESIGN: Caneca com fill completo + ajustes ligeiros
@@ -259,12 +259,12 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
-  // 2. CANECA EM FORMATO DE CORAÇÃO
+  // 2. CANECA CORAÇÃO (EU)
   'heart_mug': {
     id: 'heart_mug',
     name: 'Caneca Coração',
-    mockupInitialPath: '/assets/mockups/mug/canecacoracao.svg',
-    basePrice: 26.95, // Euros ✅ ATUALIZADO
+    mockupInitialPath: '/mockupproduto/canecacoracao.png',
+    basePrice: 26.95, // Euros (preço único) ✅ ATUALIZADO
     category: 'mug',
     // ✅ CONFIGURAÇÃO DE DESIGN: Caneca coração com fill completo + ajustes ligeiros
     defaultDesign: {
@@ -298,7 +298,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'tote_bag': {
     id: 'tote_bag',
     name: 'Saco Tote Bag',
-    mockupInitialPath: '/assets/mockups/bag/saco.svg',
+    mockupInitialPath: '/mockupproduto/saco.png',
     basePrice: 19.95, // Euros ✅ ATUALIZADO
     category: 'bags', // Nova categoria
     // ✅ CONFIGURAÇÃO DE DESIGN: Saco tote com imagem centrada
@@ -334,7 +334,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'spiral_journal': {
     id: 'spiral_journal',
     name: 'Caderno',
-    mockupInitialPath: '/assets/mockups/journal/spiral_journal_blank.svg',
+    mockupInitialPath: '/mockupproduto/caderno.png',
     basePrice: 18.95, // Euros ✅ ATUALIZADO
     category: 'escritorio', // ✅ MUDANÇA: escritorio em vez de stationery
     // ✅ CONFIGURAÇÃO DE DESIGN: Caderno com fill para cobertura completa
@@ -370,7 +370,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
   'mouse_pad': {
     id: 'mouse_pad',
     name: 'Mouse Pad',
-    mockupInitialPath: '/assets/mockups/mousepad/mouse_pad_blank.svg',
+    mockupInitialPath: '/mockupproduto/mousepad.png',
     basePrice: 24.95, // Euros ✅ ATUALIZADO
     category: 'escritorio', // ✅ MUDANÇA: escritorio em vez de office
     // ✅ CONFIGURAÇÃO DE DESIGN: Mouse pad com fill
