@@ -768,6 +768,11 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 quantity={quantity}
                 onQuantityChange={setQuantity}
                 discountTiers={config.discountTiers || []}
+                canPurchase={!!canPurchase}
+                onAddToCart={handleAddToCart}
+                loading={loading}
+                userInfo={userInfo}
+                selectedImageUrl={selectedImageUrl}
               />
             </motion.div>
 

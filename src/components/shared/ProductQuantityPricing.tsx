@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Plus, ShoppingCart } from 'lucide-react';
 
 interface ProductQuantityPricingProps {
   // Dados do produto
@@ -15,6 +15,13 @@ interface ProductQuantityPricingProps {
   // Configurações
   discountTiers?: Array<{ min: number; discount: number; label: string; emoji: string }>;
   className?: string;
+  
+  // Props para o botão "Adicionar ao Carrinho" compacto
+  canPurchase?: boolean;
+  onAddToCart?: () => void;
+  loading?: boolean;
+  userInfo?: { id: string; email: string } | null;
+  selectedImageUrl?: string;
 }
 
 export const ProductQuantityPricing: React.FC<ProductQuantityPricingProps> = ({
@@ -25,7 +32,12 @@ export const ProductQuantityPricing: React.FC<ProductQuantityPricingProps> = ({
     { min: 2, discount: 10, label: 'produtos', emoji: '💡' },
     { min: 3, discount: 15, label: 'produtos', emoji: '🔥' }
   ],
-  className = ''
+  className = '',
+  canPurchase = false,
+  onAddToCart,
+  loading = false,
+  userInfo,
+  selectedImageUrl
 }) => {
   // Calcula desconto baseado na quantidade
   const calculateDiscount = (qty: number) => {
@@ -41,16 +53,17 @@ export const ProductQuantityPricing: React.FC<ProductQuantityPricingProps> = ({
   const totalPrice = discountedPrice * quantity;
   const savings = (basePrice * quantity) - totalPrice;
 
+  // Determina se o botão está disponível
+  const isButtonEnabled = canPurchase && !loading && userInfo && selectedImageUrl;
+
   return (
     <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30 shadow-lg ${className}`}>
-      {/* Header com preço */}
+      {/* Header com preço E botão compacto */}
       <div className="flex items-center justify-between mb-4">
-        <div>
+        <div className="flex-1">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
-            {discount > 0 && (
-              <span className="text-sm text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
-            )}
+            {/* Preço original riscado removido - desconto agora está no Total */}
           </div>
           {discount > 0 && (
             <span className="text-xs text-green-600 font-medium">
@@ -59,11 +72,28 @@ export const ProductQuantityPricing: React.FC<ProductQuantityPricingProps> = ({
           )}
         </div>
         
-        {/* Badge de desconto */}
-        {discount > 0 && (
-          <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-            -{discount}%
-          </div>
+        {/* NOVO: Botão "Adicionar ao Carrinho" compacto */}
+        {onAddToCart && (
+          <Button
+            onClick={onAddToCart}
+            disabled={!isButtonEnabled}
+            size="sm"
+            className={`ml-3 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+              isButtonEnabled 
+                ? 'bg-ghibli-moss hover:bg-ghibli-moss/90 text-white shadow-md hover:shadow-lg' 
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            {loading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Adicionar</span>
+                <span className="sm:hidden">+</span>
+              </>
+            )}
+          </Button>
         )}
       </div>
 
@@ -115,12 +145,20 @@ export const ProductQuantityPricing: React.FC<ProductQuantityPricingProps> = ({
           ))}
         </div>
 
-        {/* Total */}
+        {/* Total COM desconto movido para aqui */}
         <div className="border-t border-ghibli-sand/30 pt-3 mt-3">
           <div className="flex items-center justify-between">
             <span className="font-medium text-ghibli-earth">Total:</span>
             <div className="text-right">
-              <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
+              <div className="flex items-center gap-2">
+                <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
+                {/* NOVO: Desconto movido para aqui */}
+                {discount > 0 && (
+                  <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    -{discount}%
+                  </div>
+                )}
+              </div>
               {quantity > 1 && (
                 <div className="text-xs text-ghibli-earth/70">
                   {quantity} × €{discountedPrice.toFixed(2)}
