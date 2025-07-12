@@ -105,25 +105,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          items: cartSummary.items.map(item => {
-            // Calcular desconto para este item
-            const sameProductItems = cartSummary.items.filter(cartItem => cartItem.productId === item.productId);
-            const totalSameProductQty = sameProductItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
-            
-            let discountPercent = 0;
-            if (totalSameProductQty >= 3) {
-              discountPercent = 15;
-            } else if (totalSameProductQty >= 2) {
-              discountPercent = 10;
-            }
-            
-            const finalPrice = item.price * (1 - discountPercent / 100);
-            
-            return {
-              ...item,
-              finalPrice // ✅ NOVO: Enviar preço final calculado
-            };
-          }),
+          items: cartSummary.items,
           shippingMethod: {
             uid: shippingPrice === 0 ? 'free_shipping' : 'standard_shipping',
             name: shippingPrice === 0 ? 'Envio Grátis' : 'Envio Standard',

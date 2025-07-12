@@ -150,9 +150,11 @@ async function updateJobStatus(
             
             const existingMetadata = existingData?.output_metadata || {};
             updateData.output_metadata = { ...existingMetadata, ...metadata };
+            console.log(`[updateJobStatus: ${jobId}] MERGE - existing: ${JSON.stringify(existingMetadata)}, new: ${JSON.stringify(metadata)}, merged: ${JSON.stringify(updateData.output_metadata)}`);
         } catch (mergeError) {
             // If we can't get existing metadata, just use the new metadata
             updateData.output_metadata = metadata;
+            console.log(`[updateJobStatus: ${jobId}] MERGE FAILED - using new metadata only: ${JSON.stringify(metadata)}`);
         }
     }
 
@@ -326,6 +328,7 @@ async function processImage(jobId: string, jobData: JobData) {
             catch (unlinkErr) { console.warn(`[processImage: ${jobId}] Failed to clean up temp file in finally: ${(unlinkErr as Error).message}`);}
         }
         
+        console.log(`[processImage: ${jobId}] FINALLY - finalStatus: ${finalStatus}, outputMetadata: ${JSON.stringify(outputMetadata)}`);
         await updateJobStatus(jobId, finalStatus, outputFilePath, errorMessage, outputMetadata);
     }
 }
