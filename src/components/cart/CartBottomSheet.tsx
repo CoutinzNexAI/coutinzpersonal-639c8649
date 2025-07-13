@@ -83,6 +83,9 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
     };
   }, [isOpen]);
 
+  // ✅ NOVO: Detectar se há mais de 2 produtos para aplicar altura fixa
+  const hasMoreThanTwoItems = cartSummary && cartSummary.itemCount > 2;
+
   // Carregar dados do utilizador
   const loadUserData = async () => {
     if (!userInfo?.id || userData) return userData;
@@ -339,7 +342,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
           </div>
           
           <div className="flex-1 flex flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto px-4 py-3">
+            <div className={`${hasMoreThanTwoItems ? 'h-64' : 'flex-1'} overflow-y-auto px-4 py-3`}>
               {cartSummary?.items.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-4xl mb-3">🛒</div>

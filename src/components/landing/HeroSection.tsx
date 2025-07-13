@@ -184,7 +184,7 @@ const HeroSection: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
                 >
-                  Make Your Imagined
+                  Transforma as tuas ideias
                 </motion.div>
                 
                 {/* Segunda linha com destaque e entrada mais dramática */}
@@ -194,9 +194,9 @@ const HeroSection: React.FC = () => {
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   transition={{ duration: 0.8, delay: 0.8, ease: "easeOut", type: "spring", bounce: 0.3 }}
                 >
-                  <span className="text-ghibli-wood">Photos </span>
+                  <span className="text-ghibli-wood">em fotos </span>
                   <span className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent font-extrabold">
-                    Real
+                    Reais
                   </span>
                   <motion.span
                     className="ml-1 text-sm relative"
