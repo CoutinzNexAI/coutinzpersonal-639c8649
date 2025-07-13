@@ -277,6 +277,10 @@ const AdminDashboard = () => {
             Bem-vindo, {currentUser?.full_name || currentUser?.email}
           </p>
           <div className="mt-4 flex gap-4">
+            <Button onClick={() => router.push('/admin/analytics')} className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </Button>
             <Button onClick={() => router.push('/admin/orders')}>
               Gerir Pedidos
             </Button>
