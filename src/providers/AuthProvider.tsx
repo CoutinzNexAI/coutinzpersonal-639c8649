@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             'Authorization': `Bearer ${session.access_token}`
           },
           body: JSON.stringify({
-            user: {
+            userData: {  // ✅ FIXED: Changed from "user" to "userData"
               id: user.id,
               email: user.email,
               full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
@@ -91,21 +91,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         if (response.ok) {
-          const userData = await response.json();
-          setUserInfo(userData.user);
+          const responseData = await response.json();
+          console.log('[syncUserWithDatabase] ✅ User sync successful:', responseData);
+          
+          // ✅ FIXED: Update userInfo with fresh data from database
+          if (responseData.user) {
+            setUserInfo(responseData.user);
+          }
         } else {
           const errorData = await response.json();
-          console.error("[syncUserWithDatabase] Error syncing user via API:", errorData);
+          console.error("[syncUserWithDatabase] ❌ Error syncing user via API:", errorData);
         }
       } catch (error) {
-        console.error('[syncUserWithDatabase] Exception:', error);
+        console.error('[syncUserWithDatabase] ❌ Exception:', error);
       }
     } catch (error) {
-      console.error('[syncUserWithDatabase] Exception:', error);
+      console.error('[syncUserWithDatabase] ❌ Exception:', error);
     } finally {
       if (updateLoadingState) setIsLoading(false);
     }
-  }, []); 
+  }, [session?.access_token]); // ✅ FIXED: Added session dependency
 
   const refreshSession = useCallback(async (manageLoadingState = false) => {
     if (manageLoadingState) setIsLoading(true);

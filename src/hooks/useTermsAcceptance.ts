@@ -26,11 +26,14 @@ export const useTermsAcceptance = () => {
         .eq('id', userInfo.id);
 
       if (error) {
+        console.error('[acceptTerms] ❌ Database error:', error);
         toast.error('Erro ao guardar aceitação', {
           description: 'Tente novamente ou contacte o suporte.'
         });
         throw error;
       }
+
+      console.log('[acceptTerms] ✅ Terms accepted successfully for user:', userInfo.id);
 
       // Track successful acceptance
       trackEvent('terms_accepted_successfully', {
@@ -46,6 +49,7 @@ export const useTermsAcceptance = () => {
       return true;
 
     } catch (error) {
+      console.error('[acceptTerms] ❌ Exception:', error);
       trackEvent('terms_acceptance_error', {
         user_id: userInfo.id,
         error_message: error instanceof Error ? error.message : 'Unknown error'

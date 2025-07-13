@@ -81,16 +81,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Check if this is a new user by checking if they exist in database
-    const { error: checkError } = await supabaseAdmin
+    const { data: existingUser, error: checkError } = await supabaseAdmin
       .from('users')
-      .select('id, created_at')
+      .select('id, created_at, accepted_terms, terms_accepted_at')
       .eq('id', user.id)
       .single();
 
     const isNewUser = checkError && checkError.code === 'PGRST116'; // Not found error
 
     // Use admin client to bypass RLS for user upsert
-    const { error: upsertError } = await supabaseAdmin
+    const { data: upsertedUser, error: upsertError } = await supabaseAdmin
       .from('users')
       .upsert({
         id: user.id,
@@ -98,16 +98,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         full_name: userData.full_name,
         avatar_url: userData.avatar_url,
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'id' });
+        // ✅ FIXED: Keep existing accepted_terms for existing users
+        ...(existingUser && !isNewUser && {
+          accepted_terms: existingUser.accepted_terms,
+          terms_accepted_at: existingUser.terms_accepted_at
+        })
+      }, { onConflict: 'id' })
+      .select('*')  // ✅ FIXED: Return the complete user data
+      .single();
 
     if (upsertError) {
       console.error("[User Sync API] Error upserting user:", upsertError.message);
       return res.status(500).json({ message: 'Error syncing user', detail: upsertError.message });
     }
 
+    console.log('[User Sync API] ✅ User synced successfully:', {
+      user_id: user.id,
+      isNewUser,
+      updated_at: upsertedUser?.updated_at
+    });
+
     return res.status(200).json({
       success: true,
-      isNewUser
+      isNewUser,
+      user: upsertedUser  // ✅ FIXED: Return complete user data
     });
 
   } catch (error) {

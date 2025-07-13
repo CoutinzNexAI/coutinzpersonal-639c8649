@@ -122,7 +122,6 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   };
 
   const handlePublishSuccess = (message: string) => {
-    console.log("✅ Publicação submetida:", message);
   };
 
   const handlePublishClick = () => {
