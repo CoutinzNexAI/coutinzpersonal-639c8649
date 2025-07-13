@@ -34,9 +34,12 @@ const Footer = () => {
 
   // Itens de navegação do rodapé - REMOVIDO "Sobre", mantendo só 3 na mesma linha
   const footerLinks = [
-    { name: "Política de Privacidade", href: "/politica-privacidade" },
-    { name: "Termos de Serviço", href: "/termos-servicos" },
-    { name: "Contato", href: "mailto:pictuzinfo@gmail.com?subject=Contato PicTuz - Suporte&body=Olá,%0D%0A%0D%0AEu gostaria de entrar em contato sobre..." },
+    { name: 'Transformações AI', href: '/transformacoes' },
+    { name: 'Loja', href: '/shop' },
+    { name: 'Comunidade', href: '/community' },
+    { name: 'Política de Privacidade', href: '/politica-privacidade' },
+    { name: 'Termos de Serviço', href: '/termos-servicos' },
+    { name: 'Suporte', href: 'mailto:pictuzinfo@gmail.com' }
   ];
 
   // Ícones de redes sociais - ATUALIZADOS Facebook e TikTok
@@ -67,7 +70,7 @@ const Footer = () => {
             </Link>
           </div>
 
-          {/* Links de Navegação */}
+          {/* Links do rodapé - atualizados */}
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 mb-8" aria-label="Footer navigation">
             {footerLinks.map((link) => (
               // Verifica se é um link de email para abrir adequadamente
@@ -86,7 +89,9 @@ const Footer = () => {
                 <Link key={link.name} href={link.href} legacyBehavior passHref>
                   <motion.a
                     className={`text-sm transition-colors ${
-                      link.name === 'Política de Privacidade' 
+                      link.name === 'Transformações AI' 
+                        ? 'text-ghibli-moss hover:text-ghibli-wood font-semibold' // Destaque para Transformações AI
+                        : link.name === 'Política de Privacidade' 
                         ? 'text-ghibli-moss hover:text-ghibli-wood font-medium' // Destaque para Google OAuth
                         : 'text-ghibli-earth hover:text-ghibli-moss'
                     }`}

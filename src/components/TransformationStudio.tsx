@@ -143,7 +143,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
               case 3: // Processamento / Resultado
       
       // Estados que mostram o PaymentState (antes de iniciar o processamento real)
-      if (['idle', 'checking_balance', 'spending_coins', 'uploading_image', 'creating_job_record', 'triggering_processing'].includes(processingState)) {
+      if (['idle', 'checking_transformations', 'uploading_image', 'creating_job_record', 'triggering_processing'].includes(processingState)) {
         return (
           <div className="w-full h-full flex flex-col items-center justify-center p-4">
             <div className="w-full flex-grow relative">
@@ -151,7 +151,7 @@ export const TransformationStudio: React.FC<TransformationStudioProps> = ({
                 selectedStyleName={selectedStyle?.name || 'Estilo não definido'}
                 selectedStyle={selectedStyle}
                 onPaymentClick={handleStartTransformation}
-                isRedirecting={isLoading || ['checking_balance', 'spending_coins', 'triggering_processing'].includes(processingState)}
+                isRedirecting={isLoading || ['checking_transformations', 'triggering_processing'].includes(processingState)}
                 errorMessage={errorMessage}
                 processingState={processingState}
               />

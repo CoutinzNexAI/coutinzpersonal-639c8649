@@ -1,12 +1,13 @@
-# Robots.txt para Pictuz - Editor de Fotos AI
+# Robots.txt para Pictuz - Produtos Personalizados AI
 # https://pictuz.com/robots.txt
 
 User-agent: *
 Allow: /
 
 # Permitir acesso a todas as páginas principais
-Allow: /home
-Allow: /pricing
+Allow: /
+Allow: /transformacoes
+Allow: /shop
 Allow: /community
 Allow: /politica-privacidade
 Allow: /termos-servicos
@@ -16,6 +17,7 @@ Disallow: /api/
 Disallow: /_next/
 Disallow: /admin/
 Disallow: /auth/
+Disallow: /checkout/
 
 # Permitir recursos estáticos importantes para SEO
 Allow: /favicon.ico

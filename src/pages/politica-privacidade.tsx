@@ -6,23 +6,23 @@ import Head from 'next/head'; // Para definir o título da página
 import Link from 'next/link'; // Para links internos
 
 const PoliticaPrivacidadePage: React.FC = () => {
-  // --- PREENCHE ESTES DADOS ---
-  const nomeEmpresaOuSeuNome = "PicTuz Team"; // Substitui pelo nome correto
-  const urlSite = "https://pictuz.com"; // Confirma se este é o URL final
-  const emailContacto = "pictuzinfo@gmail.com"; // Substitui pelo teu email de suporte
-  const dataAtualizacao = "22 de Maio de 2025"; // Atualiza a data
-  const urlTermosServicos = "/termos-servicos"; // Link para a página de Termos
+  // --- DADOS ATUALIZADOS ---
+  const nomeEmpresaOuSeuNome = "PicTuz Team";
+  const urlSite = "https://pictuz.com";
+  const emailContacto = "pictuzinfo@gmail.com";
+  const dataAtualizacao = "29 de Dezembro de 2024"; // ✅ Data corrigida
+  const urlTermosServicos = "/termos-servicos";
 
   return (
     <div className="flex flex-col min-h-screen bg-ghibli-paper">
       <Head>
         <title>Política de Privacidade - Como Protegemos os Seus Dados | Pictuz</title>
-        <meta name="description" content="Política de Privacidade do Pictuz. Saiba como protegemos e tratamos os seus dados pessoais, imagens e informações de pagamento com total transparência." />
-        <meta name="keywords" content="política privacidade, proteção dados, RGPD, privacidade AI, dados pessoais Portugal" />
+        <meta name="description" content="Política de Privacidade do Pictuz. Proteção de dados pessoais, imagens, pagamentos Stripe, fulfillment Printify e conformidade RGPD com total transparência." />
+        <meta name="keywords" content="política privacidade, proteção dados, RGPD, privacidade AI, produtos personalizados, Stripe, Printify Portugal" />
         
         {/* Open Graph */}
         <meta property="og:title" content="Política de Privacidade - Pictuz" />
-        <meta property="og:description" content="Como protegemos os seus dados pessoais e imagens na plataforma Pictuz" />
+        <meta property="og:description" content="Como protegemos os seus dados pessoais, imagens e pagamentos na plataforma Pictuz" />
         <meta property="og:type" content="article" />
         <meta property="og:url" content="https://pictuz.com/politica-privacidade" />
         
@@ -45,7 +45,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
 
           {/* Introdução */}
           <p className="mb-6 text-ghibli-earth">
-            Bem-vindo(a) à Política de Privacidade do PicTuz. A sua privacidade é extremamente importante para nós. Este documento explica como {nomeEmpresaOuSeuNome} ("nós", "nosso") recolhe, utiliza, armazena e protege as suas informações pessoais quando utiliza o nosso serviço PicTuz (o "Serviço"), acessível através de <a href={urlSite} target="_blank" rel="noopener noreferrer" className="text-ghibli-sky hover:underline">{urlSite}</a>.
+            Bem-vindo(a) à Política de Privacidade do PicTuz. A sua privacidade é extremamente importante para nós. Este documento explica como {nomeEmpresaOuSeuNome} ("nós", "nosso") recolhe, utiliza, armazena e protege as suas informações pessoais quando utiliza o nosso serviço PicTuz (o "Serviço"), incluindo transformações AI e loja de produtos personalizados, acessível através de <a href={urlSite} target="_blank" rel="noopener noreferrer" className="text-ghibli-sky hover:underline">{urlSite}</a>.
           </p>
           <p className="mb-6 text-ghibli-earth">
             Ao utilizar o Serviço, concorda com a recolha e utilização de informações de acordo com esta política. Esta Política de Privacidade deve ser lida em conjunto com os nossos <Link href={urlTermosServicos} legacyBehavior><a className="text-ghibli-sky hover:underline">Termos de Serviço</a></Link>.
@@ -54,375 +54,229 @@ const PoliticaPrivacidadePage: React.FC = () => {
           {/* Secções da Política */}
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">1. Informações que Recolhemos</h2>
-            <p className="mb-4 text-ghibli-earth">Recolhemos diferentes tipos de informações para diversos fins, a fim de fornecer e melhorar o nosso Serviço para si:</p>
+            <p className="mb-4 text-ghibli-earth">Recolhemos diferentes tipos de informações para fornecer e melhorar o nosso Serviço completo de transformações AI e produtos personalizados:</p>
+            
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">1.1 Dados Pessoais (Autenticação)</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>Via Google Auth (Supabase):</strong> Nome completo, endereço de email e URL da foto de perfil do Google para criar e manter o seu perfil de utilizador.</li>
+              <li><strong>ID de Utilizador:</strong> Identificador único gerado automaticamente para gestão da conta e histórico.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">1.2 Conteúdo e Transformações</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>Imagens Originais:</strong> Fotografias que carrega para transformação, armazenadas no Supabase Storage durante o processamento.</li>
+              <li><strong>Imagens Transformadas:</strong> Resultados das transformações AI, armazenados permanentemente para acesso no seu histórico.</li>
+              <li><strong>Metadados de Transformação:</strong> Data, estilo aplicado, parâmetros de processamento e estado das transformações.</li>
+              <li><strong>Limite de Transformações:</strong> Registo da utilização das suas transformações diárias gratuitas.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">1.3 Loja e Pagamentos</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>Dados de Pagamento (Stripe):</strong> Processamos pagamentos através do Stripe. Não armazenamos detalhes completos do cartão - apenas identificadores de transação, metadados de pagamento e dados necessários para gestão de encomendas.</li>
+              <li><strong>Informações de Encomenda:</strong> Produtos selecionados, personalizações aplicadas, preços, quantidades e referências de encomenda.</li>
+              <li><strong>Dados de Entrega (Printify):</strong> Para fulfillment de produtos físicos, partilhamos dados de entrega necessários (nome, morada, contacto) com o nosso parceiro Printify apenas para produção e expedição.</li>
+              <li><strong>Histórico de Compras:</strong> Registo das suas encomendas para suporte e gestão de conta.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">1.4 Comunidade (Opcional)</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>Publicações Públicas:</strong> Transformações que escolhe partilhar, incluindo títulos e descrições fornecidas.</li>
+              <li><strong>Interações Sociais:</strong> Likes, comentários e outras interações na comunidade.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">1.5 Analytics e Comportamento</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>PostHog Analytics:</strong> Análise comportamental detalhada incluindo:
+                <ul className="list-circle list-outside pl-6 mt-2 space-y-1">
+                  <li>Padrões de navegação e utilização da plataforma</li>
+                  <li>Funnels de conversão (transformações → produtos)</li>
+                  <li>Heatmaps e session recordings (dados sensíveis censurados)</li>
+                  <li>Performance de funcionalidades e identificação de problemas</li>
+                  <li>Personalização de experiência baseada em preferências</li>
+                </ul>
+              </li>
+              <li><strong>Google Analytics:</strong> Dados agregados sobre tráfego, páginas visitadas, tempo de permanência e origens de tráfego.</li>
+              <li><strong>Vercel Analytics:</strong> Dados de performance da aplicação e velocidade de carregamento.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">1.6 Dados Técnicos</h3>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li>
-                <strong>Dados Pessoais (Via Autenticação Google):</strong> Quando cria uma conta utilizando o Google login através do Supabase Auth, recolhemos automaticamente o seu nome completo, endereço de email e URL da foto de perfil do Google. Esta informação é utilizada para criar e manter o seu perfil de utilizador.
-              </li>
-              <li>
-                <strong>Imagens Carregadas:</strong> Recolhemos e armazenamos as fotografias que carrega para transformação. Estas incluem:
-                <ul className="list-circle list-outside pl-6 mt-2 space-y-1">
-                  <li><strong>Imagens Originais:</strong> Armazenadas no nosso sistema Supabase Storage para processamento</li>
-                  <li><strong>Imagens Transformadas:</strong> O resultado final após processamento por IA, armazenadas permanentemente para acesso no seu histórico</li>
-                </ul>
-              </li>
-              <li>
-                <strong>Dados de Pagamento:</strong> Utilizamos Stripe para processar pagamentos. Não armazenamos detalhes completos do cartão - apenas identificadores da transação e metadados necessários para gestão da conta e suporte.
-              </li>
-              <li>
-                <strong>Sistema de Transformações:</strong> Mantemos um registo da utilização das suas transformações diárias para gestão dos limites e histórico de utilização.
-              </li>
-              <li>
-                <strong>Dados da Comunidade (Opcionais):</strong> Se escolher publicar transformações na comunidade, recolhemos títulos e descrições públicas que fornece, bem como dados de interação (likes, comentários).
-              </li>
-              <li>
-                <strong>Dados de Utilização e Analytics:</strong> Utilizamos Google Analytics para recolher informações agregadas sobre como o Serviço é utilizado, incluindo páginas visitadas, tempo de permanência e interações básicas. Esta recolha é feita de forma anónima e agregada.
-              </li>
-              <li>
-                <strong>Analytics Comportamentais Avançados:</strong> Análise detalhada do comportamento de utilizadores através do PostHog para:
-                <ul className="list-circle list-outside pl-6 mt-2 space-y-1">
-                  <li>Identificar pontos de atrito no processo de transformação</li>
-                  <li>Otimizar interfaces e fluxos de utilizador</li>
-                  <li>Personalizar experiência baseada em padrões de uso</li>
-                  <li>Prevenir abandono através de análise de funnels</li>
-                  <li>Melhorar sistema de transformações baseado em padrões de utilização</li>
-                  <li>Desenvolver funcionalidades baseadas em necessidades reais identificadas</li>
-                </ul>
-              </li>
-              <li>
-                <strong>Cookies Técnicos:</strong> Utilizamos cookies essenciais para autenticação (geridos pelo Supabase Auth), funcionamento básico da plataforma, e analytics comportamentais (PostHog).
-              </li>
+              <li><strong>Cookies Essenciais:</strong> Gestão de sessão e autenticação (Supabase Auth).</li>
+              <li><strong>Logs de Sistema:</strong> Registos técnicos para debugging e segurança.</li>
+              <li><strong>Informações de Dispositivo:</strong> Tipo de dispositivo, browser, resolução (para otimização).</li>
             </ul>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">2. Como Utilizamos as Suas Informações</h2>
             <p className="mb-4 text-ghibli-earth">Utilizamos as informações recolhidas para os seguintes fins específicos:</p>
-            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Fornecimento do Serviço:</strong> Criar e manter a sua conta, processar transformações de imagem usando OpenAI, e apresentar o histórico das suas criações.</li>
-              <li><strong>Processamento de Pagamentos:</strong> Gestão de compras de produtos físicos através do Stripe.</li>
-              <li><strong>Funcionalidades da Comunidade:</strong> Permitir partilha opcional das suas transformações, sistema de likes e comentários.</li>
-              <li><strong>Suporte ao Cliente:</strong> Resolução de problemas técnicos, recuperação de transformações e assistência geral.</li>
-              <li><strong>Melhoramento do Serviço:</strong> Análise agregada de padrões de utilização para otimizar performance e funcionalidades.</li>
-              <li><strong>Comunicações de Serviço:</strong> Notificações sobre o estado das transformações e atualizações importantes do serviço.</li>
-              <li><strong>Cumprimento Legal:</strong> Satisfazer obrigações legais e fiscais aplicáveis.</li>
-            </ul>
-            <p className="mt-4 text-ghibli-earth"><strong>Importante sobre as Imagens:</strong> As suas imagens originais são processadas pela OpenAI API para gerar transformações. Não utilizamos as suas imagens para treinar modelos de IA próprios nem as partilhamos com terceiros para outros fins.</p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">3. Base Legal para o Processamento (RGPD)</h2>
-            <p className="mb-4 text-ghibli-earth">Se for residente do Espaço Económico Europeu (EEE), a nossa base legal para processar os seus dados pessoais é:</p>
-            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Execução de Contrato:</strong> Processamento necessário para fornecer o serviço conforme acordado nos Termos de Serviço.</li>
-              <li><strong>Consentimento:</strong> Dado através da aceitação destes termos e uso voluntário do serviço.</li>
-              <li><strong>Interesses Legítimos:</strong> Melhoramento do serviço, prevenção de fraudes e analytics agregados.</li>
-              <li><strong>Obrigação Legal:</strong> Cumprimento de requisitos fiscais e legais.</li>
-            </ul>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">4. Retenção e Armazenamento de Dados</h2>
-            <p className="mb-4 text-ghibli-earth">Estabelecemos períodos de retenção claros para diferentes tipos de dados:</p>
-            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Dados da Conta:</strong> Mantidos enquanto a sua conta estiver ativa. Pode solicitar eliminação a qualquer momento.</li>
-              <li><strong>Imagens Originais:</strong> Armazenadas indefinidamente no Supabase Storage para permitir re-processamento e suporte técnico. São automaticamente eliminadas se a conta for eliminada.</li>
-              <li><strong>Imagens Transformadas:</strong> Armazenadas permanentemente no seu histórico pessoal enquanto a conta estiver ativa. Fazem parte do valor do serviço prestado.</li>
-              <li><strong>Histórico de Compras:</strong> Mantido indefinidamente para fins contabilísticos e fiscais, conforme exigido por lei.</li>
-              <li><strong>Dados de Pagamento:</strong> Identificadores Stripe retidos por pelo menos 7 anos para conformidade fiscal.</li>
-              <li><strong>Dados da Comunidade:</strong> Publicações na comunidade permanecem disponíveis mesmo após eliminação da conta, mas são desassociadas do seu perfil.</li>
-            </ul>
-            <p className="mt-4 text-ghibli-earth">Todos os dados são armazenados de forma segura utilizando a infraestrutura Supabase (PostgreSQL + Storage), que implementa encriptação em trânsito e em repouso. Os servidores estão localizados na União Europeia para utilizadores europeus.</p>
             
-            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="font-semibold text-green-800 mb-2">🔒 Acesso Administrativo Limitado</h4>
-              <p className="text-green-700 text-sm">
-                <strong>Importante:</strong> Embora as suas imagens sejam armazenadas na nossa infraestrutura, implementamos controlos rigorosos de acesso. O acesso administrativo aos seus dados pessoais e imagens é:
-              </p>
-              <ul className="list-disc list-outside pl-4 mt-2 text-green-700 text-sm space-y-1">
-                <li><strong>Restrito por Necessidade:</strong> Apenas acessível para resolução de problemas técnicos específicos e reportados</li>
-                <li><strong>Registado e Auditado:</strong> Todos os acessos são registados com timestamp, utilizador e justificação</li>
-                <li><strong>Temporário:</strong> Acesso concedido apenas pelo tempo mínimo necessário para resolver o problema</li>
-                <li><strong>Compartimentado:</strong> Diferentes níveis de acesso - suporte técnico não tem acesso aos mesmos dados que administradores financeiros</li>
-              </ul>
-            </div>
-          </section>
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">2.1 Prestação do Serviço</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>Processamento de Transformações:</strong> Envio de imagens para OpenAI API para transformação AI e armazenamento dos resultados.</li>
+              <li><strong>Gestão de Conta:</strong> Manutenção do perfil, histórico de transformações e autenticação.</li>
+              <li><strong>Fulfillment de Produtos:</strong> Processamento de encomendas, produção e entrega através do Printify.</li>
+              <li><strong>Processamento de Pagamentos:</strong> Gestão segura de transações através do Stripe.</li>
+            </ul>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">5. Partilha e Divulgação de Dados</h2>
-            <p className="mb-4 text-ghibli-earth">Não vendemos os seus dados pessoais. Partilhamos informações apenas nas seguintes situações específicas:</p>
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">2.2 Melhoramento e Otimização</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>Analytics Comportamentais:</strong> Identificação de pontos de atrito, otimização de funnels e melhoramento da experiência utilizador.</li>
+              <li><strong>Desenvolvimento de Funcionalidades:</strong> Criação de novas funcionalidades baseadas em padrões de utilização reais.</li>
+              <li><strong>Personalização:</strong> Adaptação da interface e sugestões baseadas nas suas preferências.</li>
+              <li><strong>Performance:</strong> Otimização da velocidade e estabilidade da plataforma.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">2.3 Suporte e Comunicação</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>Suporte Técnico:</strong> Resolução de problemas e assistência com encomendas.</li>
+              <li><strong>Atualizações Importantes:</strong> Comunicação sobre alterações de serviço, políticas ou questões de segurança.</li>
+              <li><strong>Gestão de Reclamações:</strong> Processamento de devoluções, reembolsos e questões de qualidade.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">2.4 Segurança e Conformidade</h3>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Prestadores de Serviços Essenciais:</strong>
-                <ul className="list-circle list-outside pl-6 mt-2 space-y-1">
-                  <li><strong>Supabase:</strong> Autenticação, base de dados e armazenamento de imagens (infraestrutura completa)</li>
-                  <li><strong>Stripe:</strong> Processamento de pagamentos e gestão de transações</li>
-                  <li><strong>OpenAI:</strong> Processamento de transformações de imagem via API (imagens enviadas temporariamente para processamento)</li>
-                  <li><strong>Vercel:</strong> Hospedagem e deployment da aplicação</li>
-                  <li><strong>Google Analytics:</strong> Análise de utilização (dados agregados e anónimos)</li>
-                  <li><strong>PostHog:</strong> Analytics comportamentais avançados, funnels, session recordings e cohort analysis (dados processados na UE)</li>
-                </ul>
-                Todos estes prestadores têm acesso limitado aos dados, apenas para os fins específicos contratados.
-              </li>
-              <li><strong>Requisitos Legais:</strong> Podemos divulgar dados se legalmente obrigatório, para proteger direitos ou segurança, ou em investigações legais.</li>
-              <li><strong>Comunidade PicTuz:</strong> Apenas dados que escolhe tornar públicos (transformações publicadas, comentários) são visíveis a outros utilizadores.</li>
+              <li><strong>Prevenção de Fraude:</strong> Deteção de atividades suspeitas em pagamentos e utilização.</li>
+              <li><strong>Cumprimento Legal:</strong> Conformidade com obrigações legais e regulamentares.</li>
+              <li><strong>Moderação de Conteúdo:</strong> Verificação de cumprimento das regras de conteúdo aceitável.</li>
             </ul>
-            
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">🛡️ Política de Não-Visualização</h4>
-              <p className="text-blue-700 text-sm">
-                <strong>Compromisso de Privacidade:</strong> A equipa PicTuz compromete-se a não visualizar, descarregar ou usar as suas imagens pessoais para qualquer fim que não seja o suporte técnico direto e autorizado. 
-                Implementamos uma política rigorosa de "não-curiosidade" - o acesso às imagens é feito apenas por sistemas automatizados ou em casos de suporte técnico com a sua autorização prévia.
-              </p>
-            </div>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">6. Segurança dos Dados</h2>
-            <p className="text-ghibli-earth">
-              A segurança dos seus dados é uma prioridade máxima. Implementamos múltiplas camadas de proteção:
-            </p>
-            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mt-4">
-              <li><strong>Encriptação:</strong> Todos os dados são encriptados em trânsito (HTTPS/TLS) e em repouso no Supabase</li>
-              <li><strong>Autenticação Segura:</strong> Utilizamos OAuth do Google via Supabase Auth - não armazenamos palavras-passe</li>
-              <li><strong>Armazenamento Seguro:</strong> Infraestrutura Supabase com conformidade SOC 2 Type II e certificação ISO 27001</li>
-              <li><strong>Acesso Limitado:</strong> Apenas pessoal autorizado tem acesso aos sistemas, com logs de auditoria</li>
-              <li><strong>Backups Seguros:</strong> Backups automáticos encriptados para recuperação de desastres</li>
-              <li><strong>Segregação de Funções:</strong> Administradores técnicos não têm acesso às ferramentas financeiras e vice-versa</li>
-              <li><strong>Políticas de Senha:</strong> Autenticação multifator obrigatória para todos os acessos administrativos</li>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">3. Partilha de Informações com Terceiros</h2>
+            <p className="mb-4 text-ghibli-earth">Só partilhamos os seus dados com terceiros nas seguintes circunstâncias específicas:</p>
+            
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">3.1 Parceiros de Serviço Essenciais</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>OpenAI:</strong> Imagens para transformação AI (processamento temporário, não armazenamento).</li>
+              <li><strong>Printify:</strong> Dados de encomenda e entrega necessários para produção e expedição de produtos físicos.</li>
+              <li><strong>Stripe:</strong> Dados de pagamento para processamento seguro de transações.</li>
+              <li><strong>Supabase:</strong> Armazenamento seguro de dados de conta, imagens e metadados.</li>
             </ul>
-            <p className="text-ghibli-earth mt-4">
-              Contudo, nenhum método de transmissão ou armazenamento é 100% seguro. Comprometemo-nos a notificá-lo prontamente sobre qualquer violação de segurança que possa afetar os seus dados pessoais.
-            </p>
-            
-            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <h4 className="font-semibold text-amber-800 mb-2">🔐 Controlos de Acesso Técnico</h4>
-              <p className="text-amber-700 text-sm mb-2">
-                <strong>Transparência Total:</strong> Para sua tranquilidade, informamos que:
-              </p>
-              <ul className="list-disc list-outside pl-4 text-amber-700 text-sm space-y-1">
-                <li>O acesso direto às suas imagens requer justificação documentada e aprovação prévia</li>
-                <li>Utilizamos chaves de API e credenciais rotativas para limitar exposição</li>
-                <li>Implementamos "breakglass" access - acessos de emergência são automaticamente reportados</li>
-                <li>Revisões de acesso trimestrais para garantir que apenas pessoal autorizado mantém permissões</li>
-                <li>Monitorização contínua de atividades suspeitas ou acessos não autorizados</li>
-              </ul>
-            </div>
-          </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">7. Governança e Transparência de Dados</h2>
-            <p className="text-ghibli-earth mb-4">
-              Para garantir máxima transparência e confiança na gestão dos seus dados, implementamos as seguintes práticas de governança:
-            </p>
-            
-            <div className="space-y-4">
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                <h4 className="font-semibold text-slate-800 mb-2">📋 Registos de Acesso Obrigatórios</h4>
-                <p className="text-slate-700 text-sm">
-                  Qualquer acesso administrativo aos seus dados (incluindo imagens) é automaticamente registado com:
-                  data/hora exata, identificação do administrador, razão específica do acesso, duração da sessão e ações realizadas.
-                  Estes logs são imutáveis e auditados mensalmente.
-                </p>
-              </div>
-              
-              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                <h4 className="font-semibold text-purple-800 mb-2">👥 Princípio dos "Quatro Olhos"</h4>
-                <p className="text-purple-700 text-sm">
-                  Acessos sensíveis aos dados dos utilizadores requerem aprovação de duas pessoas diferentes.
-                  Isto significa que mesmo em situações de suporte técnico, não há acesso unilateral aos seus dados pessoais.
-                </p>
-              </div>
-              
-              <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-                <h4 className="font-semibold text-indigo-800 mb-2">🔄 Rotação de Credenciais</h4>
-                <p className="text-indigo-700 text-sm">
-                  Todas as chaves de acesso administrativo são rotacionadas automaticamente a cada 90 dias.
-                  As credenciais antigas são imediatamente invalidadas, garantindo que não existem "portas traseiras" permanentes.
-                </p>
-              </div>
-              
-              <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg">
-                <h4 className="font-semibold text-teal-800 mb-2">🚨 Alertas Automáticos</h4>
-                <p className="text-teal-700 text-sm">
-                  O sistema gera alertas automáticos para qualquer acesso fora do horário normal (noites/fins de semana),
-                  múltiplos acessos em pouco tempo, ou tentativas de acesso a volumes grandes de dados.
-                  Estes alertas são revistos imediatamente pela equipa de segurança.
-                </p>
-              </div>
-            </div>
-            
-            <p className="text-ghibli-earth mt-6">
-              <strong>Compromisso de Transparência:</strong> Se alguma vez precisarmos de aceder aos seus dados para suporte técnico,
-              será sempre comunicado previamente (quando possível) e documentado. Pode solicitar um relatório dos acessos
-              à sua conta contactando-nos através de <a href={`mailto:${emailContacto}`} className="text-ghibli-sky hover:underline">{emailContacto}</a>.
-            </p>
-          </section>
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">3.2 Fornecedores de Analytics</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>PostHog:</strong> Dados comportamentais agregados e anonimizados para analytics avançados.</li>
+              <li><strong>Google Analytics:</strong> Dados de tráfego agregados e anonimizados.</li>
+              <li><strong>Vercel:</strong> Dados de performance da aplicação.</li>
+            </ul>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">8. Os Seus Direitos de Proteção de Dados (RGPD)</h2>
-            <p className="mb-4 text-ghibli-earth">Se for residente do Espaço Económico Europeu (EEE), tem os seguintes direitos relativamente aos seus dados pessoais:</p>
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">3.3 Situações Legais</h3>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Direito de Acesso:</strong> Pode solicitar cópias dos seus dados pessoais que processamos</li>
-              <li><strong>Direito de Retificação:</strong> Pode solicitar correção de dados incorretos ou incompletos</li>
-              <li><strong>Direito de Eliminação ("Direito ao Esquecimento"):</strong> Pode solicitar eliminação dos seus dados pessoais em certas circunstâncias</li>
-              <li><strong>Direito de Restrição:</strong> Pode solicitar limitação do processamento dos seus dados</li>
-              <li><strong>Direito de Portabilidade:</strong> Pode solicitar transferência dos seus dados para outro serviço</li>
-              <li><strong>Direito de Oposição:</strong> Pode opor-se ao processamento baseado em interesses legítimos</li>
-              <li><strong>Direito de Retirar Consentimento:</strong> Pode retirar consentimento a qualquer momento</li>
+              <li><strong>Obrigações Legais:</strong> Cumprimento de ordens judiciais, regulamentações ou investigações legais.</li>
+              <li><strong>Proteção de Direitos:</strong> Defesa dos nossos direitos legais ou de terceiros.</li>
+              <li><strong>Segurança Pública:</strong> Prevenção de atividades ilegais ou prejudiciais.</li>
             </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">4. Armazenamento e Segurança de Dados</h2>
+            
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">4.1 Localização e Armazenamento</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>Supabase:</strong> Dados principais armazenados em datacenters europeus para conformidade RGPD.</li>
+              <li><strong>Histórico Permanente:</strong> Imagens transformadas são mantidas permanentemente para acesso continuado ao seu histórico.</li>
+              <li><strong>Backups Seguros:</strong> Sistemas de backup automático com encriptação para proteção contra perda de dados.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">4.2 Medidas de Segurança</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>Encriptação:</strong> Dados em trânsito e em repouso protegidos com encriptação de nível bancário.</li>
+              <li><strong>Autenticação Segura:</strong> OAuth do Google gerido pelo Supabase Auth para máxima segurança.</li>
+              <li><strong>Acesso Limitado:</strong> Acesso aos dados estritamente limitado a pessoal autorizado para operações específicas.</li>
+              <li><strong>Monitorização:</strong> Sistemas de deteção de intrusões e monitorização contínua de segurança.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">4.3 Retenção de Dados</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
+              <li><strong>Histórico de Transformações:</strong> Mantido permanentemente como parte do valor do serviço.</li>
+              <li><strong>Dados de Encomenda:</strong> Mantidos por 7 anos para conformidade fiscal e garantias.</li>
+              <li><strong>Analytics:</strong> Dados comportamentais mantidos por 2 anos para análise de tendências.</li>
+              <li><strong>Logs de Sistema:</strong> Mantidos por 6 meses para resolução de problemas técnicos.</li>
+            </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">5. Os Seus Direitos RGPD</h2>
+            <p className="mb-4 text-ghibli-earth">De acordo com o Regulamento Geral de Proteção de Dados (RGPD), tem os seguintes direitos:</p>
+            
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
+              <li><strong>Direito de Acesso:</strong> Solicitar uma cópia dos dados pessoais que temos sobre si.</li>
+              <li><strong>Direito de Retificação:</strong> Correção de dados incorretos ou incompletos.</li>
+              <li><strong>Direito de Apagamento:</strong> Solicitar a eliminação dos seus dados pessoais (sujeito a limitações legais e contratuais).</li>
+              <li><strong>Direito de Limitação:</strong> Restringir o processamento dos seus dados em certas circunstâncias.</li>
+              <li><strong>Direito de Portabilidade:</strong> Receber os seus dados em formato estruturado e legível por máquina.</li>
+              <li><strong>Direito de Oposição:</strong> Opor-se ao processamento dos seus dados para marketing direto ou outros fins.</li>
+              <li><strong>Retirada de Consentimento:</strong> Retirar consentimento para analytics avançados mantendo acesso às funcionalidades principais.</li>
+            </ul>
+            
             <p className="mt-4 text-ghibli-earth">
-              Para exercer estes direitos, contacte-nos através de <a href={`mailto:${emailContacto}`} className="text-ghibli-sky hover:underline">{emailContacto}</a>. 
-              Responderemos ao seu pedido no prazo de 30 dias. Poderemos solicitar verificação de identidade antes de processar pedidos sensíveis.
-            </p>
-            <p className="mt-4 text-ghibli-earth">
-              Tem também o direito de apresentar queixa junto da Comissão Nacional de Proteção de Dados (CNPD) ou da autoridade de proteção de dados do seu país se considerar que os seus direitos foram violados.
+              Para exercer qualquer destes direitos, contacte-nos em <a href={`mailto:${emailContacto}`} className="text-ghibli-sky hover:underline">{emailContacto}</a>. Responderemos no prazo de 30 dias.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">9. Transferências Internacionais de Dados</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">6. Cookies e Tecnologias de Tracking</h2>
+            
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">6.1 Cookies Essenciais</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>Autenticação:</strong> Cookies do Supabase Auth para manter a sessão de utilizador.</li>
+              <li><strong>Carrinho de Compras:</strong> Armazenamento local dos itens selecionados.</li>
+              <li><strong>Preferências:</strong> Configurações de interface e preferências de utilizador.</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-ghibli-wood mb-3">6.2 Cookies de Analytics</h3>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
+              <li><strong>PostHog:</strong> Tracking comportamental para otimização da plataforma.</li>
+              <li><strong>Google Analytics:</strong> Análise de tráfego e utilização agregada.</li>
+              <li><strong>Vercel Analytics:</strong> Monitorização de performance da aplicação.</li>
+            </ul>
+
             <p className="text-ghibli-earth">
-              Os seus dados podem ser transferidos e processados fora do seu país de residência, incluindo:
-            </p>
-            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mt-4">
-              <li><strong>Supabase:</strong> Servidores localizados preferencialmente na UE (região EU-West-1)</li>
-              <li><strong>OpenAI:</strong> Processamento temporário de imagens nos EUA (dados eliminados após processamento)</li>
-              <li><strong>Stripe:</strong> Processamento de pagamentos na UE e EUA com adequações apropriadas</li>
-            </ul>
-            <p className="text-ghibli-earth mt-4">
-              Todas as transferências são protegidas por contratos de transferência de dados adequados e outras salvaguardas apropriadas em conformidade com o RGPD.
+              Pode gerir as suas preferências de cookies através das configurações do seu browser. Note que desativar cookies essenciais pode afetar a funcionalidade da plataforma.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">10. Cookies, Analytics e Session Recordings</h2>
-            <p className="text-ghibli-earth mb-4">
-              Utilizamos cookies e tecnologias avançadas de analytics para melhorar significativamente o seu experiência na plataforma:
-            </p>
-            
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-semibold text-blue-800 mb-2">🍪 Cookies Essenciais</h4>
-                <p className="text-blue-700 text-sm">
-                  <strong>Obrigatórios para funcionamento:</strong> Cookies de autenticação Supabase, estado da sessão, 
-                  preferências básicas. Estes não podem ser desativados sem afetar funcionalidades core.
-                </p>
-              </div>
-              
-              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                <h4 className="font-semibold text-purple-800 mb-2">📊 Analytics Comportamentais (PostHog)</h4>
-                <p className="text-purple-700 text-sm mb-2">
-                  <strong>O que gravamos:</strong>
-            </p>
-                <ul className="list-disc list-outside pl-4 text-purple-700 text-sm space-y-1">
-                  <li>Cliques, hovers, scroll depth e tempo em cada página</li>
-                  <li>Jornada completa: landing → upload → seleção → transformação → resultado</li>
-                  <li>Padrões de abandono e pontos de atrito</li>
-                  <li>Comportamento de utilização (transformações, produtos)</li>
-                  <li>Device info (resolução, browser, OS) para otimização responsiva</li>
-                </ul>
-              </div>
-              
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <h4 className="font-semibold text-red-800 mb-2">🎬 Session Recordings</h4>
-                <p className="text-red-700 text-sm mb-2">
-                  <strong>Gravação de Sessões em Tempo Real:</strong>
-                </p>
-                <ul className="list-disc list-outside pl-4 text-red-700 text-sm space-y-1">
-                  <li><strong>O que grava:</strong> Movimentos do rato, cliques, scrolling, navegação entre páginas</li>
-                  <li><strong>Proteção automática:</strong> Passwords, emails, dados de cartão são censurados automaticamente</li>
-                  <li><strong>Finalidade:</strong> Identificar bugs, otimizar UX, resolver problemas reportados</li>
-                  <li><strong>Retenção:</strong> Máximo 30 dias, depois eliminadas automaticamente</li>
-                  <li><strong>Anonimização:</strong> Não associamos recordings com dados pessoais identificáveis</li>
-                </ul>
-              </div>
-            </div>
-            
-            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="font-semibold text-green-800 mb-2">✅ Base Legal e Consentimento</h4>
-              <p className="text-green-700 text-sm mb-2">
-                <strong>RGPD Compliance:</strong> Session recordings constituem dados pessoais. Bases legais:
-              </p>
-              <ul className="list-disc list-outside pl-4 text-green-700 text-sm space-y-1">
-                <li><strong>Consentimento:</strong> Ao aceitar cookies/termos, consente explicitamente aos recordings</li>
-                <li><strong>Interesse Legítimo:</strong> Melhoramento contínuo da plataforma e resolução de bugs</li>
-                <li><strong>Execução de Contrato:</strong> Otimização do serviço contratado</li>
-              </ul>
-            </div>
-            
-            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <h4 className="font-semibold text-amber-800 mb-2">🔧 Como Controlar</h4>
-              <p className="text-amber-700 text-sm mb-2">
-                <strong>Pode desativar a qualquer momento:</strong>
-              </p>
-              <ul className="list-disc list-outside pl-4 text-amber-700 text-sm space-y-1">
-                <li><strong>Browser:</strong> Configurações → Privacidade → Bloquear cookies de terceiros</li>
-                <li><strong>PostHog Opt-out:</strong> Contacte-nos para opt-out permanente dos analytics avançados</li>
-                <li><strong>Session Recordings:</strong> Pode solicitar desativação mantendo outras funcionalidades</li>
-                <li><strong>Eliminação:</strong> Pode solicitar eliminação de todos os recordings existentes</li>
-            </ul>
-              <p className="text-amber-700 text-sm mt-2">
-                <strong>Impacto:</strong> Desativar pode afetar a qualidade do suporte técnico e otimizações de UX personalizadas.
-              </p>
-            </div>
-            
-            <p className="text-ghibli-earth mt-6">
-              <strong>Transparência Total:</strong> Para consultar que dados específicos recolhemos sobre si ou solicitar 
-              opt-out seletivo, contacte-nos através de <a href={`mailto:${emailContacto}`} className="text-ghibli-sky hover:underline">{emailContacto}</a> 
-              com o assunto "Analytics Data Request".
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">7. Menores de Idade</h2>
+            <p className="text-ghibli-earth">
+              O nosso Serviço não se destina a menores de 16 anos. Não recolhemos conscientemente informações pessoais de menores de 16 anos. Se for pai/mãe ou tutor e souber que o seu filho nos forneceu dados pessoais, contacte-nos para que possamos tomar as medidas necessárias para remover essas informações.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">11. Eliminação de Conta e Dados</h2>
-            <p className="text-ghibli-earth mb-4">
-              Pode solicitar a eliminação da sua conta a qualquer momento contactando-nos. O processo de eliminação inclui:
-            </p>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">8. Transferências Internacionais</h2>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Dados Pessoais:</strong> Eliminados permanentemente no prazo de 30 dias</li>
-              <li><strong>Imagens Originais e Transformadas:</strong> Eliminadas permanentemente do nosso storage</li>
-              <li><strong>Histórico de Compras:</strong> Anonimizado mas mantido para conformidade fiscal (dados desassociados da sua identidade)</li>
-              <li><strong>Publicações da Comunidade:</strong> Mantidas mas desassociadas do seu perfil (aparecem como "Utilizador Eliminado")</li>
+              <li><strong>Dados Principais:</strong> Armazenados em datacenters europeus (Supabase) para máxima proteção RGPD.</li>
+              <li><strong>Processamento AI:</strong> OpenAI (EUA) - dados enviados temporariamente apenas para processamento, não armazenamento.</li>
+              <li><strong>Analytics:</strong> PostHog e Google Analytics com salvaguardas adequadas para transferências UE-EUA.</li>
+              <li><strong>Fulfillment:</strong> Printify processa dados de entrega conforme necessário para produção e expedição.</li>
             </ul>
-            <p className="text-ghibli-earth mt-4">
-              <strong>Nota:</strong> A eliminação é irreversível. Certifique-se de fazer download das suas imagens transformadas antes de solicitar a eliminação.
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">9. Atualizações desta Política</h2>
+            <p className="text-ghibli-earth">
+              Podemos atualizar esta Política de Privacidade periodicamente para refletir alterações no nosso Serviço ou requisitos legais. Notificaremos sobre alterações significativas através da plataforma ou por email. Recomendamos que reveja esta política regularmente.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">12. Privacidade de Menores</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">10. Contacto e Questões</h2>
             <p className="text-ghibli-earth">
-              O nosso Serviço destina-se a utilizadores com 18 anos ou mais. Não recolhemos intencionalmente dados pessoais de menores de 18 anos. Se for pai/mãe ou tutor e tiver conhecimento de que o seu filho nos forneceu dados pessoais, contacte-nos imediatamente. Se descobrirmos que recolhemos dados de menores sem consentimento parental verificado, tomaremos medidas para eliminar essas informações dos nossos sistemas.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">13. Alterações a Esta Política de Privacidade</h2>
-            <p className="text-ghibli-earth">
-              Poderemos atualizar esta Política de Privacidade periodicamente para refletir mudanças no nosso Serviço ou requisitos legais. Alterações significativas serão comunicadas através de:
+              Para questões sobre esta Política de Privacidade, exercício dos seus direitos RGPD, ou questões sobre proteção de dados, contacte-nos:
             </p>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mt-4">
-              <li>Notificação proeminente no nosso website</li>
-              <li>Email para utilizadores registados (para alterações materiais)</li>
-              <li>Atualização da data de "Última Atualização" no topo desta política</li>
+              <li><strong>Email:</strong> <a href={`mailto:${emailContacto}`} className="text-ghibli-sky hover:underline">{emailContacto}</a></li>
+              <li><strong>Resposta:</strong> Garantimos resposta no prazo de 30 dias conforme RGPD</li>
+              <li><strong>Direitos RGPD:</strong> Processamento gratuito de todos os pedidos relacionados com os seus direitos</li>
             </ul>
-            <p className="text-ghibli-earth mt-4">
-              Recomendamos que revise esta política periodicamente. O uso continuado do Serviço após alterações constitui aceitação da política revista.
-            </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">14. Contacto</h2>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">11. Autoridade de Supervisão</h2>
             <p className="text-ghibli-earth">
-              Para questões sobre esta Política de Privacidade, exercício de direitos RGPD, ou questões de proteção de dados, contacte-nos:
-            </p>
-            <ul className="list-disc list-outside pl-6 mt-2 space-y-1 text-ghibli-earth">
-                <li><strong>Email:</strong> <a href={`mailto:${emailContacto}`} className="text-ghibli-sky hover:underline">{emailContacto}</a></li>
-                <li><strong>Assunto:</strong> "Proteção de Dados - [Descrição do pedido]"</li>
-                <li><strong>Tempo de Resposta:</strong> Máximo 30 dias para pedidos RGPD, 5 dias úteis para questões gerais</li>
-            </ul>
-            <p className="text-ghibli-earth mt-4">
-              Para emergências de segurança relacionadas com os seus dados, contacte-nos imediatamente com o assunto "URGENTE - Segurança de Dados".
+              Se não estiver satisfeito com a nossa resposta a questões de privacidade, tem o direito de apresentar uma reclamação à Comissão Nacional de Proteção de Dados (CNPD) de Portugal, a autoridade de supervisão competente para questões de proteção de dados.
             </p>
           </section>
 

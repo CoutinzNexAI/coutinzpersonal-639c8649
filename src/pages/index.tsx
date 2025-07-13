@@ -51,12 +51,12 @@ const HomePage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-ghibli-paper to-ghibli-cream/50 relative overflow-hidden">
       <Head>
         <title>PicTuz - Produtos Personalizados com IA | Canecas, Canvas, Posters</title>
-        <meta name="description" content="Transforma as tuas fotos em produtos únicos! Canecas, canvas, posters personalizados com arte gerada por IA. Entrega grátis em Portugal." />
+        <meta name="description" content="🛍️ Cria produtos únicos com as tuas fotos! Canvas, canecas, posters, capas personalizadas com arte IA. Qualidade premium. Entrega grátis em Portugal!" />
         <meta name="keywords" content="produtos personalizados, canecas personalizadas, canvas personalizado, posters personalizados, arte IA, Portugal" />
         
         {/* Open Graph */}
         <meta property="og:title" content="PicTuz - Produtos Personalizados com IA" />
-        <meta property="og:description" content="Transforma as tuas fotos em produtos únicos com arte gerada por IA" />
+        <meta property="og:description" content="Cria produtos únicos com as tuas fotos! Canvas, canecas, posters personalizados com arte IA." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://pictuz.com" />
         

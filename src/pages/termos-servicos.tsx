@@ -5,23 +5,23 @@ import Footer from '@/components/Footer'; // Ajusta o caminho se necessário
 import Head from 'next/head'; // Para definir o título da página
 
 const TermosServicosPage: React.FC = () => {
-  // --- PREENCHE ESTES DADOS ---
-  const nomeEmpresaOuSeuNome = "PicTuz Team"; // Substitui pelo nome correto
-  const urlSite = "https://pictuz.com"; // Confirma se este é o URL final
-  const emailContacto = "pictuzinfo@gmail.com"; // Substitui pelo teu email de suporte
-  const dataAtualizacao = "14 de Maio de 2025"; // Atualiza a data
-  const urlPoliticaPrivacidade = "/politica-privacidade"; // Link para a página da Política de Privacidade
+  // --- DADOS ATUALIZADOS ---
+  const nomeEmpresaOuSeuNome = "PicTuz Team";
+  const urlSite = "https://pictuz.com";
+  const emailContacto = "pictuzinfo@gmail.com";
+  const dataAtualizacao = "29 de Dezembro de 2024"; // ✅ Data corrigida
+  const urlPoliticaPrivacidade = "/politica-privacidade";
 
   return (
     <div className="flex flex-col min-h-screen bg-ghibli-paper">
       <Head>
         <title>Termos e Condições de Serviço - Regras de Utilização | Pictuz</title>
-        <meta name="description" content="Termos e Condições de utilização do Pictuz. Conheça as regras, direitos e deveres para usar nossa plataforma de transformação de fotos com AI." />
-        <meta name="keywords" content="termos serviço, condições utilização, regras AI fotos, termos Pictuz, direitos utilizador" />
+        <meta name="description" content="Termos e Condições do Pictuz. Regras para transformações AI, compra de produtos personalizados (canvas, canecas, posters) e utilização da plataforma." />
+        <meta name="keywords" content="termos serviço, condições utilização, produtos personalizados, canvas, canecas, termos Pictuz, direitos utilizador" />
         
         {/* Open Graph */}
         <meta property="og:title" content="Termos e Condições de Serviço - Pictuz" />
-        <meta property="og:description" content="Regras e condições para utilização da plataforma Pictuz de transformação de fotos com AI" />
+        <meta property="og:description" content="Regras para transformações AI e compra de produtos personalizados na plataforma Pictuz" />
         <meta property="og:type" content="article" />
         <meta property="og:url" content="https://pictuz.com/termos-servicos" />
         
@@ -51,172 +51,136 @@ const TermosServicosPage: React.FC = () => {
           </p>
 
           {/* Secções dos Termos */}
-          {/* Usar classes para estilizar títulos e parágrafos */}
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">1. Definições</h2>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Serviço:</strong> Refere-se à aplicação web PicTuz, acessível em <a href={urlSite} target="_blank" rel="noopener noreferrer" className="text-ghibli-sky hover:underline">{urlSite}</a>, incluindo todas as suas funcionalidades, ferramentas, conteúdos e APIs.</li>
+              <li><strong>Serviço:</strong> Refere-se à aplicação web PicTuz, acessível em <a href={urlSite} target="_blank" rel="noopener noreferrer" className="text-ghibli-sky hover:underline">{urlSite}</a>, incluindo transformações AI, loja de produtos personalizados e todas as funcionalidades associadas.</li>
               <li><strong>Utilizador ("você"):</strong> Qualquer pessoa singular ou coletiva que aceda ou utilize o Serviço.</li>
               <li><strong>Conta:</strong> A conta pessoal criada pelo Utilizador através de autenticação Google via Supabase Auth para aceder às funcionalidades do Serviço.</li>
-              <li><strong>Conteúdo do Utilizador:</strong> Refere-se a qualquer fotografia, imagem ou outro material que carregue, submeta ou disponibilize através do Serviço.</li>
+              <li><strong>Conteúdo do Utilizador:</strong> Qualquer fotografia, imagem ou outro material que carregue, submeta ou disponibilize através do Serviço.</li>
               <li><strong>Transformação:</strong> O processo pelo qual o Serviço utiliza inteligência artificial (OpenAI API) para aplicar um estilo artístico selecionado ao Conteúdo do Utilizador.</li>
-              <li><strong>Imagem Transformada:</strong> A imagem resultante do processo de Transformação, armazenada permanentemente no seu histórico.</li>
-              <li><strong>Estilo:</strong> Um filtro ou modelo artístico predefinido disponível no Serviço para aplicação ao Conteúdo do Utilizador.</li>
-              <li><strong>Transformações Diárias:</strong> Limite diário de transformações de imagem gratuitas disponíveis para cada utilizador.</li>
-              <li><strong>Comunidade:</strong> A funcionalidade opcional que permite aos utilizadores partilhar publicamente as suas transformações com outros membros da comunidade PicTuz.</li>
+              <li><strong>Imagem Transformada:</strong> A imagem resultante do processo de Transformação, armazenada permanentemente no histórico do utilizador.</li>
+              <li><strong>Transformações Diárias Gratuitas:</strong> Limite diário de transformações de imagem gratuitas disponíveis para cada utilizador registado.</li>
+              <li><strong>Loja de Produtos:</strong> A secção do Serviço onde pode adquirir produtos físicos personalizados (canvas, canecas, posters, capas, etc.) utilizando as suas Imagens Transformadas.</li>
+              <li><strong>Produtos Personalizados:</strong> Artigos físicos (canvas emoldurados, canecas, posters, capas de telemóvel, etc.) criados com as suas Imagens Transformadas através do nosso parceiro Printify.</li>
+              <li><strong>Parceiro de Fulfillment:</strong> Printify, empresa que produz e entrega os Produtos Personalizados encomendados através da Loja.</li>
+              <li><strong>Comunidade:</strong> Funcionalidade opcional que permite aos utilizadores partilhar publicamente as suas transformações com outros membros.</li>
             </ul>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">2. Descrição do Serviço</h2>
-            <p className="text-ghibli-earth">
-              O PicTuz é uma plataforma de transformação de imagens que permite aos utilizadores carregar fotografias digitais, selecionar um estilo artístico predefinido e solicitar uma transformação dessas fotografias utilizando algoritmos de inteligência artificial da OpenAI. As transformações são processadas na nuvem e as Imagens Transformadas ficam disponíveis permanentemente no histórico da Conta do utilizador. O serviço oferece transformações gratuitas dentro de um limite diário. O Serviço inclui também funcionalidades de comunidade para partilha opcional de criações.
+            <p className="text-ghibli-earth mb-4">
+              O PicTuz é uma plataforma que combina transformação de imagens com inteligência artificial e uma loja de produtos personalizados:
             </p>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
+              <li><strong>Transformações AI:</strong> Permite carregar fotografias, selecionar estilos artísticos e transformá-las usando algoritmos da OpenAI. As transformações são gratuitas dentro de um limite diário.</li>
+              <li><strong>Loja de Produtos Personalizados:</strong> Permite encomendar produtos físicos (canvas emoldurados, canecas, posters, capas de telemóvel, etc.) personalizados com as suas Imagens Transformadas.</li>
+              <li><strong>Fulfillment via Printify:</strong> Todos os produtos são produzidos e entregues pelo nosso parceiro Printify, garantindo qualidade profissional e entregas mundiais.</li>
+              <li><strong>Histórico Permanente:</strong> Todas as Imagens Transformadas ficam disponíveis permanentemente no histórico da sua Conta.</li>
+              <li><strong>Comunidade:</strong> Funcionalidade opcional para partilhar e descobrir criações de outros utilizadores.</li>
+            </ul>
             <p className="text-ghibli-earth mt-4">
-              <strong>Analytics e Melhoramento Contínuo:</strong> Para fornecer a melhor experiência possível, implementamos um sistema avançado de analytics comportamentais que inclui tracking detalhado de utilização, funnels de conversão, e gravação de sessões. Estes dados são utilizados exclusivamente para otimizar a plataforma, identificar problemas e desenvolver funcionalidades baseadas em necessidades reais dos utilizadores.
+              <strong>Analytics e Melhoramento:</strong> Implementamos sistemas avançados de analytics (PostHog, Google Analytics) para otimizar a experiência do utilizador, identificar problemas e desenvolver funcionalidades baseadas em necessidades reais.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">3. Registo e Conta de Utilizador</h2>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Necessidade de Conta:</strong> Para utilizar as funcionalidades de transformação, histórico e comunidade, é necessário criar uma Conta através de autenticação Google.</li>
-              <li><strong>Autenticação Obrigatória:</strong> O registo e login são exclusivamente efetuados através de autenticação com conta Google, utilizando os serviços do Supabase Auth. Ao utilizar este método, autoriza-nos a aceder às informações básicas do seu perfil Google (nome, email e foto de perfil) conforme descrito na nossa <a href={urlPoliticaPrivacidade} className="text-ghibli-sky hover:underline">Política de Privacidade</a>.</li>
-              <li><strong>Transformações Gratuitas:</strong> Novos utilizadores podem utilizar o serviço gratuitamente dentro do limite diário de transformações estabelecido.</li>
-              <li><strong>Segurança da Conta:</strong> Você é responsável por manter a confidencialidade das suas credenciais de acesso Google e por todas as atividades que ocorram na sua Conta. Deve notificar-nos imediatamente sobre qualquer uso não autorizado da sua Conta.</li>
+              <li><strong>Autenticação Obrigatória:</strong> Para utilizar transformações, histórico, compras e comunidade, deve criar uma Conta através de autenticação Google.</li>
+              <li><strong>Transformações Gratuitas:</strong> Utilizadores registados têm acesso a transformações gratuitas dentro do limite diário estabelecido.</li>
+              <li><strong>Informações de Perfil:</strong> Ao autenticar-se, acedemos ao seu nome, email e foto de perfil do Google para criar o seu perfil.</li>
+              <li><strong>Responsabilidade da Conta:</strong> É responsável por manter a segurança das suas credenciais Google e por todas as atividades na sua Conta.</li>
             </ul>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">4. Analytics, Tracking e Consentimento</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">4. Loja de Produtos e Compras</h2>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
+              <li><strong>Produtos Disponíveis:</strong> Canvas emoldurados, canecas, posters, capas de telemóvel, sacos, mousepad e outros produtos que podem ser personalizados com as suas Imagens Transformadas.</li>
+              <li><strong>Preços e Pagamentos:</strong> Os preços são exibidos em Euro (€) e incluem IVA quando aplicável. Os pagamentos são processados de forma segura através do Stripe.</li>
+              <li><strong>Personalização:</strong> Pode ajustar a posição, escala e outros aspetos da sua imagem no produto antes da compra.</li>
+              <li><strong>Processo de Encomenda:</strong> Após o pagamento, a encomenda é automaticamente enviada para o Printify para produção e expedição.</li>
+              <li><strong>Produção e Entrega:</strong> O Printify produz os seus produtos personalizados e gere toda a logística de entrega. Os prazos de produção e entrega são fornecidos durante o checkout.</li>
+              <li><strong>Qualidade:</strong> Garantimos que todos os produtos são produzidos com materiais de alta qualidade pelo Printify.</li>
+            </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">5. Política de Devoluções e Reembolsos</h2>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
+              <li><strong>Produtos Personalizados:</strong> Devido à natureza personalizada dos produtos, não aceitamos devoluções por mudança de opinião.</li>
+              <li><strong>Defeitos de Produção:</strong> Se receber um produto com defeito de produção ou danos durante o transporte, contacte-nos em {emailContacto} no prazo de 14 dias após a receção.</li>
+              <li><strong>Reembolsos por Defeito:</strong> Para produtos com defeitos comprovados, oferecemos reimpressão gratuita ou reembolso total.</li>
+              <li><strong>Erros de Encomenda:</strong> Se houver erro na sua encomenda por nossa parte, assumimos total responsabilidade e corrigimos sem custos.</li>
+              <li><strong>Processo de Reclamação:</strong> Para iniciar uma reclamação, contacte-nos com fotos do produto e número da encomenda.</li>
+            </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">6. Propriedade Intelectual e Licenças</h2>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
+              <li><strong>Suas Imagens:</strong> Mantém todos os direitos sobre as fotografias originais que carrega.</li>
+              <li><strong>Imagens Transformadas:</strong> As Imagens Transformadas são criadas através do nosso Serviço, mas pode utilizá-las livremente para fins pessoais e comerciais.</li>
+              <li><strong>Licença para Produção:</strong> Ao encomendar produtos, concede-nos licença para reproduzir a sua Imagem Transformada no produto escolhido.</li>
+              <li><strong>Conteúdo da Comunidade:</strong> Ao partilhar na Comunidade, concede uma licença não-exclusiva para exibir publicamente a sua transformação na plataforma.</li>
+              <li><strong>Propriedade da Plataforma:</strong> O PicTuz, incluindo design, código, algoritmos e marca, são propriedade nossa e estão protegidos por direitos de autor.</li>
+            </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">7. Uso Aceitável e Proibições</h2>
+            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
+              <li><strong>Conteúdo Proibido:</strong> Não pode carregar imagens que sejam ilegais, ofensivas, pornográficas, violentas, que violem direitos de terceiros ou que promovam ódio.</li>
+              <li><strong>Uso Comercial Responsável:</strong> Pode usar as Imagens Transformadas comercialmente, mas é responsável por garantir que tem direitos sobre as imagens originais.</li>
+              <li><strong>Não Pode:</strong> Tentar contornar limitações técnicas, fazer engenharia reversa, revender transformações como serviço, ou usar o Serviço para fins ilegais.</li>
+              <li><strong>Moderação:</strong> Reservamo-nos o direito de remover conteúdo que viole estas regras e suspender contas infratoras.</li>
+            </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">8. Analytics, Tracking e Consentimento</h2>
             <p className="text-ghibli-earth mb-4">
-              Ao criar uma conta e utilizar o Serviço, concorda expressamente com a recolha e processamento de dados através dos nossos sistemas de analytics avançados:
+              Ao utilizar o Serviço, concorda com a recolha de dados para melhoramento da plataforma:
             </p>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Consentimento para Session Recordings:</strong> Autoriza a gravação das suas sessões (movimentos do rato, cliques, navegação) para fins de otimização de UX e resolução de problemas técnicos. Dados sensíveis são automaticamente censurados.</li>
-              <li><strong>Analytics Comportamentais:</strong> Consente à recolha de dados detalhados sobre a sua interação com a plataforma, incluindo funnels de conversão, padrões de abandono, e comportamentos de utilização.</li>
-              <li><strong>Finalidade Legítima:</strong> Todos os dados recolhidos são utilizados exclusivamente para melhoramento do Serviço, identificação de bugs, e desenvolvimento de funcionalidades baseadas em necessidades reais.</li>
-              <li><strong>Direito de Retirada:</strong> Pode retirar o consentimento para analytics avançados a qualquer momento contactando-nos, mantendo o acesso às funcionalidades core do Serviço.</li>
-              <li><strong>Conformidade RGPD:</strong> O processamento destes dados está em conformidade com o Regulamento Geral de Proteção de Dados, conforme detalhado na nossa Política de Privacidade.</li>
-            </ul>
-            <p className="text-ghibli-earth mt-4">
-              <strong>Nota:</strong> A desativação de analytics pode afetar a qualidade do suporte técnico e a personalização da sua experiência.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">5. Sistema de Transformações Gratuitas</h2>
-            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Serviço Gratuito:</strong> O PicTuz oferece transformações de imagem gratuitamente a todos os utilizadores registados.</li>
-              <li><strong>Limite Diário:</strong> Cada utilizador tem direito a um número limitado de transformações gratuitas por dia para garantir um serviço estável e equitativo para todos.</li>
-              <li><strong>Reset Diário:</strong> O limite de transformações é renovado diariamente, permitindo utilização contínua do serviço.</li>
-              <li><strong>Utilização Responsável:</strong> O sistema de limites está implementado para prevenir abuso e garantir que todos os utilizadores tenham acesso justo ao serviço.</li>
+              <li><strong>Analytics Comportamentais:</strong> Utilizamos PostHog para analisar padrões de utilização, funnels de conversão e otimizar a experiência do utilizador.</li>
+              <li><strong>Session Recordings:</strong> Podemos gravar sessões (movimentos, cliques) para identificar problemas de usabilidade. Dados sensíveis são automaticamente censurados.</li>
+              <li><strong>Google Analytics:</strong> Recolhemos dados agregados sobre tráfego e utilização da plataforma.</li>
+              <li><strong>Finalidade:</strong> Todos os dados são utilizados exclusivamente para melhorar o Serviço, corrigir bugs e desenvolver funcionalidades.</li>
+              <li><strong>Direito de Retirada:</strong> Pode contactar-nos para retirar o consentimento para analytics avançados mantendo acesso às funcionalidades principais.</li>
             </ul>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">6. Utilização Aceitável do Serviço</h2>
-             <p className="mb-4 text-ghibli-earth">Concorda em utilizar o Serviço apenas para fins lícitos e de acordo com estes Termos.</p>
-             <p className="mb-2 text-ghibli-earth"><strong>É estritamente proibido:</strong></p>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">9. Limitação de Responsabilidade</h2>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-                <li>Carregar Conteúdo que seja ilegal, difamatório, obsceno, pornográfico, ofensivo, que viole direitos de privacidade ou que infrinja direitos de propriedade intelectual de terceiros.</li>
-                <li>Utilizar o Serviço para qualquer fim comercial não autorizado ou para criar conteúdo com intenção de prejudicar terceiros.</li>
-                <li>Tentar obter acesso não autorizado ao Serviço, sistemas informáticos ou redes conectadas ao Serviço.</li>
-                <li>Utilizar o Serviço de forma a danificar, desativar, sobrecarregar ou prejudicar o Serviço ou interferir com outros utilizadores.</li>
-                <li>Carregar material que contenha vírus, malware ou qualquer código malicioso.</li>
-                <li>Criar múltiplas contas para contornar limitações ou obter bónus adicionais indevidamente.</li>
-                <li>Abuso do sistema de comunidade através de spam, conteúdo repetitivo ou interações artificiais.</li>
-            </ul>
-             <p className="mt-4 text-ghibli-earth"><strong>Responsabilidade pelo Conteúdo:</strong> Declara e garante que possui todos os direitos necessários sobre o Conteúdo que carrega ou que tem autorização do titular dos direitos para o fazer. É totalmente responsável pelo conteúdo que submete ao Serviço.</p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">7. Conteúdo do Utilizador e Imagens Transformadas</h2>
-            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Licença para Processamento:</strong> Ao carregar Conteúdo para o Serviço, concede-nos uma licença limitada, não exclusiva e temporária para processar, armazenar e transformar esse Conteúdo exclusivamente para fornecer o Serviço contratado. Esta licença inclui o direito de enviar o conteúdo para a OpenAI API para processamento.</li>
-              <li><strong>Armazenamento Permanente:</strong> As suas imagens originais e transformadas são armazenadas permanentemente no Supabase Storage para permitir acesso ao histórico e suporte técnico. Este armazenamento faz parte do valor do serviço prestado.</li>
-              <li><strong>Propriedade e Licenciamento das Imagens Transformadas:</strong>
-                <ul className="list-circle list-outside pl-6 mt-2 space-y-1">
-                    <li>Você retém a propriedade dos direitos sobre o seu Conteúdo original.</li>
-                    <li>Sujeito ao cumprimento destes Termos e ao respeito pelos limites diários estabelecidos, obtém uma licença perpétua, não exclusiva e mundial para usar as Imagens Transformadas para fins pessoais e comerciais.</li>
-                    <li><strong>Limitação de Responsabilidade:</strong> A utilização de certas transformações pode estar sujeita a direitos de terceiros. É da sua responsabilidade garantir que a utilização comercial das Imagens Transformadas não infringe direitos de terceiros. Não oferecemos garantias de singularidade das Imagens Transformadas.</li>
-                </ul>
-              </li>
-              <li><strong>Funcionalidades da Comunidade:</strong> Ao optar por publicar transformações na comunidade, concede aos outros utilizadores o direito de visualizar e interagir com esse conteúdo através do sistema de likes e comentários. As publicações da comunidade podem permanecer visíveis mesmo após a eliminação da sua conta, mas serão desassociadas do seu perfil.</li>
+              <li><strong>Serviço "Como Está":</strong> O Serviço é fornecido "como está" sem garantias específicas sobre disponibilidade contínua ou resultados específicos das transformações.</li>
+              <li><strong>Limitação de Danos:</strong> A nossa responsabilidade máxima não excederá o valor pago pelos produtos ou serviços específicos em questão.</li>
+              <li><strong>Responsabilidade por Conteúdo:</strong> Não somos responsáveis pelo conteúdo que carrega ou pelas consequências da sua utilização.</li>
+              <li><strong>Parceiros Terceiros:</strong> Para questões relacionadas com produção ou entrega de produtos, deve contactar diretamente o Printify se necessário.</li>
             </ul>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">8. Produtos Físicos e Pagamentos</h2>
-            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-              <li><strong>Serviço Gratuito de Transformações:</strong> O acesso às funcionalidades de transformação de imagem é completamente gratuito, dentro dos limites diários estabelecidos.</li>
-              <li><strong>Produtos Físicos:</strong> O serviço oferece a possibilidade de encomendar produtos físicos personalizados (telas, canecas, etc.) através de integração com serviços de impressão sob demanda.</li>
-              <li><strong>Processador de Pagamento:</strong> Os pagamentos para produtos físicos são processados através do Stripe. Ao efetuar um pagamento, aceita os termos e condições do Stripe. Não armazenamos informações completas do cartão de crédito nos nossos servidores.</li>
-              <li><strong>Política de Reembolsos para Produtos Físicos:</strong> 
-                <ul className="list-circle list-outside pl-6 mt-2 space-y-1">
-                  <li>Os reembolsos de produtos físicos estão sujeitos às políticas do fornecedor de impressão e às condições específicas de cada produto.</li>
-                  <li>Se uma transformação falhar devido a problemas técnicos do nosso lado, o limite diário será restaurado automaticamente.</li>
-                  <li>Problemas relacionados com encomendas devem ser reportados em 30 dias.</li>
-                </ul>
-              </li>
-            </ul>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">9. Propriedade Intelectual do Serviço PicTuz</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">10. Modificações aos Termos</h2>
             <p className="text-ghibli-earth">
-              O Serviço e todo o seu conteúdo original (excluindo o Conteúdo do Utilizador e as Imagens Transformadas conforme licenciado acima), características e funcionalidades são e permanecerão propriedade exclusiva de {nomeEmpresaOuSeuNome} e dos seus licenciadores. O Serviço está protegido por direitos de autor, marcas registadas e outras leis de Portugal e de países estrangeiros. As nossas marcas e imagem comercial não podem ser usadas em conexão com qualquer produto ou serviço sem o nosso consentimento prévio por escrito.
+              Podemos atualizar estes Termos periodicamente. As alterações significativas serão comunicadas através da plataforma ou por email. O uso continuado do Serviço após as alterações constitui aceitação dos novos Termos.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">10. Disponibilidade e Limitações do Serviço</h2>
-             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
-                <li>O Serviço é fornecido "TAL COMO ESTÁ" e "CONFORME DISPONÍVEL", sem garantias de qualquer tipo, expressas ou implícitas.</li>
-                <li>Não garantimos que o Serviço funcionará ininterruptamente, de forma segura ou que estará disponível em qualquer momento ou local específico; que quaisquer erros ou defeitos serão corrigidos; que o Serviço está livre de vírus ou outros componentes prejudiciais; ou que os resultados da utilização do Serviço atenderão às suas expectativas.</li>
-                <li>Reservamo-nos o direito de modificar, suspender ou descontinuar o Serviço (ou qualquer parte ou conteúdo do mesmo) a qualquer momento, com ou sem aviso prévio.</li>
-             </ul>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">11. Limitação de Responsabilidade</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">11. Contacto</h2>
             <p className="text-ghibli-earth">
-              Na máxima extensão permitida pela lei aplicável, em nenhuma circunstância {nomeEmpresaOuSeuNome}, seus diretores, funcionários, parceiros, agentes, fornecedores ou afiliados serão responsáveis por quaisquer danos indiretos, incidentais, especiais, consequenciais ou punitivos, incluindo, sem limitação, perda de lucros, dados, uso, goodwill ou outras perdas intangíveis, resultantes de (i) o seu acesso ou uso ou incapacidade de aceder ou usar o Serviço; (ii) qualquer conduta ou conteúdo de terceiros no Serviço; (iii) qualquer conteúdo obtido do Serviço; e (iv) acesso não autorizado, uso ou alteração das suas transmissões ou conteúdo, seja com base em garantia, contrato, ato ilícito (incluindo negligência) ou qualquer outra teoria legal, quer tenhamos sido informados ou não da possibilidade de tais danos.
+              Para questões sobre estes Termos ou o Serviço, contacte-nos em: <a href={`mailto:${emailContacto}`} className="text-ghibli-sky hover:underline">{emailContacto}</a>
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">12. Indemnização</h2>
+            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">12. Lei Aplicável</h2>
             <p className="text-ghibli-earth">
-              Concorda em defender, indemnizar e isentar {nomeEmpresaOuSeuNome} e os seus licenciados e licenciadores, e os seus funcionários, contratados, agentes, diretores e administradores, de e contra todas e quaisquer reivindicações, danos, obrigações, perdas, responsabilidades, custos ou dívidas, e despesas (incluindo, mas não se limitando a, honorários de advogados), resultantes ou decorrentes de a) sua utilização e acesso ao Serviço, por si ou por qualquer pessoa que utilize a sua conta e palavra-passe; b) uma violação destes Termos, ou c) Conteúdo do Utilizador carregado para o Serviço.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">13. Modificação dos Termos</h2>
-            <p className="text-ghibli-earth">
-              Reservamo-nos o direito, a nosso exclusivo critério, de modificar ou substituir estes Termos a qualquer momento. Se uma revisão for material, tentaremos fornecer um aviso com pelo menos 30 dias de antecedência antes de quaisquer novos termos entrarem em vigor. O que constitui uma alteração material será determinado a nosso exclusivo critério. Ao continuar a aceder ou usar o nosso Serviço após essas revisões entrarem em vigor, concorda em ficar vinculado pelos termos revistos.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">14. Rescisão</h2>
-            <p className="text-ghibli-earth">
-             Podemos rescindir ou suspender a sua Conta e o acesso ao Serviço imediatamente, sem aviso prévio ou responsabilidade, por qualquer motivo, incluindo, sem limitação, se violar os Termos. Após a rescisão, o seu direito de usar o Serviço cessará imediatamente. Se desejar rescindir a sua Conta, pode simplesmente deixar de usar o Serviço ou contactar-nos para solicitar a eliminação da conta.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">15. Lei Aplicável e Resolução de Litígios</h2>
-            <p className="text-ghibli-earth">
-              Estes Termos serão regidos e interpretados de acordo com as leis de Portugal, sem consideração pelas suas disposições sobre conflitos de leis. Qualquer litígio decorrente ou relacionado com estes Termos ou com o Serviço será submetido à jurisdição exclusiva dos tribunais da Comarca de Lisboa, Portugal.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">16. Contacto</h2>
-            <p className="text-ghibli-earth">
-              Se tiver alguma dúvida sobre estes Termos, por favor contacte-nos através do email: <a href={`mailto:${emailContacto}`} className="text-ghibli-sky hover:underline">{emailContacto}</a>
+              Estes Termos são regidos pela lei portuguesa. Qualquer disputa será resolvida nos tribunais competentes de Portugal.
             </p>
           </section>
 

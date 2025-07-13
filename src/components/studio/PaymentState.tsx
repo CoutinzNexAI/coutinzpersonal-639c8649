@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LoaderCircle, Coins, CheckCircle, AlertTriangle, User } from 'lucide-react';
+import { LoaderCircle, Sparkles, CheckCircle, AlertTriangle, User } from 'lucide-react';
 import { Style } from '../StyleSelectorModal';
 
 interface PaymentStateProps {
@@ -22,16 +22,14 @@ const PaymentState: React.FC<PaymentStateProps> = ({
 }) => {
   const getStateMessage = () => {
     switch (processingState) {
-      case 'checking_balance':
-        return { icon: Coins, text: "A verificar transformações disponíveis...", color: "text-amber-600" };
-      case 'spending_coins':
-        return { icon: Coins, text: "A processar transformação...", color: "text-green-600" };
+      case 'checking_transformations':
+        return { icon: Sparkles, text: "A verificar transformações disponíveis...", color: "text-amber-600" };
       case 'uploading_image':
         return { icon: LoaderCircle, text: "A fazer upload da imagem...", color: "text-blue-600" };
       case 'creating_job':
         return { icon: LoaderCircle, text: "A preparar transformação...", color: "text-purple-600" };
-      case 'redirecting_to_payment':
-        return { icon: LoaderCircle, text: "A redirecionar para pagamento...", color: "text-orange-600" };
+      case 'triggering_processing':
+        return { icon: LoaderCircle, text: "A iniciar transformação AI...", color: "text-green-600" };
       default:
         return { icon: LoaderCircle, text: "Pronto para transformar", color: "text-gray-600" };
     }
@@ -80,9 +78,10 @@ const PaymentState: React.FC<PaymentStateProps> = ({
         <div className="space-y-4 w-full max-w-xs">
           <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200">
             <div className="flex items-center justify-center gap-2">
-              <Coins className="w-5 h-5 text-green-600" />
+              <Sparkles className="w-5 h-5 text-green-600" />
               <span className="font-semibold text-green-800">Transformação Gratuita</span>
             </div>
+            <p className="text-green-600 text-xs mt-1">Parte do seu limite diário</p>
           </div>
           
         <Button
@@ -90,7 +89,7 @@ const PaymentState: React.FC<PaymentStateProps> = ({
             className="w-full ghibli-button"
           disabled={isRedirecting}
           >
-            Transformar
+            ✨ Transformar Agora
         </Button>
       </div>
       )}

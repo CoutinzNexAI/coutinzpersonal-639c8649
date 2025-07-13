@@ -10,17 +10,35 @@
     <priority>1.0</priority>
     <image:image>
       <image:loc>https://pictuz.com/og-image.jpg</image:loc>
-      <image:title>Pictuz - Transformar Fotos com AI</image:title>
-      <image:caption>Editor de fotos com inteligência artificial - Simpson, Ghibli, LEGO, Azulejo</image:caption>
+      <image:title>Pictuz - Produtos Personalizados com IA</image:title>
+      <image:caption>Canecas, canvas, posters personalizados com arte AI</image:caption>
     </image:image>
   </url>
   
-  <!-- Preços -->
+  <!-- Transformações AI - IMPORTANTE -->
   <url>
-    <loc>https://pictuz.com/pricing</loc>
+    <loc>https://pictuz.com/transformacoes</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://pictuz.com/og-image.jpg</image:loc>
+      <image:title>Transformar Fotos com AI - Simpson, Ghibli, LEGO</image:title>
+      <image:caption>Editor AI que transforma fotos em arte - +15 estilos disponíveis</image:caption>
+    </image:image>
+  </url>
+  
+  <!-- Loja de Produtos -->
+  <url>
+    <loc>https://pictuz.com/shop</loc>
     <lastmod>2024-12-29</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pictuz.com/og-image.jpg</image:loc>
+      <image:title>Loja de Produtos Personalizados - Pictuz</image:title>
+      <image:caption>Canvas, canecas, posters e mais produtos personalizados</image:caption>
+    </image:image>
   </url>
   
   <!-- Comunidade -->
@@ -28,7 +46,7 @@
     <loc>https://pictuz.com/community</loc>
     <lastmod>2024-12-29</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
     <image:image>
       <image:loc>https://pictuz.com/community-og.jpg</image:loc>
       <image:title>Galeria da Comunidade Pictuz</image:title>
@@ -36,12 +54,48 @@
     </image:image>
   </url>
   
-  <!-- Política de Privacidade -->
+  <!-- Produtos Específicos -->
+  <url>
+    <loc>https://pictuz.com/shop/canvas</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://pictuz.com/shop/mug</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://pictuz.com/shop/poster</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://pictuz.com/shop/tecnologia</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://pictuz.com/shop/escritorio</loc>
+    <lastmod>2024-12-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Páginas Legais -->
   <url>
     <loc>https://pictuz.com/politica-privacidade</loc>
     <lastmod>2024-12-29</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
+    <priority>0.2</priority>
   </url>
   
   <!-- Termos de Serviço -->
@@ -49,14 +103,6 @@
     <loc>https://pictuz.com/termos-servicos</loc>
     <lastmod>2024-12-29</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  
-  <!-- Página de Sucesso -->
-  <url>
-    <loc>https://pictuz.com/success</loc>
-    <lastmod>2024-12-29</lastmod>
-    <changefreq>never</changefreq>
-    <priority>0.1</priority>
+    <priority>0.2</priority>
   </url>
 </urlset> 
