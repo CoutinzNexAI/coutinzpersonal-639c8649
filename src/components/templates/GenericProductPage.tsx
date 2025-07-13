@@ -245,15 +245,18 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   // ✅ CONTROLO ÚNICO DE MOCKUP GENERATION KEY
   useEffect(() => {
     if (selectedImageUrl && selectedPrintifyVariantId) {
-      const newKey = `${selectedImageId || 'no-id'}-${selectedPrintifyVariantId}-${imagePosition}-${Date.now()}`;
-      console.log('🔑 [GenericProductPage] New mockupGenerationKey:', { 
-        oldKey: mockupGenerationKey, 
-        newKey,
-        triggers: { selectedImageUrl: !!selectedImageUrl, selectedPrintifyVariantId, imagePosition }
-      });
-      setMockupGenerationKey(newKey);
+      const newKey = `${selectedImageId || 'no-id'}-${selectedPrintifyVariantId}-${imagePosition}`;
+      // ✅ FIXED: Only update if key actually changed to avoid unnecessary re-renders
+      if (mockupGenerationKey !== newKey) {
+        console.log('🔑 [GenericProductPage] New mockupGenerationKey:', { 
+          oldKey: mockupGenerationKey, 
+          newKey,
+          triggers: { selectedImageUrl: !!selectedImageUrl, selectedPrintifyVariantId, imagePosition }
+        });
+        setMockupGenerationKey(newKey);
+      }
     }
-  }, [selectedImageUrl, selectedPrintifyVariantId, selectedImageId, imagePosition]);
+  }, [selectedImageUrl, selectedPrintifyVariantId, selectedImageId, imagePosition, mockupGenerationKey]);
 
   // ✅ RESET PREVIEW INDEX QUANDO URLS MUDAM
   useEffect(() => {
@@ -279,9 +282,11 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         return;
       }
 
+      let newAdjustments: ImageAdjustments;
+
       // ✅ USAR A FUNÇÃO calculatePrintifyCoords DO CONFIG SE DISPONÍVEL
       if (config.calculatePrintifyCoords && coordinateConfig) {
-        const newAdjustments = config.calculatePrintifyCoords(
+        newAdjustments = config.calculatePrintifyCoords(
           imagePosition,
           selectedPrintifyVariantId,
           userImageDimensions,
@@ -294,8 +299,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           userImageDimensions,
           newAdjustments
         });
-        
-        setImageAdjustments(newAdjustments);
       } else {
         // ✅ FALLBACK PARA CÁLCULO MANUAL CORRETO
         const { placeholderWidth, placeholderHeight } = selectedVariant;
@@ -323,7 +326,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           else if (imagePosition === 'right') xPosition = 0.65;
         }
         
-        const newAdjustments = {
+        newAdjustments = {
           x: xPosition,
           y: yPosition,
           scale: printifyScale,
@@ -336,11 +339,22 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           userImageDimensions,
           newAdjustments
         });
+      }
+      
+      // ✅ FIXED: Only update if the adjustments actually changed
+      if (!imageAdjustments || 
+          imageAdjustments.x !== newAdjustments.x ||
+          imageAdjustments.y !== newAdjustments.y ||
+          imageAdjustments.scale !== newAdjustments.scale ||
+          imageAdjustments.rotation !== newAdjustments.rotation) {
         
+        console.log('✅ [GenericProductPage] Adjustments changed, updating state');
         setImageAdjustments(newAdjustments);
+      } else {
+        console.log('⏭️ [GenericProductPage] Adjustments unchanged, skipping update');
       }
     }
-  }, [selectedImageUrl, product, selectedPrintifyVariantId, imagePosition, userImageDimensions, coordinateConfig, config]);
+  }, [selectedImageUrl, product?.id, selectedPrintifyVariantId, imagePosition, userImageDimensions, imageAdjustments]); // ✅ FIXED: Removed config and coordinateConfig dependencies
 
   // Detectar dimensões da imagem
   useEffect(() => {

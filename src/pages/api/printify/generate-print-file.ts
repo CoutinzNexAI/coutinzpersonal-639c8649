@@ -70,7 +70,6 @@ export default async function handler(
       });
     }
 
-    console.log(`Generating print file for product: ${product.name}`);
 
     // Calcular dimensões de destino em pixels para impressão usando placeholder Printify
     const targetWidthPx = imageAdjustments?.cropArea ? undefined : printifyPlaceholder?.width;
@@ -83,7 +82,6 @@ export default async function handler(
       });
     }
 
-    console.log(`Target print dimensions from Printify placeholder: ${targetWidthPx}x${targetHeightPx}px`);
 
     // Download da imagem do utilizador
     const imageResponse = await fetch(imageUrl);
@@ -98,14 +96,12 @@ export default async function handler(
     const originalWidth = originalImageMeta.width!;
     const originalHeight = originalImageMeta.height!;
 
-    console.log(`Original image: ${originalWidth}x${originalHeight}px`);
 
     // Processar imagem com Sharp
     let processedImage = sharp(imageBuffer);
 
     // APLICAR AJUSTES MANUAIS SE EXISTIREM (para Canecas/Capas)
     if (imageAdjustments && product.supportsManualAdjustment) {
-      console.log('Applying manual adjustments for manual adjustment product...');
 
       // 1. CROP (se especificado)
       if (imageAdjustments.cropArea) {
@@ -117,7 +113,6 @@ export default async function handler(
         const cropWidth = Math.round(originalWidth * crop.width);
         const cropHeight = Math.round(originalHeight * crop.height);
 
-        console.log(`Applying crop: ${cropX},${cropY} ${cropWidth}x${cropHeight}px`);
 
         processedImage = processedImage.extract({
           left: Math.max(0, cropX),
@@ -129,7 +124,6 @@ export default async function handler(
 
       // 2. ROTAÇÃO (se suportada e especificada)
       if (imageAdjustments.rotation) {
-        console.log(`Applying rotation: ${imageAdjustments.rotation}°`);
         processedImage = processedImage.rotate(imageAdjustments.rotation, { 
           background: { r: 255, g: 255, b: 255, alpha: 1 } 
         });
@@ -137,7 +131,6 @@ export default async function handler(
 
       // 3. ESCALA/ZOOM (se especificado)
       if (imageAdjustments.scale && imageAdjustments.scale !== 1) {
-        console.log(`Applying scale: ${imageAdjustments.scale}x`);
         
         // Para ajustes manuais, aplicar escala antes do resize final
         const scaledWidth = Math.round(targetWidthPx * imageAdjustments.scale);
@@ -164,7 +157,6 @@ export default async function handler(
       })
       .toBuffer();
 
-    console.log(`Final processed image: ${targetWidthPx}x${targetHeightPx}px`);
 
     // Opcional: Upload para Supabase Storage (para debug/backup)
     const timestamp = Date.now();
@@ -189,10 +181,8 @@ export default async function handler(
       .from('print-files')
       .getPublicUrl(`${fileName}.jpg`);
 
-    console.log(`Print file uploaded to Supabase: ${supabasePublicUrl}`);
 
     // **NOVO: Upload para Printify Media Library**
-    console.log('🔄 Uploading image to Printify Media Library...');
     const printifyUploadResponse = await printifyFetch('uploads/images.json', {
       method: 'POST',
       body: JSON.stringify({
@@ -208,7 +198,6 @@ export default async function handler(
     }
 
     const printifyImageId = printifyUploadResponse.id;
-    console.log(`✅ Image uploaded to Printify Media Library. ID: ${printifyImageId}`);
 
     return res.status(200).json({
       success: true,

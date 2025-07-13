@@ -101,8 +101,7 @@ export default async function handler(
         },
       }
     );
-    // console.log(`${endpointName} ✅ Supabase client created successfully`);
-    // console.log(`${endpointName} 🔐 Getting user authentication...`);
+
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -269,10 +268,8 @@ if (!permitted) {
         const { data: files } = await supabaseAdmin.storage.from('results').list(`public/${jobDetails.user_id}/${jobId}`, { limit: 1, sortBy: { column: 'name', order: 'desc' } });
         if (files && files.length > 0) {
           const fileName = files[0].name;
-          console.log(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 2: Found image in storage: ${fileName}.`);
           const { data: urlData } = await supabaseAdmin.storage.from('results').getPublicUrl(`public/${jobDetails.user_id}/${jobId}/${fileName}`);
           if (urlData?.publicUrl) {
-            console.log(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 2: Generated URL: ${urlData.publicUrl}. Updating DB.`);
             selfHealActionTaken = "Updated DB from completed no_url (found in storage)";
             const updatePayload = { 
               output_url: urlData.publicUrl,
@@ -283,9 +280,7 @@ if (!permitted) {
             if(updateError){
                 console.error(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 2: FAILED to update DB with URL:`, updateError.message);
                 selfHealActionTaken += " - DB Update FAILED";
-            } else {
-                 console.log(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 2: DB Update SUCCESSFUL with URL.`);
-            }
+            } 
             return res.status(200).json({ status: 'completed', output_url: urlData.publicUrl, error_message: null, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: selfHealActionTaken });
           }
         } else {
@@ -328,9 +323,7 @@ if (!permitted) {
              if(updateError){
                 console.error(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 3: FAILED to update DB:`, updateError.message);
                 selfHealActionTaken += " - DB Update FAILED";
-            } else {
-                 console.log(`${endpointName} JobId: ${jobId}. 🎯 SELF-HEAL 3: DB Update SUCCESSFUL.`);
-          }
+            } 
             return res.status(200).json({ status: 'completed', output_url: urlData.publicUrl, error_message: null, debug_db_read_at: dbQueryTime, debug_self_heal_triggered: selfHealActionTaken });
           }
         } else {
@@ -344,7 +337,6 @@ if (!permitted) {
     // --- Fim da Lógica de Self-Healing ---
     
     const timeTaken = Date.now() - requestStartTime;
-    console.log(`${endpointName} JobId: ${jobId}. ✅ NO SELF-HEAL TRIGGERED or self-heal did not return. Returning original DB status: ${jobDetails.status}. Total time: ${timeTaken}ms.`);
     return res.status(200).json({
       status: jobDetails.status,
       output_url: jobDetails.output_url,

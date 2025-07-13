@@ -26,19 +26,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    console.log('📁 Processing image upload to Printify...');
 
     const uploadPayload: { file_name: string; url?: string; contents?: string } = {
       file_name: fileName || 'uploaded_image.jpg',
       ...(imageUrl ? { url: imageUrl } : { contents: imageBase64 }),
     };
-
-    // Log the upload method
-    if (imageUrl) {
-      console.log('🔗 Using image URL:', imageUrl);
-    } else {
-      console.log('📊 Using base64 data (length:', imageBase64?.length || 0, ')');
-    }
 
     // Upload to Printify
     const printifyResponse = await fetch('https://api.printify.com/v1/uploads/images.json', {

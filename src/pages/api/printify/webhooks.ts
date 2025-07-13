@@ -333,7 +333,6 @@ export default async function handler(
         break;
 
       default:
-        console.log(`ℹ️ Evento não processado: ${event.type}`);
     }
 
     // Responder rapidamente com sucesso

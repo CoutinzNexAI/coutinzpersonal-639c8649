@@ -207,7 +207,6 @@ export default async function handler(
 
     // Weekly limits update removed since piccoin rewards no longer exist
 
-    console.log(`${endpointName} ✅ Transformation ${validatedData.transformationId} published directly to community by user ${user.id}.`);
 
     return res.status(200).json({
       success: true,

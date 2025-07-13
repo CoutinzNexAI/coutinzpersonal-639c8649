@@ -148,7 +148,6 @@ export default async function handler(
       });
     }
 
-    console.log('📦 Calculando custos de envio na Printify...');
 
     let response;
     try {

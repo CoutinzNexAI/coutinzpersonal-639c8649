@@ -140,7 +140,6 @@ export default async function handler(
 
     // 6. RESPOSTA DE SUCESSO
     // ======================
-    console.log(`${endpointName} ✅ Like toggled successfully forr user ${user.id} on transformation ${validatedData.transformation_id}`);
 
     return res.status(200).json({
       success: true,

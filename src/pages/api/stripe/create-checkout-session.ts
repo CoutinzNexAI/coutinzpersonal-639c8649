@@ -58,7 +58,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Método de envio é obrigatório' });
     }
 
-    console.log('💾 Salvando dados do checkout temporariamente...');
 
     // Verificar se algum item tem campos Printify
     const itemsWithPrintify = items.filter((item: CartItem) => item.printifyProductId && item.printifyVariantId);
@@ -88,7 +87,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: 'Erro ao preparar checkout' });
     }
 
-    console.log('✅ Dados do checkout salvos temporariamente:', checkoutReference);
 
     // Calcular descontos por grupo de produtos
     const productGroups = items.reduce((groups: Record<string, CartItem[]>, item: CartItem) => {

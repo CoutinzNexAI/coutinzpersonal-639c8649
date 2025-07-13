@@ -177,7 +177,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<CreateDraftResponse>
 ) {
-  console.log("--- [INÍCIO] /api/printify/mockups/generate ---");
 
   // Suporte para OPTIONS (CORS preflight)
   if (req.method === 'OPTIONS') {
@@ -297,7 +296,6 @@ export default async function handler(
       
              if (customerBackPlaceholder) {
          // Usar generate-print-file.ts para processar a imagem do cliente
-         console.log('🔄 Using print file processing for customer image...');
          
          const mockGenerateCustomerFileReq: NextApiRequest = {
            method: 'POST',
@@ -455,8 +453,6 @@ export default async function handler(
           }
         ]
       };
-
-      console.log('📤 Creating youth hoodie product:', JSON.stringify(printifyProductPayload, null, 2));
 
       const printifyProductResponse = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
         method: 'POST',
@@ -653,10 +649,8 @@ export default async function handler(
       }
 
       // Limpar produto temporário Printify após sucesso
-      console.log(`🗑️ Limpando produto temporário Printify ${createdProductId}...`);
       try {
         await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdProductId}.json`, { method: 'DELETE' });
-        console.log('✅ Produto temporário Printify eliminado com sucesso.');
       } catch (deleteError) {
         console.warn('⚠️ Falha ao eliminar produto temporário Printify (não crítico):', deleteError instanceof Error ? deleteError.message : String(deleteError));
       }
@@ -679,10 +673,8 @@ export default async function handler(
       throw new Error(`Printify placeholder not found for position: ${printArea}`);
     }
 
-    console.log('✅ Printify placeholder details:', printifyPlaceholder);
 
     // PASSO 2: Chamar generate-print-file.ts diretamente (passando o placeholder Printify)
-    console.log('🔄 STEP 2: Generating print-ready file and uploading to Printify Media Library...');
 
     // Criar objetos req e res simulados para passar ao handler interno
     const mockGeneratePrintFileReq: NextApiRequest = {
@@ -722,10 +714,8 @@ export default async function handler(
     }
 
     const printifyImageId = generateFileData.printifyImageId;
-    console.log(`✅ STEP 2 Success: Image uploaded to Printify Media Library with ID: ${printifyImageId}`);
 
     // PASSO 3: Criar Produto Printify Temporário (para Mockups)
-    console.log('🔄 STEP 3: Creating temporary Printify product for mockup generation...');
     const printifyProductTitle = `PicTuz Custom ${product.name} (${user.id}-${Date.now()})`;
 
     // ✅ CALCULAR ESCALA CORRETA (igual aos posters)
@@ -741,12 +731,10 @@ export default async function handler(
       try {
         // Obter dimensões da imagem do utilizador
         const userImageDimensions = await getImageDimensions(imageUrl);
-        console.log('📐 [ESCALA] Dimensões da imagem do utilizador:', userImageDimensions);
         
         // Dimensões do placeholder Printify
         const placeholderWidth = printifyPlaceholder.width;
         const placeholderHeight = printifyPlaceholder.height;
-        console.log('📐 [ESCALA] Dimensões do placeholder Printify:', { placeholderWidth, placeholderHeight });
         
         // PASSO A: Calcula o fator de zoom para cobrir tudo (igual aos posters)
         const scaleToCover = Math.max(
@@ -769,7 +757,6 @@ export default async function handler(
         finalScale = printifyScale; // ✅ USA A ESCALA CORRETA!
       finalAngle = imageAdjustments.rotation || 0;
         
-        console.log('✅ [ESCALA] Coordenadas finais calculadas:', { finalX, finalY, finalScale, finalAngle });
         
       } catch (error) {
         console.error('❌ [ESCALA] Erro ao calcular escala:', error);
@@ -819,7 +806,6 @@ export default async function handler(
       // is_visible: false // Define se deve ser visível na tua loja Printify (provavelmente falso para mockups temporários)
     };
 
-    console.log('📤 Payload for Printify product creation:', JSON.stringify(printifyProductPayload, null, 2));
 
     const printifyProductResponse = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products.json`, {
       method: 'POST',
@@ -831,10 +817,8 @@ export default async function handler(
       throw new Error('Failed to create Printify product for mockup generation.');
     }
     const createdPrintifyProductId = printifyProductResponse.id;
-    console.log(`✅ STEP 3 Success: Printify product created. ID: ${createdPrintifyProductId}`);
 
     // PASSO 4: Polling dos Mockups do Produto Printify (OTIMIZADO)
-    console.log('🔄 STEP 4: Polling Printify product for mockups...');
     let finalPreviewUrls: string[] = [];
     const maxAttempts = 12; // Reduzido de 15 para 12
     let delayMs = 3000; // Começar com 3s em vez de 8s
@@ -845,7 +829,6 @@ export default async function handler(
         const getProductResponse: PrintifyProduct = await printifyFetch(`shops/${process.env.PRINTIFY_SHOP_ID}/products/${createdPrintifyProductId}.json`);
 
         if (getProductResponse.images && getProductResponse.images.length > 0) {
-          console.log(`✅ Mockups ready on attempt ${attempt}! Found ${getProductResponse.images.length} preview(s)`);
           
           // LIMITAR A APENAS 3 MOCKUPS SOMENTE PARA CANVAS
           if (productId === 'custom_canvas') {
@@ -860,14 +843,12 @@ export default async function handler(
       }
 
       if (attempt < maxAttempts) {
-        console.log(`⏳ Waiting ${delayMs}ms for next attempt (${attempt + 1}/${maxAttempts})...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
         
         // Backoff exponencial: aumentar delay gradualmente
         delayMs = Math.min(delayMs * 1.3, maxDelay);
       }
     }
-    console.log(`🏁 Printify product polling completed. Found ${finalPreviewUrls.length} preview URLs.`);
 
     // Opcional: Apagar o produto Printify temporário se for apenas para mockups
     // console.log(`🗑️ Deleting temporary Printify product ${createdPrintifyProductId}...`);
