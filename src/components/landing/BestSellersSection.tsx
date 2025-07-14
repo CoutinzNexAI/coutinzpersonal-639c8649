@@ -194,32 +194,32 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
                 if (pricing.hasDiscount) {
                   return (
                     <>
-                      {/* Original price - crossed out in red */}
-                      <div className="text-sm text-red-500 line-through mb-1 font-medium">
-                        €{pricing.originalPrice.toFixed(2)}
+                      {/* 10% OFF badge and original price on same line */}
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <motion.div 
+                          className="bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-black px-2 py-1 rounded-full shadow-lg"
+                          animate={{ 
+                            scale: [1, 1.1, 1],
+                            boxShadow: [
+                              "0 4px 6px rgba(239, 68, 68, 0.2)",
+                              "0 8px 25px rgba(239, 68, 68, 0.4)",
+                              "0 4px 6px rgba(239, 68, 68, 0.2)"
+                            ]
+                          }}
+                          transition={{ 
+                            duration: 2, 
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        >
+                          10% OFF
+                        </motion.div>
+                        <div className="text-sm text-red-500 line-through font-medium">
+                          €{pricing.originalPrice.toFixed(2)}
+                        </div>
                       </div>
                       
-                      {/* 10% OFF badge - large and prominent */}
-                      <motion.div 
-                        className="bg-gradient-to-r from-red-500 to-red-600 text-white text-lg font-black px-3 py-1 rounded-full mb-2 shadow-lg"
-                        animate={{ 
-                          scale: [1, 1.1, 1],
-                          boxShadow: [
-                            "0 4px 6px rgba(239, 68, 68, 0.2)",
-                            "0 8px 25px rgba(239, 68, 68, 0.4)",
-                            "0 4px 6px rgba(239, 68, 68, 0.2)"
-                          ]
-                        }}
-                        transition={{ 
-                          duration: 2, 
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        10% OFF
-                      </motion.div>
-                      
-                      {/* New price in green */}
+                      {/* New price */}
                       <motion.div 
                         className="text-xl lg:text-2xl font-bold text-green-600 relative"
                         animate={{ 

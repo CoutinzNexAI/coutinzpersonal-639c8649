@@ -46,20 +46,19 @@ export default function PelucheVariantSelector({
         🧸 Escolha o Animal
       </label>
       
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         {animalOptions.map((option) => (
           <button
             key={option.variantId}
             onClick={() => onVariantSelect(option.variantId)}
-            className={`p-4 rounded-lg border-2 transition-all duration-200 text-center ${
+            className={`p-3 rounded-lg border-2 transition-all duration-200 text-center ${
               selectedVariantId === option.variantId
                 ? 'border-ghibli-moss bg-ghibli-moss/10 text-ghibli-moss font-semibold'
                 : 'border-ghibli-sand/30 bg-white hover:border-ghibli-moss/50 text-ghibli-earth'
             }`}
           >
-            <div className="text-2xl mb-1">{option.emoji}</div>
-            <div className="text-lg font-medium">{option.label}</div>
-            <div className="text-xs text-ghibli-earth/60 mt-1">{option.description}</div>
+            <div className="text-xl mb-1">{option.emoji}</div>
+            <div className="text-sm font-medium">{option.label}</div>
           </button>
         ))}
       </div>

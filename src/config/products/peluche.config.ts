@@ -116,6 +116,14 @@ export const pelucheConfig = {
     return null;
   },
 
+  // Configuração de controles de posição
+  positionControls: {
+    showPositionControls: false, // Não mostrar controles de posição (peluche é único)
+    allowVertical: false,
+    allowHorizontal: false,
+    showRotation: false,
+  },
+
   // Configuração específica do seletor de variantes
   variantSelectorConfig: {
     label: "Escolha o Animal",

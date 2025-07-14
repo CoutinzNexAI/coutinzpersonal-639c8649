@@ -413,35 +413,35 @@ const ShopPage: React.FC = () => {
                           const pricing = getProductPricing(product);
                           if (pricing.hasDiscount) {
                             return (
-                              <>
-                                                                 {/* Preço original riscado em vermelho */}
-                                 <div className="text-sm text-red-500 line-through mb-1 font-medium">
-                                   €{pricing.originalPrice.toFixed(2)}
-                                 </div>
-                                 
-                                 {/* 10% OFF badge - destaque */}
-                                 <motion.div 
-                                   className="bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-black px-2 py-1 rounded-full mb-2 shadow-lg"
-                                   animate={{ 
-                                     scale: [1, 1.1, 1],
-                                     boxShadow: [
-                                       "0 4px 6px rgba(239, 68, 68, 0.2)",
-                                       "0 8px 25px rgba(239, 68, 68, 0.4)",
-                                       "0 4px 6px rgba(239, 68, 68, 0.2)"
-                                     ]
-                                   }}
-                                   transition={{ 
-                                     duration: 2, 
-                                     repeat: Infinity,
-                                     ease: "easeInOut"
-                                   }}
-                                 >
-                                   10% OFF
-                                 </motion.div>
-                                 
-                                 {/* Preço novo em verde */}
-                                 <motion.div 
-                                   className="text-2xl font-bold text-green-600 relative"
+                                                            <>
+                                {/* 10% OFF badge e preço original na mesma linha */}
+                                <div className="flex items-center justify-center gap-2 mb-2">
+                                  <motion.div 
+                                    className="bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-black px-2 py-1 rounded-full shadow-lg"
+                                    animate={{ 
+                                      scale: [1, 1.1, 1],
+                                      boxShadow: [
+                                        "0 4px 6px rgba(239, 68, 68, 0.2)",
+                                        "0 8px 25px rgba(239, 68, 68, 0.4)",
+                                        "0 4px 6px rgba(239, 68, 68, 0.2)"
+                                      ]
+                                    }}
+                                    transition={{ 
+                                      duration: 2, 
+                                      repeat: Infinity,
+                                      ease: "easeInOut"
+                                    }}
+                                  >
+                                    10% OFF
+                                  </motion.div>
+                                  <div className="text-sm text-red-500 line-through font-medium">
+                                    €{pricing.originalPrice.toFixed(2)}
+                                  </div>
+                                </div>
+                                
+                                                                {/* Preço novo */}
+                                <motion.div 
+                                  className="text-2xl font-bold text-ghibli-moss relative"
                                    animate={{ 
                                      scale: [1, 1.03, 1],
                                    }}

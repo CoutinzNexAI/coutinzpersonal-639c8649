@@ -117,18 +117,18 @@ const MugShopPage: React.FC = () => {
                             <div className="flex items-center justify-center">
                               {product.id === 'heart_mug' ? (
                                 <div className="flex flex-col items-center">
-                                  {/* Preço original riscado em vermelho */}
-                                  <div className="text-sm text-red-500 line-through font-medium">
-                                    €26.95
+                                  {/* 10% OFF badge e preço original na mesma linha */}
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black px-2 py-1 rounded-full shadow-lg">
+                                      10% OFF
+                                    </div>
+                                    <div className="text-sm text-red-500 line-through font-medium">
+                                      €26.95
+                                    </div>
                                   </div>
                                   
-                                  {/* 10% OFF badge */}
-                                  <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black px-2 py-1 rounded-full mb-1 shadow-lg">
-                                    10% OFF
-                                  </div>
-                                  
-                                  {/* Preço novo em verde */}
-                                  <div className="text-2xl font-bold text-green-600">
+                                  {/* Preço novo */}
+                                  <div className="text-2xl font-bold text-ghibli-moss">
                                     €24.26
                                   </div>
                                 </div>
@@ -236,18 +236,18 @@ const MugShopPage: React.FC = () => {
                           <div className="flex items-center justify-center">
                             {product.id === 'heart_mug' ? (
                               <div className="flex flex-col items-center">
-                                {/* Preço original riscado em vermelho */}
-                                <div className="text-xs text-red-500 line-through font-medium">
-                                  €26.95
+                                {/* 10% OFF badge e preço original na mesma linha */}
+                                <div className="flex items-center gap-1 mb-1">
+                                  <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black px-1.5 py-0.5 rounded-full shadow-lg">
+                                    10% OFF
+                                  </div>
+                                  <div className="text-xs text-red-500 line-through font-medium">
+                                    €26.95
+                                  </div>
                                 </div>
                                 
-                                {/* 10% OFF badge */}
-                                <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black px-2 py-0.5 rounded-full mb-1 shadow-lg">
-                                  10% OFF
-                                </div>
-                                
-                                {/* Preço novo em verde */}
-                                <div className="text-xl font-bold text-green-600">
+                                {/* Preço novo */}
+                                <div className="text-xl font-bold text-ghibli-moss">
                                   €24.26
                                 </div>
                               </div>

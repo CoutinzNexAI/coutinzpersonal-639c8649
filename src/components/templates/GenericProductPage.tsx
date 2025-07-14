@@ -56,6 +56,7 @@ interface GenericProductPageProps {
     getCoordinateConfig?: (product: PrintifyProductMapping) => { positionType: string; positions: readonly string[]; };
     calculatePrintifyCoords?: (position: string, variantId: number, imageDimensions: { width: number; height: number }, product: PrintifyProductMapping) => ImageAdjustments;
     validatePurchase: (selectedImageUrl: string, selectedImageId: string | null, userInfo: unknown, selectedPrintifyVariantId: number | null, printifyProductId: string, printifyImageId: string) => string | null;
+    positionControls?: { showPositionControls: boolean; allowVertical: boolean; allowHorizontal: boolean; showRotation: boolean; };
     variantSelectorConfig: { label: string; emoji: string; getCustomSingleVariantText?: (product: PrintifyProductMapping) => string | undefined; getCustomSingleVariantSubtext?: (product: PrintifyProductMapping) => string | undefined; };
     getVariantSelectorComponent?: (product: PrintifyProductMapping) => string;
     VariantSelectorComponent: string;
@@ -909,7 +910,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 onOpenGallery={handleOpenGallery}
                 onAdjustPosition={(position) => handleAdjustment('position', position)}
                             positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
-            showPositionControls={!!coordinateConfig}
+            showPositionControls={config.positionControls?.showPositionControls !== false && !!coordinateConfig}
               />
 
               {/* Seletor de Variantes Mobile - DEPOIS */}
@@ -1081,8 +1082,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
                 </Button>
 
-                {/* Controlos de Posição lado a lado com Trocar Arte - APENAS SE EXISTIR coordinateConfig */}
-                {userInfo && selectedImageUrl && coordinateConfig && (
+                {/* Controlos de Posição lado a lado com Trocar Arte - APENAS SE EXISTIR coordinateConfig E SE PERMITIDO */}
+                {userInfo && selectedImageUrl && coordinateConfig && config.positionControls?.showPositionControls !== false && (
                   <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-ghibli-sand/30">
                     {(coordinateConfig.positionType === 'vertical' ? [
                       { key: 'top' as const, title: 'Cima', icon: 'M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z' },
@@ -1167,27 +1168,20 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                         {/* Verificar se é caneca coração com desconto especial */}
                         {product.id === 'heart_mug' ? (
                           <div className="flex flex-col items-center">
-                            {/* Preço original riscado em vermelho */}
-                            <div className="text-lg text-red-500 line-through font-medium mb-2">
-                              €26.95
+                            {/* Linha com 10% OFF + preço original riscado */}
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-lg font-black px-3 py-1 rounded-full shadow-lg">
+                                10% OFF
+                              </div>
+                              <div className="text-lg text-red-500 line-through font-medium">
+                                €26.95
+                              </div>
                             </div>
                             
-                            {/* 10% OFF badge grande */}
-                            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xl font-black px-4 py-2 rounded-full mb-3 shadow-lg">
-                              10% OFF
-                            </div>
-                            
-                            {/* Preço novo em verde */}
-                            <div className="text-4xl font-black text-green-600 mb-1">
+                            {/* Preço novo */}
+                            <div className="text-4xl font-black text-ghibli-moss mb-1">
                               €24.26
                             </div>
-                            
-                            {/* Mostrar desconto adicional por quantidade se aplicável */}
-                            {discount > 0 && (
-                              <div className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full mt-2">
-                                +{discount}% OFF por quantidade!
-                              </div>
-                            )}
                           </div>
                         ) : (
                           <div className="flex items-baseline justify-center gap-2 mb-1">
