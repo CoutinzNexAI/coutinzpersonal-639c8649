@@ -194,20 +194,36 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
                 if (pricing.hasDiscount) {
                   return (
                     <>
-                      {/* Original price - crossed out */}
-                      <div className="text-sm text-gray-500 line-through mb-1">
+                      {/* Original price - crossed out in red */}
+                      <div className="text-sm text-red-500 line-through mb-1 font-medium">
                         €{pricing.originalPrice.toFixed(2)}
                       </div>
-                      {/* Discounted price with animation */}
+                      
+                      {/* 10% OFF badge - large and prominent */}
                       <motion.div 
-                        className="text-xl lg:text-2xl font-bold text-red-600 relative"
+                        className="bg-gradient-to-r from-red-500 to-red-600 text-white text-lg font-black px-3 py-1 rounded-full mb-2 shadow-lg"
                         animate={{ 
-                          scale: [1, 1.05, 1],
-                          textShadow: [
-                            "0 0 0px rgba(220, 38, 38, 0)",
-                            "0 0 8px rgba(220, 38, 38, 0.6)",
-                            "0 0 0px rgba(220, 38, 38, 0)"
+                          scale: [1, 1.1, 1],
+                          boxShadow: [
+                            "0 4px 6px rgba(239, 68, 68, 0.2)",
+                            "0 8px 25px rgba(239, 68, 68, 0.4)",
+                            "0 4px 6px rgba(239, 68, 68, 0.2)"
                           ]
+                        }}
+                        transition={{ 
+                          duration: 2, 
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        10% OFF
+                      </motion.div>
+                      
+                      {/* New price in green */}
+                      <motion.div 
+                        className="text-xl lg:text-2xl font-bold text-green-600 relative"
+                        animate={{ 
+                          scale: [1, 1.03, 1]
                         }}
                         transition={{ 
                           duration: 2, 
@@ -232,10 +248,6 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
                           ✨
                         </motion.span>
                       </motion.div>
-                      {/* Discount percentage */}
-                      <div className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full mt-1">
-                        Poupas €{(pricing.originalPrice - pricing.discountedPrice).toFixed(2)}!
-                      </div>
                     </>
                   );
                 } else {

@@ -405,43 +405,60 @@ const ShopPage: React.FC = () => {
                           if (pricing.hasDiscount) {
                             return (
                               <>
-                                {/* Preço original riscado */}
-                                <div className="text-sm text-gray-500 line-through mb-1">
-                                  €{pricing.originalPrice.toFixed(2)}
-                                </div>
-                                {/* Preço com desconto animado */}
-                                <motion.div 
-                                  className="text-2xl font-bold text-red-600 relative"
-                                  animate={{ 
-                                    scale: [1, 1.05, 1],
-                                  }}
-                                  transition={{ 
-                                    duration: 2, 
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                  }}
-                                >
-                                  €{pricing.discountedPrice.toFixed(2)}
-                                  {/* Sparkle effect */}
-                                  <motion.span
-                                    className="absolute -top-1 -right-2 text-yellow-400 text-sm"
-                                    animate={{ 
-                                      scale: [0, 1, 0],
-                                      rotate: [0, 180, 360]
-                                    }}
-                                    transition={{
-                                      duration: 1.5,
-                                      repeat: Infinity,
-                                      delay: 0.5
-                                    }}
-                                  >
-                                    ✨
-                                  </motion.span>
-                                </motion.div>
-                                {/* Valor poupado */}
-                                <div className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full mt-1">
-                                  Poupas €{(pricing.originalPrice - pricing.discountedPrice).toFixed(2)}!
-                                </div>
+                                                                 {/* Preço original riscado em vermelho */}
+                                 <div className="text-sm text-red-500 line-through mb-1 font-medium">
+                                   €{pricing.originalPrice.toFixed(2)}
+                                 </div>
+                                 
+                                 {/* 10% OFF badge - destaque */}
+                                 <motion.div 
+                                   className="bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-black px-2 py-1 rounded-full mb-2 shadow-lg"
+                                   animate={{ 
+                                     scale: [1, 1.1, 1],
+                                     boxShadow: [
+                                       "0 4px 6px rgba(239, 68, 68, 0.2)",
+                                       "0 8px 25px rgba(239, 68, 68, 0.4)",
+                                       "0 4px 6px rgba(239, 68, 68, 0.2)"
+                                     ]
+                                   }}
+                                   transition={{ 
+                                     duration: 2, 
+                                     repeat: Infinity,
+                                     ease: "easeInOut"
+                                   }}
+                                 >
+                                   10% OFF
+                                 </motion.div>
+                                 
+                                 {/* Preço novo em verde */}
+                                 <motion.div 
+                                   className="text-2xl font-bold text-green-600 relative"
+                                   animate={{ 
+                                     scale: [1, 1.03, 1],
+                                   }}
+                                   transition={{ 
+                                     duration: 2, 
+                                     repeat: Infinity,
+                                     ease: "easeInOut"
+                                   }}
+                                 >
+                                   €{pricing.discountedPrice.toFixed(2)}
+                                   {/* Sparkle effect */}
+                                   <motion.span
+                                     className="absolute -top-1 -right-2 text-yellow-400 text-sm"
+                                     animate={{ 
+                                       scale: [0, 1, 0],
+                                       rotate: [0, 180, 360]
+                                     }}
+                                     transition={{
+                                       duration: 1.5,
+                                       repeat: Infinity,
+                                       delay: 0.5
+                                     }}
+                                   >
+                                     ✨
+                                   </motion.span>
+                                 </motion.div>
                               </>
                             );
                           } else {

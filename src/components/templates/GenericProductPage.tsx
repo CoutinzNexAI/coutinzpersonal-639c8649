@@ -1148,18 +1148,47 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     {/* Preço e Quantidade */}
                     <div className="space-y-3">
                       <div className="text-center">
-                        <div className="flex items-baseline justify-center gap-2 mb-1">
-                          <span className="text-4xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
-                          {discount > 0 && (
-                            <span className="text-lg text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
-                          )}
-                          {discount > 0 && (
-                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                              -{discount}%
+                        {/* Verificar se é caneca coração com desconto especial */}
+                        {product.id === 'heart_mug' ? (
+                          <div className="flex flex-col items-center">
+                            {/* Preço original riscado em vermelho */}
+                            <div className="text-lg text-red-500 line-through font-medium mb-2">
+                              €26.95
                             </div>
-                          )}
-                        </div>
-                        {discount > 0 && (
+                            
+                            {/* 10% OFF badge grande */}
+                            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xl font-black px-4 py-2 rounded-full mb-3 shadow-lg">
+                              10% OFF
+                            </div>
+                            
+                            {/* Preço novo em verde */}
+                            <div className="text-4xl font-black text-green-600 mb-1">
+                              €24.26
+                            </div>
+                            
+                            {/* Mostrar desconto adicional por quantidade se aplicável */}
+                            {discount > 0 && (
+                              <div className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full mt-2">
+                                +{discount}% OFF por quantidade!
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-baseline justify-center gap-2 mb-1">
+                            <span className="text-4xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
+                            {discount > 0 && (
+                              <span className="text-lg text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
+                            )}
+                            {discount > 0 && (
+                              <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                -{discount}%
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Savings para produtos normais */}
+                        {product.id !== 'heart_mug' && discount > 0 && (
                           <p className="text-sm text-green-600 font-medium">
                             Poupa €{savings.toFixed(2)} com {discount}% desconto!
                           </p>

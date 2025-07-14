@@ -113,11 +113,30 @@ const MugShopPage: React.FC = () => {
                               )}
                             </div>
                             
-                            {/* Price */}
+                            {/* Price - com suporte a desconto especial */}
                             <div className="flex items-center justify-center">
-                              <div className="text-2xl font-bold text-ghibli-moss">
-                                €{product.basePrice || product.price || 25.00}
-                              </div>
+                              {product.id === 'heart_mug' ? (
+                                <div className="flex flex-col items-center">
+                                  {/* Preço original riscado em vermelho */}
+                                  <div className="text-sm text-red-500 line-through font-medium">
+                                    €26.95
+                                  </div>
+                                  
+                                  {/* 10% OFF badge */}
+                                  <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black px-2 py-1 rounded-full mb-1 shadow-lg">
+                                    10% OFF
+                                  </div>
+                                  
+                                  {/* Preço novo em verde */}
+                                  <div className="text-2xl font-bold text-green-600">
+                                    €24.26
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-2xl font-bold text-ghibli-moss">
+                                  €{product.basePrice || product.price || 25.00}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -213,11 +232,30 @@ const MugShopPage: React.FC = () => {
                             {product.id === 'heart_mug' && <div>💝 Formato coração</div>}
                           </div>
                           
-                          {/* Price */}
+                          {/* Price - com suporte a desconto especial */}
                           <div className="flex items-center justify-center">
-                            <div className="text-xl font-bold text-ghibli-moss">
-                              €{product.basePrice || product.price || 25.00}
-                            </div>
+                            {product.id === 'heart_mug' ? (
+                              <div className="flex flex-col items-center">
+                                {/* Preço original riscado em vermelho */}
+                                <div className="text-xs text-red-500 line-through font-medium">
+                                  €26.95
+                                </div>
+                                
+                                {/* 10% OFF badge */}
+                                <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black px-2 py-0.5 rounded-full mb-1 shadow-lg">
+                                  10% OFF
+                                </div>
+                                
+                                {/* Preço novo em verde */}
+                                <div className="text-xl font-bold text-green-600">
+                                  €24.26
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-xl font-bold text-ghibli-moss">
+                                €{product.basePrice || product.price || 25.00}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -25,9 +25,8 @@ export const mugConfig = {
   // Função para calcular preço base baseado na variante (COM desconto especial aplicado)
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => {
     if (product?.id === 'heart_mug') {
-      // ✅ NOVO: Aplicar desconto especial de 10% na caneca coração
-      const originalPrice = 26.95;
-      return originalPrice * 0.9; // 24.26 (10% off)
+      // ✅ FIXO: Preço exato com desconto de 10% na caneca coração
+      return 24.26; // Fixo para garantir consistência (26.95 * 0.9 = 24.255 → 24.26)
     }
     
     if (product?.id === 'ceramic_mug' && selectedPrintifyVariantId) {
