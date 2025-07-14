@@ -5,6 +5,11 @@ import { Truck, Shield, Award, Sparkles } from 'lucide-react';
 export const pelucheConfig = {
   productCategory: 'peluche',
   
+  // Preço original para cálculos (mesmo que base para peluches)
+  getOriginalPrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
+    return 24.95; // €24.95 para todas as variantes
+  },
+
   // Preço base do produto
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
     return 24.95; // €24.95 para todas as variantes
@@ -63,6 +68,15 @@ export const pelucheConfig = {
     }
     return null; // Sucesso
   },
+
+  // Configuração específica do seletor de variantes
+  variantSelectorConfig: {
+    label: 'Animal do Peluche',
+    emoji: '🧸'
+  },
+
+  // Componente de seleção de variantes
+  VariantSelectorComponent: 'PelucheVariantSelector',
 
   // Configuração para não mostrar controlos de posição
   positionControls: {

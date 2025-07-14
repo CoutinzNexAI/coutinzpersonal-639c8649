@@ -874,9 +874,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 </div>
               )}
               
-              {/* ✅ OVERLAY MOBILE para mudança de posição */}
-              {isGeneratingMockup && (
-                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 rounded-2xl">
+              {/* ✅ OVERLAY MOBILE para mudança de posição - SÓ quando há imagem, está a gerar E não há previews */}
+              {isGeneratingMockup && selectedImageUrl && printifyPreviewUrls.length === 0 && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <RotateCw className="w-8 h-8 animate-spin text-ghibli-moss" />
