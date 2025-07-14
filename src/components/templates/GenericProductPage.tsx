@@ -42,6 +42,7 @@ import PhoneCaseVariantSelector from '@/components/shared/product-customization/
 import FramedCanvasVariantSelector from '@/components/shared/product-customization/FramedCanvasVariantSelector';
 import ToteBagVariantSelector from '@/components/shared/product-customization/ToteBagVariantSelector';
 import NotebookVariantSelector from '@/components/shared/product-customization/NotebookVariantSelector';
+import PelucheVariantSelector from '@/components/shared/product-customization/PelucheVariantSelector';
 
 interface GenericProductPageProps {
   product: PrintifyProductMapping;
@@ -823,8 +824,15 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                         className="w-32 h-32 object-contain opacity-60"
                       />
                     )}
+                    {product.id === 'plush_toy_tshirt' && (
+                      <img
+                        src="/mockupproduto/peluche.png"
+                        alt="Peluche com T-Shirt Personalizada"
+                        className="w-32 h-32 object-contain opacity-60"
+                      />
+                    )}
                     {/* Fallback para produtos não especificados */}
-                    {!['custom_phone_case', 'custom_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad'].includes(product.id) && (
+                    {!['custom_phone_case', 'custom_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad', 'plush_toy_tshirt'].includes(product.id) && (
                       <div className="w-32 h-32 bg-ghibli-cream/50 rounded-xl border-2 border-dashed border-ghibli-sand flex items-center justify-center">
                         <span className="text-4xl opacity-40">📷</span>
                       </div>
@@ -844,7 +852,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                       {product.id === 'tote_bag' && 'Saco Personalizado'}
                       {product.id === 'spiral_journal' && 'Caderno Personalizado'}
                       {product.id === 'mouse_pad' && 'Mouse Pad Personalizado'}
-                      {!['custom_phone_case', 'custom_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad'].includes(product.id) && 'Escolha uma Foto'}
+                      {product.id === 'plush_toy_tshirt' && 'Peluche com T-Shirt Personalizada'}
+                      {!['custom_phone_case', 'custom_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad', 'plush_toy_tshirt'].includes(product.id) && 'Escolha uma Foto'}
                     </h3>
                     <p className="text-ghibli-earth/70 text-sm leading-relaxed">
                       {product.id === 'custom_phone_case' && 'Escolha uma foto e veja a sua capa personalizada ganhar vida.'}
@@ -857,7 +866,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                       {product.id === 'tote_bag' && 'Escolha uma foto e veja o seu saco sustentável ganhar vida.'}
                       {product.id === 'spiral_journal' && 'Escolha uma foto e veja o seu caderno personalizado ganhar vida.'}
                       {product.id === 'mouse_pad' && 'Escolha uma foto e veja o seu mouse pad personalizado ganhar vida.'}
-                      {!['custom_phone_case', 'custom_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad'].includes(product.id) && 'Selecione uma das suas transformações AI para personalizar.'}
+                      {product.id === 'plush_toy_tshirt' && 'Escolha uma foto e veja o seu peluche fofo com T-shirt personalizada ganhar vida.'}
+                      {!['custom_phone_case', 'custom_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad', 'plush_toy_tshirt'].includes(product.id) && 'Selecione uma das suas transformações AI para personalizar.'}
                     </p>
                   </div>
                 </div>
@@ -929,6 +939,12 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     />
                   ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
                     <NotebookVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                    />
+                  ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PelucheVariantSelector' ? (
+                    <PelucheVariantSelector
                       product={product}
                       selectedVariantId={selectedPrintifyVariantId}
                       onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
@@ -1288,6 +1304,12 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     />
                   ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'NotebookVariantSelector' ? (
                     <NotebookVariantSelector
+                      product={product}
+                      selectedVariantId={selectedPrintifyVariantId}
+                      onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
+                    />
+                  ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PelucheVariantSelector' ? (
+                    <PelucheVariantSelector
                       product={product}
                       selectedVariantId={selectedPrintifyVariantId}
                       onVariantSelect={(variantId) => handleAdjustment('size', variantId)}

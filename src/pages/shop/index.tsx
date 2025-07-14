@@ -181,6 +181,15 @@ const individualProducts: IndividualProduct[] = [
     image: '/mockupproduto/mousepad.png',
     href: '/shop/escritorio/mouse_pad'
   },
+  // 10. Peluche com T-Shirt
+  {
+    id: 'plush_toy_tshirt',
+    name: 'Peluche com T-Shirt',
+    price: 27.95,
+    image: '/mockupproduto/peluche.png',
+    href: '/shop/plush_toy_tshirt',
+    badge: 'Novo!'
+  },
 
 ];
 

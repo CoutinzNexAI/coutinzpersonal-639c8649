@@ -401,6 +401,45 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     }],
   },
 
+  // 6. PELUCHE COM T-SHIRT PERSONALIZÁVEL
+  'plush_toy_tshirt': {
+    id: 'plush_toy_tshirt',
+    name: 'Peluche com T-Shirt',
+    mockupInitialPath: '/mockupproduto/peluche.png',
+    basePrice: 27.95, // Euros
+    category: 'bags', // Categoria geral para produtos únicos
+    // ✅ CONFIGURAÇÃO DE DESIGN: Peluche com fill na T-shirt
+    defaultDesign: {
+      scale: 1.0, // Fill to placeholder como pedido
+      x: 0.5, // Centro
+      y: 0.5, // Centro
+      angle: 0, // Sem rotação
+    },
+    printifyBlueprintId: 898, // Plush Toy with T-Shirt
+    printifyPrintProviderId: 30, // OPT OnDemand
+    variants: [
+      { id: 77635, title: 'Coelho / Tamanho Único', placeholderWidth: 591, placeholderHeight: 472, isGiftPackaging: false },
+      { id: 77636, title: 'Elefante / Tamanho Único', placeholderWidth: 591, placeholderHeight: 472, isGiftPackaging: false },
+      { id: 77637, title: 'Ovelha / Tamanho Único', placeholderWidth: 591, placeholderHeight: 472, isGiftPackaging: false },
+      { id: 77638, title: 'Urso / Tamanho Único', placeholderWidth: 591, placeholderHeight: 472, isGiftPackaging: false },
+    ],
+    printArea: 'front', // Apenas a frente da T-shirt
+    printFileBleed: 2,
+    printFileResolution: 300,
+    gelatoPrintDimensionsMm: { width: 59.1, height: 47.2 }, // Área de impressão convertida para mm (assumindo 300 DPI)
+    gelatoPrintOffsetsMm: { x: 0, y: 0 },
+    supportsManualAdjustment: false, // Como T-shirt, não precisa de ajuste manual
+    printAreasConfig: [{
+      position: 'front',
+      allowsUserImage: true,
+      defaultX: 0.5,
+      defaultY: 0.5,
+      defaultScale: 1.0, // Fill to placeholder
+      defaultAngle: 0,
+      fitMethod: 'slice', // Fill para cobrir a área da T-shirt
+    }],
+  },
+
   // POSTER HORIZONTAL (SEMI BRILHO)
   'poster_horizontal_semi_glossy': {
     id: 'poster_horizontal_semi_glossy',
