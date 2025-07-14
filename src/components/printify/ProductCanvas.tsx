@@ -658,6 +658,32 @@ export default function ProductCanvas({
       );
     }
 
+    // Para peluche, mostrar placeholder específico
+    if (selectedProduct.id === 'plush_toy_tshirt') {
+      return (
+        <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
+          {/* Placeholder image */}
+          <div className="mb-6">
+            <img
+              src="/mockupproduto/peluche.png"
+              alt="Peluche com T-Shirt Personalizada"
+              className="w-64 h-64 object-contain opacity-60"
+            />
+          </div>
+          
+          {/* Call to action específico para peluche */}
+          <div className="text-center max-w-md">
+            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
+              Peluche com T-Shirt Personalizada
+            </h3>
+            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
+              Escolha uma foto e veja o seu peluche ganhar vida.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     // Para outros produtos, mostrar estado vazio genérico
     return (
       <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">

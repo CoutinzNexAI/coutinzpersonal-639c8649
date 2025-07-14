@@ -510,8 +510,9 @@ export default async function handler(
                productId === 'poster_horizontal_semi_glossy' || productId === 'poster_vertical_semi_glossy' ||
                productId === 'ceramic_mug' || productId === 'heart_mug' ||
                productId === 'custom_phone_case' ||
-               productId === 'spiral_journal' || productId === 'mouse_pad') {
-      // LÓGICA UNIFICADA PARA CANVAS/POSTER/CANECAS/CAPAS/CADERNOS/MOUSEPADS (USA SRC, NÃO ID)
+               productId === 'spiral_journal' || productId === 'mouse_pad' ||
+               productId === 'plush_toy_tshirt') {
+      // LÓGICA UNIFICADA PARA CANVAS/POSTER/CANECAS/CAPAS/CADERNOS/MOUSEPADS/PELUCHES (USA SRC, NÃO ID)
       // Validar que temos a imagem URL
       if (!userImageUrl) {
         throw new Error(`userImageUrl is required for ${productId} products`);

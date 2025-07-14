@@ -1,137 +1,74 @@
-import { ImageAdjustments } from '@/types/product';
+// Configuração específica para Peluche com T-Shirt Personalizável
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
-import { Shield, Sparkles, Truck, Award } from 'lucide-react';
+import { Truck, Shield, Award, Sparkles } from 'lucide-react';
 
-// Ficheiro de configuração para produtos do tipo Peluche com T-Shirt
-// Define configurações específicas, variantes e comportamentos para peluches
-
-// Configuração específica para produtos do tipo Peluche
 export const pelucheConfig = {
   productCategory: 'peluche',
   
-  // Função para obter preço original (para cálculos de entrega grátis)
-  getOriginalPrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => {
-    return 27.95; // Preço do peluche
+  // Preço base do produto
+  getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
+    return 24.95; // €24.95 para todas as variantes
   },
 
-  // Função para calcular preço base baseado na variante
-  getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => {
-    return 27.95; // Preço fixo para todas as variantes
-  },
-
-  // Indicador de produto com desconto especial
-  hasSpecialDiscount: (product: PrintifyProductMapping) => {
-    return false; // Sem desconto especial por enquanto
-  },
-
-  // Regras de desconto para múltiplos peluches
+  // Descontos por quantidade
   discountTiers: [
-    { min: 2, discount: 10, label: 'peluches', emoji: '🧸' },
-    { min: 3, discount: 15, label: 'peluches', emoji: '🎁' }
+    { min: 2, discount: 10, label: '2+ peluches', emoji: '' },
+    { min: 3, discount: 15, label: '3+ peluches', emoji: '' }
   ],
 
-  // Itens de descrição do produto
+  // Descrições específicas do produto
   descriptionItems: (product: PrintifyProductMapping) => [
     { 
-      text: 'Peluche <span class="font-bold text-ghibli-moss">super fofo</span> com T-shirt personalizada',
-      color: 'moss' as const
+      text: 'Peluche super fofo e macio com t-shirt 100% algodão personalizável', 
+      color: 'moss' as const,
+      emoji: '🧸'
     },
     { 
-      text: 'Material <span class="font-bold">100% Poliéster</span> na T-shirt',
-      color: 'moss' as const
-    },
-    { 
-      text: '<span class="font-bold text-ghibli-wood">Perfeito para oferecer ou decorar</span>',
+      text: 'Transformação AI única aplicada na t-shirt do seu animal favorito', 
       color: 'wood' as const,
+      emoji: '✨'
+    },
+    { 
+      text: 'Perfeito para presentes únicos e momentos especiais', 
+      color: 'moss' as const,
       emoji: '🎁'
     }
   ],
 
-  // Itens de garantias persuasivos para peluches
+  // Garantias específicas para peluche
   guaranteeItems: () => [
-    {
-      icon: Shield,
-      title: 'Material Premium e Seguro'
-    },
-    {
-      icon: Sparkles,
-      title: 'Impressão de Alta Qualidade'
-    },
-    {
-      icon: Truck,
-      title: '3-5 dias úteis'
-    },
-    {
-      icon: Award,
-      title: 'Garantia 30 dias'
-    }
+    { icon: Sparkles, title: 'Peluche de Qualidade Premium' },
+    { icon: Award, title: 'T-Shirt 100% Algodão Macio' },
+    { icon: Shield, title: 'Garantia 30 dias' },
+    { icon: Truck, title: '3-5 dias úteis' }
   ],
 
-  // Configuração de coordenadas/posicionamento - peluche não precisa de ajuste
-  coordinateConfig: {
-    positionType: 'none' as const,
-    positions: [] as const
-  },
-
-  // Configuração específica para cálculo de coordenadas do peluche
-  calculatePrintifyCoords: (position: string | null, variantId: number, imageDimensions: { width: number; height: number }, product: PrintifyProductMapping): ImageAdjustments => {
-    // Para peluches, usamos fill to placeholder como pedido
-    if (!product || !imageDimensions) {
-      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+  // Validação de compra
+  validatePurchase: (
+    selectedImageUrl: string,
+    selectedImageId: string | null,
+    userInfo: unknown,
+    selectedPrintifyVariantId: number | null,
+    printifyProductId: string,
+    printifyImageId: string
+  ): string | null => {
+    if (!selectedImageUrl) {
+      return 'Por favor, escolha uma transformação para personalizar o seu peluche.';
     }
-    
-    const selectedVariant = product.variants?.find((v) => v.id === variantId);
-    if (!selectedVariant) {
-      return { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
+    if (!selectedPrintifyVariantId) {
+      return 'Por favor, escolha o animal do peluche.';
     }
-
-    const { placeholderWidth, placeholderHeight } = selectedVariant;
-    const { width: userImageWidth, height: userImageHeight } = imageDimensions;
-
-    // CALCULAR A ESCALA "COVER" para fill to placeholder
-    const scaleToCover = Math.max(
-      placeholderWidth / userImageWidth,
-      placeholderHeight / userImageHeight
-    );
-
-    // Escala para a API da Printify
-    const finalImageWidth = userImageWidth * scaleToCover;
-    const printifyScale = finalImageWidth / placeholderWidth;
-    
-    return {
-      x: 0.5, // Centro
-      y: 0.5, // Centro  
-      scale: printifyScale,
-      rotation: 0
-    };
+    if (!userInfo) {
+      return 'Por favor, faça login para continuar.';
+    }
+    return null; // Sucesso
   },
 
-  // Função de validação específica para peluches
-  validatePurchase: (selectedImageUrl: string, selectedImageId: string | null, userInfo: unknown, selectedPrintifyVariantId: number | null, printifyProductId: string, printifyImageId: string) => {
-    if (!selectedImageUrl) return 'Escolha uma arte primeiro para personalizar o seu peluche!';
-    if (!selectedImageId) return 'ID da transformação não encontrado. Selecione a imagem novamente.';
-    if (!userInfo) return 'Faça login para adicionar ao carrinho';
-    if (selectedPrintifyVariantId === null) return 'Por favor, selecione o animal do peluche.';
-    if (!printifyProductId || !printifyImageId) return 'Os mockups ainda estão a ser gerados. Aguarde um momento e tente novamente.';
-    return null;
-  },
-
-  // Configuração de controles de posição
+  // Configuração para não mostrar controlos de posição
   positionControls: {
-    showPositionControls: false, // Não mostrar controles de posição (peluche é único)
+    showPositionControls: false,
     allowVertical: false,
     allowHorizontal: false,
-    showRotation: false,
-  },
-
-  // Configuração específica do seletor de variantes
-  variantSelectorConfig: {
-    label: "Escolha o Animal",
-    emoji: "🧸",
-    getCustomSingleVariantText: (product: PrintifyProductMapping) => undefined,
-    getCustomSingleVariantSubtext: (product: PrintifyProductMapping) => undefined
-  },
-
-  // Componente de seleção de variantes (será importado dinamicamente)
-  VariantSelectorComponent: 'PelucheVariantSelector'
+    showRotation: false
+  }
 }; 

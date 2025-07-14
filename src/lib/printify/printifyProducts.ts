@@ -406,7 +406,7 @@ export const PIC_TUZ_PRINTIFY_PRODUCT_MAP: Record<string, PrintifyProductMapping
     id: 'plush_toy_tshirt',
     name: 'Peluche com T-Shirt',
     mockupInitialPath: '/mockupproduto/peluche.png',
-    basePrice: 27.95, // Euros
+    basePrice: 24.95, // Euros
     category: 'bags', // Categoria geral para produtos únicos
     // ✅ CONFIGURAÇÃO DE DESIGN: Peluche com fill na T-shirt
     defaultDesign: {

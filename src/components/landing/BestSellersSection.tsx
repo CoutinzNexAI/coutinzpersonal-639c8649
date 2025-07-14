@@ -232,21 +232,6 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
                         }}
                       >
                         €{pricing.discountedPrice.toFixed(2)}
-                        {/* Sparkle effect */}
-                        <motion.span
-                          className="absolute -top-1 -right-2 text-yellow-400"
-                          animate={{ 
-                            scale: [0, 1, 0],
-                            rotate: [0, 180, 360]
-                          }}
-                          transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            delay: 0.5
-                          }}
-                        >
-                          ✨
-                        </motion.span>
                       </motion.div>
                     </>
                   );
