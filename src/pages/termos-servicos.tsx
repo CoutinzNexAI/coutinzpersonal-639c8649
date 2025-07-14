@@ -62,8 +62,8 @@ const TermosServicosPage: React.FC = () => {
               <li><strong>Imagem Transformada:</strong> A imagem resultante do processo de Transformação, armazenada permanentemente no histórico do utilizador.</li>
               <li><strong>Transformações Diárias Gratuitas:</strong> Limite diário de transformações de imagem gratuitas disponíveis para cada utilizador registado.</li>
               <li><strong>Loja de Produtos:</strong> A secção do Serviço onde pode adquirir produtos físicos personalizados (canvas, canecas, posters, capas, etc.) utilizando as suas Imagens Transformadas.</li>
-              <li><strong>Produtos Personalizados:</strong> Artigos físicos (canvas emoldurados, canecas, posters, capas de telemóvel, etc.) criados com as suas Imagens Transformadas através do nosso parceiro Printify.</li>
-              <li><strong>Parceiro de Fulfillment:</strong> Printify, empresa que produz e entrega os Produtos Personalizados encomendados através da Loja.</li>
+              <li><strong>Produtos Personalizados:</strong> Artigos físicos (canvas emoldurados, canecas, posters, capas de telemóvel, etc.) criados com as suas Imagens Transformadas através da nossa gráfica parceira.</li>
+              <li><strong>Parceiro de Fulfillment:</strong> Empresa especializada que produz e entrega os Produtos Personalizados encomendados através da Loja.</li>
               <li><strong>Comunidade:</strong> Funcionalidade opcional que permite aos utilizadores partilhar publicamente as suas transformações com outros membros.</li>
             </ul>
           </section>
@@ -76,7 +76,7 @@ const TermosServicosPage: React.FC = () => {
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
               <li><strong>Transformações AI:</strong> Permite carregar fotografias, selecionar estilos artísticos e transformá-las usando algoritmos da OpenAI. As transformações são gratuitas dentro de um limite diário.</li>
               <li><strong>Loja de Produtos Personalizados:</strong> Permite encomendar produtos físicos (canvas emoldurados, canecas, posters, capas de telemóvel, etc.) personalizados com as suas Imagens Transformadas.</li>
-              <li><strong>Fulfillment via Printify:</strong> Todos os produtos são produzidos e entregues pelo nosso parceiro Printify, garantindo qualidade profissional e entregas mundiais.</li>
+              <li><strong>Fulfillment Especializado:</strong> Todos os produtos são produzidos e entregues pela nossa gráfica parceira, garantindo qualidade profissional e entregas mundiais.</li>
               <li><strong>Histórico Permanente:</strong> Todas as Imagens Transformadas ficam disponíveis permanentemente no histórico da sua Conta.</li>
               <li><strong>Comunidade:</strong> Funcionalidade opcional para partilhar e descobrir criações de outros utilizadores.</li>
             </ul>
@@ -101,9 +101,9 @@ const TermosServicosPage: React.FC = () => {
               <li><strong>Produtos Disponíveis:</strong> Canvas emoldurados, canecas, posters, capas de telemóvel, sacos, mousepad e outros produtos que podem ser personalizados com as suas Imagens Transformadas.</li>
               <li><strong>Preços e Pagamentos:</strong> Os preços são exibidos em Euro (€) e incluem IVA quando aplicável. Os pagamentos são processados de forma segura através do Stripe.</li>
               <li><strong>Personalização:</strong> Pode ajustar a posição, escala e outros aspetos da sua imagem no produto antes da compra.</li>
-              <li><strong>Processo de Encomenda:</strong> Após o pagamento, a encomenda é automaticamente enviada para o Printify para produção e expedição.</li>
-              <li><strong>Produção e Entrega:</strong> O Printify produz os seus produtos personalizados e gere toda a logística de entrega. Os prazos de produção e entrega são fornecidos durante o checkout.</li>
-              <li><strong>Qualidade:</strong> Garantimos que todos os produtos são produzidos com materiais de alta qualidade pelo Printify.</li>
+              <li><strong>Processo de Encomenda:</strong> Após o pagamento, a encomenda é automaticamente enviada para produção e expedição.</li>
+              <li><strong>Produção e Entrega:</strong> A nossa gráfica produz os seus produtos personalizados e gere toda a logística de entrega. Os prazos de produção e entrega são fornecidos durante o checkout.</li>
+              <li><strong>Qualidade:</strong> Garantimos que todos os produtos são produzidos com materiais de alta qualidade.</li>
             </ul>
           </section>
 
@@ -155,12 +155,12 @@ const TermosServicosPage: React.FC = () => {
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold font-ghibli text-ghibli-wood mb-4">9. Limitação de Responsabilidade</h2>
-            <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
+             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
               <li><strong>Serviço "Como Está":</strong> O Serviço é fornecido "como está" sem garantias específicas sobre disponibilidade contínua ou resultados específicos das transformações.</li>
               <li><strong>Limitação de Danos:</strong> A nossa responsabilidade máxima não excederá o valor pago pelos produtos ou serviços específicos em questão.</li>
               <li><strong>Responsabilidade por Conteúdo:</strong> Não somos responsáveis pelo conteúdo que carrega ou pelas consequências da sua utilização.</li>
-              <li><strong>Parceiros Terceiros:</strong> Para questões relacionadas com produção ou entrega de produtos, deve contactar diretamente o Printify se necessário.</li>
-            </ul>
+              <li><strong>Parceiros Terceiros:</strong> Para questões relacionadas com produção ou entrega de produtos, entre em contacto connosco através do suporte.</li>
+             </ul>
           </section>
 
           <section className="mb-8">

@@ -5,6 +5,11 @@ export const bagConfig = {
   // ✅ CATEGORIA: Sacos/Bags
   productCategory: 'bags',
 
+  // ✅ NOVO: Função para obter preço original (mesmo que base para sacos - sem desconto especial)
+  getOriginalPrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null) => {
+    return product.basePrice || 19.95;
+  },
+
   // ✅ PREÇO: Base para sacos
   getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null) => {
     return product.basePrice || 19.95; // €19.95 preço base para sacos ✅ ATUALIZADO

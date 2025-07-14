@@ -5,6 +5,11 @@ import { ImageAdjustments } from '@/types/product';
 export const phoneCaseConfig = {
   productCategory: 'tecnologia',
 
+  // ✅ NOVO: Função para obter preço original (mesmo que base para capas - sem desconto especial)
+  getOriginalPrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
+    return product.basePrice || 19.95;
+  },
+
   // ✅ PREÇOS: Preço fixo para todas as capas
   getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
     return product.basePrice || 19.95; // €19.95 por capa ✅ ATUALIZADO

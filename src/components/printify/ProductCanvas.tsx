@@ -421,7 +421,7 @@ export default function ProductCanvas({
               Personaliza a sua Caneca Coração
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma das suas artes para dar vida à sua caneca.
+              Escolha uma das suas fotos para dar vida à sua caneca.
             </p>
             
             {onSelectImage && (
@@ -457,7 +457,7 @@ export default function ProductCanvas({
               Personaliza a sua Caneca Cerâmica
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma das suas artes para dar vida à sua caneca.
+              Escolha uma das suas fotos para dar vida à sua caneca.
             </p>
             
             {onSelectImage && (
@@ -496,7 +496,7 @@ export default function ProductCanvas({
               }
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma arte e veja o seu canvas ganhar vida.
+              Escolha uma foto e veja o seu canvas ganhar vida.
             </p>
           </div>
         </div>
@@ -522,7 +522,7 @@ export default function ProductCanvas({
               Poster Horizontal Personalizado
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma arte e veja o seu poster ganhar vida.
+              Escolha uma foto e veja o seu poster ganhar vida.
             </p>
           </div>
         </div>
@@ -547,7 +547,7 @@ export default function ProductCanvas({
               Poster Vertical Personalizado
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma arte e veja o seu poster ganhar vida.
+              Escolha uma foto e veja o seu poster ganhar vida.
             </p>
           </div>
         </div>
@@ -573,7 +573,7 @@ export default function ProductCanvas({
               Capa de Telemóvel Personalizada
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma arte e veja a sua capa ganhar vida.
+              Escolha uma foto e veja a sua capa ganhar vida.
             </p>
           </div>
         </div>
@@ -599,7 +599,7 @@ export default function ProductCanvas({
               Saco Personalizado
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma arte e veja o seu tote bag ganhar vida.
+              Escolha uma foto e veja o seu tote bag ganhar vida.
             </p>
           </div>
         </div>
@@ -625,7 +625,7 @@ export default function ProductCanvas({
               Caderno Personalizado
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma arte e veja o seu caderno ganhar vida.
+              Escolha uma foto e veja o seu caderno ganhar vida.
             </p>
           </div>
         </div>
@@ -651,7 +651,7 @@ export default function ProductCanvas({
               Mouse Pad Personalizado
             </h3>
             <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma arte e veja o seu mouse pad ganhar vida.
+              Escolha uma foto e veja o seu mouse pad ganhar vida.
             </p>
           </div>
         </div>
@@ -674,7 +674,7 @@ export default function ProductCanvas({
             Personaliza o seu produto
           </h3>
           <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-            Escolha uma arte para dar vida ao seu produto.
+            Escolha uma foto para dar vida ao seu produto.
           </p>
           
           {onSelectImage && (

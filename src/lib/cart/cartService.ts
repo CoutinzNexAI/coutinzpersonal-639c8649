@@ -1,9 +1,47 @@
 import { CartItem, CartSummary } from './cartTypes';
+import { mugConfig } from '@/config/products/mug.config';
+import { canvasConfig } from '@/config/products/canvas.config';
+import { posterConfig } from '@/config/products/poster.config';
+import { notebookConfig } from '@/config/products/notebook.config';
+import { phoneCaseConfig } from '@/config/products/phoneCase.config';
+import { bagConfig } from '@/config/products/bag.config';
+import { mousepadConfig } from '@/config/products/mousepad.config';
 
 const CART_STORAGE_KEY = 'pictuz_cart';
 // ✅ REMOVIDO: const TAX_RATE = 0.23; // IVA agora incluído nos preços
 
 export class CartService {
+  
+  // ✅ NOVO: Função para obter preço original de um item (para cálculo de entrega grátis)
+  private static getItemOriginalPrice(item: CartItem): number {
+    // Mapear produto para sua configuração e usar getOriginalPrice se disponível
+    let config = null;
+    
+    // Determinar config baseado no productId
+    if (item.productId.includes('heart_mug') || item.productId.includes('ceramic_mug')) {
+      config = mugConfig;
+    } else if (item.productId.includes('canvas')) {
+      config = canvasConfig;
+    } else if (item.productId.includes('poster')) {
+      config = posterConfig;
+    } else if (item.productId.includes('spiral_journal')) {
+      config = notebookConfig;
+    } else if (item.productId.includes('phone_case')) {
+      config = phoneCaseConfig;
+    } else if (item.productId.includes('tote_bag')) {
+      config = bagConfig;
+    } else if (item.productId.includes('mousepad')) {
+      config = mousepadConfig;
+    }
+    
+    // Usar getOriginalPrice se disponível, senão usar preço do item
+    if (config && config.getOriginalPrice) {
+      return config.getOriginalPrice(null, null);
+    }
+    
+    return item.price;
+  }
+
   // Get cart from localStorage
   static getCart(): CartItem[] {
     if (typeof window === 'undefined') return [];
@@ -155,7 +193,11 @@ export class CartService {
   // ✅ ATUALIZADO: Calculate cart summary (IVA incluído nos preços, shipping baseado no valor original)
   static getCartSummary(): CartSummary {
     const items = this.getCart();
-    const originalSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // ✅ ATUALIZADO: Usar preço original para produtos com desconto especial
+    const originalSubtotal = items.reduce((sum, item) => {
+      const originalPrice = this.getItemOriginalPrice(item);
+      return sum + (originalPrice * item.quantity);
+    }, 0);
     
     // Calculate discounts
     const { discountAmount, finalSubtotal } = this.calculateDiscounts(items);

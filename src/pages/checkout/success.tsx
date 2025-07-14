@@ -221,7 +221,7 @@ const CheckoutSuccessPage: React.FC = () => {
               </h1>
               
               <p className="text-sm md:text-base text-ghibli-earth">
-                Pedido processado com sucesso e enviado para a Printify!
+                Pedido processado com sucesso e enviado para produção!
               </p>
             </div>
 

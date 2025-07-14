@@ -7,6 +7,20 @@ import { Shield, Sparkles, Truck, Award } from 'lucide-react';
 export const canvasConfig = {
   productCategory: 'canvas',
 
+  // ✅ NOVO: Função para obter preço original (mesmo que base para canvas - sem desconto especial)
+  getOriginalPrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
+    const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
+    if (!selectedVariant) return product.basePrice || 20.00;
+    
+    // Canvas Sem Borda: basePrice 20 + priceAdjustment
+    if (selectedVariant.id >= 91656 && selectedVariant.id <= 101418) {
+      return 20.00 + (selectedVariant.priceAdjustment || 0);
+    }
+    
+    // Canvas com Moldura: basePrice 40 + priceAdjustment
+    return 40.00 + (selectedVariant.priceAdjustment || 0);
+  },
+
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
     const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
     if (!selectedVariant) return product.basePrice || 20.00;

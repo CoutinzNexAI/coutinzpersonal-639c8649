@@ -98,8 +98,11 @@ export interface ImageDimensions {
 export interface ProductConfig {
   productCategory: string;
   
-  // Função para calcular preço base
+  // Função para calcular preço base (com descontos especiais aplicados)
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => number;
+  
+  // ✅ NOVO: Função para obter preço original (sem descontos especiais, para cálculos de entrega grátis)
+  getOriginalPrice?: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => number;
   
   // Regras de desconto
   discountTiers: DiscountTier[];

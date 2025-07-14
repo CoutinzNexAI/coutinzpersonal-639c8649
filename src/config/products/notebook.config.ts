@@ -5,9 +5,14 @@ import { ImageAdjustments } from '@/types/product';
 export const notebookConfig = {
   productCategory: 'escritorio',
 
+  // ✅ NOVO: Função para obter preço original (mesmo que base para caderno - sem desconto especial)
+  getOriginalPrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
+    return product?.basePrice || 17.95;
+  },
+
   getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
-    // Caderno tem preço fixo de €18.95 ✅ ATUALIZADO
-    return product?.basePrice || 18.95;
+    // Caderno tem preço fixo de €17.95 ✅ ATUALIZADO
+    return product?.basePrice || 17.95;
   },
 
   discountTiers: [

@@ -571,13 +571,7 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
               <span className="text-ghibli-earth">{formatDate(order.updated_at)}</span>
             </div>
             
-            {order.printify_status && (
-              <div className="flex items-center gap-2 text-xs">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full flex-shrink-0"></div>
-                <span className="text-ghibli-earth/60">Estado Printify:</span>
-                <span className="text-ghibli-earth">{order.printify_status}</span>
-              </div>
-            )}
+
           </div>
         </div>
 
@@ -670,12 +664,7 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
                 <p className="text-xs text-ghibli-earth/60">{formatDate(order.updated_at)}</p>
               </div>
               
-              {order.printify_status && (
-                <div className="bg-white/60 rounded-lg border border-ghibli-stone/10 p-3">
-                  <p className="text-sm font-medium text-ghibli-earth mb-1">Estado Printify</p>
-                  <p className="text-xs text-ghibli-earth/60">{order.printify_status}</p>
-                </div>
-              )}
+
             </div>
           </div>
         </div>

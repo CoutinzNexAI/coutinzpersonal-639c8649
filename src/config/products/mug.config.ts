@@ -9,10 +9,25 @@ import { Shield, Sparkles, Truck, Award } from 'lucide-react';
 export const mugConfig = {
   productCategory: 'mug',
   
-  // Função para calcular preço base baseado na variante
+  // ✅ NOVO: Função para obter preço original (para cálculos de entrega grátis)
+  getOriginalPrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => {
+    if (product?.id === 'heart_mug') {
+      return 26.95; // Preço original da Heart mug (SEM desconto)
+    }
+    
+    if (product?.id === 'ceramic_mug' && selectedPrintifyVariantId) {
+      return selectedPrintifyVariantId === 62327 ? 18.95 : 22.95;
+    }
+    
+    return product?.basePrice || 26.95;
+  },
+
+  // Função para calcular preço base baseado na variante (COM desconto especial aplicado)
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => {
     if (product?.id === 'heart_mug') {
-      return 26.95; // Heart mug ✅ ATUALIZADO
+      // ✅ NOVO: Aplicar desconto especial de 10% na caneca coração
+      const originalPrice = 26.95;
+      return originalPrice * 0.9; // 24.26 (10% off)
     }
     
     if (product?.id === 'ceramic_mug' && selectedPrintifyVariantId) {
@@ -23,7 +38,13 @@ export const mugConfig = {
     return product?.basePrice || 26.95; // Fallback atualizado
   },
 
-  // Regras de desconto para múltiplas canecas
+  // ✅ NOVO: Indicador de produto com desconto especial
+  hasSpecialDiscount: (product: PrintifyProductMapping) => {
+    return product?.id === 'heart_mug';
+  },
+
+  // ✅ ATUALIZADO: Regras de desconto para múltiplas canecas
+  // NOTA: Para caneca coração, estes descontos são ADICIONAIS ao desconto base de 10%
   discountTiers: [
     { min: 2, discount: 10, label: 'canecas', emoji: '💡' },
     { min: 3, discount: 15, label: 'canecas', emoji: '🔥' }

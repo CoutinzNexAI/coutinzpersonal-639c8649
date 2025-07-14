@@ -77,7 +77,7 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
     }
     
     if (!selectedImageUrl) {
-      return <span className="text-center">Escolha uma Arte Primeiro</span>;
+      return <span className="text-center">Escolha uma foto Primeiro</span>;
     }
     
     if (!selectedPrintifyVariantId) {

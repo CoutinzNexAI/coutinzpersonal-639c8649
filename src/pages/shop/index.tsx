@@ -25,6 +25,10 @@ interface IndividualProduct {
   image: string;
   href: string;
   badge?: string;
+  // ✅ NOVO: Sistema de descontos especiais
+  hasSpecialDiscount?: boolean;
+  discountPercent?: number;
+  originalPrice?: number;
 }
 
 // 6 Categorias - só com emojis, maiores e mais coloridas
@@ -79,6 +83,24 @@ const categories: Category[] = [
   }
 ];
 
+// ✅ NOVO: Função para obter preço com desconto especial
+const getProductPricing = (product: IndividualProduct) => {
+  if (product.hasSpecialDiscount && product.discountPercent && product.originalPrice) {
+    return {
+      originalPrice: product.originalPrice,
+      discountedPrice: product.price,
+      discountPercent: product.discountPercent,
+      hasDiscount: true
+    };
+  }
+  return {
+    originalPrice: product.price,
+    discountedPrice: product.price,
+    discountPercent: 0,
+    hasDiscount: false
+  };
+};
+
 // 10 Produtos individuais - nova ordem especificada
 const individualProducts: IndividualProduct[] = [
   // 1. Poster Vertical
@@ -93,10 +115,13 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'heart_mug',
     name: 'Caneca Coração',
-    price: 26.95, // ✅ ATUALIZADO
+    price: 24.26, // ✅ NOVO: Preço com desconto de 10% (26.95 * 0.9)
+    originalPrice: 26.95, // ✅ NOVO: Preço original
+    hasSpecialDiscount: true, // ✅ NOVO: Indica desconto especial
+    discountPercent: 10, // ✅ NOVO: 10% de desconto
     image: '/mockupproduto/canecacoracao.png',
     href: '/shop/mug/heart_mug',
-    badge: '❤️'
+    badge: '🔥 10% OFF'
   },
   // 3. Canvas (sem borda)
   {
@@ -136,7 +161,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'spiral_journal',
     name: 'Caderno',
-    price: 18.95, // ✅ ATUALIZADO
+    price: 17.95, // ✅ ATUALIZADO
     image: '/mockupproduto/caderno.png',
     href: '/shop/escritorio/spiral_journal'
   },
@@ -338,9 +363,27 @@ const ShopPage: React.FC = () => {
                       {/* Badge se existir */}
                       {product.badge && (
                         <div className="absolute top-3 right-3">
-                          <span className="bg-gradient-to-r from-ghibli-moss to-green-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg">
+                          <motion.span 
+                            className={`
+                              text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg
+                              ${product.id === 'heart_mug' ? 'bg-gradient-to-r from-red-500 via-pink-500 to-red-600' : 'bg-gradient-to-r from-ghibli-moss to-green-600'}
+                            `}
+                            animate={product.id === 'heart_mug' ? {
+                              scale: [1, 1.1, 1],
+                              boxShadow: [
+                                "0 4px 6px rgba(239, 68, 68, 0.1)",
+                                "0 8px 25px rgba(239, 68, 68, 0.3)",
+                                "0 4px 6px rgba(239, 68, 68, 0.1)"
+                              ]
+                            } : {}}
+                            transition={product.id === 'heart_mug' ? {
+                              duration: 1.5,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            } : {}}
+                          >
                             {product.badge}
-                          </span>
+                          </motion.span>
                         </div>
                       )}
 
@@ -355,11 +398,60 @@ const ShopPage: React.FC = () => {
                         {product.name}
                       </h3>
                       
-                      {/* Preço centrado e destacado */}
-                      <div className="flex items-center justify-center">
-                        <span className="text-2xl font-bold bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent">
-                          €{product.price.toFixed(2)}
-                        </span>
+                      {/* Preço centrado e destacado com suporte a desconto */}
+                      <div className="flex flex-col items-center justify-center">
+                        {(() => {
+                          const pricing = getProductPricing(product);
+                          if (pricing.hasDiscount) {
+                            return (
+                              <>
+                                {/* Preço original riscado */}
+                                <div className="text-sm text-gray-500 line-through mb-1">
+                                  €{pricing.originalPrice.toFixed(2)}
+                                </div>
+                                {/* Preço com desconto animado */}
+                                <motion.div 
+                                  className="text-2xl font-bold text-red-600 relative"
+                                  animate={{ 
+                                    scale: [1, 1.05, 1],
+                                  }}
+                                  transition={{ 
+                                    duration: 2, 
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                  }}
+                                >
+                                  €{pricing.discountedPrice.toFixed(2)}
+                                  {/* Sparkle effect */}
+                                  <motion.span
+                                    className="absolute -top-1 -right-2 text-yellow-400 text-sm"
+                                    animate={{ 
+                                      scale: [0, 1, 0],
+                                      rotate: [0, 180, 360]
+                                    }}
+                                    transition={{
+                                      duration: 1.5,
+                                      repeat: Infinity,
+                                      delay: 0.5
+                                    }}
+                                  >
+                                    ✨
+                                  </motion.span>
+                                </motion.div>
+                                {/* Valor poupado */}
+                                <div className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full mt-1">
+                                  Poupas €{(pricing.originalPrice - pricing.discountedPrice).toFixed(2)}!
+                                </div>
+                              </>
+                            );
+                          } else {
+                            return (
+                              <span className="text-2xl font-bold bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light bg-clip-text text-transparent">
+                                €{product.price.toFixed(2)}
+                              </span>
+                            );
+                          }
+                        })()}
                       </div>
                     </div>
                   </div>

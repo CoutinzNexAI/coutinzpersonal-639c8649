@@ -8,6 +8,12 @@ import { ImageAdjustments } from '@/types/product';
 export const posterConfig = {
   productCategory: 'poster',
 
+  // ✅ NOVO: Função para obter preço original (mesmo que base para poster - sem desconto especial)
+  getOriginalPrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
+    const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
+    return selectedVariant?.price ? selectedVariant.price / 100 : 20;
+  },
+
   // ✅ PREÇOS: baseado na variante selecionada
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
     const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);

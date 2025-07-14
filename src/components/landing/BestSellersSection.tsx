@@ -14,7 +14,29 @@ interface Product {
   imageBlank: string; // Imagem em branco
   href: string;
   badge?: string;
+  // ✅ NOVO: Sistema de descontos especiais
+  hasSpecialDiscount?: boolean;
+  discountPercent?: number;
+  originalPrice?: number;
 }
+
+// ✅ NOVO: Função para obter preço com desconto especial
+const getProductPricing = (product: Product) => {
+  if (product.hasSpecialDiscount && product.discountPercent && product.originalPrice) {
+    return {
+      originalPrice: product.originalPrice,
+      discountedPrice: product.price,
+      discountPercent: product.discountPercent,
+      hasDiscount: true
+    };
+  }
+  return {
+    originalPrice: product.price,
+    discountedPrice: product.price,
+    discountPercent: 0,
+    hasDiscount: false
+  };
+};
 
 const bestSellers: Product[] = [
   {
@@ -41,11 +63,14 @@ const bestSellers: Product[] = [
     id: 'heart_mug',
     name: 'Caneca Coração',
     category: 'Canecas',
-    price: 26.95, // ✅ ATUALIZADO
+    price: 24.26, // ✅ NOVO: Preço com desconto de 10% (26.95 * 0.9)
+    originalPrice: 26.95, // ✅ NOVO: Preço original
+    hasSpecialDiscount: true, // ✅ NOVO: Indica desconto especial
+    discountPercent: 10, // ✅ NOVO: 10% de desconto
     imagePersonalized: '/Bestseller/canecacoracaofoto.png',
     imageBlank: '/Bestseller/canecacoracao.png',
     href: '/shop/mug/heart_mug',
-    badge: '❤️'
+    badge: '🔥 10% OFF'
   },
   {
     id: 'custom_phone_case',
@@ -121,15 +146,30 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
             {/* Badge */}
             {product.badge && (
               <div className="absolute top-3 right-3 z-10">
-                <span className={`
-                  px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-lg
-                  ${product.id === 'custom_canvas' ? 'bg-gradient-to-r from-ghibli-moss to-green-600' : ''}
-                  ${product.id === 'heart_mug' ? 'bg-pink-500' : ''}
-                  ${product.id === 'custom_phone_case' ? 'bg-ghibli-poppy' : ''}
-                  ${product.id === 'poster_horizontal' ? 'bg-purple-600' : ''}
-                `}>
-                  {product.badge}
-                </span>
+                <motion.span 
+                  className={`
+                    px-2.5 py-1 rounded-full text-xs font-bold text-white shadow-lg
+                    ${product.id === 'custom_canvas' ? 'bg-gradient-to-r from-ghibli-moss to-green-600' : ''}
+                    ${product.id === 'heart_mug' ? 'bg-gradient-to-r from-red-500 via-pink-500 to-red-600' : ''}
+                    ${product.id === 'custom_phone_case' ? 'bg-ghibli-poppy' : ''}
+                    ${product.id === 'poster_horizontal' ? 'bg-purple-600' : ''}
+                  `}
+                  animate={product.id === 'heart_mug' ? {
+                    scale: [1, 1.1, 1],
+                    boxShadow: [
+                      "0 4px 6px rgba(239, 68, 68, 0.1)",
+                      "0 8px 25px rgba(239, 68, 68, 0.3)",
+                      "0 4px 6px rgba(239, 68, 68, 0.1)"
+                    ]
+                  } : {}}
+                  transition={product.id === 'heart_mug' ? {
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  } : {}}
+                >
+                                    {product.badge}
+                  </motion.span>
               </div>
             )}
 
@@ -147,11 +187,65 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
               {product.name}
             </h3>
             
-            {/* Price - Centralized and prominent */}
-            <div className="flex items-center justify-center">
-              <div className="text-xl lg:text-2xl font-bold text-ghibli-moss">
-                €{product.price.toFixed(2)}
-              </div>
+            {/* Price - Centralized and prominent with discount support */}
+            <div className="flex flex-col items-center justify-center">
+              {(() => {
+                const pricing = getProductPricing(product);
+                if (pricing.hasDiscount) {
+                  return (
+                    <>
+                      {/* Original price - crossed out */}
+                      <div className="text-sm text-gray-500 line-through mb-1">
+                        €{pricing.originalPrice.toFixed(2)}
+                      </div>
+                      {/* Discounted price with animation */}
+                      <motion.div 
+                        className="text-xl lg:text-2xl font-bold text-red-600 relative"
+                        animate={{ 
+                          scale: [1, 1.05, 1],
+                          textShadow: [
+                            "0 0 0px rgba(220, 38, 38, 0)",
+                            "0 0 8px rgba(220, 38, 38, 0.6)",
+                            "0 0 0px rgba(220, 38, 38, 0)"
+                          ]
+                        }}
+                        transition={{ 
+                          duration: 2, 
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        €{pricing.discountedPrice.toFixed(2)}
+                        {/* Sparkle effect */}
+                        <motion.span
+                          className="absolute -top-1 -right-2 text-yellow-400"
+                          animate={{ 
+                            scale: [0, 1, 0],
+                            rotate: [0, 180, 360]
+                          }}
+                          transition={{
+                            duration: 1.5,
+                            repeat: Infinity,
+                            delay: 0.5
+                          }}
+                        >
+                          ✨
+                        </motion.span>
+                      </motion.div>
+                      {/* Discount percentage */}
+                      <div className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full mt-1">
+                        Poupas €{(pricing.originalPrice - pricing.discountedPrice).toFixed(2)}!
+                      </div>
+                    </>
+                  );
+                } else {
+                  return (
+                    <div className="text-xl lg:text-2xl font-bold text-ghibli-moss">
+                      €{product.price.toFixed(2)}
+                    </div>
+                  );
+                }
+              })()}
             </div>
           </div>
         </div>

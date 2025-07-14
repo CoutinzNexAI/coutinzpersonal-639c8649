@@ -17,8 +17,8 @@ const PoliticaPrivacidadePage: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-ghibli-paper">
       <Head>
         <title>Política de Privacidade - Como Protegemos os Seus Dados | Pictuz</title>
-        <meta name="description" content="Política de Privacidade do Pictuz. Proteção de dados pessoais, imagens, pagamentos Stripe, fulfillment Printify e conformidade RGPD com total transparência." />
-        <meta name="keywords" content="política privacidade, proteção dados, RGPD, privacidade AI, produtos personalizados, Stripe, Printify Portugal" />
+        <meta name="description" content="Política de Privacidade do Pictuz. Proteção de dados pessoais, imagens, pagamentos Stripe, fulfillment especializado e conformidade RGPD com total transparência." />
+        <meta name="keywords" content="política privacidade, proteção dados, RGPD, privacidade AI, produtos personalizados, Stripe, Portugal" />
         
         {/* Open Graph */}
         <meta property="og:title" content="Política de Privacidade - Pictuz" />
@@ -74,7 +74,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
               <li><strong>Dados de Pagamento (Stripe):</strong> Processamos pagamentos através do Stripe. Não armazenamos detalhes completos do cartão - apenas identificadores de transação, metadados de pagamento e dados necessários para gestão de encomendas.</li>
               <li><strong>Informações de Encomenda:</strong> Produtos selecionados, personalizações aplicadas, preços, quantidades e referências de encomenda.</li>
-              <li><strong>Dados de Entrega (Printify):</strong> Para fulfillment de produtos físicos, partilhamos dados de entrega necessários (nome, morada, contacto) com o nosso parceiro Printify apenas para produção e expedição.</li>
+              <li><strong>Dados de Entrega:</strong> Para fulfillment de produtos físicos, partilhamos dados de entrega necessários (nome, morada, contacto) com a nossa gráfica parceira apenas para produção e expedição.</li>
               <li><strong>Histórico de Compras:</strong> Registo das suas encomendas para suporte e gestão de conta.</li>
             </ul>
 
@@ -97,7 +97,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
               </li>
               <li><strong>Google Analytics:</strong> Dados agregados sobre tráfego, páginas visitadas, tempo de permanência e origens de tráfego.</li>
               <li><strong>Vercel Analytics:</strong> Dados de performance da aplicação e velocidade de carregamento.</li>
-            </ul>
+                </ul>
 
             <h3 className="text-lg font-semibold text-ghibli-wood mb-3">1.6 Dados Técnicos</h3>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
@@ -115,7 +115,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
               <li><strong>Processamento de Transformações:</strong> Envio de imagens para OpenAI API para transformação AI e armazenamento dos resultados.</li>
               <li><strong>Gestão de Conta:</strong> Manutenção do perfil, histórico de transformações e autenticação.</li>
-              <li><strong>Fulfillment de Produtos:</strong> Processamento de encomendas, produção e entrega através do Printify.</li>
+              <li><strong>Fulfillment de Produtos:</strong> Processamento de encomendas, produção e entrega através da nossa gráfica parceira.</li>
               <li><strong>Processamento de Pagamentos:</strong> Gestão segura de transações através do Stripe.</li>
             </ul>
 
@@ -149,7 +149,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
             <h3 className="text-lg font-semibold text-ghibli-wood mb-3">3.1 Parceiros de Serviço Essenciais</h3>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth mb-4">
               <li><strong>OpenAI:</strong> Imagens para transformação AI (processamento temporário, não armazenamento).</li>
-              <li><strong>Printify:</strong> Dados de encomenda e entrega necessários para produção e expedição de produtos físicos.</li>
+              <li><strong>Gráfica Parceira:</strong> Dados de encomenda e entrega necessários para produção e expedição de produtos físicos.</li>
               <li><strong>Stripe:</strong> Dados de pagamento para processamento seguro de transações.</li>
               <li><strong>Supabase:</strong> Armazenamento seguro de dados de conta, imagens e metadados.</li>
             </ul>
@@ -159,7 +159,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
               <li><strong>PostHog:</strong> Dados comportamentais agregados e anonimizados para analytics avançados.</li>
               <li><strong>Google Analytics:</strong> Dados de tráfego agregados e anonimizados.</li>
               <li><strong>Vercel:</strong> Dados de performance da aplicação.</li>
-            </ul>
+              </ul>
 
             <h3 className="text-lg font-semibold text-ghibli-wood mb-3">3.3 Situações Legais</h3>
             <ul className="list-disc list-outside pl-6 space-y-2 text-ghibli-earth">
@@ -193,7 +193,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
               <li><strong>Dados de Encomenda:</strong> Mantidos por 7 anos para conformidade fiscal e garantias.</li>
               <li><strong>Analytics:</strong> Dados comportamentais mantidos por 2 anos para análise de tendências.</li>
               <li><strong>Logs de Sistema:</strong> Mantidos por 6 meses para resolução de problemas técnicos.</li>
-            </ul>
+              </ul>
           </section>
 
           <section className="mb-8">
@@ -250,7 +250,7 @@ const PoliticaPrivacidadePage: React.FC = () => {
               <li><strong>Dados Principais:</strong> Armazenados em datacenters europeus (Supabase) para máxima proteção RGPD.</li>
               <li><strong>Processamento AI:</strong> OpenAI (EUA) - dados enviados temporariamente apenas para processamento, não armazenamento.</li>
               <li><strong>Analytics:</strong> PostHog e Google Analytics com salvaguardas adequadas para transferências UE-EUA.</li>
-              <li><strong>Fulfillment:</strong> Printify processa dados de entrega conforme necessário para produção e expedição.</li>
+              <li><strong>Fulfillment:</strong> Nossa gráfica processa dados de entrega conforme necessário para produção e expedição.</li>
             </ul>
           </section>
 
