@@ -63,7 +63,7 @@ const nextConfig = {
               " https://vercel.live https://_next-live/feedback/feedback.js" + // Vercel Live feedback
               " https://www.googletagmanager.com https://*.google-analytics.com" + // Google Analytics e Tag Manager
               " https://js.stripe.com https://m.stripe.network" + // Stripe JS e Metering
-              " https://eu-assets.i.posthog.com https://*.posthog.com;" + // PostHog analytics
+              " https://eu-assets.i.posthog.com https://*.posthog.com https://connect.facebook.net;" + // PostHog analytics
               " https://connect.facebook.net;" + // Facebook Connect
               // Estilos permitidos:
               " style-src 'self' 'unsafe-inline'" + // 'self' e inline styles
@@ -76,10 +76,11 @@ const nextConfig = {
               // Conexões permitidas (API calls, WebSockets):
               " connect-src 'self'" + // 'self'
               " https://*.supabase.co" + // Supabase
+              " https://connect.facebook.net;" + // Facebook Connect
               " https://api.stripe.com https://m.stripe.network" + // Stripe API e Metering
               " https://vercel.live wss://vercel.live" + // Vercel Live websockets
               " https://region1.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com" + // Google Analytics
-              " https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com;" + // PostHog API endpoints
+              " https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com https://connect.facebook.net;" + // PostHog API endpoints
               // Iframes permitidos:
               " frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network https://vercel.live;" + // Stripe Elements/iframes + Vercel Live
               // Outras diretivas de segurança:
