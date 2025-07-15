@@ -41,7 +41,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({ item, onClick, priority = fal
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         role="button" // Melhoria de Acessibilidade
-        tabIndex={0}   // Melhoria de Acessibilidade
+        tabIndex={0}   // Melhoria de Acessibidade
         onKeyDown={handleCardKeyDown} // Melhoria de Acessibilidade
         aria-label={`Ver detalhes de ${cardTitle} no estilo ${cardStyle}`} // Melhoria de Acessibilidade
       >

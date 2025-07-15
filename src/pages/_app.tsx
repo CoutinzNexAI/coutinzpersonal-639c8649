@@ -1,17 +1,3 @@
-Com certeza. Analisei o seu ficheiro, fiz uma última limpeza e otimização para lhe entregar o código final, pronto para produção.
-
-A lógica é exatamente a mesma que discutimos e que implementámos juntos, mas está um pouco mais limpa e direta, removendo funções intermédias para maior clareza.
-
-Instruções
-Abra o seu ficheiro pages/_app.tsx.
-
-Apague todo o conteúdo atual.
-
-Copie e cole o código completo abaixo.
-
-Código Final e Definitivo para pages/_app.tsx
-TypeScript
-
 import '@/index.css';
 import type { AppProps } from 'next/app';
 import { Toaster as Sonner } from "@/components/ui/sonner";
