@@ -51,24 +51,6 @@ declare global {
 }
 
 function MyApp({ Component, pageProps }: AppProps) {
-  const router = useRouter();
-
-  // Track page views on route change
-  useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      pageView(url);
-    };
-
-    router.events.on('routeChangeComplete', handleRouteChange);
-    
-    // Initial page load
-    pageView(router.pathname);
-
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router.events, router.pathname]);
-
   return (
     <QueryClientProvider client={queryClient}>
       {/* Preconnect para performance */}
@@ -145,17 +127,19 @@ function MyApp({ Component, pageProps }: AppProps) {
 // Componente separado que tem acesso ao AuthProvider
 const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unknown>>; pageProps: Record<string, unknown> }> = ({ Component, pageProps }) => {
   const router = useRouter();
-  const { userInfo, isLoading: isAuthLoading } = useAuth();
+  const { userInfo } = useAuth();
 
-  // Track Meta Pixel page views based on consent
+  // Track page views on route change (both GA and Meta Pixel with consent)
   useEffect(() => {
     const handleRouteChange = (url: string) => {
+      pageView(url);
       conditionalFacebookTracking(url, userInfo);
     };
 
     router.events.on('routeChangeComplete', handleRouteChange);
     
-    // Initial page load with consent check
+    // Initial page load
+    pageView(router.pathname);
     conditionalFacebookTracking(router.pathname, userInfo);
 
     return () => {
