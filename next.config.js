@@ -11,13 +11,6 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
-      // Se o Stripe usar imagens de um domínio específico que não seja coberto por 'https:',
-      // poderíamos adicioná-lo aqui, mas para CSP, img-src é mais direto.
-      // Exemplo:
-      // {
-      //   protocol: 'https',
-      //   hostname: '*.stripe.com', // Se necessário para next/image
-      // },
     ],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -26,9 +19,21 @@ const nextConfig = {
     minimumCacheTTL: 60,
     unoptimized: false,
   },
-  compress: false, // Desabilita compressão para melhor qualidade
+  compress: false,
   poweredByHeader: false,
   async headers() {
+    const cspValue = `
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-insights.com https://www.googletagmanager.com https://*.google-analytics.com https://js.stripe.com https://m.stripe.network https://eu-assets.i.posthog.com https://*.posthog.com https://connect.facebook.net;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: https: blob: https://*.stripe.com;
+      connect-src 'self' https://*.supabase.co https://api.stripe.com https://m.stripe.network https://vercel.live wss://vercel.live https://region1.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com https://connect.facebook.net;
+      frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network https://vercel.live;
+      object-src 'none';
+      base-uri 'self';
+    `.replace(/\s{2,}/g, ' ').trim();
+
     return [
       {
         source: '/(.*)',
@@ -47,55 +52,24 @@ const nextConfig = {
           },
           {
             key: 'X-XSS-Protection',
-            value: '1; mode=block' // Header legado, mas não prejudica
+            value: '1; mode=block'
           },
           {
             key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains' // Garante HTTPS
+            value: 'max-age=31536000; includeSubDomains'
           },
           {
             key: 'Content-Security-Policy',
-            value: 
-              "default-src 'self';" + // Padrão: só permite da mesma origem
-              // Scripts permitidos:
-              " script-src 'self' 'unsafe-inline' 'unsafe-eval'" + // 'self' e inline/eval (tenta remover unsafe-* se possível no futuro)
-              " https://vercel.live https://_next-live/feedback/feedback.js" + // Vercel Live feedback
-              " https://www.googletagmanager.com https://*.google-analytics.com" + // Google Analytics e Tag Manager
-              " https://js.stripe.com https://m.stripe.network" + // Stripe JS e Metering
-              " https://eu-assets.i.posthog.com https://*.posthog.com https://connect.facebook.net;" + // PostHog analytics
-              " https://connect.facebook.net;" + // Facebook Connect
-              // Estilos permitidos:
-              " style-src 'self' 'unsafe-inline'" + // 'self' e inline styles
-              " https://fonts.googleapis.com;" + // Google Fonts
-              // Fontes permitidas:
-              " font-src 'self' https://fonts.gstatic.com;" + // 'self' e Google Fonts
-              // Imagens permitidas:
-              " img-src 'self' data: https: blob:" + // 'self', data URIs, qualquer HTTPS, blobs
-              " https://*.stripe.com;" + // Imagens do Stripe
-              // Conexões permitidas (API calls, WebSockets):
-              " connect-src 'self'" + // 'self'
-              " https://*.supabase.co" + // Supabase
-              " https://connect.facebook.net;" + // Facebook Connect
-              " https://api.stripe.com https://m.stripe.network" + // Stripe API e Metering
-              " https://vercel.live wss://vercel.live" + // Vercel Live websockets
-              " https://region1.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com" + // Google Analytics
-              " https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.posthog.com https://connect.facebook.net;" + // PostHog API endpoints
-              // Iframes permitidos:
-              " frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network https://vercel.live;" + // Stripe Elements/iframes + Vercel Live
-              // Outras diretivas de segurança:
-              " object-src 'none';" + // Não permite <object>, <embed>, <applet>
-              " base-uri 'self';"
-              // " form-action 'self';" // Opcional: restringe para onde os formulários podem submeter
-              // " frame-ancestors 'none';" // Similar ao X-Frame-Options: DENY
+            value: cspValue
           }
         ]
       },
       {
-        source: '/api/(.*)', // Para todas as tuas rotas de API
+        source: '/api/(.*)',
         headers: [
           {
             key: 'X-Robots-Tag',
-            value: 'noindex, nofollow' // Impede indexação das APIs
+            value: 'noindex, nofollow'
           }
         ]
       }
