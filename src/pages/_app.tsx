@@ -19,6 +19,7 @@ import { useEffect } from 'react';
 import PostHogProvider from '@/providers/PostHogProvider'; // <<< NOVO: Import PostHog Provider
 import { CartProvider } from '@/providers/CartProvider';
 import * as fpixel from '@/lib/fpixel';
+import { useAuth } from '@/hooks/useAuth';
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,14 @@ const pageView = (url: string) => {
     window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || 'G-10LV3QKS59', {
       page_path: url,
     });
+  }
+};
+
+// Meta Pixel conditional tracking based on user consent
+const conditionalFacebookTracking = (url: string, userInfo: { accepted_terms?: boolean } | null) => {
+  // Only track if user has accepted terms
+  if (userInfo?.accepted_terms === true) {
+    fpixel.pageview();
   }
 };
 
@@ -48,14 +57,12 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     const handleRouteChange = (url: string) => {
       pageView(url);
-      fpixel.pageview();
     };
 
     router.events.on('routeChangeComplete', handleRouteChange);
     
     // Initial page load
     pageView(router.pathname);
-    fpixel.pageview();
 
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange);
@@ -128,30 +135,56 @@ function MyApp({ Component, pageProps }: AppProps) {
       
       <TooltipProvider>
         <AuthProvider>
-          <CartProvider>
-          <PostHogProvider>
-            <TransformationsModalProvider>
-              <AccountSettingsModalProvider>
-                <OrdersModalProvider>
-                  
-                  <Component {...pageProps} />
-
-                  <Sonner richColors position="top-right" />
-
-                  <TransformationsModal />
-                  <AccountSettingsModal />
-                  <OrdersModal />
-                  <Analytics /> {/* Adiciona o componente Analytics aqui */}
-
-                </OrdersModalProvider>
-              </AccountSettingsModalProvider>
-            </TransformationsModalProvider>
-          </PostHogProvider>
-          </CartProvider>
+          <AppWithAuth Component={Component} pageProps={pageProps} />
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
 }
+
+// Componente separado que tem acesso ao AuthProvider
+const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unknown>>; pageProps: Record<string, unknown> }> = ({ Component, pageProps }) => {
+  const router = useRouter();
+  const { userInfo, isLoading: isAuthLoading } = useAuth();
+
+  // Track Meta Pixel page views based on consent
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      conditionalFacebookTracking(url, userInfo);
+    };
+
+    router.events.on('routeChangeComplete', handleRouteChange);
+    
+    // Initial page load with consent check
+    conditionalFacebookTracking(router.pathname, userInfo);
+
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router.events, router.pathname, userInfo]);
+
+  return (
+    <CartProvider>
+      <PostHogProvider>
+        <TransformationsModalProvider>
+          <AccountSettingsModalProvider>
+            <OrdersModalProvider>
+              
+              <Component {...pageProps} />
+
+              <Sonner richColors position="top-right" />
+
+              <TransformationsModal />
+              <AccountSettingsModal />
+              <OrdersModal />
+              <Analytics />
+
+            </OrdersModalProvider>
+          </AccountSettingsModalProvider>
+        </TransformationsModalProvider>
+      </PostHogProvider>
+    </CartProvider>
+  );
+};
 
 export default MyApp;

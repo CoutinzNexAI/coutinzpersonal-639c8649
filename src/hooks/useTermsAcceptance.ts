@@ -42,6 +42,12 @@ export const useTermsAcceptance = () => {
         timestamp: new Date().toISOString()
       });
 
+      // 🔥 META PIXEL: Trigger first PageView on consent
+      if (typeof window !== 'undefined') {
+        const fpixel = await import('@/lib/fpixel');
+        fpixel.pageview();
+      }
+
       toast.success('Termos aceites com sucesso!', {
         description: 'Bem-vindo ao PicTuz! 🎉'
       });
