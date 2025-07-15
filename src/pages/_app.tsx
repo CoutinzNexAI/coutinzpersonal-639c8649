@@ -3,7 +3,7 @@ import '@/index.css'; // Importa o index.css que está em src/
 // --- FIM DA CORREÇÃO ---
 import type { AppProps } from 'next/app';
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Analytics } from '@vercel/analytics/react'; // Importa o componente Analytics
+import { Analytics } from '@vercel/analytics/react';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/providers/AuthProvider';
@@ -16,14 +16,14 @@ import { OrdersModal } from '@/components/OrdersModal';
 import Script from 'next/script';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import PostHogProvider from '@/providers/PostHogProvider'; // <<< NOVO: Import PostHog Provider
+import PostHogProvider from '@/providers/PostHogProvider';
 import { CartProvider } from '@/providers/CartProvider';
 import * as fpixel from '@/lib/fpixel';
 import { useAuth } from '@/hooks/useAuth';
 
 const queryClient = new QueryClient();
 
-// Google Analytics page view tracking
+// Função para o tracking do Google Analytics
 const pageView = (url: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || 'G-10LV3QKS59', {
@@ -32,15 +32,15 @@ const pageView = (url: string) => {
   }
 };
 
-// Meta Pixel conditional tracking based on user consent
-const conditionalFacebookTracking = (url: string, userInfo: { accepted_terms?: boolean } | null) => {
-  // Only track if user has accepted terms
-  if (userInfo?.accepted_terms === true) {
+// Função para o tracking condicional do Meta Pixel
+const conditionalFacebookTracking = (userInfo: { terms_accepted?: boolean } | null) => {
+  // Só dispara o evento se o utilizador existir e tiver os termos aceites
+  if (userInfo?.terms_accepted === true) {
     fpixel.pageview();
   }
 };
 
-// Add gtag to Window interface
+// Declaração global para a função gtag do Google Analytics
 declare global {
   interface Window {
     gtag: (
@@ -50,34 +50,17 @@ declare global {
   }
 }
 
+// Componente principal da Aplicação - agora está "limpo", só prepara os providers
 function MyApp({ Component, pageProps }: AppProps) {
-  const router = useRouter();
-
-  // Track page views on route change
-  useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      pageView(url);
-    };
-
-    router.events.on('routeChangeComplete', handleRouteChange);
-    
-    // Initial page load
-    pageView(router.pathname);
-
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router.events, router.pathname]);
-
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Preconnect para performance */}
+      {/* Preconnects para performance */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://www.googletagmanager.com" />
       <link rel="preconnect" href="https://eu.i.posthog.com" />
       <link rel="preconnect" href="https://connect.facebook.net" />
       
-      {/* Google Analytics Scripts */}
+      {/* Scripts do Google Analytics */}
       <Script
         strategy="afterInteractive"
         src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || 'G-10LV3QKS59'}`}
@@ -92,11 +75,8 @@ function MyApp({ Component, pageProps }: AppProps) {
             gtag('js', new Date());
             gtag('config', '${process.env.NEXT_PUBLIC_GA_ID || 'G-10LV3QKS59'}', {
               page_path: window.location.pathname,
-              'consent': 'default',
-              'ad_storage': 'denied',
-              'analytics_storage': 'denied'
             });
-            // GDPR consent mode
+            // NOTA: A sua lógica de consentimento GDPR original foi mantida
             gtag('consent', 'default', {
               'ad_storage': 'denied',
               'analytics_storage': 'denied',
@@ -106,7 +86,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         }}
       />
       
-      {/* Meta Pixel Scripts */}
+      {/* Scripts do Meta Pixel (apenas inicialização) */}
       <Script
         id="facebook-pixel"
         strategy="afterInteractive"
@@ -142,26 +122,31 @@ function MyApp({ Component, pageProps }: AppProps) {
   );
 }
 
-// Componente separado que tem acesso ao AuthProvider
+// Componente "Cérebro" que tem acesso ao contexto de autenticação e gere o tracking
 const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unknown>>; pageProps: Record<string, unknown> }> = ({ Component, pageProps }) => {
   const router = useRouter();
   const { userInfo, isLoading: isAuthLoading } = useAuth();
 
-  // Track Meta Pixel page views based on consent
+  // useEffect que agora espera pela autenticação para fazer o tracking
   useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      conditionalFacebookTracking(url, userInfo);
-    };
+    // Só executa a lógica de tracking se a autenticação NÃO estiver a carregar
+    if (!isAuthLoading) {
+      const handleRouteChange = (url: string) => {
+        pageView(url); // Google Analytics
+        conditionalFacebookTracking(userInfo); // Meta Pixel
+      };
 
-    router.events.on('routeChangeComplete', handleRouteChange);
-    
-    // Initial page load with consent check
-    conditionalFacebookTracking(router.pathname, userInfo);
+      // Só adiciona os listeners e dispara o primeiro evento quando os dados são estáveis
+      router.events.on('routeChangeComplete', handleRouteChange);
+      pageView(router.pathname);
+      conditionalFacebookTracking(userInfo);
 
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router.events, router.pathname, userInfo]);
+      // Função de limpeza para remover o listener
+      return () => {
+        router.events.off('routeChangeComplete', handleRouteChange);
+      };
+    }
+  }, [router.events, router.pathname, userInfo, isAuthLoading]); // Dependências corretas
 
   return (
     <CartProvider>

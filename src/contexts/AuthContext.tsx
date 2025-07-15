@@ -9,6 +9,7 @@ export interface UserInfo {
   avatar_url?: string; // Opcional é mais seguro aqui
   accepted_terms?: boolean; // Estado de consentimento GDPR
   terms_accepted_at?: string; // Data de aceitação dos termos
+  terms_accepted?: boolean;
 }
 
 export interface AuthContextType {
