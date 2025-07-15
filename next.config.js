@@ -64,6 +64,7 @@ const nextConfig = {
               " https://www.googletagmanager.com https://*.google-analytics.com" + // Google Analytics e Tag Manager
               " https://js.stripe.com https://m.stripe.network" + // Stripe JS e Metering
               " https://eu-assets.i.posthog.com https://*.posthog.com;" + // PostHog analytics
+              " https://connect.facebook.net;" + // Facebook Connect
               // Estilos permitidos:
               " style-src 'self' 'unsafe-inline'" + // 'self' e inline styles
               " https://fonts.googleapis.com;" + // Google Fonts
