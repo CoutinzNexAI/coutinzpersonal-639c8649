@@ -18,6 +18,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import PostHogProvider from '@/providers/PostHogProvider'; // <<< NOVO: Import PostHog Provider
 import { CartProvider } from '@/providers/CartProvider';
+import * as fpixel from '@/lib/fpixel';
 
 const queryClient = new QueryClient();
 
@@ -47,12 +48,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     const handleRouteChange = (url: string) => {
       pageView(url);
+      fpixel.pageview();
     };
 
     router.events.on('routeChangeComplete', handleRouteChange);
     
     // Initial page load
     pageView(router.pathname);
+    fpixel.pageview();
 
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange);
@@ -65,6 +68,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://www.googletagmanager.com" />
       <link rel="preconnect" href="https://eu.i.posthog.com" />
+      <link rel="preconnect" href="https://connect.facebook.net" />
       
       {/* Google Analytics Scripts */}
       <Script
@@ -94,6 +98,35 @@ function MyApp({ Component, pageProps }: AppProps) {
           `,
         }}
       />
+      
+      {/* Meta Pixel Scripts */}
+      <Script
+        id="facebook-pixel"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '${fpixel.FB_PIXEL_ID}');
+            fbq('track', 'PageView');
+          `,
+        }}
+      />
+      <noscript>
+        <img 
+          height="1" 
+          width="1" 
+          style={{display: 'none'}}
+          src={`https://www.facebook.com/tr?id=${fpixel.FB_PIXEL_ID}&ev=PageView&noscript=1`}
+        />
+      </noscript>
+      
       <TooltipProvider>
         <AuthProvider>
           <CartProvider>
