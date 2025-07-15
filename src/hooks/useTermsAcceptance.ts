@@ -16,7 +16,7 @@ export const useTermsAcceptance = () => {
     setLoading(true);
     
     try {
-      // Update user's terms acceptance in database
+      // 1. Atualizar a base de dados na Supabase
       const { error } = await supabase
         .from('users')
         .update({
@@ -35,19 +35,37 @@ export const useTermsAcceptance = () => {
 
       console.log('[acceptTerms] ✅ Terms accepted successfully for user:', userInfo.id);
 
-      // Track successful acceptance
+      // 2. Tracking com PostHog (mantido)
       trackEvent('terms_accepted_successfully', {
         user_id: userInfo.id,
         user_email: userInfo.email,
         timestamp: new Date().toISOString()
       });
 
-      // 🔥 META PIXEL: Trigger first PageView on consent
+      // --- INÍCIO DA LÓGICA DE CONSENTIMENTO (A ALTERAÇÃO PRINCIPAL) ---
       if (typeof window !== 'undefined') {
-        const fpixel = await import('@/lib/fpixel');
-        fpixel.pageview();
-      }
+        // 3. ATUALIZAR O CONSENTIMENTO GLOBAL
+        // Para o Google Analytics
+        if (typeof window.gtag === 'function') {
+          window.gtag('consent', 'update', {
+            'ad_storage': 'granted',
+            'analytics_storage': 'granted'
+          });
+          console.log('[Consent] ✅ Google Analytics consent updated to GRANTED.');
+        }
 
+        // Para o Píxel da Meta
+        const fpixel = await import('@/lib/fpixel');
+        fpixel.grantConsent();
+        console.log('[Consent] ✅ Meta Pixel consent updated to GRANTED.');
+        
+        // 4. DISPARAR O PRIMEIRO PAGEVIEW APÓS O CONSENTIMENTO
+        fpixel.pageview();
+        console.log('[Consent] ✅ First Meta Pixel PageView fired.');
+      }
+      // --- FIM DA LÓGICA DE CONSENTIMENTO ---
+
+      // 5. Toast de sucesso
       toast.success('Termos aceites com sucesso!', {
         description: 'Bem-vindo ao PicTuz! 🎉'
       });
@@ -70,7 +88,6 @@ export const useTermsAcceptance = () => {
   const rejectTerms = useCallback(async () => {
     if (!userInfo?.id) return;
 
-    // Track rejection
     trackEvent('terms_rejected_logout', {
       user_id: userInfo.id,
       user_email: userInfo.email,
@@ -81,7 +98,6 @@ export const useTermsAcceptance = () => {
       description: 'A sair da sua conta...'
     });
 
-    // Sign out user
     await signOut();
   }, [userInfo, signOut]);
 
@@ -112,4 +128,4 @@ export const useTermsAcceptance = () => {
     checkTermsAcceptance,
     loading
   };
-}; 
+};

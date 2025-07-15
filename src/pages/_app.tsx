@@ -1,6 +1,4 @@
-// --- CORREÇÃO DO IMPORT CSS ---
-import '@/index.css'; // Importa o index.css que está em src/
-// --- FIM DA CORREÇÃO ---
+import '@/index.css';
 import type { AppProps } from 'next/app';
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Analytics } from '@vercel/analytics/react';
@@ -50,7 +48,7 @@ declare global {
   }
 }
 
-// Componente principal da Aplicação - agora está "limpo", só prepara os providers
+// Componente principal da Aplicação - "limpo", apenas prepara os providers e scripts
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider client={queryClient}>
@@ -60,7 +58,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <link rel="preconnect" href="https://eu.i.posthog.com" />
       <link rel="preconnect" href="https://connect.facebook.net" />
       
-      {/* Scripts do Google Analytics */}
+      {/* Scripts do Google Analytics com modo de consentimento por defeito */}
       <Script
         strategy="afterInteractive"
         src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || 'G-10LV3QKS59'}`}
@@ -76,7 +74,6 @@ function MyApp({ Component, pageProps }: AppProps) {
             gtag('config', '${process.env.NEXT_PUBLIC_GA_ID || 'G-10LV3QKS59'}', {
               page_path: window.location.pathname,
             });
-            // NOTA: A sua lógica de consentimento GDPR original foi mantida
             gtag('consent', 'default', {
               'ad_storage': 'denied',
               'analytics_storage': 'denied',
@@ -86,7 +83,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         }}
       />
       
-      {/* Scripts do Meta Pixel (apenas inicialização) */}
+      {/* Scripts do Meta Pixel - inicializa em modo "pausado" */}
       <Script
         id="facebook-pixel"
         strategy="afterInteractive"
@@ -100,6 +97,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('consent', 'revoke');
             fbq('init', '${fpixel.FB_PIXEL_ID}');
           `,
         }}
@@ -127,26 +125,29 @@ const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unkn
   const router = useRouter();
   const { userInfo, isLoading: isAuthLoading } = useAuth();
 
-  // useEffect que agora espera pela autenticação para fazer o tracking
+  // useEffect que espera pela autenticação para fazer o tracking
   useEffect(() => {
-    // Só executa a lógica de tracking se a autenticação NÃO estiver a carregar
+    // Só executa a lógica se a autenticação NÃO estiver a carregar
     if (!isAuthLoading) {
       const handleRouteChange = (url: string) => {
-        pageView(url); // Google Analytics
-        conditionalFacebookTracking(userInfo); // Meta Pixel
+        pageView(url);
+        conditionalFacebookTracking(userInfo);
       };
 
-      // Só adiciona os listeners e dispara o primeiro evento quando os dados são estáveis
-      router.events.on('routeChangeComplete', handleRouteChange);
-      pageView(router.pathname);
-      conditionalFacebookTracking(userInfo);
+      // Para utilizadores que já deram consentimento, ativa o Píxel e regista o PageView
+      if (userInfo?.terms_accepted === true) {
+        fpixel.grantConsent();
+        pageView(router.pathname);
+        conditionalFacebookTracking(userInfo);
+        router.events.on('routeChangeComplete', handleRouteChange);
+      }
 
       // Função de limpeza para remover o listener
       return () => {
         router.events.off('routeChangeComplete', handleRouteChange);
       };
     }
-  }, [router.events, router.pathname, userInfo, isAuthLoading]); // Dependências corretas
+  }, [router.events, router.pathname, userInfo, isAuthLoading]);
 
   return (
     <CartProvider>
@@ -154,16 +155,12 @@ const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unkn
         <TransformationsModalProvider>
           <AccountSettingsModalProvider>
             <OrdersModalProvider>
-              
               <Component {...pageProps} />
-
               <Sonner richColors position="top-right" />
-
               <TransformationsModal />
               <AccountSettingsModal />
               <OrdersModal />
               <Analytics />
-
             </OrdersModalProvider>
           </AccountSettingsModalProvider>
         </TransformationsModalProvider>

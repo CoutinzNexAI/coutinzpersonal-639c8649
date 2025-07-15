@@ -1,4 +1,3 @@
-// src/lib/fpixel.ts
 export const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
 
 declare global {
@@ -7,16 +6,26 @@ declare global {
   }
 }
 
-// Função para disparar o evento PageView
+export const grantConsent = (): void => {
+  if (typeof window.fbq === 'function') {
+    window.fbq('consent', 'grant');
+  }
+};
+
+export const revokeConsent = (): void => {
+  if (typeof window.fbq === 'function') {
+    window.fbq('consent', 'revoke');
+  }
+};
+
 export const pageview = (): void => {
   if (typeof window.fbq === 'function') {
     window.fbq('track', 'PageView');
   }
 };
 
-// Função genérica para disparar eventos personalizados (ex: AddToCart, Purchase)
 export const event = (name: string, options: object = {}): void => {
   if (typeof window.fbq === 'function') {
     window.fbq('track', name, options);
   }
-}; 
+};
