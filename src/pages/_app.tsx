@@ -1,3 +1,17 @@
+Com certeza. Analisei o seu ficheiro, fiz uma última limpeza e otimização para lhe entregar o código final, pronto para produção.
+
+A lógica é exatamente a mesma que discutimos e que implementámos juntos, mas está um pouco mais limpa e direta, removendo funções intermédias para maior clareza.
+
+Instruções
+Abra o seu ficheiro pages/_app.tsx.
+
+Apague todo o conteúdo atual.
+
+Copie e cole o código completo abaixo.
+
+Código Final e Definitivo para pages/_app.tsx
+TypeScript
+
 import '@/index.css';
 import type { AppProps } from 'next/app';
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -30,14 +44,6 @@ const pageView = (url: string) => {
   }
 };
 
-// Função para o tracking condicional do Meta Pixel
-const conditionalFacebookTracking = (userInfo: { terms_accepted?: boolean } | null) => {
-  // Só dispara o evento se o utilizador existir e tiver os termos aceites
-  if (userInfo?.terms_accepted === true) {
-    fpixel.pageview();
-  }
-};
-
 // Declaração global para a função gtag do Google Analytics
 declare global {
   interface Window {
@@ -48,7 +54,7 @@ declare global {
   }
 }
 
-// Componente principal da Aplicação - "limpo", apenas prepara os providers e scripts
+// Componente principal da Aplicação - Apenas prepara os providers e os scripts
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider client={queryClient}>
@@ -123,39 +129,41 @@ function MyApp({ Component, pageProps }: AppProps) {
 // Componente "Cérebro" que tem acesso ao contexto de autenticação e gere o tracking
 const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unknown>>; pageProps: Record<string, unknown> }> = ({ Component, pageProps }) => {
   const router = useRouter();
-  const { userInfo, isLoading: isAuthLoading } = useAuth();
+  // Obtém o estado de autenticação, incluindo o estado de carregamento e de sincronização
+  const { userInfo, isLoading: isAuthLoading, isSyncing } = useAuth();
 
-  // useEffect que espera pela autenticação para fazer o tracking
   useEffect(() => {
-    console.log(`[useEffect] A executar. isAuthLoading: ${isAuthLoading}`);
-
-    // Só executa a lógica se a autenticação NÃO estiver a carregar
-    if (!isAuthLoading) {
-      console.log('[useEffect] Autenticação concluída. UserInfo recebido:', userInfo);
-
+    // A CONDIÇÃO FINAL: Só executa a lógica de tracking se a autenticação E a sincronização com a BD tiverem terminado.
+    if (!isAuthLoading && !isSyncing) {
       const handleRouteChange = (url: string) => {
+        // Track Google Analytics sempre
         pageView(url);
-        conditionalFacebookTracking(userInfo);
+        
+        // Track Meta Pixel apenas se houver consentimento
+        if (userInfo?.terms_accepted === true) {
+          fpixel.pageview();
+        }
       };
 
-      // Para utilizadores que já deram consentimento, ativa o Píxel e regista o PageView
+      // Lógica para o carregamento inicial da página para utilizadores que já deram consentimento
       if (userInfo?.terms_accepted === true) {
-        console.log('[useEffect] CONDIÇÃO VERDADEIRA: Utilizador já deu consentimento.');
-
+        // 1. Dar consentimento ao Píxel para a sessão atual
         fpixel.grantConsent();
+        
+        // 2. Disparar o primeiro PageView para GA e Meta
         pageView(router.pathname);
-        conditionalFacebookTracking(userInfo);
+        fpixel.pageview();
+        
+        // 3. Adicionar o listener para as próximas navegações
         router.events.on('routeChangeComplete', handleRouteChange);
       }
-
-      // Função de limpeza para remover o listener
+      
+      // Função de limpeza para remover o listener e evitar memory leaks
       return () => {
-        console.log('[useEffect] Função de limpeza executada. Removendo listener de routeChangeComplete.');
-
         router.events.off('routeChangeComplete', handleRouteChange);
       };
     }
-  }, [router.events, router.pathname, userInfo, isAuthLoading]);
+  }, [router.events, router.pathname, userInfo, isAuthLoading, isSyncing]); // Dependências finais e corretas
 
   return (
     <CartProvider>
