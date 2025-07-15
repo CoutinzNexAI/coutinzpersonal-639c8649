@@ -127,8 +127,12 @@ const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unkn
 
   // useEffect que espera pela autenticação para fazer o tracking
   useEffect(() => {
+    console.log(`[useEffect] A executar. isAuthLoading: ${isAuthLoading}`);
+
     // Só executa a lógica se a autenticação NÃO estiver a carregar
     if (!isAuthLoading) {
+      console.log('[useEffect] Autenticação concluída. UserInfo recebido:', userInfo);
+
       const handleRouteChange = (url: string) => {
         pageView(url);
         conditionalFacebookTracking(userInfo);
@@ -136,6 +140,8 @@ const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unkn
 
       // Para utilizadores que já deram consentimento, ativa o Píxel e regista o PageView
       if (userInfo?.terms_accepted === true) {
+        console.log('[useEffect] CONDIÇÃO VERDADEIRA: Utilizador já deu consentimento.');
+
         fpixel.grantConsent();
         pageView(router.pathname);
         conditionalFacebookTracking(userInfo);
@@ -144,6 +150,8 @@ const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unkn
 
       // Função de limpeza para remover o listener
       return () => {
+        console.log('[useEffect] Função de limpeza executada. Removendo listener de routeChangeComplete.');
+
         router.events.off('routeChangeComplete', handleRouteChange);
       };
     }

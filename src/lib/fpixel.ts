@@ -7,6 +7,7 @@ declare global {
 }
 
 export const grantConsent = (): void => {
+  console.log('%c[FBQ] ==> Enviando comando: consent, grant', 'color: green; font-weight: bold;');
   if (typeof window.fbq === 'function') {
     window.fbq('consent', 'grant');
   }
@@ -14,18 +15,21 @@ export const grantConsent = (): void => {
 
 export const revokeConsent = (): void => {
   if (typeof window.fbq === 'function') {
+    console.log('%c[FBQ] ==> Enviando comando: consent, revoke', 'color: red; font-weight: bold;');
     window.fbq('consent', 'revoke');
   }
 };
 
 export const pageview = (): void => {
   if (typeof window.fbq === 'function') {
+    console.log('%c[FBQ] ==> Enviando comando: track, PageView', 'color: blue; font-weight: bold;');
     window.fbq('track', 'PageView');
   }
 };
 
 export const event = (name: string, options: object = {}): void => {
   if (typeof window.fbq === 'function') {
+    console.log('%c[FBQ] ==> Enviando comando: track, PageView', 'color: blue; font-weight: bold;');
     window.fbq('track', name, options);
   }
 };
