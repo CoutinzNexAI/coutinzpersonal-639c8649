@@ -91,6 +91,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('consent', 'revoke');
             fbq('init', '${fpixel.FB_PIXEL_ID}');
+            fbq('track', 'PageView');
           `,
         }}
       />
