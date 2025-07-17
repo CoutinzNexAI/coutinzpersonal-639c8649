@@ -17,7 +17,6 @@ import { useEffect } from 'react';
 import PostHogProvider from '@/providers/PostHogProvider';
 import { CartProvider } from '@/providers/CartProvider';
 import * as fpixel from '@/lib/fpixel';
-// A dependência 'useAuth' já não é necessária aqui para o tracking
 
 const queryClient = new QueryClient();
 
@@ -30,7 +29,7 @@ const pageView = (url: string) => {
   }
 };
 
-// Declaração global para a função gtag do Google Analytics
+// Declaração global para a função gtag
 declare global {
   interface Window {
     gtag: (
@@ -40,7 +39,7 @@ declare global {
   }
 }
 
-// Componente principal da Aplicação - Apenas prepara os providers e os scripts
+// Componente principal da Aplicação
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider client={queryClient}>
@@ -50,7 +49,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <link rel="preconnect" href="https://eu.i.posthog.com" />
       <link rel="preconnect" href="https://connect.facebook.net" />
       
-      {/* Scripts do Google Analytics com modo de consentimento por defeito */}
+      {/* Scripts do Google Analytics (sem alterações) */}
       <Script
         strategy="afterInteractive"
         src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || 'G-10LV3QKS59'}`}
@@ -75,7 +74,20 @@ function MyApp({ Component, pageProps }: AppProps) {
         }}
       />
       
-      {/* Scripts do Meta Pixel - inicializa em modo "pausado" */}
+      {/* --- INÍCIO DAS ALTERAÇÕES FINAIS --- */}
+      
+      {/* PASSO 1: Script de pré-inicialização do consentimento do Píxel */}
+      <Script id="facebook-consent-init" strategy="beforeInteractive">
+        {`
+          if (typeof window !== 'undefined' && localStorage.getItem('cookie_consent') === 'granted') {
+            window.fbq=window.fbq||function(){(fbq.q=fbq.q||[]).push(arguments)};
+            window.fbq('consent', 'grant');
+            console.log('[Consent Init] Consentimento do Píxel pré-definido para GRANTED.');
+          }
+        `}
+      </Script>
+
+      {/* PASSO 2: Scripts do Meta Pixel (agora sem o 'revoke') */}
       <Script
         id="facebook-pixel"
         strategy="afterInteractive"
@@ -89,11 +101,13 @@ function MyApp({ Component, pageProps }: AppProps) {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('consent', 'revoke');
             fbq('init', '${fpixel.FB_PIXEL_ID}');
           `,
         }}
       />
+      
+      {/* --- FIM DAS ALTERAÇÕES FINAIS --- */}
+      
       <noscript>
         <img 
           height="1" 
@@ -112,37 +126,29 @@ function MyApp({ Component, pageProps }: AppProps) {
   );
 }
 
-// Componente "Cérebro" que gere o tracking com base no localStorage
+// Componente "Cérebro" que gere o tracking
 const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unknown>>; pageProps: Record<string, unknown> }> = ({ Component, pageProps }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Verificação síncrona e imediata do localStorage
     const userConsent = typeof window !== 'undefined' ? localStorage.getItem('cookie_consent') : null;
 
-    // A lógica de tracking só funciona se o "carimbo" de consentimento existir
     if (userConsent === 'granted') {
-      // Garante que o Píxel está ativo para esta sessão
-      fpixel.grantConsent();
-      
       const handleRouteChange = (url: string) => {
-        pageView(url); // Google Analytics
-        fpixel.pageview(); // Meta Pixel
+        pageView(url);
+        fpixel.pageview();
       };
 
-      // Dispara o primeiro PageView da sessão para ambas as plataformas
+      // Dispara o primeiro PageView e adiciona o listener para navegações
       pageView(router.pathname);
       fpixel.pageview();
-      
-      // Adiciona o listener para as navegações seguintes
       router.events.on('routeChangeComplete', handleRouteChange);
 
-      // Função de limpeza para remover o listener
       return () => {
         router.events.off('routeChangeComplete', handleRouteChange);
       };
     }
-  }, [router.events, router.pathname]); // Depende apenas do router, pois a verificação é síncrona
+  }, [router.events, router.pathname]);
 
   return (
     <CartProvider>
