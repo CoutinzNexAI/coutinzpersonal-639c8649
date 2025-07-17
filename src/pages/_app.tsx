@@ -17,7 +17,7 @@ import { useEffect } from 'react';
 import PostHogProvider from '@/providers/PostHogProvider';
 import { CartProvider } from '@/providers/CartProvider';
 import * as fpixel from '@/lib/fpixel';
-import { useAuth } from '@/hooks/useAuth';
+// A dependência 'useAuth' já não é necessária aqui para o tracking
 
 const queryClient = new QueryClient();
 
@@ -91,7 +91,6 @@ function MyApp({ Component, pageProps }: AppProps) {
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('consent', 'revoke');
             fbq('init', '${fpixel.FB_PIXEL_ID}');
-            fbq('track', 'PageView');
           `,
         }}
       />
@@ -113,44 +112,37 @@ function MyApp({ Component, pageProps }: AppProps) {
   );
 }
 
-// Componente "Cérebro" que tem acesso ao contexto de autenticação e gere o tracking
+// Componente "Cérebro" que gere o tracking com base no localStorage
 const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unknown>>; pageProps: Record<string, unknown> }> = ({ Component, pageProps }) => {
   const router = useRouter();
-  // Obtém o estado de autenticação, incluindo o estado de carregamento e de sincronização
-  const { userInfo, isLoading: isAuthLoading, isSyncing } = useAuth();
 
   useEffect(() => {
-    // A CONDIÇÃO FINAL: Só executa a lógica de tracking se a autenticação E a sincronização com a BD tiverem terminado.
-    if (!isAuthLoading && !isSyncing) {
+    // Verificação síncrona e imediata do localStorage
+    const userConsent = typeof window !== 'undefined' ? localStorage.getItem('cookie_consent') : null;
+
+    // A lógica de tracking só funciona se o "carimbo" de consentimento existir
+    if (userConsent === 'granted') {
+      // Garante que o Píxel está ativo para esta sessão
+      fpixel.grantConsent();
+      
       const handleRouteChange = (url: string) => {
-        // Track Google Analytics sempre
-        pageView(url);
-        
-        // Track Meta Pixel apenas se houver consentimento
-        if (userInfo?.terms_accepted === true) {
-          fpixel.pageview();
-        }
+        pageView(url); // Google Analytics
+        fpixel.pageview(); // Meta Pixel
       };
 
-      // Lógica para o carregamento inicial da página para utilizadores que já deram consentimento
-      if (userInfo?.terms_accepted === true) {
-        // 1. Dar consentimento ao Píxel para a sessão atual
-        fpixel.grantConsent();
-        
-        // 2. Disparar o primeiro PageView para GA e Meta
-        pageView(router.pathname);
-        fpixel.pageview();
-        
-        // 3. Adicionar o listener para as próximas navegações
-        router.events.on('routeChangeComplete', handleRouteChange);
-      }
+      // Dispara o primeiro PageView da sessão para ambas as plataformas
+      pageView(router.pathname);
+      fpixel.pageview();
       
-      // Função de limpeza para remover o listener e evitar memory leaks
+      // Adiciona o listener para as navegações seguintes
+      router.events.on('routeChangeComplete', handleRouteChange);
+
+      // Função de limpeza para remover o listener
       return () => {
         router.events.off('routeChangeComplete', handleRouteChange);
       };
     }
-  }, [router.events, router.pathname, userInfo, isAuthLoading, isSyncing]); // Dependências finais e corretas
+  }, [router.events, router.pathname]); // Depende apenas do router, pois a verificação é síncrona
 
   return (
     <CartProvider>

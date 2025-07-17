@@ -42,9 +42,13 @@ export const useTermsAcceptance = () => {
         timestamp: new Date().toISOString()
       });
 
-      // --- INÍCIO DA LÓGICA DE CONSENTIMENTO (A ALTERAÇÃO PRINCIPAL) ---
+      // --- INÍCIO DA LÓGICA DE CONSENTIMENTO FINAL ---
       if (typeof window !== 'undefined') {
-        // 3. ATUALIZAR O CONSENTIMENTO GLOBAL
+        // 3. GUARDAR CONSENTIMENTO NO NAVEGADOR (O "CARIMBO NA MÃO")
+        localStorage.setItem('cookie_consent', 'granted');
+        console.log('[Consent] ✅ Estado de consentimento guardado no localStorage.');
+
+        // 4. ATUALIZAR O CONSENTIMENTO GLOBAL
         // Para o Google Analytics
         if (typeof window.gtag === 'function') {
           window.gtag('consent', 'update', {
@@ -59,13 +63,13 @@ export const useTermsAcceptance = () => {
         fpixel.grantConsent();
         console.log('[Consent] ✅ Meta Pixel consent updated to GRANTED.');
         
-        // 4. DISPARAR O PRIMEIRO PAGEVIEW APÓS O CONSENTIMENTO
+        // 5. DISPARAR O PRIMEIRO PAGEVIEW APÓS O CONSENTIMENTO
         fpixel.pageview();
         console.log('[Consent] ✅ First Meta Pixel PageView fired.');
       }
-      // --- FIM DA LÓGICA DE CONSENTIMENTO ---
+      // --- FIM DA LÓGICA DE CONSENTIMENTO FINAL ---
 
-      // 5. Toast de sucesso
+      // 6. Toast de sucesso
       toast.success('Termos aceites com sucesso!', {
         description: 'Bem-vindo ao PicTuz! 🎉'
       });
@@ -78,7 +82,6 @@ export const useTermsAcceptance = () => {
         user_id: userInfo.id,
         error_message: error instanceof Error ? error.message : 'Unknown error'
       });
-
       throw error;
     } finally {
       setLoading(false);

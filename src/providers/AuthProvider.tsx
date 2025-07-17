@@ -290,6 +290,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
       try {
         localStorage.removeItem('pictuz_cart');
+        localStorage.removeItem('cookie_consent');
         
         const keysToRemove = [
           'welcome_shown_',
