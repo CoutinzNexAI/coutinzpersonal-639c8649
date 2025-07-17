@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { CartService } from '@/lib/cart/cartService';
 import { useAuth } from '@/hooks/useAuth';
 import { trackPurchaseCompleted } from '@/lib/posthog';
+import * as fpixel from '@/lib/fpixel';
 
 interface OrderResult {
   success: boolean;
@@ -77,6 +78,17 @@ const CheckoutSuccessPage: React.FC = () => {
               order_processing_time: 300, // Approximate processing time
               transformation_to_purchase_time: 600 // Approximate
             });
+          }
+          
+          if (typeof window !== 'undefined' && localStorage.getItem('cookie_consent') === 'granted') {
+            fpixel.event('Purchase', {
+              value: result.total || 0,
+              currency: 'EUR',
+              content_ids: [result.orderId], // Usar um ID da encomenda
+              content_type: 'product', // Ou 'product_group' se tiver múltiplos itens
+              order_id: result.orderReference // Parâmetro adicional útil
+            });
+            console.log('[Meta Pixel] ✅ Evento "Purchase" enviado:', result);
           }
           
           CartService.clearCart();

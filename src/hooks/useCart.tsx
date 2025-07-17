@@ -8,6 +8,8 @@ import {
   trackCartView,
   trackCartAbandonment 
 } from '@/lib/posthog';
+import * as fpixel from '@/lib/fpixel';
+
 
 export const useCart = () => {
   const { userInfo } = useAuth();
@@ -99,6 +101,17 @@ export const useCart = () => {
           cart_total_value: newCartSummary.subtotal,
           customizations: item.customizations || {}
         });
+        if (typeof window !== 'undefined' && localStorage.getItem('cookie_consent') === 'granted') {
+          fpixel.event('AddToCart', {
+            content_name: item.productName,
+            content_ids: [item.productId], // ID do produto
+            content_type: 'product',
+            value: item.price * item.quantity,
+            currency: 'EUR',
+            num_items: item.quantity
+          });
+          console.log('[Meta Pixel] ✅ Evento "AddToCart" enviado:', item);
+        }
       }
       
       return true;
