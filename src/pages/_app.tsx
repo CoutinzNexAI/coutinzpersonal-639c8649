@@ -74,20 +74,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         }}
       />
       
-      {/* --- INÍCIO DAS ALTERAÇÕES FINAIS --- */}
-      
-      {/* PASSO 1: Script de pré-inicialização do consentimento do Píxel */}
-      <Script id="facebook-consent-init" strategy="beforeInteractive">
-        {`
-          if (typeof window !== 'undefined' && localStorage.getItem('cookie_consent') === 'granted') {
-            window.fbq=window.fbq||function(){(fbq.q=fbq.q||[]).push(arguments)};
-            window.fbq('consent', 'grant');
-            console.log('[Consent Init] Consentimento do Píxel pré-definido para GRANTED.');
-          }
-        `}
-      </Script>
-
-      {/* PASSO 2: Scripts do Meta Pixel (agora sem o 'revoke') */}
+      {/* SCRIPT FINAL E UNIFICADO DO META PIXEL */}
       <Script
         id="facebook-pixel"
         strategy="afterInteractive"
@@ -101,12 +88,17 @@ function MyApp({ Component, pageProps }: AppProps) {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
+            
+            if (localStorage.getItem('cookie_consent') === 'granted') {
+              fbq('consent', 'grant');
+            } else {
+              fbq('consent', 'revoke');
+            }
+            
             fbq('init', '${fpixel.FB_PIXEL_ID}');
           `,
         }}
       />
-      
-      {/* --- FIM DAS ALTERAÇÕES FINAIS --- */}
       
       <noscript>
         <img 
@@ -139,9 +131,9 @@ const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unkn
         fpixel.pageview();
       };
 
-      // Dispara o primeiro PageView e adiciona o listener para navegações
-      pageView(router.pathname);
-      fpixel.pageview();
+      // Dispara o primeiro PageView e adiciona o listener
+      fpixel.pageview(); // Alterado para chamar apenas fpixel
+      pageView(router.pathname); // Mantém o GA
       router.events.on('routeChangeComplete', handleRouteChange);
 
       return () => {
