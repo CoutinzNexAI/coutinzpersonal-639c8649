@@ -74,6 +74,8 @@ export const useTermsAcceptance = () => {
         description: 'Bem-vindo ao PicTuz! 🎉'
       });
 
+      window.location.reload(); // Força um refresh para sincronizar todo o estado da app
+
       return true;
 
     } catch (error) {
