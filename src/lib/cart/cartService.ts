@@ -6,6 +6,7 @@ import { notebookConfig } from '@/config/products/notebook.config';
 import { phoneCaseConfig } from '@/config/products/phoneCase.config';
 import { bagConfig } from '@/config/products/bag.config';
 import { mousepadConfig } from '@/config/products/mousepad.config';
+import * as fpixel from '@/lib/fpixel'; 
 
 const CART_STORAGE_KEY = 'pictuz_cart';
 // ✅ REMOVIDO: const TAX_RATE = 0.23; // IVA agora incluído nos preços
@@ -36,7 +37,7 @@ export class CartService {
     
     // Usar getOriginalPrice se disponível, senão usar preço do item
     if (config && config.getOriginalPrice) {
-      return config.getOriginalPrice(null, null);
+      return config.getOriginalPrice(item.customizations.variantId, item.quantity);
     }
     
     return item.price;
@@ -93,6 +94,8 @@ export class CartService {
                item.customizations.variantId === newItem.customizations.variantId &&
                item.customizations.position === newItem.customizations.position
     );
+
+    
 
     if (existingItem) {
       // Update quantity if item exists
