@@ -593,7 +593,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Não é crítico, mas deve ser registado
       }
 
-      // 10. RESPOSTA DE SUCESSO COMPLETO
+      // 10. RESPOSTA DE SUCESSO COMPLETO COM ITEMS DETALHADOS PARA FACEBOOK PIXEL
       return res.status(200).json({
         success: true,
         message: "Pedido processado com sucesso e enviado para a Printify!",
@@ -609,6 +609,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         subtotal: savedOrder.subtotal_amount || 0, // ✅ ADICIONAR SUBTOTAL
         shipping: savedOrder.shipping_amount || 0, // ✅ ADICIONAR SHIPPING
         tax: savedOrder.tax_amount || 0, // ✅ ADICIONAR TAX
+        // 🚀 NOVO: Items detalhados para Facebook Pixel
+        items: cartItems.map(item => ({
+          productId: item.productId,
+          productName: item.productName,
+          productCategory: item.productCategory,
+          price: item.price,
+          quantity: item.quantity,
+          total: item.price * item.quantity
+        }))
       });
 
     } catch (printifyError: unknown) {
@@ -642,6 +651,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         subtotal: savedOrder.subtotal_amount || 0,
         shipping: savedOrder.shipping_amount || 0,
         tax: savedOrder.tax_amount || 0,
+        // 🚀 INCLUIR ITEMS MESMO EM ERRO PARA FACEBOOK PIXEL
+        items: cartItems.map(item => ({
+          productId: item.productId,
+          productName: item.productName,
+          productCategory: item.productCategory,
+          price: item.price,
+          quantity: item.quantity,
+          total: item.price * item.quantity
+        }))
       });
     }
 

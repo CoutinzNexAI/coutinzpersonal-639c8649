@@ -132,8 +132,8 @@ const AppWithAuth: React.FC<{ Component: React.ComponentType<Record<string, unkn
       };
 
       // Dispara o primeiro PageView e adiciona o listener
-      fpixel.pageview(); // Alterado para chamar apenas fpixel
-      pageView(router.pathname); // Mantém o GA
+      //fpixel.pageview(); // Alterado para chamar apenas fpixel          MAS VER MM, SE FALHAR PODE SER AQUI
+      //pageView(router.pathname); // Mantém o GA
       router.events.on('routeChangeComplete', handleRouteChange);
 
       return () => {

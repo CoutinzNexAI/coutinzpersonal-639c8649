@@ -28,6 +28,7 @@ import {
   trackPersonalizationComplete,
   trackAddToCart 
 } from '@/lib/posthog';
+import * as fpixel from '@/lib/fpixel';
 
 // Componentes compartilhados
 import ProductQuantityPricing from '@/components/shared/ProductQuantityPricing';
@@ -123,6 +124,16 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         view_source: 'direct_link',
         has_selected_image: !!selectedImageUrl,
         referrer_product: document.referrer.includes('/shop/') ? 'shop_listing' : undefined
+      });
+
+      // 🚀 FACEBOOK PIXEL: ViewContent event
+      fpixel.trackViewContent({
+        content_name: product.name,
+        content_ids: [product.id],
+        content_type: 'product',
+        value: config.getBasePrice(product, selectedPrintifyVariantId),
+        currency: 'EUR',
+        content_category: config.productCategory
       });
     }
   }, [product, userInfo?.id]); // Only track once per user/product

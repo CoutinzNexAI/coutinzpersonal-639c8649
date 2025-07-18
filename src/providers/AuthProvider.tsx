@@ -208,6 +208,17 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
                 user_id: currentUser.id,
                 is_new_user: false
               });
+
+              // 🚀 FACEBOOK PIXEL: CompleteRegistration para login
+              if (typeof window !== 'undefined') {
+                import('@/lib/fpixel').then(fpixel => {
+                  fpixel.trackCompleteRegistration({
+                    content_name: 'Google OAuth Login',
+                    status: true,
+                    method: 'google'
+                  });
+                });
+              }
             }
             
             syncUserWithDatabase(currentUser, false).then(() => {

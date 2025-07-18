@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase/client';
 import { CartItem, CartSummary } from '@/lib/cart/cartTypes';
 import { CartBottomSheet } from './CartBottomSheet';
 import { trackCheckoutStarted } from '@/lib/posthog';
+import * as fpixel from '@/lib/fpixel';
 import Image from 'next/image';
 
 interface CartSidebarProps {
@@ -113,6 +114,19 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
         total_amount: cartSummary.subtotal + cartSummary.shipping,
         checkout_source: 'cart_sidebar',
         items_by_category: itemsByCategory
+      });
+
+      // 🚀 FACEBOOK PIXEL: InitiateCheckout event
+      fpixel.trackInitiateCheckout({
+        content_ids: cartSummary.items.map(item => item.productId),
+        contents: cartSummary.items.map(item => ({
+          id: item.productId,
+          quantity: item.quantity,
+          item_price: item.price
+        })),
+        value: cartSummary.subtotal + cartSummary.shipping,
+        currency: 'EUR',
+        num_items: cartSummary.itemCount
       });
     }
 

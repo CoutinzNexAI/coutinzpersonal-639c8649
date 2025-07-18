@@ -21,6 +21,7 @@ import {
   trackApiPerformance,
   trackError 
 } from '@/lib/posthog';
+import * as fpixel from '@/lib/fpixel';
 
 // Transformações são agora gratuitas - 10 por dia
 const MAX_POLL_ATTEMPTS_CONST = 36; // 36 tentativas total = max 6 minutos
@@ -551,15 +552,25 @@ export function useImageProcessing() {
 
 
   const handleStartTransformation = useCallback(async () => {
-    // 🔥 TRACKING: Transformation start attempt
-    trackTransformationProcessStart({
-      user_id: userInfo?.id || null,
-      style_id: selectedStyle?.id || null,
-      style_name: selectedStyle?.name || null,
-      file_size: uploadedImage?.file.size || null,
-      file_type: uploadedImage?.file.type || null,
-      processing_state: processingState
-    });
+          // 🔥 TRACKING: Transformation start attempt
+      trackTransformationProcessStart({
+        user_id: userInfo?.id || null,
+        style_id: selectedStyle?.id || null,
+        style_name: selectedStyle?.name || null,
+        file_size: uploadedImage?.file.size || null,
+        file_type: uploadedImage?.file.type || null,
+        processing_state: processingState
+      });
+
+      // 🚀 FACEBOOK PIXEL: StartTrial event (para primeira transformação)
+      if (userInfo?.id && dailyStatus?.current_usage === 0) {
+        fpixel.trackStartTrial({
+          content_name: 'Daily Free Transformations',
+          value: 5, // Valor estimado de transformações gratuitas
+          currency: 'EUR',
+          predicted_ltv: 25 // Lifetime value médio
+        });
+      }
     
     if (!uploadedImage || !selectedStyle) {
       // 🔥 TRACKING: Transformation start validation error

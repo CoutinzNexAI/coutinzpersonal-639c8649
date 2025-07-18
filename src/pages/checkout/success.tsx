@@ -80,15 +80,22 @@ const CheckoutSuccessPage: React.FC = () => {
             });
           }
           
+          // 🚀 FACEBOOK PIXEL: Purchase event com items detalhados
           if (typeof window !== 'undefined' && localStorage.getItem('cookie_consent') === 'granted') {
-            fpixel.event('Purchase', {
+            // Usar nova função trackPurchase com todos os detalhes
+            fpixel.trackPurchase({
               value: result.total || 0,
               currency: 'EUR',
-              content_ids: [result.orderId], // Usar um ID da encomenda
-              content_type: 'product', // Ou 'product_group' se tiver múltiplos itens
-              order_id: result.orderReference // Parâmetro adicional útil
+              content_ids: result.items?.map(item => item.productId) || [result.orderId],
+              contents: result.items?.map(item => ({
+                id: item.productId,
+                quantity: item.quantity,
+                item_price: item.price
+              })) || [],
+              num_items: result.items?.reduce((sum, item) => sum + item.quantity, 0) || 1,
+              order_id: result.orderReference,
+              content_type: 'product'
             });
-            console.log('[Meta Pixel] ✅ Evento "Purchase" enviado:', result);
           }
           
           CartService.clearCart();
