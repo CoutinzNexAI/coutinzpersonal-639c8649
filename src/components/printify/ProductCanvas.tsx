@@ -389,13 +389,13 @@ export default function ProductCanvas({
             </p>
             
             {onSelectImage && (
-              <Button
-                onClick={onSelectImage}
-                className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                Escolher Foto
-              </Button>
+                          <Button
+              onClick={onSelectImage}
+              className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              ✨ Faça a sua primeira transformação grátis!
+            </Button>
               )}
             </div>
         </div>
@@ -430,7 +430,7 @@ export default function ProductCanvas({
                 className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                Escolher Foto
+                ✨ Faça a sua primeira transformação grátis!
               </Button>
             )}
           </div>
@@ -466,7 +466,7 @@ export default function ProductCanvas({
                 className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                Escolher Foto
+                ✨ Faça a sua primeira transformação grátis!
               </Button>
             )}
           </div>
@@ -709,7 +709,7 @@ export default function ProductCanvas({
               className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
             >
               <Sparkles className="w-5 h-5 mr-2" />
-              Escolher Foto 
+              ✨ Faça a sua primeira transformação grátis!
             </Button>
           )}
         </div>

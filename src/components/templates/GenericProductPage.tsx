@@ -975,23 +975,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 </div>
               </div>
               
-              {!userInfo && (
-                <div className="px-4">
-                  <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm">
-                    <CardContent className="p-4 text-center">
-                      <p className="text-ghibli-earth text-sm mb-3 font-medium">
-                        🎨 Entre para personalizar o seu produto
-                      </p>
-                      <Button
-                        onClick={() => router.push('/')}
-                        className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0"
-                      >
-                        Fazer Login
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
+
             </motion.div>
 
             {/* Quantidade e Preços Mobile */}
@@ -1082,15 +1066,13 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 >
                 {/* Botão Trocar Arte */}
                 <Button
-                  onClick={handleOpenGallery}
-                  disabled={!userInfo}
-                  className={`px-12 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-2xl ${
-                    userInfo 
-                      ? 'bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white' 
-                      : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  }`}
+                  onClick={userInfo ? handleOpenGallery : () => router.push('/transformacoes')}
+                  className="px-12 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 rounded-2xl bg-gradient-to-r from-ghibli-moss to-ghibli-moss/90 hover:from-ghibli-moss/90 hover:to-ghibli-moss text-white"
                 >
-                  {selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte'}
+                                      {userInfo 
+                      ? (selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte')
+                      : '✨ Transforme a sua primeira foto grátis!'
+                    }
                 </Button>
 
                 {/* Controlos de Posição lado a lado com Trocar Arte - APENAS SE EXISTIR coordinateConfig E SE PERMITIDO */}
@@ -1132,28 +1114,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 )}
               </motion.div>
 
-              {!userInfo && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.5 }}
-                  className="mt-6 flex justify-center"
-                >
-                  <Card className="bg-ghibli-moss/10 border-ghibli-moss/30 backdrop-blur-sm max-w-md">
-                    <CardContent className="p-4 text-center">
-                      <p className="text-ghibli-earth text-base mb-3 font-medium">
-                        🎨 Entre para personalizar o seu produto
-                      </p>
-                      <Button
-                        onClick={() => router.push('/')}
-                        className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white border-0"
-                      >
-                        Fazer Login
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
+
             </motion.div>
 
             {/* Painel de Controlo Desktop */}

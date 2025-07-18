@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { cn } from '@/lib/utils';
 
 interface ProductAddToCartButtonProps {
@@ -35,6 +36,8 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
   className = '',
   size = 'desktop'
 }) => {
+  // Hook para navigation
+  const router = useRouter();
   // Se está processando mockup, mostra loading especial
   if (isProcessingMockup) {
     const processingClasses = size === 'mobile' 
@@ -73,7 +76,7 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
     }
     
     if (!userInfo) {
-      return <span className="text-center">Faça Login para Continuar</span>;
+      return <span className="text-center">✨ Faça a sua primeira transformação grátis!</span>;
     }
     
     if (!selectedImageUrl) {
@@ -101,7 +104,15 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
 
   // Determina a ação do botão e se está habilitado
   const getButtonAction = () => {
-    if (!userInfo || loading) return { onClick: () => {}, disabled: true };
+    // Se não está logado, redirecionar para transformações
+    if (!userInfo) {
+      return { 
+        onClick: () => router.push('/transformacoes'), 
+        disabled: false 
+      };
+    }
+    
+    if (loading) return { onClick: () => {}, disabled: true };
     
     // ✅ NOVA LÓGICA: Se não há arte, abrir galeria (se onOpenGallery disponível)
     if (!selectedImageUrl && onOpenGallery) {

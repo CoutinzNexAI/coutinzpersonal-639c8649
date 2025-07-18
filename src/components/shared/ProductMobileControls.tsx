@@ -117,6 +117,18 @@ export const ProductMobileControls: React.FC<ProductMobileControlsProps> = ({
           <div className="w-1 h-1 bg-ghibli-moss rounded-full animate-pulse"></div>
           {positions.find(p => p.key === imagePosition)?.title}
         </span>
+        
+        {/* Loading indicator quando a gerar - MOBILE */}
+        {isGeneratingMockup && (
+          <div className="mt-2 flex items-center justify-center gap-2 text-xs text-ghibli-earth/70">
+            <div className="flex space-x-1">
+              <div className="w-1 h-1 bg-ghibli-moss rounded-full animate-bounce"></div>
+              <div className="w-1 h-1 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-1 h-1 bg-ghibli-moss rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+            <span>Reposicionando...</span>
+          </div>
+        )}
       </div>
       )}
     </div>
