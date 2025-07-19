@@ -68,9 +68,19 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
     return null;
   }
 
+  // Handler para clique dentro do modal - qualquer clique dispara o login
+  const handleModalClick = () => {
+    if (!isLoggingIn) {
+      onLogin();
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-sm text-ghibli-charcoal rounded-2xl shadow-2xl overflow-hidden border border-ghibli-slate/20">
+      <DialogContent 
+        className="sm:max-w-md bg-white/95 backdrop-blur-sm text-ghibli-charcoal rounded-2xl shadow-2xl overflow-hidden border border-ghibli-slate/20 cursor-pointer"
+        onClick={handleModalClick}
+      >
         
         <motion.div
           variants={containerVariants}
@@ -101,16 +111,15 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
             
             <motion.div variants={itemVariants}>
               <DialogDescription className="text-ghibli-slate text-xl md:text-2xl font-medium mt-2">
-                Liga-te para não perderes nada!
+                Transformações gratuitas todos os dias! 🎁
             </DialogDescription>
           </motion.div>
         </DialogHeader>
 
           <motion.div className="space-y-3 mb-6">
             {[
-              { icon: Save, text: "🖼️ Galeria pessoal automática", color: "text-green-600" },
-              { icon: History, text: "📱 Acesso em qualquer dispositivo", color: "text-blue-600" },
-              { icon: Gift, text: "🎁 Transformações gratuitas todos os dias!", color: "text-amber-600" }
+              { icon: Save, text: "💾 Armazena as tuas transformações na tua conta", color: "text-green-600" },
+              { icon: History, text: "🔒 Nunca mais percas o teu trabalho criativo", color: "text-blue-600" }
             ].map((item, index) => (
               <motion.div 
                 key={index}
