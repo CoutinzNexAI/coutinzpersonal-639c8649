@@ -111,27 +111,21 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
             
             <motion.div variants={itemVariants}>
               <DialogDescription className="text-ghibli-slate text-xl md:text-2xl font-medium mt-2">
-                Transformações gratuitas todos os dias! 🎁
+                Transformações 100% grátis 🎁
             </DialogDescription>
           </motion.div>
         </DialogHeader>
 
-          <motion.div className="space-y-3 mb-6">
-            {[
-              { icon: Save, text: "💾 Armazena as tuas transformações na tua conta", color: "text-green-600" },
-              { icon: History, text: "🔒 Nunca mais percas o teu trabalho criativo", color: "text-blue-600" }
-            ].map((item, index) => (
-              <motion.div 
-                key={index}
-                variants={itemVariants}
-                className="flex items-center p-3 rounded-lg bg-ghibli-paper/30 hover:bg-ghibli-paper/50 transition-colors duration-200"
-                whileHover={{ scale: 1.02, x: 4 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <item.icon className={`h-6 w-6 md:h-7 md:w-7 mr-3 ${item.color} flex-shrink-0`} />
-                <span className="text-base md:text-lg font-medium text-ghibli-charcoal">{item.text}</span>
-              </motion.div>
-            ))}
+          <motion.div variants={itemVariants} className="mb-6">
+            <div className="text-center space-y-3">
+              <div className="text-3xl">💾</div>
+              <p className="text-lg font-medium text-ghibli-wood">
+                <strong>Guardar todas as tuas transformações!</strong>
+              </p>
+              <p className="text-sm text-ghibli-earth">
+                Acede em qualquer dispositivo
+              </p>
+            </div>
           </motion.div>
 
           <motion.div variants={itemVariants}>

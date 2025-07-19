@@ -76,7 +76,7 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
     }
     
     if (!userInfo) {
-      return <span className="text-center">✨ Faça a sua primeira transformação grátis!</span>;
+      return <span className="text-center">✨ Faça primeiro a sua transformação!</span>;
     }
     
     if (!selectedImageUrl) {
