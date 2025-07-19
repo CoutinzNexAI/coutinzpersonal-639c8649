@@ -492,6 +492,10 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     if (type === 'position' && typeof value === 'string') {
       newPosition = value as 'top' | 'center' | 'bottom' | 'left' | 'right';
       console.log('📍 [handleAdjustment] Position change:', { from: imagePosition, to: newPosition });
+      
+      // 🚀 NOVO: Ativar loading IMEDIATAMENTE quando muda posição
+      setIsGeneratingMockup(true);
+      
       setImagePosition(newPosition);
       // ✅ RESET hasGenerated para permitir nova geração
       console.log('🔄 [handleAdjustment] Resetting hasGenerated for position change');
@@ -499,6 +503,10 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     } else if (type === 'size' && typeof value === 'number') {
       newVariantId = value;
       console.log('📏 [handleAdjustment] Size change:', { from: selectedPrintifyVariantId, to: newVariantId });
+      
+      // 🚀 NOVO: Ativar loading IMEDIATAMENTE quando muda tamanho
+      setIsGeneratingMockup(true);
+      
       setSelectedPrintifyVariantId(newVariantId);
       // Reset position when variant changes
       setImagePosition('center');
@@ -519,7 +527,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         hasImageUrl: !!selectedImageUrl, 
         hasDimensions: !!userImageDimensions 
       });
-      setIsGeneratingMockup(true);
+      // ✅ REMOVIDO: setIsGeneratingMockup(true) já é chamado acima imediatamente
       // The ProductCanvas component will handle the mockup generation
     } else {
       console.log('❌ [handleAdjustment] Conditions not met for mockup generation:', {
@@ -527,6 +535,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
         hasImageUrl: !!selectedImageUrl,
         hasDimensions: !!userImageDimensions
       });
+      // 🚀 NOVO: Se não vai gerar mockup, desativar loading
+      setIsGeneratingMockup(false);
     }
     
     console.log('🔧 [handleAdjustment] END');
@@ -1071,7 +1081,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 >
                                       {userInfo 
                       ? (selectedImageUrl ? 'Trocar Arte' : 'Escolher Arte')
-                      : '✨ Transforme a sua primeira foto grátis!'
+                      : '✨ Transforma a tua foto grátis primeiro!'
                     }
                 </Button>
 
