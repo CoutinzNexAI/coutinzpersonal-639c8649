@@ -5,16 +5,16 @@ const FloatingIcons = () => {
   return (
     <>
       {/* Floating tech icons - Hidden on mobile for performance */}
-      <div className="hidden md:block absolute top-1/4 left-1/4 animate-float-slow opacity-30 hover:opacity-60 transition-opacity duration-300">
+      <div className="hidden md:block absolute top-1/4 left-1/4 animate-float-slow opacity-40 hover:opacity-80 transition-opacity duration-300">
         <div className="relative">
-          <Code size={40} className="text-cosmic-purple drop-shadow-lg" />
-          <div className="absolute inset-0 bg-cosmic-purple/20 rounded-full blur-xl animate-pulse"></div>
+          <Code size={40} className="text-violet-400 drop-shadow-lg" />
+          <div className="absolute inset-0 bg-violet-500/30 rounded-full blur-lg animate-pulse"></div>
         </div>
       </div>
-      <div className="hidden md:block absolute bottom-1/3 right-1/4 animate-float-slow opacity-30 hover:opacity-60 transition-opacity duration-300" style={{animationDelay: '1.5s'}}>
+      <div className="hidden md:block absolute bottom-1/3 right-1/4 animate-float-slow opacity-40 hover:opacity-80 transition-opacity duration-300" style={{animationDelay: '1.5s'}}>
         <div className="relative">
-          <Terminal size={48} className="text-cosmic-blue drop-shadow-lg" />
-          <div className="absolute inset-0 bg-cosmic-blue/20 rounded-full blur-xl animate-pulse"></div>
+          <Terminal size={48} className="text-cyan-400 drop-shadow-lg" />
+          <div className="absolute inset-0 bg-cyan-500/30 rounded-full blur-lg animate-pulse"></div>
         </div>
       </div>
       <div className="hidden md:block absolute top-2/3 right-1/3 animate-float-slow opacity-30 hover:opacity-60 transition-opacity duration-300" style={{animationDelay: '2.2s'}}>

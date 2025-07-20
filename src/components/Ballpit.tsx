@@ -10,7 +10,7 @@ interface BallpitProps {
   colors?: number[];
 }
 
-const Ballpit = ({ count = 50, gravity = 0.5, friction = 0.9, wallBounce = 0.8, followCursor = false, colors = [0xff0000, 0x00ff00, 0x0000ff] }: BallpitProps) => {
+const Ballpit = ({ count = 30, gravity = 0.4, friction = 0.9, wallBounce = 0.8, followCursor = false, colors = [0xff0000, 0x00ff00, 0x0000ff] }: BallpitProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>(new THREE.Scene());
   const cameraRef = useRef<THREE.PerspectiveCamera>(new THREE.PerspectiveCamera(75, 1, 0.1, 1000));
@@ -37,7 +37,8 @@ const Ballpit = ({ count = 50, gravity = 0.5, friction = 0.9, wallBounce = 0.8, 
     camera.position.z = 10;
 
     renderer.setSize(containerWidth, containerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Limit pixel ratio for performance
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.setClearColor(0x000000, 0); // Transparent background
     containerRef.current.appendChild(renderer.domElement);
 

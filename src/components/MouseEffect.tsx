@@ -6,7 +6,11 @@ const MouseEffect = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Pequeno atraso para não mostrar o cursor no carregamento inicial da página
+    // Don't show on mobile devices for better performance
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) return;
+    
+    // Small delay to not show cursor during initial page load
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 1000);

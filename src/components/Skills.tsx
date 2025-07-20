@@ -24,11 +24,11 @@ const skills: Skill[] = [
 ];
 
 const categoryColors = {
-  frontend: 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-cyan-300 border-cyan-500/30',
-  backend: 'bg-gradient-to-r from-purple-500/20 to-violet-500/20 text-violet-300 border-violet-500/30',
-  design: 'bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-rose-300 border-rose-500/30',
-  other: 'bg-gradient-to-r from-orange-500/20 to-yellow-500/20 text-yellow-300 border-yellow-500/30',
-  management: 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-emerald-300 border-emerald-500/30',
+  frontend: 'bg-gradient-to-r from-blue-500/30 to-cyan-500/30 text-cyan-200 border-cyan-400/50',
+  backend: 'bg-gradient-to-r from-purple-500/30 to-violet-500/30 text-violet-200 border-violet-400/50',
+  design: 'bg-gradient-to-r from-pink-500/30 to-rose-500/30 text-rose-200 border-rose-400/50',
+  other: 'bg-gradient-to-r from-orange-500/30 to-yellow-500/30 text-yellow-200 border-yellow-400/50',
+  management: 'bg-gradient-to-r from-green-500/30 to-emerald-500/30 text-emerald-200 border-emerald-400/50',
 };
 
 const Skills = () => {
@@ -75,9 +75,9 @@ const Skills = () => {
                 
                 <div className="relative z-10">
                   <div className="flex items-center mb-4">
-                    <div className="relative p-3 rounded-xl bg-gradient-to-br from-cosmic-blue/20 to-cosmic-purple/20 mr-4 group-hover:scale-110 transition-transform duration-300">
-                      <skill.icon className="h-6 w-6 text-cosmic-blue group-hover:text-white transition-colors duration-300" />
-                      <div className="absolute inset-0 bg-cosmic-blue/30 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative p-3 rounded-xl bg-gradient-to-br from-blue-500/30 to-purple-500/30 mr-4 group-hover:scale-110 transition-transform duration-300">
+                      <skill.icon className="h-6 w-6 text-blue-300 group-hover:text-white transition-colors duration-300" />
+                      <div className="absolute inset-0 bg-blue-500/40 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-bold group-hover:text-white transition-colors duration-300">{skill.name}</h3>
@@ -94,14 +94,14 @@ const Skills = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="group-hover:text-white transition-colors duration-300">Proficiency</span>
-                      <span className="font-bold text-cosmic-blue group-hover:text-cosmic-pink transition-colors duration-300">{skill.level}%</span>
+                      <span className="font-bold text-blue-300 group-hover:text-pink-300 transition-colors duration-300">{skill.level}%</span>
                     </div>
                     <div className="relative">
                       <Progress 
                         value={skill.level} 
                         className="h-3 bg-gray-700/50 group-hover:bg-gray-600/50 transition-colors duration-300" 
                       />
-                      <div className="absolute inset-0 bg-gradient-to-r from-cosmic-blue to-cosmic-purple rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
                     </div>
                   </div>
                 </div>

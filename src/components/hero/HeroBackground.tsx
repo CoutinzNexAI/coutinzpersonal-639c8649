@@ -43,7 +43,9 @@ const HeroBackground = ({ isLoaded }: HeroBackgroundProps) => {
     canvas.width = width;
     canvas.height = height;
     
-    const particleCount = Math.min(200, Math.floor(width * height / 8000));
+    // Reduce particles on mobile for better performance
+    const isMobile = width < 768;
+    const particleCount = Math.min(isMobile ? 80 : 150, Math.floor(width * height / 10000));
     
     class ParticleClass implements Particle {
       x: number;
@@ -136,8 +138,10 @@ const HeroBackground = ({ isLoaded }: HeroBackgroundProps) => {
           const dy = particles[i].y - particles[j].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           
-          if (distance < 120) {
-            const opacity = 0.4 - distance/120;
+          // Reduce connection distance on mobile for performance
+          const maxDistance = isMobile ? 80 : 120;
+          if (distance < maxDistance) {
+            const opacity = 0.4 - distance/maxDistance;
             
             // Create gradient line
             const gradient = ctx.createLinearGradient(
