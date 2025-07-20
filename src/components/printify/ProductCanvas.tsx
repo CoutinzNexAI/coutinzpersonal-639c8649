@@ -140,19 +140,9 @@ export default function ProductCanvas({
   }, [printifyGeneratedPreviewUrls, preloadedImages]);
 
   const handleGenerateMockup = useCallback(async () => {
-    console.log('🎨 [handleGenerateMockup] START:', {
-      userImageUrl: !!userImageUrl,
-      userId: !!userId,
-      isLoadingMockups,
-      selectedProductId: selectedProduct.id
-    });
-
     if (!userImageUrl || !userId || isLoadingMockups) {
-      console.log('❌ [handleGenerateMockup] Early return - missing requirements');
       return;
     }
-    
-    console.log('🔄 [handleGenerateMockup] Setting loading state...');
     setIsLoadingMockups(true);
     setError(null);
 
@@ -231,17 +221,9 @@ export default function ProductCanvas({
       }
 
       if (data.previewUrls && data.printifyProductId) {
-        console.log('✅ [handleGenerateMockup] Success response:', {
-          previewUrlsCount: data.previewUrls.length,
-          printifyProductId: data.printifyProductId,
-          printifyImageId: data.printifyImageId,
-          selectedProductId: selectedProduct.id
-        });
-
         if (selectedProduct.id === 'custom_youth_hoodie') {
           // Para sweat de criança
           if (data.customerPrintifyImageId && data.dynamicPhrasePrintifyImageId) {
-            console.log('👕 [handleGenerateMockup] Hoodie preview ready');
             onPreviewReady({
               previewUrls: data.previewUrls,
               customerPrintifyImageId: data.customerPrintifyImageId,
@@ -251,7 +233,6 @@ export default function ProductCanvas({
           }
         } else {
           // Para outros produtos - aceitar mesmo sem printifyImageId
-          console.log('🎯 [handleGenerateMockup] Standard product preview ready');
           onPreviewReady({
             previewUrls: data.previewUrls,
             printifyImageId: data.printifyImageId || '', // Pode ser null/undefined para alguns produtos
@@ -259,20 +240,14 @@ export default function ProductCanvas({
           });
         }
         if (onMockupGenerated) {
-          console.log('🎉 [handleGenerateMockup] Calling onMockupGenerated');
           onMockupGenerated();
         }
-      } else {
-        console.log('❌ [handleGenerateMockup] Invalid response - missing required data');
       }
     } catch (err) {
-      console.error('💥 [handleGenerateMockup] Error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
-      console.log('🏁 [handleGenerateMockup] Finally block - resetting states');
       setIsLoadingMockups(false);
       setIsGenerating(false); // ✅ Reset guard local
-      console.log('🎨 [handleGenerateMockup] END');
     }
   }, [
     userImageUrl, 
@@ -290,21 +265,8 @@ export default function ProductCanvas({
 
   // ✅ AUTO-GENERATE FINAL - Totalmente protegido contra loops
   useEffect(() => {
-    console.log('🔄 [ProductCanvas useEffect] Checking conditions:', {
-      mockupGenerationKey,
-      lastProcessedKey: lastProcessedKeyRef.current,
-      userImageUrl: !!userImageUrl,
-      userId: !!userId,
-      selectedProductId: selectedProduct.id,
-      selectedPrintifyVariantId,
-      hasGenerated,
-      isLoadingMockups,
-      isGenerating
-    });
-
     // ✅ Verificar se já processamos esta chave para evitar loops
     if (!mockupGenerationKey || lastProcessedKeyRef.current === mockupGenerationKey) {
-      console.log('❌ [ProductCanvas] Skipping - no key or already processed');
       return;
     }
 
@@ -321,29 +283,16 @@ export default function ProductCanvas({
       shouldGenerate = !!(userImageUrl && userId && selectedProduct);
     }
 
-    console.log('🎯 [ProductCanvas] shouldGenerate:', shouldGenerate);
-
     // ✅ USAR HASGENERATED EXTERNO OU FALLBACK PARA O COMPORTAMENTO ANTERIOR
     const isGenerated = hasGenerated !== undefined ? hasGenerated : false;
     
-    console.log('📊 [ProductCanvas] Generation check:', {
-      isGenerated,
-      shouldGenerate,
-      isLoadingMockups,
-      isGenerating,
-      finalCondition: !isGenerated && shouldGenerate && !isLoadingMockups && !isGenerating
-    });
-    
     // ✅ FIX FINAL: Todas as verificações numa só condição
     if (!isGenerated && shouldGenerate && !isLoadingMockups && !isGenerating) {
-      console.log('🚀 [ProductCanvas] Starting mockup generation');
       // ✅ Marcar chave como processada ANTES de chamar a função
       lastProcessedKeyRef.current = mockupGenerationKey;
       setIsGenerating(true);
       
       handleGenerateMockup();
-    } else {
-      console.log('⏭️ [ProductCanvas] Skipping generation');
     }
   }, [userImageUrl, userId, selectedProduct.id, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, mockupGenerationKey]);
 

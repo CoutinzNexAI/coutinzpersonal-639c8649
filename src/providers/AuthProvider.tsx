@@ -67,7 +67,6 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
       try {
         if (!session?.access_token) {
-          console.warn('[syncUserWithDatabase] No session or access_token available, skipping API sync');
           // --- ALTERAÇÃO #2: Terminar a sincronização mesmo em caso de skip ---
           setIsSyncing(false);
           if (updateLoadingState) setIsLoading(false);
@@ -94,20 +93,18 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
         if (response.ok) {
           const responseData = await response.json();
-          console.log('[syncUserWithDatabase] ✅ User sync successful:', responseData);
           
           if (responseData.user) {
             setUserInfo(responseData.user);
           }
         } else {
           const errorData = await response.json();
-          console.error("[syncUserWithDatabase] ❌ Error syncing user via API:", errorData);
         }
       } catch (error) {
-        console.error('[syncUserWithDatabase] ❌ Exception:', error);
+        // Silent error handling
       }
     } catch (error) {
-      console.error('[syncUserWithDatabase] ❌ Exception:', error);
+      // Silent error handling
     } finally {
       if (updateLoadingState) setIsLoading(false);
       // --- ALTERAÇÃO #3: Terminar a sincronização no bloco finally para garantir que é sempre executado ---
@@ -320,7 +317,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
         sessionStorage.clear();
         
-        console.log('✅ [signOut] Local storage cleaned');
+        // Local storage cleaned
       } catch (storageError) {
         console.warn('[signOut] Error cleaning localStorage:', storageError);
       }

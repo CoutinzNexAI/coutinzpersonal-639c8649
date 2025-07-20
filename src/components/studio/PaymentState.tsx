@@ -81,7 +81,6 @@ const PaymentState: React.FC<PaymentStateProps> = ({
               <Sparkles className="w-5 h-5 text-green-600" />
               <span className="font-semibold text-green-800">Transformação Gratuita</span>
             </div>
-            <p className="text-green-600 text-xs mt-1">Parte do seu limite diário</p>
           </div>
           
         <Button

@@ -110,7 +110,7 @@ export const useCart = () => {
             currency: 'EUR',
             num_items: item.quantity
           });
-          console.log('[Meta Pixel] ✅ Evento "AddToCart" enviado:', item);
+          // Meta Pixel AddToCart event sent
         }
       }
       

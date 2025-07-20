@@ -33,8 +33,6 @@ export const useTermsAcceptance = () => {
         throw error;
       }
 
-      console.log('[acceptTerms] ✅ Terms accepted successfully for user:', userInfo.id);
-
       // 2. Tracking com PostHog (mantido)
       trackEvent('terms_accepted_successfully', {
         user_id: userInfo.id,
@@ -46,7 +44,6 @@ export const useTermsAcceptance = () => {
       if (typeof window !== 'undefined') {
         // 3. GUARDAR CONSENTIMENTO NO NAVEGADOR (O "CARIMBO NA MÃO")
         localStorage.setItem('cookie_consent', 'granted');
-        console.log('[Consent] ✅ Estado de consentimento guardado no localStorage.');
 
         // 4. ATUALIZAR O CONSENTIMENTO GLOBAL
         // Para o Google Analytics
@@ -55,17 +52,14 @@ export const useTermsAcceptance = () => {
             'ad_storage': 'granted',
             'analytics_storage': 'granted'
           });
-          console.log('[Consent] ✅ Google Analytics consent updated to GRANTED.');
         }
 
         // Para o Píxel da Meta
         const fpixel = await import('@/lib/fpixel');
         fpixel.grantConsent();
-        console.log('[Consent] ✅ Meta Pixel consent updated to GRANTED.');
         
         // 5. DISPARAR O PRIMEIRO PAGEVIEW APÓS O CONSENTIMENTO
         fpixel.pageview();
-        console.log('[Consent] ✅ First Meta Pixel PageView fired.');
       }
       // --- FIM DA LÓGICA DE CONSENTIMENTO FINAL ---
 

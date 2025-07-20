@@ -391,7 +391,6 @@ const CompletedState: React.FC<CompletedStateProps> = ({
               unoptimized={true}
                 onError={currentImage.type === 'original' ? handleImageError : undefined}
               onLoad={() => {
-                  console.log('[CompletedState Image] Imagem carregada com sucesso:', currentImage.url);
                   if (currentImage.type === 'original') {
                 setImageError(false);
                   }

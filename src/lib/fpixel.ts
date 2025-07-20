@@ -231,69 +231,59 @@ export const shouldTrack = (): boolean => {
 export const trackViewContent = (options: Parameters<typeof viewContent>[0]): void => {
   if (shouldTrack()) {
     viewContent(options);
-    console.log('[Meta Pixel] ✅ ViewContent event sent:', options);
   }
 };
 
 export const trackSearch = (options: Parameters<typeof search>[0]): void => {
   if (shouldTrack()) {
     search(options);
-    console.log('[Meta Pixel] ✅ Search event sent:', options);
   }
 };
 
 export const trackAddToWishlist = (options: Parameters<typeof addToWishlist>[0]): void => {
   if (shouldTrack()) {
     addToWishlist(options);
-    console.log('[Meta Pixel] ✅ AddToWishlist event sent:', options);
   }
 };
 
 export const trackInitiateCheckout = (options: Parameters<typeof initiateCheckout>[0]): void => {
   if (shouldTrack()) {
     initiateCheckout(options);
-    console.log('[Meta Pixel] ✅ InitiateCheckout event sent:', options);
   }
 };
 
 export const trackAddPaymentInfo = (options: Parameters<typeof addPaymentInfo>[0]): void => {
   if (shouldTrack()) {
     addPaymentInfo(options);
-    console.log('[Meta Pixel] ✅ AddPaymentInfo event sent:', options);
   }
 };
 
 export const trackPurchase = (options: Parameters<typeof purchase>[0]): void => {
   if (shouldTrack()) {
     purchase(options);
-    console.log('[Meta Pixel] ✅ Purchase event sent:', options);
   }
 };
 
 export const trackCompleteRegistration = (options: Parameters<typeof completeRegistration>[0] = {}): void => {
   if (shouldTrack()) {
     completeRegistration(options);
-    console.log('[Meta Pixel] ✅ CompleteRegistration event sent:', options);
   }
 };
 
 export const trackLead = (options: Parameters<typeof lead>[0]): void => {
   if (shouldTrack()) {
     lead(options);
-    console.log('[Meta Pixel] ✅ Lead event sent:', options);
   }
 };
 
 export const trackStartTrial = (options: Parameters<typeof startTrial>[0]): void => {
   if (shouldTrack()) {
     startTrial(options);
-    console.log('[Meta Pixel] ✅ StartTrial event sent:', options);
   }
 };
 
 export const trackSubscribe = (options: Parameters<typeof subscribe>[0]): void => {
   if (shouldTrack()) {
     subscribe(options);
-    console.log('[Meta Pixel] ✅ Subscribe event sent:', options);
   }
 };
