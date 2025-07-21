@@ -58,7 +58,6 @@ export const OrdersModal: React.FC = () => {
   // Fetch orders from API
   const fetchOrders = async (page = 1, search = '') => {
     if (!session?.access_token) {
-      console.log('❌ No access token available');
       return;
     }
 
@@ -84,13 +83,11 @@ export const OrdersModal: React.FC = () => {
       if (data.success) {
         setOrders(data.orders);
         setTotalOrders(data.total);
-        console.log(`✅ Loaded ${data.orders.length} orders (total: ${data.total})`);
       } else {
         throw new Error('API returned error');
       }
 
     } catch (error) {
-      console.error('❌ Error fetching orders:', error);
       toast.error('Erro ao carregar encomendas', {
         description: 'Tente novamente mais tarde'
       });
@@ -102,7 +99,6 @@ export const OrdersModal: React.FC = () => {
   // Fetch orders when modal opens
   useEffect(() => {
     if (isOpen && userInfo && session) {
-      console.log('🚀 Modal opened, fetching orders...');
       setCurrentPage(1);
       fetchOrders(1, searchTerm);
     }

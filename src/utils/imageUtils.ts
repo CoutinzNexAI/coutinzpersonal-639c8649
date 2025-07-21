@@ -33,7 +33,6 @@ export async function generateImageFromText(text: string): Promise<string> {
     return '68548b05a7a3520a5d3534c0'; // ID da imagem transparente
     
   } catch (error) {
-    console.error('Erro ao gerar imagem de texto:', error);
     throw new Error(`Failed to generate text image: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -61,7 +60,6 @@ export async function generatePhraseImage(text: string): Promise<string> {
     // Se não encontrar mapeamento, usar imagem transparente
     return 'transparent';
   } catch (error) {
-    console.error('Erro ao gerar imagem de texto:', error);
     return 'transparent';
   }
 } 

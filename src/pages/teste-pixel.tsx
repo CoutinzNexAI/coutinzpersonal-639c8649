@@ -15,7 +15,6 @@ const TestePage: React.FC = () => {
 
   const testPageView = () => {
     fpixel.pageview();
-    console.log('✅ PageView event sent');
   };
 
   const testViewContent = () => {

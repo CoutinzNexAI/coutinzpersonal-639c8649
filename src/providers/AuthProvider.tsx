@@ -119,7 +119,6 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
       const { data, error } = await supabase.auth.getSession();
       setSession(data.session);
       if (error) {
-        console.error('[refreshSession] Error getting session:', error.message);
         setUserInfo(null);
         if (manageLoadingState) setIsLoading(false);
         setSessionChecked(true);
@@ -133,7 +132,6 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
         setUserInfo(null);
       }
     } catch (e) {
-      console.error('[refreshSession] Exception:', e);
       setUserInfo(null);
     } finally {
       if (manageLoadingState) setIsLoading(false);
@@ -289,7 +287,6 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
     try {
       const { error } = await supabase.auth.signOut({ scope: 'local' }); 
       if (error) {
-        console.error('[signOut] Supabase sign out error:', error);
         throw error; 
       }
 
@@ -319,7 +316,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
         
         // Local storage cleaned
       } catch (storageError) {
-        console.warn('[signOut] Error cleaning localStorage:', storageError);
+        // Silent error handling for localStorage cleanup
       }
 
       if (typeof window !== 'undefined') {

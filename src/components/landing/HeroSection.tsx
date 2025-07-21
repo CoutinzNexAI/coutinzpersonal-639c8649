@@ -250,7 +250,7 @@ const HeroSection: React.FC = () => {
               </motion.h1>
             </motion.div>
 
-            {/* Mobile CTA Buttons - VERTICALMENTE EMPILHADOS */}
+            {/* Mobile CTA Button - APENAS O BOTÃO PRINCIPAL */}
             <motion.div 
               className="flex flex-col gap-3 mb-6 px-4"
               variants={itemVariants}
@@ -258,23 +258,10 @@ const HeroSection: React.FC = () => {
               <Link href="/transformacoes" className="w-full">
                 <motion.div whileTap={{ scale: 0.95 }} className="w-full">
                 <Button 
-                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-6 text-lg rounded-xl shadow-lg"
+                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-7 text-xl rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  🎨 Transforma Grátis
-                </Button>
-                </motion.div>
-              </Link>
-              
-              <Link href="/shop" className="w-full"> 
-                <motion.div whileTap={{ scale: 0.95 }} className="w-full">
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold py-6 text-lg rounded-xl"
-                  style={{ WebkitTapHighlightColor: 'transparent' }}
-                >
-                  <span className="mr-2">🛍️</span>
-                  Ver Produtos
+                  🎨 Transforma Grátis <span className="ml-2 animate-bounce">✨</span>
                 </Button>
                 </motion.div>
               </Link>
@@ -414,33 +401,20 @@ const HeroSection: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Call to Action Buttons */}
+            {/* Call to Action Button - APENAS O BOTÃO PRINCIPAL */}
             <motion.div 
               className="flex flex-col sm:flex-row gap-4 mb-6"
               variants={itemVariants}
             >
               <Link href="/transformacoes">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
                   <Button 
                     size="default" 
-                    className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-8 py-3 lg:py-6 text-lg rounded-xl shadow-lg hover:shadow-green-500/30 transition-all duration-300 border border-white/20"
+                    className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-10 py-4 lg:py-7 text-xl rounded-xl shadow-xl hover:shadow-green-500/30 transition-all duration-300 border border-white/20"
                   >
-                    <span className="mr-2 text-lg">🎨</span>
+                    <span className="mr-3 text-xl">🎨</span>
                     Transforma a tua Foto Grátis 
-                    <span className="ml-2 text-sm animate-bounce">✨</span>
-                  </Button>
-                </motion.div>
-              </Link>
-              
-              <Link href="/shop">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button 
-                    variant="outline" 
-                    size="default"
-                    className="border-2 border-ghibli-moss text-ghibli-moss hover:bg-ghibli-moss hover:text-white font-bold px-8 py-3 lg:py-6 text-lg rounded-xl transition-all duration-300 bg-white/80 backdrop-blur-sm shadow-md hover:shadow-lg"
-                  >
-                    <span className="mr-2 text-lg">🛍️</span>
-                    Ver Produtos
+                    <span className="ml-3 text-base animate-bounce">✨</span>
                   </Button>
                 </motion.div>
               </Link>
