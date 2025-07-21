@@ -5,6 +5,7 @@ import { Star, Heart, Zap, Users } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SmartProductLink } from '@/components/shared/SmartProductLink';
+import { AutoImageRevealCarousel } from '@/components/landing/AutoImageRevealCarousel';
 
 const HeroSection: React.FC = () => {
   // Function to scroll to reviews section
@@ -109,27 +110,10 @@ const HeroSection: React.FC = () => {
 
               {/* Imagens menores lado a lado */}
               <div className="col-span-2 flex flex-col gap-2">
-                <SmartProductLink productUrl="/shop/tecnologia/custom_phone_case" className="flex-1">
-                  <motion.div 
-                    className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer w-full aspect-square"
-                    whileHover={{ scale: 1.02, rotate: -1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Image
-                      src="/landing/capatele.png"
-                      alt="Capa de telemóvel personalizada"
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      quality={95}
-                      sizes="25vw"
-                    />
-                    <div className="absolute top-1 right-1">
-                      <span className="bg-blue-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold">
-                        📱
-                      </span>
-                    </div>
-                  </motion.div>
-                </SmartProductLink>
+                {/* Carrossel de Transformações - Mobile */}
+                <div className="flex-1 aspect-square">
+                  <AutoImageRevealCarousel />
+                </div>
 
                 <SmartProductLink productUrl="/shop/mug/heart_mug" className="flex-1">
                   <motion.div 
@@ -460,38 +444,15 @@ const HeroSection: React.FC = () => {
 
             {/* Sub-grelha para os 2 quadrados - MAIORES NO DESKTOP */}
             <div className="col-span-1 grid grid-rows-2 gap-4 h-full max-h-[520px]">
-              {/* Quadrado 1:1 - Tecnologia */}
-              <SmartProductLink productUrl="/shop/tecnologia/custom_phone_case" className="row-span-1">
-                <motion.div 
-                  className="relative aspect-square rounded-xl overflow-hidden shadow-xl group cursor-pointer h-full w-full max-h-[250px]"
-                  whileHover={{ scale: 1.02, rotate: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Image
-                    src="/landing/capatele.png"
-                    alt="Capa de telemóvel personalizada"
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    quality={95}
-                    sizes="(max-width: 1024px) 25vw, 15vw"
-                  />
-                  {/* Overlays e texto */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute top-2 right-2">
-                    <span className="bg-ghibli-poppy text-white px-2 py-1 rounded-full text-sm font-bold">
-                      TOP
-                    </span>
-                  </div>
-                  <div className="absolute bottom-2 left-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <h4 className="text-sm font-bold">Capa Telemóvel</h4>
-                  </div>
-                </motion.div>
-              </SmartProductLink>
+              {/* Carrossel de Transformações */}
+              <div className="row-span-1 h-full w-full max-h-[250px] md:max-h-[340px] lg:max-h-[420px] max-w-[420px] mx-auto">
+                <AutoImageRevealCarousel />
+              </div>
 
-              {/* Quadrado 1:1 - Caneca Coração */}
+              {/* Quadrado 1:1 - Caneca Coração (desktop) */}
               <SmartProductLink productUrl="/shop/mug/heart_mug" className="row-span-1">
                 <motion.div 
-                  className="relative aspect-square rounded-xl overflow-hidden shadow-xl group cursor-pointer h-full w-full max-h-[250px]"
+                  className="relative aspect-square rounded-xl overflow-hidden shadow-xl group cursor-pointer h-full w-full max-h-[180px] md:max-h-[200px] lg:max-h-[220px]"
                   whileHover={{ scale: 1.02, rotate: 0 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -506,7 +467,7 @@ const HeroSection: React.FC = () => {
                   {/* Overlays e texto */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute top-2 right-2">
-                    <span className="bg-pink-500 text-white px-2 py-1 rounded-full text-sm font-bold">
+                    <span className="bg-ghibli-poppy text-white px-2 py-1 rounded-full text-sm font-bold">
                       ❤️
                     </span>
                   </div>
