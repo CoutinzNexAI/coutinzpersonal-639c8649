@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/shop/canvas',
+        destination: '/shop/canvas/custom_canvas',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

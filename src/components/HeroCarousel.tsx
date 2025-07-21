@@ -18,7 +18,7 @@ const heroSlides: HeroSlide[] = [
     title: 'Transforme Memórias em Arte',
     subtitle: 'Canvas personalizados com suas fotos favoritas',
     ctaText: 'Criar Canvas',
-    ctaLink: '/shop/canvas',
+    ctaLink: '/shop/canvas/custom_canvas',
     ctaStyle: 'primary'
   },
   {

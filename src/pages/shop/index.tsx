@@ -36,7 +36,7 @@ const categories: Category[] = [
   {
     id: 'canvas',
     name: 'Canvas',
-    href: '/shop/canvas',
+    href: '/shop/canvas/custom_canvas',
     icon: Image,
     emoji: '🖼️',
     color: 'from-emerald-400 to-teal-500'
@@ -185,7 +185,7 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'plush_toy_tshirt',
     name: 'Peluche com T-Shirt',
-    price: 27.95,
+    price: 24.95,
     image: '/mockupproduto/peluche.png',
     href: '/shop/plush_toy_tshirt',
     badge: 'Novo!'
