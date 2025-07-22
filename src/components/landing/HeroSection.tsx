@@ -234,20 +234,24 @@ const HeroSection: React.FC = () => {
               </motion.h1>
             </motion.div>
 
-            {/* Mobile CTA Button - APENAS O BOTÃO PRINCIPAL */}
+            {/* Mobile CTA Button - ÁREA DE TOQUE OTIMIZADA */}
             <motion.div 
               className="flex flex-col gap-3 mb-6 px-4"
               variants={itemVariants}
             >
-              <Link href="/transformacoes" className="w-full">
-                <motion.div whileTap={{ scale: 0.95 }} className="w-full">
-                <Button 
-                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-7 text-xl rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                  style={{ WebkitTapHighlightColor: 'transparent' }}
+              <Link href="/transformacoes" className="block w-full">
+                <div 
+                  className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-7 px-6 text-xl rounded-xl shadow-lg active:bg-green-700 transition-colors duration-150 text-center cursor-pointer touch-manipulation select-none"
+                  style={{ 
+                    WebkitTapHighlightColor: 'transparent',
+                    minHeight: '60px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
                 >
-                  🎨 Transforma Grátis <span className="ml-2 animate-bounce">✨</span>
-                </Button>
-                </motion.div>
+                  🎨 Transforma Grátis ✨
+                </div>
               </Link>
             </motion.div>
 
@@ -385,22 +389,25 @@ const HeroSection: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Call to Action Button - APENAS O BOTÃO PRINCIPAL */}
+            {/* Call to Action Button - ÁREA DE TOQUE OTIMIZADA */}
             <motion.div 
               className="flex flex-col sm:flex-row gap-4 mb-6"
               variants={itemVariants}
             >
-              <Link href="/transformacoes">
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
-                  <Button 
-                    size="default" 
-                    className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-10 py-4 lg:py-7 text-xl rounded-xl shadow-xl hover:shadow-green-500/30 transition-all duration-300 border border-white/20"
-                  >
-                    <span className="mr-3 text-xl">🎨</span>
-                    Transforma a tua Foto Grátis 
-                    <span className="ml-3 text-base animate-bounce">✨</span>
-                  </Button>
-                </motion.div>
+              <Link href="/transformacoes" className="block">
+                <div 
+                  className="bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light hover:from-green-700 hover:via-ghibli-moss hover:to-green-600 text-white font-bold px-10 py-4 lg:py-7 text-xl rounded-xl shadow-xl hover:shadow-green-500/30 transition-all duration-300 border border-white/20 cursor-pointer touch-manipulation select-none text-center"
+                  style={{ 
+                    WebkitTapHighlightColor: 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <span className="mr-3 text-xl">🎨</span>
+                  Transforma a tua Foto Grátis 
+                  <span className="ml-3 text-base">✨</span>
+                </div>
               </Link>
             </motion.div>
           </motion.div>
