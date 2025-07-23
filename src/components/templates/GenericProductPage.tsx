@@ -242,6 +242,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       // ✅ FIXED: Only update if key actually changed to avoid unnecessary re-renders
       if (mockupGenerationKey !== newKey) {
         setMockupGenerationKey(newKey);
+        // 🚀 CORREÇÃO: Reset hasGenerated quando key muda para permitir nova geração
+        setHasGenerated(false);
       }
     }
   }, [selectedImageUrl, selectedPrintifyVariantId, selectedImageId, imagePosition, mockupGenerationKey]);
@@ -350,6 +352,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       setPrintifyProductId(data.printifyProductId);
       setHasGenerated(true);
       
+      // 🚀 CORREÇÃO: Resetar loading quando novos previews chegam
+      setIsGeneratingMockup(false);
+      
       if (currentMockupUrls.length === 0) {
         setCurrentMockupUrls(data.previewUrls);
       }
@@ -370,6 +375,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
       });
     }
     
+    // 🚀 CORREÇÃO: Sempre resetar loading quando mockup é gerado
     setHasGenerated(true);
     setIsGeneratingMockup(false);
   }, [userInfo?.id, product, selectedImageUrl, selectedPrintifyVariantId]);
@@ -414,7 +420,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     if (type === 'position' && typeof value === 'string') {
       newPosition = value as 'top' | 'center' | 'bottom' | 'left' | 'right';
       
-      // 🚀 NOVO: Ativar loading IMEDIATAMENTE quando muda posição
+      // 🚀 CORREÇÃO: Ativar loading IMEDIATAMENTE quando muda posição
       setIsGeneratingMockup(true);
       
       setImagePosition(newPosition);
@@ -423,7 +429,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     } else if (type === 'size' && typeof value === 'number') {
       newVariantId = value;
       
-      // 🚀 NOVO: Ativar loading IMEDIATAMENTE quando muda tamanho
+      // 🚀 CORREÇÃO: Ativar loading IMEDIATAMENTE quando muda tamanho
       setIsGeneratingMockup(true);
       
       setSelectedPrintifyVariantId(newVariantId);
@@ -437,14 +443,13 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
     // Record the request
     GlobalRateLimiter.recordRequest();
 
-    // Generate mockup if conditions are met
-    if (newVariantId !== null && selectedImageUrl && userImageDimensions) {
-      // ✅ REMOVIDO: setIsGeneratingMockup(true) já é chamado acima imediatamente
-      // The ProductCanvas component will handle the mockup generation
-    } else {
-      // 🚀 NOVO: Se não vai gerar mockup, desativar loading
+    // 🚀 CORREÇÃO: Timeout de segurança para resetar loading se não houver resposta
+    const safetyTimeout = setTimeout(() => {
       setIsGeneratingMockup(false);
-    }
+    }, 15000); // 15 segundos timeout
+
+    // Limpar timeout se o componente desmontar ou houver nova mudança
+    return () => clearTimeout(safetyTimeout);
   }, [imagePosition, selectedPrintifyVariantId, userImageDimensions, selectedImageUrl]);
 
   // Handle add to cart

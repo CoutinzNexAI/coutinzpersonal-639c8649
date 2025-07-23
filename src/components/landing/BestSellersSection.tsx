@@ -36,7 +36,7 @@ const bestSellers: Product[] = [
   },
   {
     id: 'custom_canvas',
-    name: 'Canvas Premium',
+    name: 'Canvas',
     category: 'Canvas',
     price: 24.95, // ✅ ATUALIZADO (6x6 base)
     imagePersonalized: '/Bestseller/canva16foto.png',

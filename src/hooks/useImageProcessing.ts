@@ -106,25 +106,25 @@ export function useImageProcessing() {
   const calculateSimulatedProgress = useCallback((pollCount: number): number => {
     if (pollCount === 0) return 0;
     
-    // Fórmula de progresso simulado:
-    // - Inicia com 5% na primeira tentativa
-    // - Cresce rapidamente até 30% nos primeiros 30s
-    // - Cresce moderadamente até 70% nos próximos 2min
-    // - Cresce lentamente até 95% no resto do tempo
+    // 🚀 NOVA FÓRMULA MELHORADA: Progresso mais distribuído e fluido
+    // - Inicia com 8% na primeira tentativa (mais visível)
+    // - Cresce bem até 45% nos primeiros 45s
+    // - Salta para 80% quando passa da fase inicial (evita "preso nos 40%")
+    // - Cresce gradualmente até 92% no resto do tempo
     // - Nunca chega a 100% (só quando realmente completa)
     
-    if (pollCount <= 3) {
-      // Primeiros 30s: 5% -> 30%
-      return 5 + (pollCount * 8);
-    } else if (pollCount <= 12) {
-      // 30s -> 2min: 30% -> 70%
-      return 30 + ((pollCount - 3) * 4.5);
-    } else if (pollCount <= 30) {
-      // 2min -> 5min: 70% -> 90%
-      return 70 + ((pollCount - 12) * 1.1);
+    if (pollCount <= 4) {
+      // Primeiros 45s: 8% -> 45% (crescimento visível)
+      return 8 + (pollCount * 9); // 8, 17, 26, 35, 44%
+    } else if (pollCount <= 8) {
+      // 45s -> 90s: 45% -> 80% (salto para evitar "preso")
+      return 45 + ((pollCount - 4) * 8.75); // 53.75, 62.5, 71.25, 80%
+    } else if (pollCount <= 20) {
+      // 90s -> 4min: 80% -> 88% (crescimento moderado)
+      return 80 + ((pollCount - 8) * 0.67); // até 88%
     } else {
-      // 5min+: 90% -> 95% (muito lento)
-      return Math.min(95, 90 + ((pollCount - 30) * 0.5));
+      // 4min+: 88% -> 92% (crescimento lento mas visível)
+      return Math.min(92, 88 + ((pollCount - 20) * 0.4));
     }
   }, []);
 
