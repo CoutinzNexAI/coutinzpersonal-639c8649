@@ -126,7 +126,7 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
   // Determina o estilo do botão baseado no estado
   const getButtonStyle = () => {
     if (!userInfo) {
-      return 'bg-ghibli-moss hover:bg-ghibli-moss/90 text-white';
+      return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white';
     }
     
     if (!selectedImageUrl) {
@@ -141,7 +141,7 @@ export const ProductAddToCartButton: React.FC<ProductAddToCartButtonProps> = ({
       return 'bg-orange-500 hover:bg-orange-600 text-white';
     }
     
-    return 'bg-ghibli-moss hover:bg-ghibli-moss/90 text-white';
+    return 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white';
   };
 
   // Simplified button styles

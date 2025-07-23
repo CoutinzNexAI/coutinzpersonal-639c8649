@@ -13,7 +13,7 @@ export const mugConfig = {
   // ✅ NOVO: Função para obter preço original (para cálculos de entrega grátis)
   getOriginalPrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => {
     if (product?.id === 'heart_mug') {
-      return 26.95; // Preço original da Heart mug (SEM desconto)
+      return 28.69; // ✅ ATUALIZADO: Preço "original" inflacionado para fake discount
     }
     
     if (product?.id === 'ceramic_mug' && selectedPrintifyVariantId) {
@@ -28,7 +28,7 @@ export const mugConfig = {
     let originalPrice;
     
     if (product?.id === 'heart_mug') {
-      originalPrice = 24.26; // Preço base da caneca coração
+      originalPrice = 22.95; // ✅ ATUALIZADO: Novo preço base da caneca coração
     } else if (product?.id === 'ceramic_mug' && selectedPrintifyVariantId) {
       // 330ml (id: 62327) = €18.95, 450ml (id: 62328) = €22.95
       originalPrice = selectedPrintifyVariantId === 62327 ? 18.95 : 22.95;

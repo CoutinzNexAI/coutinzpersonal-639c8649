@@ -84,13 +84,14 @@ const categories: Category[] = [
   }
 ];
 
-// ✅ NOVO: Função para obter preço com desconto especial
+// ✅ ATUALIZADO: Função para obter preço com fake discount
 const getProductPricing = (product: IndividualProduct) => {
-  if (product.hasSpecialDiscount && product.discountPercent && product.originalPrice) {
+  const fakeDiscountInfo = getFakeDiscountInfo(product.id);
+  if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
     return {
-      originalPrice: product.originalPrice,
-      discountedPrice: product.price,
-      discountPercent: product.discountPercent,
+      originalPrice: fakeDiscountInfo.fakePrice,
+      discountedPrice: fakeDiscountInfo.realPrice,
+      discountPercent: fakeDiscountInfo.discountPercent,
       hasDiscount: true
     };
   }
@@ -116,13 +117,10 @@ const individualProducts: IndividualProduct[] = [
   {
     id: 'heart_mug',
     name: 'Caneca Coração',
-    price: 24.26, // ✅ NOVO: Preço com desconto de 10% (26.95 * 0.9)
-    originalPrice: 26.95, // ✅ NOVO: Preço original
-    hasSpecialDiscount: true, // ✅ NOVO: Indica desconto especial
-    discountPercent: 10, // ✅ NOVO: 10% de desconto
+    price: 22.95, // ✅ ATUALIZADO: Novo preço
     image: '/mockupproduto/canecacoracao.png',
     href: '/shop/mug/heart_mug',
-    badge: '🔥 10% OFF'
+    badge: 'Popular'
   },
   // 3. Canvas (sem borda)
   {

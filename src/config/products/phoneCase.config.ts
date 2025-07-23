@@ -8,7 +8,7 @@ export const phoneCaseConfig = {
 
   // ✅ NOVO: Função para obter preço original (mesmo que base para capas - sem desconto especial)
   getOriginalPrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
-    return product.basePrice || 19.95;
+    return 29.95; // ✅ ATUALIZADO: Preço "original" inflacionado para fake discount de 33%
   },
 
   // ✅ ATUALIZADO: Usar preços com desconto fake

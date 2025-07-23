@@ -21,9 +21,9 @@ export const FAKE_DISCOUNT_PRODUCTS: Record<string, FakeDiscountProduct> = {
   },
   'custom_phone_case': {
     realPrice: 19.95,
-    fakePrice: 33.25,  // 19.95 / 0.6 = 33.25
-    discountPercent: 40,
-    badge: '🔥 40% OFF',
+    fakePrice: 29.95,  // Preço original definido
+    discountPercent: 33,  // (29.95 - 19.95) / 29.95 * 100 = 33.4% ≈ 33%
+    badge: '🔥 33% OFF',
     hasDiscount: true
   },
   'poster_vertical_semi_glossy': {
@@ -58,8 +58,8 @@ export const FAKE_DISCOUNT_PRODUCTS: Record<string, FakeDiscountProduct> = {
 
   // 20% OFF - Canecas, Caderno, Tote Bag
   'heart_mug': {
-    realPrice: 24.26,
-    fakePrice: 30.33,  // 24.26 / 0.8 = 30.33
+    realPrice: 22.95,
+    fakePrice: 28.69,  // 22.95 / 0.8 = 28.69
     discountPercent: 20,
     badge: '💡 20% OFF',
     hasDiscount: true

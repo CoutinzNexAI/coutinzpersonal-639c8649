@@ -89,7 +89,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
         user_id: userInfo.id,
         cart_items: cartSummary.itemCount,
         cart_value: cartSummary.subtotal,
-        discount_amount: cartSummary.discountAmount,
+        discount_amount: cartSummary.discountAmount || 0,
         shipping_cost: cartSummary.shipping,
         total_amount: cartSummary.subtotal + cartSummary.shipping,
         checkout_source: 'cart_sidebar',
@@ -146,7 +146,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
           userEmail: currentUserData.email,
           subtotal: cartSummary.subtotal,
           originalSubtotal: cartSummary.originalSubtotal,
-          discountAmount: cartSummary.discountAmount,
+          discountAmount: cartSummary.discountAmount || 0,
           shipping: cartSummary.shipping,
           tax: 0,
           total: finalTotal
@@ -255,10 +255,10 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 <p className="text-xs text-gray-500 line-through">
                   €{(fakeDiscountInfo.fakePrice * item.quantity).toFixed(2)}
                 </p>
-                <p className="font-bold text-green-600">
+                <p className="font-bold text-red-600">
                   €{(item.price * item.quantity).toFixed(2)}
                 </p>
-                <p className="text-xs text-green-600">
+                <p className="text-xs text-red-600">
                   -{fakeDiscountInfo.discountPercent}%
                 </p>
               </div>
@@ -395,7 +395,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                   <Button
                     onClick={handleCheckout}
                     disabled={isProcessingCheckout || !userInfo}
-                    className="w-full py-4 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light hover:from-ghibli-moss-light hover:to-ghibli-moss text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="w-full py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     {isProcessingCheckout ? (
                       <div className="flex items-center justify-center gap-2">

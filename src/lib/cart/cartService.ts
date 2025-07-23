@@ -170,7 +170,7 @@ export class CartService {
       items,
       subtotal: Math.round(subtotal * 100) / 100,
       originalSubtotal: Math.round(subtotal * 100) / 100, // Mesmo valor
-      discountAmount: 0, // ✅ REMOVIDO: Sem descontos de quantidade
+      // ✅ REMOVIDO: discountAmount completamente (não enviar nem como 0)
       shipping: Math.round(shipping * 100) / 100,
       tax: Math.round(tax * 100) / 100,
       total: Math.round(total * 100) / 100,

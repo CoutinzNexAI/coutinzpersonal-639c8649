@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PromotionalBanner from '@/components/landing/PromotionalBanner';
 import { getPrintifyProductsByCategory } from '@/lib/printify/printifyProducts';
+import { getFakeDiscountInfo } from '@/lib/fakeDiscounts';
 
 const MugShopPage: React.FC = () => {
   const mugProducts = getPrintifyProductsByCategory('mug');
@@ -113,30 +114,34 @@ const MugShopPage: React.FC = () => {
                               )}
                             </div>
                             
-                            {/* Price - com suporte a desconto especial */}
+                            {/* Price with Fake Discount */}
                             <div className="flex items-center justify-center">
-                              {product.id === 'heart_mug' ? (
-                                <div className="flex flex-col items-center">
-                                  {/* 10% OFF badge e preço original na mesma linha */}
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black px-2 py-1 rounded-full shadow-lg">
-                                      10% OFF
+                              {(() => {
+                                const fakeDiscountInfo = getFakeDiscountInfo(product.id);
+                                if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
+                                  return (
+                                    <div className="text-center">
+                                      <div className="flex items-center gap-2 mb-1 justify-center">
+                                        <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black px-2 py-1 rounded-full shadow-lg">
+                                          {fakeDiscountInfo.discountPercent}% OFF
+                                        </div>
+                                        <div className="text-sm text-red-500 line-through font-medium">
+                                          €{fakeDiscountInfo.fakePrice.toFixed(2)}
+                                        </div>
+                                      </div>
+                                      <div className="text-2xl font-bold text-ghibli-moss">
+                                        €{fakeDiscountInfo.realPrice.toFixed(2)}
+                                      </div>
                                     </div>
-                                    <div className="text-sm text-red-500 line-through font-medium">
-                                      €26.95
+                                  );
+                                } else {
+                                  return (
+                                    <div className="text-2xl font-bold text-ghibli-moss">
+                                      €{product.basePrice || product.price || 25.00}
                                     </div>
-                                  </div>
-                                  
-                                  {/* Preço novo */}
-                                  <div className="text-2xl font-bold text-ghibli-moss">
-                                    €24.26
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="text-2xl font-bold text-ghibli-moss">
-                                  €{product.basePrice || product.price || 25.00}
-                                </div>
-                              )}
+                                  );
+                                }
+                              })()}
                             </div>
                           </div>
                         </div>

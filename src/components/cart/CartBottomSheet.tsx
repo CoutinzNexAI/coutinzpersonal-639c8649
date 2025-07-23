@@ -110,7 +110,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
         user_id: userInfo.id,
         cart_items: cartSummary.itemCount,
         cart_value: cartSummary.subtotal,
-        discount_amount: cartSummary.discountAmount,
+        discount_amount: cartSummary.discountAmount || 0,
         shipping_cost: cartSummary.shipping,
         total_amount: cartSummary.subtotal + cartSummary.shipping,
         checkout_source: 'cart_bottom_sheet',
@@ -167,7 +167,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
           userEmail: currentUserData.email,
           subtotal: cartSummary.subtotal,
           originalSubtotal: cartSummary.originalSubtotal,
-          discountAmount: cartSummary.discountAmount,
+          discountAmount: cartSummary.discountAmount || 0,
           shipping: cartSummary.shipping,
           tax: 0,
           total: finalTotal
@@ -423,7 +423,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                   <Button
                     onClick={handleCheckout}
                     disabled={isProcessingCheckout || !userInfo}
-                    className="w-full py-3 bg-gradient-to-r from-ghibli-moss to-ghibli-moss-light hover:from-ghibli-moss-light hover:to-ghibli-moss text-white font-bold text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 touch-manipulation"
+                    className="w-full py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 touch-manipulation"
                   >
                     {isProcessingCheckout ? (
                       <div className="flex items-center justify-center gap-2">
