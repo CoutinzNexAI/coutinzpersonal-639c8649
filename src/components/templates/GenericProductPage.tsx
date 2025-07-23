@@ -51,7 +51,7 @@ interface GenericProductPageProps {
   config: {
     productCategory: string;
     getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => number;
-    discountTiers: Array<{ min: number; discount: number; label: string; emoji: string; }>;
+    // ✅ REMOVIDO: discountTiers (substituído por sistema fake)
     descriptionItems: (product: PrintifyProductMapping) => Array<{ text: string; color?: 'moss' | 'wood'; emoji?: string; }>;
     guaranteeItems: () => Array<{ icon: React.ComponentType<{ className?: string }>; title: string; }>;
     coordinateConfig?: { positionType: string; positions: readonly string[]; };
