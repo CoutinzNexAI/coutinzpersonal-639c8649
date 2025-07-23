@@ -28,6 +28,7 @@ import {
   trackPersonalizationComplete,
   trackAddToCart 
 } from '@/lib/posthog';
+import { getFakeDiscountInfo } from '@/lib/fakeDiscounts';
 import * as fpixel from '@/lib/fpixel';
 
 // Componentes compartilhados
@@ -96,21 +97,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
   const [mockupGenerationKey, setMockupGenerationKey] = useState('');
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
 
-  // Cálculos de preço usando a configuração
-  const calculateDiscount = (qty: number) => {
-    const applicableTiers = config.discountTiers?.filter((tier) => qty >= tier.min) || [];
-    const bestTier = applicableTiers.reduce((best, current) => 
-      current.discount > best.discount ? current : best, 
-      { discount: 0 }
-    );
-    return bestTier.discount;
-  };
-
+  // ✅ SIMPLIFICADO: Cálculos de preço sem descontos de quantidade
   const basePrice = config.getBasePrice(product, selectedPrintifyVariantId);
-  const discount = calculateDiscount(quantity);
-  const discountedPrice = basePrice * (1 - discount / 100);
-  const totalPrice = discountedPrice * quantity;
-  const savings = (basePrice * quantity) - totalPrice;
+  const totalPrice = basePrice * quantity;
 
   // Track product view on component mount
   useEffect(() => {
@@ -915,7 +904,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 basePrice={basePrice}
                 quantity={quantity}
                 onQuantityChange={setQuantity}
-                discountTiers={config.discountTiers || []}
+                discountTiers={[]}
                 canPurchase={!!canPurchase}
                 onAddToCart={handleAddToCart}
                 loading={loading}
@@ -1063,51 +1052,64 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     {/* Preço e Quantidade */}
                     <div className="space-y-3">
                       <div className="text-center">
-                        {/* Verificar se é caneca coração com desconto especial */}
-                        {product.id === 'heart_mug' ? (
-                          <div className="flex flex-col items-center">
-                            {/* Linha com 10% OFF + preço original riscado */}
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-lg font-black px-3 py-1 rounded-full shadow-lg">
-                                10% OFF
+                        {/* ✅ NOVO: Sistema de descontos fake */}
+                        {(() => {
+                          const fakeDiscountInfo = getFakeDiscountInfo(product.id);
+                          
+                          if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
+                            return (
+                              <div className="flex flex-col items-center">
+                                {/* Badge de desconto + preço fake riscado */}
+                                <div className="flex items-center gap-3 mb-3">
+                                  <motion.div 
+                                    className="bg-gradient-to-r from-red-500 to-red-600 text-white text-lg font-black px-3 py-1 rounded-full shadow-lg"
+                                    animate={{ 
+                                      scale: [1, 1.05, 1],
+                                      boxShadow: [
+                                        "0 4px 6px rgba(239, 68, 68, 0.2)",
+                                        "0 8px 25px rgba(239, 68, 68, 0.4)",
+                                        "0 4px 6px rgba(239, 68, 68, 0.2)"
+                                      ]
+                                    }}
+                                    transition={{ 
+                                      duration: 2, 
+                                      repeat: Infinity,
+                                      ease: "easeInOut"
+                                    }}
+                                  >
+                                    {fakeDiscountInfo.discountPercent}% OFF
+                                  </motion.div>
+                                  <div className="text-lg text-gray-500 line-through font-medium">
+                                    €{(fakeDiscountInfo.fakePrice * quantity).toFixed(2)}
+                                  </div>
+                                </div>
+                                
+                                {/* Preço real (com desconto fake) */}
+                                <div className="text-4xl font-black text-green-600 mb-1">
+                                  €{totalPrice.toFixed(2)}
+                                </div>
+                                
+                                {/* ✅ REMOVIDO: Texto "Poupa €X.XX!" */}
                               </div>
-                              <div className="text-lg text-red-500 line-through font-medium">
-                                €26.95
+                            );
+                          } else {
+                            // Produto sem desconto fake
+                            return (
+                              <div className="flex items-baseline justify-center gap-2 mb-1">
+                                <span className="text-4xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</span>
                               </div>
-                            </div>
-                            
-                            {/* Preço novo */}
-                            <div className="text-4xl font-black text-ghibli-moss mb-1">
-                              €24.26
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-baseline justify-center gap-2 mb-1">
-                            <span className="text-4xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
-                            {discount > 0 && (
-                              <span className="text-lg text-gray-500 line-through">€{basePrice.toFixed(2)}</span>
-                            )}
-                            {discount > 0 && (
-                              <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                                -{discount}%
-                              </div>
-                            )}
-                          </div>
-                        )}
+                            );
+                          }
+                        })()}
                         
-                        {/* Savings para produtos normais */}
-                        {product.id !== 'heart_mug' && discount > 0 && (
-                          <p className="text-sm text-green-600 font-medium">
-                            Poupa €{savings.toFixed(2)} com {discount}% desconto!
-                          </p>
-                        )}
+                        {/* ✅ REMOVIDO: Texto "Poupa €X.XX!" */}
                       </div>
 
                       {/* Seletor de Quantidade */}
-                      <div className="bg-ghibli-cream/30 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-3">
+                      <div className="bg-ghibli-cream/30 rounded-lg p-2">
+                        <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-medium text-ghibli-earth">Quantidade:</span>
-                          <div className="flex items-center gap-2 bg-white/80 rounded-lg p-1">
+                          <div className="flex items-center gap-1 bg-white/80 rounded-md px-2 py-1">
                             <Button
                               onClick={() => setQuantity(Math.max(1, quantity - 1))}
                               disabled={quantity <= 1}
@@ -1133,25 +1135,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                           </div>
                         </div>
 
-                        {/* Destaques de desconto */}
-                        {config.discountTiers && (
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            {config.discountTiers.map((tier, index: number) => (
-                              <button 
-                                key={index} 
-                                onClick={() => setQuantity(tier.min)}
-                                className={`text-center p-2 rounded-md transition-all cursor-pointer hover:scale-105 ${
-                                  quantity >= tier.min 
-                                    ? 'bg-green-100 border border-green-300 text-green-800 hover:bg-green-200' 
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                              >
-                                <div className="font-bold">{tier.min}+ {tier.label}</div>
-                                <div>{tier.discount}% OFF</div>
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                        {/* ✅ REMOVIDO: Destaques de desconto de quantidade */}
 
                         {/* Total */}
                         {quantity > 1 && (
@@ -1161,7 +1145,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                               <div className="text-right">
                                 <div className="text-xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</div>
                                 <div className="text-xs text-ghibli-earth/70">
-                                  {quantity} × €{discountedPrice.toFixed(2)}
+                                  {quantity} × €{basePrice.toFixed(2)}
                                 </div>
                               </div>
                             </div>

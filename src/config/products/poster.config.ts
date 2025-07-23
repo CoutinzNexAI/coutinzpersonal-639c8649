@@ -4,6 +4,7 @@
 import { Shield, Sparkles, Truck, Award } from 'lucide-react';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { ImageAdjustments } from '@/types/product';
+import { getRealPrice } from '@/lib/fakeDiscounts';
 
 export const posterConfig = {
   productCategory: 'poster',
@@ -14,19 +15,17 @@ export const posterConfig = {
     return selectedVariant?.price ? selectedVariant.price / 100 : 20;
   },
 
-  // ✅ PREÇOS: baseado na variante selecionada
+  // ✅ ATUALIZADO: Usar preços com desconto fake
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
     const selectedVariant = product?.variants?.find(v => v.id === selectedPrintifyVariantId);
     // O preço na nossa base de dados está em cêntimos. Convertemos para euros.
-    // O fallback de 20 é para o caso de algo falhar.
-    return selectedVariant?.price ? selectedVariant.price / 100 : 20;
+    const originalPrice = selectedVariant?.price ? selectedVariant.price / 100 : 20;
+    
+    // ✅ NOVO: Usar preço real com desconto fake se aplicável
+    return getRealPrice(product.id, originalPrice);
   },
 
-  // ✅ DESCONTOS: Para múltiplos posters
-  discountTiers: [
-    { min: 2, discount: 10, label: 'posters', emoji: '🖼️' },
-    { min: 3, discount: 15, label: 'posters', emoji: '🔥' }
-  ],
+  // ✅ REMOVIDO: discountTiers (substituído por descontos fake individuais)
 
   // ✅ DESCRIÇÃO: Específica para posters
   descriptionItems: (_product: PrintifyProductMapping) => [

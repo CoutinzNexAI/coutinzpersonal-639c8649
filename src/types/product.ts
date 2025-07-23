@@ -104,8 +104,7 @@ export interface ProductConfig {
   // ✅ NOVO: Função para obter preço original (sem descontos especiais, para cálculos de entrega grátis)
   getOriginalPrice?: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => number;
   
-  // Regras de desconto
-  discountTiers: DiscountTier[];
+  // ✅ REMOVIDO: discountTiers (substituído por sistema fake)
   
   // Itens de descrição (função que recebe produto e retorna array)
   descriptionItems: (product: PrintifyProductMapping) => DescriptionItem[];

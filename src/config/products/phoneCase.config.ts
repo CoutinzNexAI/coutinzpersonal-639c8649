@@ -1,6 +1,7 @@
 import { Shield, Sparkles, Truck, Award } from 'lucide-react';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { ImageAdjustments } from '@/types/product';
+import { getRealPrice } from '@/lib/fakeDiscounts';
 
 export const phoneCaseConfig = {
   productCategory: 'tecnologia',
@@ -10,16 +11,15 @@ export const phoneCaseConfig = {
     return product.basePrice || 19.95;
   },
 
-  // ✅ PREÇOS: Preço fixo para todas as capas
+  // ✅ ATUALIZADO: Usar preços com desconto fake
   getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
-    return product.basePrice || 19.95; // €19.95 por capa ✅ ATUALIZADO
+    const originalPrice = product.basePrice || 19.95;
+    
+    // ✅ NOVO: Usar preço real com desconto fake se aplicável
+    return getRealPrice(product.id, originalPrice);
   },
 
-  // ✅ DESCONTOS: Para múltiplas capas
-  discountTiers: [
-    { min: 2, discount: 10, label: 'capas', emoji: '📱' },
-    { min: 3, discount: 15, label: 'capas', emoji: '🔥' }
-  ],
+  // ✅ REMOVIDO: discountTiers (substituído por descontos fake individuais)
 
   // ✅ DESCRIÇÃO: Específica para capas de telemóvel - 3 tópicos diretos
   descriptionItems: (_product: PrintifyProductMapping) => [

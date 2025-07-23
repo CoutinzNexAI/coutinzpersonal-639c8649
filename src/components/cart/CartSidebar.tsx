@@ -8,6 +8,7 @@ import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { supabase } from '@/lib/supabase/client';
 import { CartItem, CartSummary } from '@/lib/cart/cartTypes';
 import { CartBottomSheet } from './CartBottomSheet';
+import { getFakeDiscountInfo } from '@/lib/fakeDiscounts';
 import { trackCheckoutStarted } from '@/lib/posthog';
 import * as fpixel from '@/lib/fpixel';
 import Image from 'next/image';
@@ -25,28 +26,7 @@ interface UserData {
   email: string;
 }
 
-// Utilitário para calcular desconto de um item (mesmo do CartBottomSheet)
-const calculateItemDiscount = (item: CartItem, allItems: CartItem[]) => {
-  const sameProductItems = allItems.filter(cartItem => cartItem.productId === item.productId);
-  const totalSameProductQty = sameProductItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
-  
-  let discountPercent = 0;
-  if (totalSameProductQty >= 3) {
-    discountPercent = 15;
-  } else if (totalSameProductQty >= 2) {
-    discountPercent = 10;
-  }
-  
-  const originalPrice = item.price * item.quantity;
-  const discountedPrice = originalPrice * (1 - discountPercent / 100);
-  
-  return {
-    originalPrice,
-    discountedPrice,
-    discountPercent,
-    hasDiscount: discountPercent > 0
-  };
-};
+// ✅ REMOVIDO: Sistema de desconto de quantidade (substituído por descontos fake individuais)
 
 export const CartSidebar: React.FC<CartSidebarProps> = ({
   isOpen,
@@ -197,10 +177,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
 
   // Componente para cada item do carrinho
   const CartItemCard = ({ item }: { item: CartItem }) => {
-    const discount = useMemo(() => 
-      calculateItemDiscount(item, cartSummary?.items || []), 
-      [item, cartSummary?.items]
-    );
+    const fakeDiscountInfo = getFakeDiscountInfo(item.productId);
 
     return (
       <motion.div
@@ -273,21 +250,21 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
           </div>
           
           <div className="text-right">
-            {discount.hasDiscount ? (
+            {fakeDiscountInfo && fakeDiscountInfo.hasDiscount ? (
               <div>
-                <p className="text-xs text-red-500 line-through">
-                  €{discount.originalPrice.toFixed(2)}
+                <p className="text-xs text-gray-500 line-through">
+                  €{(fakeDiscountInfo.fakePrice * item.quantity).toFixed(2)}
                 </p>
-                <p className="font-bold text-ghibli-moss">
-                  €{discount.discountedPrice.toFixed(2)}
+                <p className="font-bold text-green-600">
+                  €{(item.price * item.quantity).toFixed(2)}
                 </p>
                 <p className="text-xs text-green-600">
-                  -{discount.discountPercent}%
+                  -{fakeDiscountInfo.discountPercent}%
                 </p>
               </div>
             ) : (
               <p className="font-bold text-ghibli-moss">
-                €{discount.originalPrice.toFixed(2)}
+                €{(item.price * item.quantity).toFixed(2)}
               </p>
             )}
           </div>

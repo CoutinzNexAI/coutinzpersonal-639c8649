@@ -7,7 +7,7 @@ const MessageRotator: React.FC = () => {
     { emoji: '🚚', text: 'ENTREGA GRÁTIS > 40€' },
     { emoji: '⚡', text: 'Receba em 3-5 dias úteis!' },
     { emoji: '💎', text: 'Produtos de alta qualidade' },
-    { emoji: '💰', text: '15% OFF em várias unidades!' } // ✅ NOVA MENSAGEM
+    { emoji: '🔥', text: 'Até 40% OFF em produtos selecionados!' } // ✅ ATUALIZADO
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);

@@ -88,37 +88,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
 
-    // Calcular descontos por grupo de produtos
-    const productGroups = items.reduce((groups: Record<string, CartItem[]>, item: CartItem) => {
-      const key = item.productId; // ✅ CORRIGIDO: usar productId
-      if (!groups[key]) {
-        groups[key] = [];
-      }
-      groups[key].push(item);
-      return groups;
-    }, {});
-
-    // Criar line items para o Stripe
+    // ✅ SIMPLIFICADO: Criar line items sem descontos de quantidade
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: CartItem) => {
       // Construir descrição com posição
       const position = item.customizations?.position || 'Centro';
       const variant = item.customizations?.variant || item.customizations?.size || 'Tamanho padrão';
       const description = `Produto personalizado com arte PicTuz - ${variant} - Posição: ${position}`;
-      
-      // Calcular desconto para este item baseado no grupo do produto
-      const sameProductItems = productGroups[item.productId] || []; // ✅ CORRIGIDO: usar productId
-      const totalSameProductQty = sameProductItems.reduce((sum, groupItem) => sum + groupItem.quantity, 0);
-      
-      let discountPercent = 0;
-      if (totalSameProductQty >= 3) {
-        discountPercent = 15;
-      } else if (totalSameProductQty >= 2) {
-        discountPercent = 10;
-      }
-      
-      // Aplicar desconto ao preço
-      const originalPrice = item.price;
-      const discountedPrice = originalPrice * (1 - discountPercent / 100);
       
       return {
       price_data: {
@@ -127,16 +102,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           name: item.productName,
             description: description,
           metadata: {
-            productId: item.productId, // ✅ CORRIGIDO: usar productId
+            productId: item.productId,
             userImageId: item.userImageId || '',
-              transformationId: item.userImageId || '',
-              position: position,
-              originalPrice: originalPrice.toString(),
-              discountPercent: discountPercent.toString(),
-              discountedPrice: discountedPrice.toString()
+            transformationId: item.userImageId || '',
+            position: position
           }
         },
-          unit_amount: Math.round(discountedPrice * 100), // Usar preço com desconto
+          unit_amount: Math.round(item.price * 100), // ✅ SIMPLIFICADO: Usar preço do item
       },
       quantity: item.quantity,
       };

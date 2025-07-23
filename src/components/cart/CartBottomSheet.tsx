@@ -10,6 +10,7 @@ import { CartItem, CartSummary } from '@/lib/cart/cartTypes';
 import { trackCheckoutStarted } from '@/lib/posthog';
 import * as fpixel from '@/lib/fpixel';
 import Image from 'next/image';
+import { getFakeDiscountInfo } from '@/lib/fakeDiscounts';
 
 interface CartBottomSheetProps {
   isOpen: boolean;
@@ -24,28 +25,7 @@ interface UserData {
   email: string;
 }
 
-// Utilitário para calcular desconto de um item
-const calculateItemDiscount = (item: CartItem, allItems: CartItem[]) => {
-  const sameProductItems = allItems.filter(cartItem => cartItem.productId === item.productId);
-  const totalSameProductQty = sameProductItems.reduce((sum, cartItem) => sum + cartItem.quantity, 0);
-  
-  let discountPercent = 0;
-  if (totalSameProductQty >= 3) {
-    discountPercent = 15;
-  } else if (totalSameProductQty >= 2) {
-    discountPercent = 10;
-  }
-  
-  const originalPrice = item.price * item.quantity;
-  const discountedPrice = originalPrice * (1 - discountPercent / 100);
-  
-  return {
-    originalPrice,
-    discountedPrice,
-    discountPercent,
-    hasDiscount: discountPercent > 0
-  };
-};
+// ✅ REMOVIDO: Sistema de desconto de quantidade (substituído por descontos fake individuais)
 
 export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
   isOpen,
@@ -218,10 +198,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
 
   // Componente para cada item do carrinho
   const CartItemCard = ({ item }: { item: CartItem }) => {
-    const discount = useMemo(() => 
-      calculateItemDiscount(item, cartSummary?.items || []), 
-      [item, cartSummary?.items]
-    );
+    const fakeDiscountInfo = getFakeDiscountInfo(item.productId);
 
     return (
       <motion.div
@@ -258,23 +235,23 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
           
           <div className="flex flex-col items-end gap-2">
             <div className="text-right">
-              {discount.hasDiscount ? (
+              {fakeDiscountInfo && fakeDiscountInfo.hasDiscount ? (
                 <div className="text-right">
                   <div className="flex items-center gap-1 justify-end mb-0.5">
-                    <p className="text-xs text-red-500 line-through">
-                      €{discount.originalPrice.toFixed(2)}
+                    <p className="text-xs text-gray-500 line-through">
+                      €{(fakeDiscountInfo.fakePrice * item.quantity).toFixed(2)}
                     </p>
                     <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-bold">
-                      -{discount.discountPercent}%
+                      -{fakeDiscountInfo.discountPercent}%
                     </span>
                   </div>
-                  <p className="text-sm font-bold text-ghibli-moss">
-                    €{discount.discountedPrice.toFixed(2)}
+                  <p className="text-sm font-bold text-green-600">
+                    €{(item.price * item.quantity).toFixed(2)}
                   </p>
                 </div>
               ) : (
                 <p className="text-sm font-bold text-ghibli-moss">
-                  €{discount.originalPrice.toFixed(2)}
+                  €{(item.price * item.quantity).toFixed(2)}
                 </p>
               )}
             </div>

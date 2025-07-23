@@ -1,6 +1,7 @@
 import { Shield, Sparkles, Truck, Award } from 'lucide-react';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { ImageAdjustments } from '@/types/product';
+import { getRealPrice } from '@/lib/fakeDiscounts';
 
 export const notebookConfig = {
   productCategory: 'escritorio',
@@ -11,14 +12,13 @@ export const notebookConfig = {
   },
 
   getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null): number => {
-    // Caderno tem preço fixo de €17.95 ✅ ATUALIZADO
-    return product?.basePrice || 17.95;
+    const originalPrice = product?.basePrice || 17.95;
+    
+    // ✅ NOVO: Usar preço real com desconto fake se aplicável
+    return getRealPrice(product.id, originalPrice);
   },
 
-  discountTiers: [
-    { min: 2, discount: 10, label: '10% OFF', emoji: '📝' },
-    { min: 3, discount: 15, label: '15% OFF', emoji: '🎯' }
-  ],
+  // ✅ REMOVIDO: discountTiers (substituído por descontos fake individuais)
 
   descriptionItems: (_product: PrintifyProductMapping) => [
     {

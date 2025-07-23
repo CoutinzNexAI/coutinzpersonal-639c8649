@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SmartProductLink } from '@/components/shared/SmartProductLink';
+import { getFakeDiscountInfo } from '@/lib/fakeDiscounts';
 
 interface Product {
   id: string;
@@ -20,23 +21,7 @@ interface Product {
   originalPrice?: number;
 }
 
-// ✅ NOVO: Função para obter preço com desconto especial
-const getProductPricing = (product: Product) => {
-  if (product.hasSpecialDiscount && product.discountPercent && product.originalPrice) {
-    return {
-      originalPrice: product.originalPrice,
-      discountedPrice: product.price,
-      discountPercent: product.discountPercent,
-      hasDiscount: true
-    };
-  }
-  return {
-    originalPrice: product.price,
-    discountedPrice: product.price,
-    discountPercent: 0,
-    hasDiscount: false
-  };
-};
+// ✅ REMOVIDO: getProductPricing (substituído por sistema fake)
 
 const bestSellers: Product[] = [
   {
@@ -190,8 +175,9 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
             {/* Price - Centralized and prominent with discount support */}
             <div className="flex flex-col items-center justify-center">
               {(() => {
-                const pricing = getProductPricing(product);
-                if (pricing.hasDiscount) {
+                const fakeDiscountInfo = getFakeDiscountInfo(product.id);
+                
+                if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
                   return (
                     <>
                       {/* 10% OFF badge and original price on same line */}
@@ -212,10 +198,10 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
                             ease: "easeInOut"
                           }}
                         >
-                          10% OFF
+                          {fakeDiscountInfo.discountPercent}% OFF
                         </motion.div>
-                        <div className="text-sm text-red-500 line-through font-medium">
-                          €{pricing.originalPrice.toFixed(2)}
+                        <div className="text-sm text-gray-500 line-through font-medium">
+                          €{fakeDiscountInfo.fakePrice.toFixed(2)}
                         </div>
                       </div>
                       
@@ -231,7 +217,7 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
                           ease: "easeInOut"
                         }}
                       >
-                        €{pricing.discountedPrice.toFixed(2)}
+                        €{fakeDiscountInfo.realPrice.toFixed(2)}
                       </motion.div>
                     </>
                   );

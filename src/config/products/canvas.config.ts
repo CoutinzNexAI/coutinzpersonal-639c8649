@@ -3,6 +3,7 @@
 
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { Shield, Sparkles, Truck, Award } from 'lucide-react';
+import { getRealPrice } from '@/lib/fakeDiscounts';
 
 export const canvasConfig = {
   productCategory: 'canvas',
@@ -23,21 +24,23 @@ export const canvasConfig = {
 
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
     const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
-    if (!selectedVariant) return product.basePrice || 20.00;
+    let originalPrice;
     
-    // Canvas Sem Borda: basePrice 20 + priceAdjustment
-    if (selectedVariant.id >= 91656 && selectedVariant.id <= 101418) {
-      return 20.00 + (selectedVariant.priceAdjustment || 0);
+    if (!selectedVariant) {
+      originalPrice = product.basePrice || 20.00;
+    } else if (selectedVariant.id >= 91656 && selectedVariant.id <= 101418) {
+      // Canvas Sem Borda: basePrice 20 + priceAdjustment
+      originalPrice = 20.00 + (selectedVariant.priceAdjustment || 0);
+    } else {
+      // Canvas com Moldura: basePrice 40 + priceAdjustment
+      originalPrice = 40.00 + (selectedVariant.priceAdjustment || 0);
     }
     
-    // Canvas com Moldura: basePrice 40 + priceAdjustment
-    return 40.00 + (selectedVariant.priceAdjustment || 0);
+    // ✅ NOVO: Usar preço real com desconto fake se aplicável
+    return getRealPrice(product.id, originalPrice);
   },
 
-  discountTiers: [
-    { min: 2, discount: 10, label: '10% OFF', emoji: '🎨' },
-    { min: 3, discount: 15, label: '15% OFF', emoji: '🎯' }
-  ],
+  // ✅ REMOVIDO: discountTiers (substituído por descontos fake individuais)
 
   descriptionItems: (product: PrintifyProductMapping) => {
     const isFramed = product.name.includes('Moldura');

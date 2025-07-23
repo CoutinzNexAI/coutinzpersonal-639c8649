@@ -65,11 +65,7 @@ export const ProductQuantityPricing: React.FC<ProductQuantityPricingProps> = ({
             <span className="text-2xl font-black text-ghibli-moss">€{discountedPrice.toFixed(2)}</span>
             {/* Preço original riscado removido - desconto agora está no Total */}
           </div>
-          {discount > 0 && (
-            <span className="text-xs text-green-600 font-medium">
-              Poupa €{savings.toFixed(2)} com {discount}% desconto!
-            </span>
-          )}
+          {/* ✅ REMOVIDO: Texto "Poupa €X.XX!" */}
         </div>
         
         {/* NOVO: Botão "Adicionar ao Carrinho" compacto */}
@@ -101,7 +97,7 @@ export const ProductQuantityPricing: React.FC<ProductQuantityPricingProps> = ({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-ghibli-earth">Quantidade:</span>
-          <div className="flex items-center gap-2 bg-ghibli-cream/50 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-ghibli-cream/50 rounded-md px-2 py-1">
             <Button
               onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
               disabled={quantity <= 1}

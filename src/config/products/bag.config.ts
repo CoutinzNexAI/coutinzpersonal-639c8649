@@ -1,5 +1,6 @@
 import { Shield, Sparkles, Truck, Award } from 'lucide-react';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
+import { getRealPrice } from '@/lib/fakeDiscounts';
 
 export const bagConfig = {
   // ✅ CATEGORIA: Sacos/Bags
@@ -10,16 +11,15 @@ export const bagConfig = {
     return product.basePrice || 19.95;
   },
 
-  // ✅ PREÇO: Base para sacos
+  // ✅ ATUALIZADO: Usar preços com desconto fake
   getBasePrice: (product: PrintifyProductMapping, _selectedPrintifyVariantId: number | null) => {
-    return product.basePrice || 19.95; // €19.95 preço base para sacos ✅ ATUALIZADO
+    const originalPrice = product.basePrice || 19.95;
+    
+    // ✅ NOVO: Usar preço real com desconto fake se aplicável
+    return getRealPrice(product.id, originalPrice);
   },
 
-  // ✅ DESCONTOS: Escalonados por quantidade
-  discountTiers: [
-    { min: 2, discount: 10, label: 'sacos', emoji: '💡' },
-    { min: 3, discount: 15, label: 'sacos', emoji: '🔥' }
-  ],
+  // ✅ REMOVIDO: discountTiers (substituído por descontos fake individuais)
 
   // ✅ DESCRIÇÃO: Específica para sacos - 3 tópicos diretos
   descriptionItems: (_product: PrintifyProductMapping) => [

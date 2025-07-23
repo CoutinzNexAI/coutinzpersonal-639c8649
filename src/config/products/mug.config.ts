@@ -1,6 +1,7 @@
 import { ImageAdjustments } from '@/types/product';
 import { PrintifyProductMapping } from '@/lib/printify/printifyProducts';
 import { Shield, Sparkles, Truck, Award } from 'lucide-react';
+import { getRealPrice } from '@/lib/fakeDiscounts';
 
 // Ficheiro de configuração para produtos do tipo Caneca
 // Define configurações específicas, variantes e comportamentos para canecas
@@ -22,19 +23,21 @@ export const mugConfig = {
     return product?.basePrice || 26.95;
   },
 
-  // Função para calcular preço base baseado na variante (COM desconto especial aplicado)
+  // ✅ ATUALIZADO: Usar preços com desconto fake
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null) => {
+    let originalPrice;
+    
     if (product?.id === 'heart_mug') {
-      // ✅ FIXO: Preço exato com desconto de 10% na caneca coração
-      return 24.26; // Fixo para garantir consistência (26.95 * 0.9 = 24.255 → 24.26)
+      originalPrice = 24.26; // Preço base da caneca coração
+    } else if (product?.id === 'ceramic_mug' && selectedPrintifyVariantId) {
+      // 330ml (id: 62327) = €18.95, 450ml (id: 62328) = €22.95
+      originalPrice = selectedPrintifyVariantId === 62327 ? 18.95 : 22.95;
+    } else {
+      originalPrice = product?.basePrice || 26.95;
     }
     
-    if (product?.id === 'ceramic_mug' && selectedPrintifyVariantId) {
-      // 330ml (id: 62327) = €18.95, 450ml (id: 62328) = €22.95 ✅ ATUALIZADO
-      return selectedPrintifyVariantId === 62327 ? 18.95 : 22.95;
-    }
-    
-    return product?.basePrice || 26.95; // Fallback atualizado
+    // ✅ NOVO: Usar preço real com desconto fake se aplicável
+    return getRealPrice(product.id, originalPrice);
   },
 
   // ✅ NOVO: Indicador de produto com desconto especial
@@ -42,12 +45,7 @@ export const mugConfig = {
     return product?.id === 'heart_mug';
   },
 
-  // ✅ ATUALIZADO: Regras de desconto para múltiplas canecas
-  // NOTA: Para caneca coração, estes descontos são ADICIONAIS ao desconto base de 10%
-  discountTiers: [
-    { min: 2, discount: 10, label: 'canecas', emoji: '💡' },
-    { min: 3, discount: 15, label: 'canecas', emoji: '🔥' }
-  ],
+  // ✅ REMOVIDO: discountTiers (substituído por descontos fake individuais),
 
   // Itens de descrição do produto
   descriptionItems: (product: PrintifyProductMapping) => [

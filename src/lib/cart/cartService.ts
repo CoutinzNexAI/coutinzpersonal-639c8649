@@ -143,83 +143,36 @@ export class CartService {
     this.saveCart([]);
   }
 
-  // Calculate quantity discounts based on same product type
-  static calculateDiscounts(items: CartItem[]): { discountPercent: number; discountAmount: number; finalSubtotal: number } {
-    // Group items by productId (same product type)
-    const productGroups = items.reduce((groups, item) => {
-      const key = item.productId;
-      if (!groups[key]) {
-        groups[key] = [];
-      }
-      groups[key].push(item);
-      return groups;
-    }, {} as Record<string, CartItem[]>);
+  // ✅ REMOVIDO: Sistema de descontos de quantidade (substituído por descontos fake individuais)
 
-    let totalDiscount = 0;
-    let subtotalBeforeDiscount = 0;
-
-    // Apply discounts per product group
-    Object.values(productGroups).forEach(group => {
-      const totalQuantity = group.reduce((sum, item) => sum + item.quantity, 0);
-      const groupSubtotal = group.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      
-      subtotalBeforeDiscount += groupSubtotal;
-
-      let discountPercent = 0;
-      if (totalQuantity >= 3) {
-        discountPercent = 15; // 15% para 3+ produtos iguais
-      } else if (totalQuantity >= 2) {
-        discountPercent = 10; // 10% para 2 produtos iguais
-      }
-
-      if (discountPercent > 0) {
-        totalDiscount += groupSubtotal * (discountPercent / 100);
-      }
-    });
-
-    const finalSubtotal = subtotalBeforeDiscount - totalDiscount;
-    const overallDiscountPercent = subtotalBeforeDiscount > 0 ? (totalDiscount / subtotalBeforeDiscount) * 100 : 0;
-
-    return {
-      discountPercent: Math.round(overallDiscountPercent * 100) / 100,
-      discountAmount: Math.round(totalDiscount * 100) / 100,
-      finalSubtotal: Math.round(finalSubtotal * 100) / 100
-    };
+  // ✅ SIMPLIFICADO: Calculate shipping based on subtotal
+  static calculateShipping(subtotal: number): number {
+    // Envio grátis se subtotal >= €40, senão €3.99
+    return subtotal >= 40 ? 0 : 3.99;
   }
 
-  // ✅ CORRIGIDO: Calculate shipping based on ORIGINAL subtotal (before discounts)
-  static calculateShipping(originalSubtotal: number): number {
-    // Envio grátis se subtotal ORIGINAL >= €40, senão €3.99
-    return originalSubtotal >= 40 ? 0 : 3.99;
-  }
-
-  // ✅ ATUALIZADO: Calculate cart summary (IVA incluído nos preços, shipping baseado no valor original)
+  // ✅ SIMPLIFICADO: Calculate cart summary (sem descontos de quantidade)
   static getCartSummary(): CartSummary {
     const items = this.getCart();
-    // ✅ ATUALIZADO: Usar preço original para produtos com desconto especial
-    const originalSubtotal = items.reduce((sum, item) => {
-      const originalPrice = this.getItemOriginalPrice(item);
-      return sum + (originalPrice * item.quantity);
-    }, 0);
     
-    // Calculate discounts
-    const { discountAmount, finalSubtotal } = this.calculateDiscounts(items);
+    // Subtotal simples - preços já são os finais (com descontos fake aplicados)
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
-    // ✅ CORRIGIDO: Calcular shipping baseado no subtotal ORIGINAL (sem desconto)
-    const shipping = this.calculateShipping(originalSubtotal);
+    // Shipping baseado no subtotal
+    const shipping = this.calculateShipping(subtotal);
     
-    // ✅ REMOVIDO: IVA agora está incluído nos preços
-    const tax = 0; // IVA incluído nos preços dos produtos
-    const total = finalSubtotal + shipping + tax;
+    // IVA incluído nos preços
+    const tax = 0;
+    const total = subtotal + shipping + tax;
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
     return {
       items,
-      subtotal: Math.round(finalSubtotal * 100) / 100, // Subtotal já com desconto aplicado
-      originalSubtotal: Math.round(originalSubtotal * 100) / 100,
-      discountAmount: Math.round(discountAmount * 100) / 100,
-      shipping: Math.round(shipping * 100) / 100, // ✅ CORRIGIDO: Shipping baseado no valor original
-      tax: Math.round(tax * 100) / 100, // ✅ 0 - IVA incluído
+      subtotal: Math.round(subtotal * 100) / 100,
+      originalSubtotal: Math.round(subtotal * 100) / 100, // Mesmo valor
+      discountAmount: 0, // ✅ REMOVIDO: Sem descontos de quantidade
+      shipping: Math.round(shipping * 100) / 100,
+      tax: Math.round(tax * 100) / 100,
       total: Math.round(total * 100) / 100,
       itemCount
     };

@@ -6,6 +6,7 @@ import { Image, Coffee, Package, Smartphone, ShoppingBag, Briefcase, Sparkles } 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PromotionalBanner from '@/components/landing/PromotionalBanner';
+import { getFakeDiscountInfo } from '@/lib/fakeDiscounts';
 
 // Interface para categorias
 interface Category {
@@ -410,11 +411,12 @@ const ShopPage: React.FC = () => {
                       {/* Preço centrado e destacado com suporte a desconto */}
                       <div className="flex flex-col items-center justify-center">
                         {(() => {
-                          const pricing = getProductPricing(product);
-                          if (pricing.hasDiscount) {
+                          const fakeDiscountInfo = getFakeDiscountInfo(product.id);
+                          
+                          if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
                             return (
-                                                            <>
-                                {/* 10% OFF badge e preço original na mesma linha */}
+                              <>
+                                {/* Badge de desconto + preço fake riscado */}
                                 <div className="flex items-center justify-center gap-2 mb-2">
                                   <motion.div 
                                     className="bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-black px-2 py-1 rounded-full shadow-lg"
@@ -432,10 +434,10 @@ const ShopPage: React.FC = () => {
                                       ease: "easeInOut"
                                     }}
                                   >
-                                    10% OFF
+                                    {fakeDiscountInfo.discountPercent}% OFF
                                   </motion.div>
-                                  <div className="text-sm text-red-500 line-through font-medium">
-                                    €{pricing.originalPrice.toFixed(2)}
+                                  <div className="text-sm text-gray-500 line-through font-medium">
+                                    €{fakeDiscountInfo.fakePrice.toFixed(2)}
                                   </div>
                                 </div>
                                 
@@ -451,7 +453,7 @@ const ShopPage: React.FC = () => {
                                      ease: "easeInOut"
                                    }}
                                  >
-                                   €{pricing.discountedPrice.toFixed(2)}
+                                   €{fakeDiscountInfo.realPrice.toFixed(2)}
                                    {/* Sparkle effect */}
                                    <motion.span
                                      className="absolute -top-1 -right-2 text-yellow-400 text-sm"

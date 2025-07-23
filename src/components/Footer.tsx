@@ -45,8 +45,8 @@ const Footer = () => {
   // Ícones de redes sociais - ATUALIZADOS Facebook e TikTok
   const socialLinks = [
     { name: "Facebook", href: "https://www.facebook.com/profile.php?id=61576738782189", icon: FacebookIcon },
-    { name: "TikTok", href: "https://www.tiktok.com/@pictuz.ai", icon: TikTokIcon },
-    { name: "Instagram", href: "https://www.instagram.com/pictuz.ai", icon: Instagram },
+    { name: "TikTok", href: "https://www.tiktok.com/@pictuz__", icon: TikTokIcon },
+    { name: "Instagram", href: "https://www.instagram.com/pictuz_", icon: Instagram },
   ];
 
   return (
