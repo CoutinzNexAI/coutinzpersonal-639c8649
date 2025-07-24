@@ -25,16 +25,16 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   onNewImage,
 }) => {
   const [imageError, setImageError] = React.useState(false);
+  const [canvasMockupUrls, setCanvasMockupUrls] = React.useState<string[]>([]);
   const [posterMockupUrls, setPosterMockupUrls] = React.useState<string[]>([]);
   const [mugMockupUrls, setMugMockupUrls] = React.useState<string[]>([]);
-  const [notebookMockupUrls, setNotebookMockupUrls] = React.useState<string[]>([]);
+  const [isGeneratingCanvasMockup, setIsGeneratingCanvasMockup] = React.useState(false);
   const [isGeneratingPosterMockup, setIsGeneratingPosterMockup] = React.useState(false);
   const [isGeneratingMugMockup, setIsGeneratingMugMockup] = React.useState(false);
-  const [isGeneratingNotebookMockup, setIsGeneratingNotebookMockup] = React.useState(false);
+  const [canvasMockupError, setCanvasMockupError] = React.useState(false);
   const [posterMockupError, setPosterMockupError] = React.useState(false);
   const [mugMockupError, setMugMockupError] = React.useState(false);
-  const [notebookMockupError, setNotebookMockupError] = React.useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = React.useState(0); // 0 = poster, 1 = caneca, 2 = caderno, 3 = original
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0); // 0 = canvas, 1 = poster, 2 = caneca, 3 = original
   const [showProductCarousel, setShowProductCarousel] = React.useState(false);
   
   const { userInfo } = useAuth();
@@ -46,6 +46,47 @@ const CompletedState: React.FC<CompletedStateProps> = ({
     setImageError(true);
     toast.error("Erro ao carregar a imagem final.");
   };
+
+  // Função para gerar mockup do canvas
+  const generateCanvasMockup = React.useCallback(async () => {
+    if (!transformedImageUrl || !userInfo?.id || isGeneratingCanvasMockup) return;
+
+    setIsGeneratingCanvasMockup(true);
+    setCanvasMockupError(false);
+
+    try {
+      const response = await fetch('/api/printify/mockups/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: 'custom_canvas',
+          userImageUrl: transformedImageUrl,
+          userId: userInfo.id,
+          selectedPrintifyVariantId: 91659, // Canvas 16″ x 16″ (41cm x 41cm)
+          // Não passar imageAdjustments - deixar a API calcular automaticamente para fill perfeito
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.previewUrls && data.previewUrls.length > 0) {
+        setCanvasMockupUrls(data.previewUrls);
+        // Mostrar carousel quando primeiro mockup estiver pronto
+        setShowProductCarousel(true);
+      } else {
+        throw new Error(data.error || 'Falha ao gerar mockup do canvas');
+      }
+    } catch (error) {
+      console.error('❌ [CompletedState] Erro ao gerar mockup do canvas:', error);
+      setCanvasMockupError(true);
+    } finally {
+      setIsGeneratingCanvasMockup(false);
+    }
+  }, [transformedImageUrl, userInfo?.id, isGeneratingCanvasMockup]);
 
   // Função para gerar mockup do poster
   const generatePosterMockup = React.useCallback(async () => {
@@ -75,8 +116,10 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       
       if (data.success && data.previewUrls && data.previewUrls.length > 0) {
         setPosterMockupUrls(data.previewUrls);
-        // Mostrar carousel quando primeiro mockup estiver pronto
-        setShowProductCarousel(true);
+        // Mostrar carousel quando primeiro mockup estiver pronto (se ainda não estiver visível)
+        if (!showProductCarousel) {
+          setShowProductCarousel(true);
+        }
       } else {
         throw new Error(data.error || 'Falha ao gerar mockup do poster');
       }
@@ -86,7 +129,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
     } finally {
       setIsGeneratingPosterMockup(false);
     }
-  }, [transformedImageUrl, userInfo?.id, isGeneratingPosterMockup]);
+  }, [transformedImageUrl, userInfo?.id, isGeneratingPosterMockup, showProductCarousel]);
 
   // Função para gerar mockup da caneca
   const generateMugMockup = React.useCallback(async () => {
@@ -131,55 +174,17 @@ const CompletedState: React.FC<CompletedStateProps> = ({
     }
   }, [transformedImageUrl, userInfo?.id, isGeneratingMugMockup, showProductCarousel]);
 
-  // Função para gerar mockup do caderno
-  const generateNotebookMockup = React.useCallback(async () => {
-    if (!transformedImageUrl || !userInfo?.id || isGeneratingNotebookMockup) return;
-
-    setIsGeneratingNotebookMockup(true);
-    setNotebookMockupError(false);
-
-    try {
-      const response = await fetch('/api/printify/mockups/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: 'spiral_journal',
-          userImageUrl: transformedImageUrl,
-          userId: userInfo.id,
-          selectedPrintifyVariantId: 65482, // Caderno Blank / One Size
-          // Não passar imageAdjustments - deixar a API calcular automaticamente para fill perfeito
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.success && data.previewUrls && data.previewUrls.length > 0) {
-        setNotebookMockupUrls(data.previewUrls);
-        // Mostrar carousel quando primeiro mockup estiver pronto (se ainda não estiver visível)
-        if (!showProductCarousel) {
-          setShowProductCarousel(true);
-        }
-      } else {
-        throw new Error(data.error || 'Falha ao gerar mockup do caderno');
-      }
-    } catch (error) {
-      console.error('❌ [CompletedState] Erro ao gerar mockup do caderno:', error);
-      setNotebookMockupError(true);
-    } finally {
-      setIsGeneratingNotebookMockup(false);
-    }
-  }, [transformedImageUrl, userInfo?.id, isGeneratingNotebookMockup, showProductCarousel]);
-
   // Gerar mockups automaticamente em background (VERDADEIRAMENTE EM PARALELO)
   React.useEffect(() => {
     if (transformedImageUrl && userInfo?.id) {
       // 🚀 GERAÇÃO PARALELA REAL - todos os produtos geram simultaneamente
       // ✅ JÁ OTIMIZADO: Não há sequencialidade aqui - todas as funções são chamadas
       // imediatamente se as suas condições estiverem corretas
+      
+      // Gerar canvas imediatamente
+      if (canvasMockupUrls.length === 0 && !canvasMockupError && !isGeneratingCanvasMockup) {
+        generateCanvasMockup();
+      }
       
       // Gerar poster imediatamente
       if (posterMockupUrls.length === 0 && !posterMockupError && !isGeneratingPosterMockup) {
@@ -190,32 +195,33 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       if (mugMockupUrls.length === 0 && !mugMockupError && !isGeneratingMugMockup) {
         generateMugMockup();
       }
-
-      // Gerar caderno IMEDIATAMENTE (sem delay artificial)
-      if (notebookMockupUrls.length === 0 && !notebookMockupError && !isGeneratingNotebookMockup) {
-        generateNotebookMockup();
-      }
     }
-  }, [transformedImageUrl, userInfo?.id, posterMockupUrls.length, mugMockupUrls.length, notebookMockupUrls.length, posterMockupError, mugMockupError, notebookMockupError, isGeneratingPosterMockup, isGeneratingMugMockup, isGeneratingNotebookMockup, generatePosterMockup, generateMugMockup, generateNotebookMockup]);
+  }, [transformedImageUrl, userInfo?.id, canvasMockupUrls.length, posterMockupUrls.length, mugMockupUrls.length, canvasMockupError, posterMockupError, mugMockupError, isGeneratingCanvasMockup, isGeneratingPosterMockup, isGeneratingMugMockup, generateCanvasMockup, generatePosterMockup, generateMugMockup]);
 
   const handleGoToProduct = () => {
     let productUrl = '';
     
     if (currentImageIndex === 0) {
+      // Canvas 16x16
+      productUrl = `/shop/canvas/custom_canvas?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
+    } else if (currentImageIndex === 1) {
       // Poster
       productUrl = `/shop/poster/poster_vertical_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
-    } else if (currentImageIndex === 1) {
+    } else if (currentImageIndex === 2) {
       // Caneca Coração
       productUrl = `/shop/mug/heart_mug?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
-    } else if (currentImageIndex === 2) {
-      // Caderno
-      productUrl = `/shop/escritorio/spiral_journal?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
     } else {
       // Imagem original - vai para poster por padrão
       productUrl = `/shop/poster/poster_vertical_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`;
     }
     
     router.push(productUrl);
+  };
+
+  const handleRetryCanvasMockup = () => {
+    setCanvasMockupError(false);
+    setCanvasMockupUrls([]);
+    generateCanvasMockup();
   };
 
   const handleRetryPosterMockup = () => {
@@ -230,12 +236,6 @@ const CompletedState: React.FC<CompletedStateProps> = ({
     generateMugMockup();
   };
 
-  const handleRetryNotebookMockup = () => {
-    setNotebookMockupError(false);
-    setNotebookMockupUrls([]);
-    generateNotebookMockup();
-  };
-
   const handleNextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % 4); // 0 → 1 → 2 → 3 → 0
   };
@@ -247,6 +247,15 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   // Determinar qual imagem mostrar
   const getCurrentImage = () => {
     if (currentImageIndex === 0) {
+      // Mostrar mockup do canvas (usar a 3ª imagem - previewUrls[2])
+      if (canvasMockupUrls.length > 2) {
+        return { url: canvasMockupUrls[2], type: 'canvas' }; // Posição 2 = 3ª imagem como pedido
+      } else if (canvasMockupUrls.length > 0) {
+        return { url: canvasMockupUrls[0], type: 'canvas' }; // Fallback para primeira se não houver 3
+      }
+      // Se não tem mockup, mostrar imagem original temporariamente
+      return { url: transformedImageUrl, type: 'original' };
+    } else if (currentImageIndex === 1) {
       // Mostrar mockup do poster (usar a 4ª imagem - previewUrls[3])
       if (posterMockupUrls.length > 3) {
         return { url: posterMockupUrls[3], type: 'poster' }; // Posição 3 = 4ª imagem das 5 que o Printify disponibiliza
@@ -255,21 +264,12 @@ const CompletedState: React.FC<CompletedStateProps> = ({
       }
       // Se não tem mockup, mostrar imagem original temporariamente
       return { url: transformedImageUrl, type: 'original' };
-    } else if (currentImageIndex === 1) {
+    } else if (currentImageIndex === 2) {
       // Mostrar mockup da caneca (usar a 3ª imagem - previewUrls[2])
       if (mugMockupUrls.length > 2) {
         return { url: mugMockupUrls[2], type: 'mug' };
       } else if (mugMockupUrls.length > 0) {
         return { url: mugMockupUrls[0], type: 'mug' }; // Fallback para primeira se não houver 3
-      }
-      // Se não tem mockup, mostrar imagem original temporariamente
-      return { url: transformedImageUrl, type: 'original' };
-    } else if (currentImageIndex === 2) {
-      // Mostrar mockup do caderno (usar a 2ª imagem - posição 1)
-      if (notebookMockupUrls.length > 1) {
-        return { url: notebookMockupUrls[1], type: 'notebook' }; // Posição 1 = segunda imagem
-      } else if (notebookMockupUrls.length > 0) {
-        return { url: notebookMockupUrls[0], type: 'notebook' }; // Fallback para primeira se não houver 2
       }
       // Se não tem mockup, mostrar imagem original temporariamente
       return { url: transformedImageUrl, type: 'original' };
@@ -284,20 +284,20 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   // Determinar texto do produto
   const getProductText = () => {
     if (currentImageIndex === 0) {
+      if (isGeneratingCanvasMockup) {
+        return 'Canvas (a gerar...)';
+      }
+      return 'Canvas';
+    } else if (currentImageIndex === 1) {
       if (isGeneratingPosterMockup) {
         return 'Poster Vertical (a gerar...)';
       }
       return 'Poster Vertical';
-    } else if (currentImageIndex === 1) {
+    } else if (currentImageIndex === 2) {
       if (isGeneratingMugMockup) {
         return 'Caneca Coração (a gerar...)';
       }
       return 'Caneca Coração';
-    } else if (currentImageIndex === 2) {
-      if (isGeneratingNotebookMockup) {
-        return 'Caderno (a gerar...)';
-      }
-      return 'Caderno';
     } else {
       return 'Poster Vertical'; // Default para imagem original
     }
@@ -312,11 +312,11 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   // Determinar se há erro
   const hasCurrentError = () => {
     if (currentImageIndex === 0) {
-      return posterMockupError;
+      return canvasMockupError;
     } else if (currentImageIndex === 1) {
-      return mugMockupError;
+      return posterMockupError;
     } else if (currentImageIndex === 2) {
-      return notebookMockupError;
+      return mugMockupError;
     } else if (currentImageIndex === 3) {
       return imageError;
     }
@@ -326,11 +326,11 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   // Função de retry apropriada
   const handleRetryCurrentMockup = () => {
     if (currentImageIndex === 0) {
-      handleRetryPosterMockup();
+      handleRetryCanvasMockup();
     } else if (currentImageIndex === 1) {
-      handleRetryMugMockup();
+      handleRetryPosterMockup();
     } else if (currentImageIndex === 2) {
-      handleRetryNotebookMockup();
+      handleRetryMugMockup();
     }
   };
 
@@ -431,9 +431,9 @@ const CompletedState: React.FC<CompletedStateProps> = ({
               </div>
               
               {/* Indicador de loading discreto quando gerando mockup */}
-              {((currentImageIndex === 0 && isGeneratingPosterMockup) || 
-                (currentImageIndex === 1 && isGeneratingMugMockup) ||
-                (currentImageIndex === 2 && isGeneratingNotebookMockup)) && (
+              {((currentImageIndex === 0 && isGeneratingCanvasMockup) || 
+                (currentImageIndex === 1 && isGeneratingPosterMockup) ||
+                (currentImageIndex === 2 && isGeneratingMugMockup)) && (
                 <div className="absolute top-2 right-2 bg-ghibli-moss/90 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                   <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                   A gerar...

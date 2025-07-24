@@ -255,15 +255,15 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 <p className="text-xs text-gray-500 line-through">
                   €{(fakeDiscountInfo.fakePrice * item.quantity).toFixed(2)}
                 </p>
-                <p className="font-bold text-red-600">
+                <p className="font-bold text-ghibli-wood">
                   €{(item.price * item.quantity).toFixed(2)}
                 </p>
-                <p className="text-xs text-red-600">
+                <p className="text-xs text-ghibli-earth/70">
                   -{fakeDiscountInfo.discountPercent}%
                 </p>
               </div>
             ) : (
-              <p className="font-bold text-ghibli-moss">
+              <p className="font-bold text-ghibli-wood">
                 €{(item.price * item.quantity).toFixed(2)}
               </p>
             )}

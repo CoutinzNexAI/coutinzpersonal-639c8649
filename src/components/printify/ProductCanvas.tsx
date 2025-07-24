@@ -114,6 +114,29 @@ export default function ProductCanvas({
   // ✅ DEBUG: Log para verificar se o estilo está a ser calculado
   // (Debug logs removed for production)
 
+  // ✅ FILTRO DE IMAGENS PERSONALIZADO POR PRODUTO
+  const getFilteredPreviewUrls = useCallback(() => {
+    if (printifyGeneratedPreviewUrls.length === 0) return [];
+
+    // Para posters (vertical e horizontal): mostrar apenas fotos 1, 4, 5 (índices 0, 3, 4)
+    if (selectedProduct.id === 'poster_vertical_semi_glossy' || selectedProduct.id === 'poster_horizontal_semi_glossy') {
+      const targetIndices = [0, 3, 4]; // Fotos 1, 4, 5
+      return targetIndices
+        .filter(index => index < printifyGeneratedPreviewUrls.length)
+        .map(index => printifyGeneratedPreviewUrls[index]);
+    }
+
+    // Para caneca coração: mostrar todas menos a 5ª (índice 4) - ou seja: 1,2,3,4,6 (índices 0,1,2,3,5)
+    if (selectedProduct.id === 'heart_mug') {
+      return printifyGeneratedPreviewUrls.filter((_, index) => index !== 4); // Remove a 5ª foto (índice 4)
+    }
+
+    // Para outros produtos: mostrar todas as imagens normalmente
+    return printifyGeneratedPreviewUrls;
+  }, [printifyGeneratedPreviewUrls, selectedProduct.id]);
+
+  const filteredPreviewUrls = getFilteredPreviewUrls();
+
   // ✅ REMOVIDO: O reset agora é controlado pelo GenericProductPage através do estado partilhado
   // Este useEffect causava a "falha de 0.1s" onde a imagem desaparecia e regenerava
   useEffect(() => {
@@ -124,10 +147,10 @@ export default function ProductCanvas({
     // O controlo de limpeza está agora centralizado no GenericProductPage
   }, [userImageUrl, selectedPrintifyVariantId, selectedPhraseText, mockupGenerationKey]);
 
-  // Preload images for instant navigation
+  // Preload images for instant navigation - Atualizado para usar URLs filtradas
   useEffect(() => {
-    if (printifyGeneratedPreviewUrls.length > 0) {
-      printifyGeneratedPreviewUrls.forEach(url => {
+    if (filteredPreviewUrls.length > 0) {
+      filteredPreviewUrls.forEach(url => {
         if (!preloadedImages.has(url)) {
           const img = new Image();
           img.onload = () => {
@@ -137,7 +160,7 @@ export default function ProductCanvas({
         }
       });
     }
-  }, [printifyGeneratedPreviewUrls, preloadedImages]);
+  }, [filteredPreviewUrls, preloadedImages]);
 
   const handleGenerateMockup = useCallback(async () => {
     if (!userImageUrl || !userId || isLoadingMockups) {
@@ -296,18 +319,18 @@ export default function ProductCanvas({
     }
   }, [userImageUrl, userId, selectedProduct.id, selectedPrintifyVariantId, selectedPhraseText, hasGenerated, mockupGenerationKey]);
 
-  // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS
+  // NAVEGAÇÃO INSTANTÂNEA SEM DELAYS - Atualizada para usar URLs filtradas
   const handlePreviousPreview = useCallback(() => {
     setCurrentPreviewIndex((prev) => 
-      prev === 0 ? printifyGeneratedPreviewUrls.length - 1 : prev - 1
+      prev === 0 ? filteredPreviewUrls.length - 1 : prev - 1
     );
-  }, [printifyGeneratedPreviewUrls.length]);
+  }, [filteredPreviewUrls.length]);
 
   const handleNextPreview = useCallback(() => {
     setCurrentPreviewIndex((prev) => 
-      prev === printifyGeneratedPreviewUrls.length - 1 ? 0 : prev + 1
+      prev === filteredPreviewUrls.length - 1 ? 0 : prev + 1
     );
-  }, [printifyGeneratedPreviewUrls.length]);
+  }, [filteredPreviewUrls.length]);
 
   const handleDirectNavigation = useCallback((index: number) => {
     setCurrentPreviewIndex(index);
@@ -715,21 +738,21 @@ export default function ProductCanvas({
     </div>
   );
 
-  // Previews gerados pela Printify
+  // Previews gerados pela Printify - Atualizado para usar URLs filtradas
   const renderGeneratedPreviews = () => (
     <div className="relative w-full h-full">
       {/* Imagem principal sem fundo branco */}
       <div className="relative w-full h-full flex items-center justify-center bg-transparent">
         <img
-          src={printifyGeneratedPreviewUrls[currentPreviewIndex]}
+          src={filteredPreviewUrls[currentPreviewIndex]}
           alt={`Preview ${currentPreviewIndex + 1}`}
           className="max-w-full max-h-full object-contain drop-shadow-2xl"
           style={{ maxHeight: '90%' }}
         />
       </div>
 
-      {/* Controlos de navegação (se múltiplas previews) */}
-      {printifyGeneratedPreviewUrls.length > 1 && (
+      {/* Controlos de navegação (se múltiplas previews filtradas) */}
+      {filteredPreviewUrls.length > 1 && (
         <>
           {/* Setas de navegação */}
           <Button
@@ -748,9 +771,9 @@ export default function ProductCanvas({
             <ChevronRight className="w-5 h-5" />
           </Button>
 
-          {/* Indicadores de página */}
+          {/* Indicadores de página - Baseados nas URLs filtradas */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {printifyGeneratedPreviewUrls.map((_, index) => (
+            {filteredPreviewUrls.map((_, index) => (
               <button
                 key={index}
                 onClick={() => handleDirectNavigation(index)}
@@ -762,8 +785,6 @@ export default function ProductCanvas({
               />
             ))}
           </div>
-
-
         </>
       )}
     </div>
@@ -814,7 +835,7 @@ export default function ProductCanvas({
     );
   }
 
-  if (printifyGeneratedPreviewUrls.length > 0) {
+  if (filteredPreviewUrls.length > 0) {
     return (
       <div className="relative w-full h-full">
         {renderGeneratedPreviews()}

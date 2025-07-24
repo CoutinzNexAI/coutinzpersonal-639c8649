@@ -48,14 +48,10 @@ const bestSellers: Product[] = [
     id: 'heart_mug',
     name: 'Caneca Coração',
     category: 'Canecas',
-    price: 24.26, // ✅ NOVO: Preço com desconto de 10% (26.95 * 0.9)
-    originalPrice: 26.95, // ✅ NOVO: Preço original
-    hasSpecialDiscount: true, // ✅ NOVO: Indica desconto especial
-    discountPercent: 10, // ✅ NOVO: 10% de desconto
+    price: 22.95, // ✅ CORRIGIDO: Preço real da caneca coração
     imagePersonalized: '/Bestseller/canecacoracaofoto.png',
     imageBlank: '/Bestseller/canecacoracao.png',
-    href: '/shop/mug/heart_mug',
-    badge: '🔥 10% OFF'
+    href: '/shop/mug/heart_mug'
   },
   {
     id: 'custom_phone_case',
