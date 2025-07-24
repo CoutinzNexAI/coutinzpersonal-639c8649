@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { X, Minus, Plus, ShoppingCart, Trash2, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
@@ -9,6 +10,7 @@ import { supabase } from '@/lib/supabase/client';
 import { CartItem, CartSummary } from '@/lib/cart/cartTypes';
 import { CartBottomSheet } from './CartBottomSheet';
 import { getFakeDiscountInfo } from '@/lib/fakeDiscounts';
+import { CartService } from '@/lib/cart/cartService';
 import { trackCheckoutStarted } from '@/lib/posthog';
 import * as fpixel from '@/lib/fpixel';
 import Image from 'next/image';
@@ -38,6 +40,8 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
   const { userInfo } = useAuth();
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [discountCode, setDiscountCode] = useState('');
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
 
   // Hook para fechar carrinho quando clicar fora (apenas no desktop)
   const sidebarRef = useOutsideClick<HTMLDivElement>(() => {
@@ -45,6 +49,40 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
       onClose();
     }
   }, isOpen);
+
+  // ✅ NOVO: Funções para códigos de desconto
+  const handleApplyDiscountCode = async () => {
+    if (!discountCode.trim()) {
+      toast.error('Insira um código de desconto');
+      return;
+    }
+
+    setIsApplyingDiscount(true);
+    
+    try {
+      const result = CartService.applyDiscountCode(discountCode.trim());
+      
+      if (result.success) {
+        toast.success(`Código ${discountCode.toUpperCase()} aplicado! ${result.discount?.discountPercent}% de desconto`);
+        setDiscountCode('');
+        // Forçar atualização do carrinho
+        window.location.reload();
+      } else {
+        toast.error(result.error || 'Código inválido');
+      }
+    } catch (error) {
+      toast.error('Erro ao aplicar código');
+    } finally {
+      setIsApplyingDiscount(false);
+    }
+  };
+
+  const handleRemoveDiscountCode = () => {
+    CartService.removeDiscountCode();
+    toast.success('Código de desconto removido');
+    // Forçar atualização do carrinho
+    window.location.reload();
+  };
 
   // Carregar dados do utilizador
   const loadUserData = async () => {
@@ -255,15 +293,15 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 <p className="text-xs text-gray-500 line-through">
                   €{(fakeDiscountInfo.fakePrice * item.quantity).toFixed(2)}
                 </p>
-                <p className="font-bold text-ghibli-wood">
+                <p className="font-bold text-red-600">
                   €{(item.price * item.quantity).toFixed(2)}
                 </p>
-                <p className="text-xs text-ghibli-earth/70">
+                <p className="text-xs text-red-600">
                   -{fakeDiscountInfo.discountPercent}%
                 </p>
               </div>
             ) : (
-              <p className="font-bold text-ghibli-wood">
+              <p className="font-bold text-ghibli-moss">
                 €{(item.price * item.quantity).toFixed(2)}
               </p>
             )}
@@ -347,21 +385,100 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
               
               {cartSummary && cartSummary.itemCount > 0 && (
                 <div className="border-t border-ghibli-sand/30 p-6 bg-ghibli-cream/20">
+                  {/* ✅ NOVO: Interface de código de desconto */}
+                  <div className="mb-4">
+                    {cartSummary.discountCode ? (
+                      // Código aplicado
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Tag className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-800">
+                              Código: {cartSummary.discountCode}
+                            </span>
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                              {cartSummary.discountPercent}% OFF
+                            </span>
+                          </div>
+                          <Button
+                            onClick={handleRemoveDiscountCode}
+                            variant="ghost"
+                            size="sm"
+                            className="text-green-600 hover:text-green-800 hover:bg-green-100 h-6 w-6 p-0"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      // Interface para aplicar código
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Tag className="h-4 w-4 text-gray-600" />
+                          <span className="text-sm font-medium text-gray-700">Código de Desconto</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            type="text"
+                            placeholder="Insira o código"
+                            value={discountCode}
+                            onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                            onKeyPress={(e) => e.key === 'Enter' && handleApplyDiscountCode()}
+                            className="flex-1 text-sm"
+                            disabled={isApplyingDiscount}
+                          />
+                          <Button
+                            onClick={handleApplyDiscountCode}
+                            disabled={isApplyingDiscount || !discountCode.trim()}
+                            size="sm"
+                            className="bg-ghibli-moss hover:bg-ghibli-moss-light text-white"
+                          >
+                            {isApplyingDiscount ? (
+                              <div className="animate-spin rounded-full h-3 w-3 border border-white/30 border-t-white" />
+                            ) : (
+                              'Aplicar'
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="bg-ghibli-sand/30 rounded-xl p-4 space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-ghibli-earth">Subtotal</span>
+                      <span className="text-ghibli-earth">
+                        {cartSummary.discountAmount ? 'Subtotal Original' : 'Subtotal'}
+                      </span>
                       <span className="font-semibold text-ghibli-wood">
-                        €{cartSummary.subtotal.toFixed(2)}
+                        €{(cartSummary.originalSubtotal || cartSummary.subtotal).toFixed(2)}
                       </span>
                     </div>
+                    
+                    {cartSummary.discountAmount && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-red-600">Desconto ({cartSummary.discountPercent}%)</span>
+                        <span className="font-semibold text-red-600">
+                          -€{cartSummary.discountAmount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {cartSummary.discountAmount && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-ghibli-earth">Subtotal Final</span>
+                        <span className="font-semibold text-green-600">
+                          €{cartSummary.subtotal.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                     
                     <div className="flex justify-between text-sm">
                       <div>
                         <span className="text-ghibli-earth">Envio</span>
-                        {cartSummary.shipping === 0 && cartSummary.subtotal < 40 && (
+                        {cartSummary.shipping === 0 && (cartSummary.originalSubtotal || cartSummary.subtotal) < 40 && (
                           <p className="text-xs text-ghibli-earth/70">Grátis em compras de €40+</p>
                         )}
-                        {cartSummary.shipping === 0 && cartSummary.subtotal >= 40 && (
+                        {cartSummary.shipping === 0 && (cartSummary.originalSubtotal || cartSummary.subtotal) >= 40 && (
                           <p className="text-xs text-ghibli-earth/70">Envio gratuito!</p>
                         )}
                         {cartSummary.shipping > 0 && (
@@ -384,9 +501,9 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                           €{(cartSummary.subtotal + cartSummary.shipping).toFixed(2)}
                         </span>
                       </div>
-                      {cartSummary.subtotal < 40 && cartSummary.shipping > 0 && (
+                      {(cartSummary.originalSubtotal || cartSummary.subtotal) < 40 && cartSummary.shipping > 0 && (
                         <p className="text-xs text-ghibli-earth/70 text-right mt-1">
-                          Adiciona €{(40 - cartSummary.subtotal).toFixed(2)} para envio grátis!
+                          Adiciona €{(40 - (cartSummary.originalSubtotal || cartSummary.subtotal)).toFixed(2)} para envio grátis!
                         </p>
                       )}
                     </div>

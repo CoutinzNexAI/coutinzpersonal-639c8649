@@ -85,7 +85,7 @@ const categories: Category[] = [
 ];
 
 // ✅ ATUALIZADO: Função para obter preço com fake discount
-  const getProductPricing = (product: IndividualProduct) => {
+const getProductPricing = (product: IndividualProduct) => {
     const fakeDiscountInfo = getFakeDiscountInfo(product.id, product.price);
     if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
     return {

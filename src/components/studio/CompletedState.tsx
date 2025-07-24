@@ -118,7 +118,7 @@ const CompletedState: React.FC<CompletedStateProps> = ({
         setPosterMockupUrls(data.previewUrls);
         // Mostrar carousel quando primeiro mockup estiver pronto (se ainda não estiver visível)
         if (!showProductCarousel) {
-          setShowProductCarousel(true);
+        setShowProductCarousel(true);
         }
       } else {
         throw new Error(data.error || 'Falha ao gerar mockup do poster');
