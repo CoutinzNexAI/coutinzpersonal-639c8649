@@ -83,11 +83,14 @@ export const getFakeDiscountInfo = (productId: string, realPrice: number): FakeD
   // Se desconto é 40%, o preço real representa 60% do preço fake
   // Então: preço_fake = preço_real / (1 - desconto/100)
   const discountMultiplier = 1 - (config.discountPercent / 100);
-  const fakePrice = realPrice / discountMultiplier;
+  const calculatedFakePrice = realPrice / discountMultiplier;
+  
+  // ✅ ARREDONDAR PARA CIMA (ceiling) para número inteiro mais limpo
+  const fakePrice = Math.ceil(calculatedFakePrice);
 
   return {
     realPrice: realPrice,
-    fakePrice: Math.round(fakePrice * 100) / 100, // Arredondar para 2 casas decimais
+    fakePrice: fakePrice, // Agora é sempre um número inteiro arredondado para cima
     discountPercent: config.discountPercent,
     badge: config.badge,
     hasDiscount: true
