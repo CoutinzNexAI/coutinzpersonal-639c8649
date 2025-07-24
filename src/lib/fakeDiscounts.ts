@@ -1,56 +1,51 @@
-// Sistema de descontos fake - preços inflacionados com desconto aplicado
+// 🚀 SISTEMA DE DESCONTOS FAKE DINÂMICO - CORRIGIDO PARA CALCULAR POR VARIANTE
 // O objetivo é mostrar preço "original" mais alto riscado e preço real como desconto
+// AGORA CALCULA DINAMICAMENTE baseado no preço real de cada tamanho/variante
 
-export interface FakeDiscountProduct {
-  realPrice: number;        // Preço que o cliente paga
-  fakePrice: number;        // Preço "original" inflacionado 
+export interface FakeDiscountConfig {
+  discountPercent: number;  // Percentagem de desconto fake (40%, 20%, etc.)
+  badge: string;           // Badge a mostrar (ex: "40% OFF")
+  hasDiscount: boolean;    // Se tem desconto fake ativo
+}
+
+export interface FakeDiscountResult {
+  realPrice: number;        // Preço que o cliente paga (calculado dinamicamente)
+  fakePrice: number;        // Preço "original" inflacionado (calculado dinamicamente)
   discountPercent: number;  // Percentagem de desconto fake
   badge: string;           // Badge a mostrar (ex: "40% OFF")
   hasDiscount: boolean;    // Se tem desconto fake ativo
 }
 
-// Configuração de produtos com desconto fake
-export const FAKE_DISCOUNT_PRODUCTS: Record<string, FakeDiscountProduct> = {
+// 🎯 CONFIGURAÇÃO DE DESCONTOS POR PRODUTO (sem preços fixos)
+export const FAKE_DISCOUNT_CONFIG: Record<string, FakeDiscountConfig> = {
   // 40% OFF - Canvas, Capa Telemóvel, Posters
   'custom_canvas': {
-    realPrice: 24.95,
-    fakePrice: 41.58,  // 24.95 / 0.6 = 41.58
     discountPercent: 40,
     badge: '🔥 40% OFF',
     hasDiscount: true
   },
   'custom_phone_case': {
-    realPrice: 19.95,
-    fakePrice: 29.95,  // Preço original definido
-    discountPercent: 33,  // (29.95 - 19.95) / 29.95 * 100 = 33.4% ≈ 33%
+    discountPercent: 33, // Mantém os 33% que já estava
     badge: '🔥 33% OFF',
     hasDiscount: true
   },
   'poster_vertical_semi_glossy': {
-    realPrice: 17.95,
-    fakePrice: 29.92,  // 17.95 / 0.6 = 29.92
     discountPercent: 40,
     badge: '🔥 40% OFF',
     hasDiscount: true
   },
   'poster_horizontal_semi_glossy': {
-    realPrice: 17.95,
-    fakePrice: 29.92,  // 17.95 / 0.6 = 29.92
     discountPercent: 40,
     badge: '🔥 40% OFF',
     hasDiscount: true
   },
   // IDs adicionais para páginas shop
   'poster_vertical': {
-    realPrice: 17.95,
-    fakePrice: 29.92,  // 17.95 / 0.6 = 29.92
     discountPercent: 40,
     badge: '🔥 40% OFF',
     hasDiscount: true
   },
   'poster_horizontal': {
-    realPrice: 17.95,
-    fakePrice: 29.92,  // 17.95 / 0.6 = 29.92
     discountPercent: 40,
     badge: '🔥 40% OFF',
     hasDiscount: true
@@ -58,61 +53,69 @@ export const FAKE_DISCOUNT_PRODUCTS: Record<string, FakeDiscountProduct> = {
 
   // 20% OFF - Canecas, Caderno, Tote Bag
   'heart_mug': {
-    realPrice: 22.95,
-    fakePrice: 28.69,  // 22.95 / 0.8 = 28.69
     discountPercent: 20,
     badge: '💡 20% OFF',
     hasDiscount: true
   },
   'ceramic_mug': {
-    realPrice: 18.95,
-    fakePrice: 23.69,  // 18.95 / 0.8 = 23.69
     discountPercent: 20,
     badge: '💡 20% OFF',
     hasDiscount: true
   },
   'spiral_journal': {
-    realPrice: 17.95,
-    fakePrice: 22.44,  // 17.95 / 0.8 = 22.44
     discountPercent: 20,
     badge: '💡 20% OFF',
     hasDiscount: true
   },
   'tote_bag': {
-    realPrice: 19.95,
-    fakePrice: 24.94,  // 19.95 / 0.8 = 24.94
     discountPercent: 20,
     badge: '💡 20% OFF',
     hasDiscount: true
   }
 };
 
-// Função para obter informação de desconto fake de um produto
-export const getFakeDiscountInfo = (productId: string): FakeDiscountProduct | null => {
-  return FAKE_DISCOUNT_PRODUCTS[productId] || null;
+// 🚀 NOVA FUNÇÃO PRINCIPAL: Calcula desconto fake dinamicamente baseado no preço real
+export const getFakeDiscountInfo = (productId: string, realPrice: number): FakeDiscountResult | null => {
+  const config = FAKE_DISCOUNT_CONFIG[productId];
+  if (!config || !config.hasDiscount) return null;
+
+  // Calcular preço fake inflacionado baseado na percentagem
+  // Se desconto é 40%, o preço real representa 60% do preço fake
+  // Então: preço_fake = preço_real / (1 - desconto/100)
+  const discountMultiplier = 1 - (config.discountPercent / 100);
+  const fakePrice = realPrice / discountMultiplier;
+
+  return {
+    realPrice: realPrice,
+    fakePrice: Math.round(fakePrice * 100) / 100, // Arredondar para 2 casas decimais
+    discountPercent: config.discountPercent,
+    badge: config.badge,
+    hasDiscount: true
+  };
 };
 
 // Função para verificar se um produto tem desconto fake
 export const hasFakeDiscount = (productId: string): boolean => {
-  const discountInfo = getFakeDiscountInfo(productId);
-  return discountInfo?.hasDiscount || false;
+  const config = FAKE_DISCOUNT_CONFIG[productId];
+  return config?.hasDiscount || false;
 };
 
-// Função para obter preço real (que o cliente paga)
-export const getRealPrice = (productId: string, fallbackPrice: number): number => {
-  const discountInfo = getFakeDiscountInfo(productId);
-  return discountInfo?.realPrice || fallbackPrice;
+// 🔄 FUNÇÃO RETROCOMPATÍVEL: Mantém a interface antiga mas usa preço fornecido
+export const getRealPrice = (productId: string, originalPrice: number): number => {
+  // Esta função agora simplesmente retorna o preço original
+  // O desconto fake é calculado dinamicamente na UI
+  return originalPrice;
 };
 
-// Função para obter preço fake (inflacionado)
-export const getFakePrice = (productId: string, fallbackPrice: number): number => {
-  const discountInfo = getFakeDiscountInfo(productId);
-  return discountInfo?.fakePrice || fallbackPrice;
+// 🔄 FUNÇÃO RETROCOMPATÍVEL: Calcula preço fake baseado no real
+export const getFakePrice = (productId: string, realPrice: number): number => {
+  const discountInfo = getFakeDiscountInfo(productId, realPrice);
+  return discountInfo?.fakePrice || realPrice;
 };
 
-// Função para calcular poupança
-export const calculateSavings = (productId: string): number => {
-  const discountInfo = getFakeDiscountInfo(productId);
+// Função para calcular poupança dinâmica
+export const calculateSavings = (productId: string, realPrice: number): number => {
+  const discountInfo = getFakeDiscountInfo(productId, realPrice);
   if (!discountInfo?.hasDiscount) return 0;
   
   return discountInfo.fakePrice - discountInfo.realPrice;

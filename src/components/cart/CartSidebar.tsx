@@ -89,7 +89,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
         user_id: userInfo.id,
         cart_items: cartSummary.itemCount,
         cart_value: cartSummary.subtotal,
-        discount_amount: cartSummary.discountAmount || 0,
+        discount_amount: 0, // Fake discounts são aplicados no preço do item
         shipping_cost: cartSummary.shipping,
         total_amount: cartSummary.subtotal + cartSummary.shipping,
         checkout_source: 'cart_sidebar',
@@ -145,8 +145,8 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
           userName: currentUserData.full_name,
           userEmail: currentUserData.email,
           subtotal: cartSummary.subtotal,
-          originalSubtotal: cartSummary.originalSubtotal,
-          discountAmount: cartSummary.discountAmount || 0,
+                  originalSubtotal: cartSummary.subtotal, // Mesmo valor pois desconto fake já aplicado
+        discountAmount: 0, // Fake discounts são aplicados no preço do item
           shipping: cartSummary.shipping,
           tax: 0,
           total: finalTotal
@@ -177,7 +177,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
 
   // Componente para cada item do carrinho
   const CartItemCard = ({ item }: { item: CartItem }) => {
-    const fakeDiscountInfo = getFakeDiscountInfo(item.productId);
+                    const fakeDiscountInfo = getFakeDiscountInfo(item.productId, item.price);
 
     return (
       <motion.div
@@ -358,10 +358,10 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                     <div className="flex justify-between text-sm">
                       <div>
                         <span className="text-ghibli-earth">Envio</span>
-                        {cartSummary.shipping === 0 && cartSummary.originalSubtotal < 40 && (
+                        {cartSummary.shipping === 0 && cartSummary.subtotal < 40 && (
                           <p className="text-xs text-ghibli-earth/70">Grátis em compras de €40+</p>
                         )}
-                        {cartSummary.shipping === 0 && cartSummary.originalSubtotal >= 40 && (
+                        {cartSummary.shipping === 0 && cartSummary.subtotal >= 40 && (
                           <p className="text-xs text-ghibli-earth/70">Envio gratuito!</p>
                         )}
                         {cartSummary.shipping > 0 && (
@@ -384,9 +384,9 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                           €{(cartSummary.subtotal + cartSummary.shipping).toFixed(2)}
                         </span>
                       </div>
-                      {cartSummary.originalSubtotal < 40 && cartSummary.shipping > 0 && (
+                      {cartSummary.subtotal < 40 && cartSummary.shipping > 0 && (
                         <p className="text-xs text-ghibli-earth/70 text-right mt-1">
-                          Adiciona €{(40 - cartSummary.originalSubtotal).toFixed(2)} para envio grátis!
+                          Adiciona €{(40 - cartSummary.subtotal).toFixed(2)} para envio grátis!
                         </p>
                       )}
                     </div>

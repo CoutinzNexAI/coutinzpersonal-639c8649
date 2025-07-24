@@ -29,10 +29,10 @@ export const canvasConfig = {
     if (!selectedVariant) {
       originalPrice = product.basePrice || 20.00;
     } else if (selectedVariant.id >= 91656 && selectedVariant.id <= 101418) {
-      // Canvas Sem Borda: basePrice 20 + priceAdjustment
+    // Canvas Sem Borda: basePrice 20 + priceAdjustment
       originalPrice = 20.00 + (selectedVariant.priceAdjustment || 0);
     } else {
-      // Canvas com Moldura: basePrice 40 + priceAdjustment
+    // Canvas com Moldura: basePrice 40 + priceAdjustment
       originalPrice = 40.00 + (selectedVariant.priceAdjustment || 0);
     }
     

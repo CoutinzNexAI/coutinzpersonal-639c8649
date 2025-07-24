@@ -123,7 +123,8 @@ const PosterShopPage: React.FC = () => {
                             {/* Price with Fake Discount */}
                             <div className="flex items-center justify-center">
                               {(() => {
-                                const fakeDiscountInfo = getFakeDiscountInfo(product.id);
+                                const basePrice = product.basePrice || product.price || 15.00;
+                                const fakeDiscountInfo = getFakeDiscountInfo(product.id, basePrice);
                                 if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
                                   return (
                                     <div className="text-center">
@@ -142,9 +143,9 @@ const PosterShopPage: React.FC = () => {
                                   );
                                 } else {
                                   return (
-                                    <div className="text-2xl font-bold text-ghibli-moss">
-                                      €{product.basePrice || product.price || 15.00}
-                                    </div>
+                              <div className="text-2xl font-bold text-ghibli-moss">
+                                €{product.basePrice || product.price || 15.00}
+                              </div>
                                   );
                                 }
                               })()}

@@ -110,7 +110,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
         user_id: userInfo.id,
         cart_items: cartSummary.itemCount,
         cart_value: cartSummary.subtotal,
-        discount_amount: cartSummary.discountAmount || 0,
+        discount_amount: 0, // Fake discounts são aplicados no preço do item
         shipping_cost: cartSummary.shipping,
         total_amount: cartSummary.subtotal + cartSummary.shipping,
         checkout_source: 'cart_bottom_sheet',
@@ -166,8 +166,8 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
           userName: currentUserData.full_name,
           userEmail: currentUserData.email,
           subtotal: cartSummary.subtotal,
-          originalSubtotal: cartSummary.originalSubtotal,
-          discountAmount: cartSummary.discountAmount || 0,
+                  originalSubtotal: cartSummary.subtotal, // Mesmo valor pois desconto fake já aplicado
+        discountAmount: 0, // Fake discounts são aplicados no preço do item
           shipping: cartSummary.shipping,
           tax: 0,
           total: finalTotal
@@ -198,7 +198,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
 
   // Componente para cada item do carrinho
   const CartItemCard = ({ item }: { item: CartItem }) => {
-    const fakeDiscountInfo = getFakeDiscountInfo(item.productId);
+                  const fakeDiscountInfo = getFakeDiscountInfo(item.productId, item.price);
 
     return (
       <motion.div
@@ -365,24 +365,7 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
             {cartSummary && cartSummary.itemCount > 0 && (
               <div className="flex-shrink-0 border-t border-ghibli-sand/30 bg-ghibli-cream/20">
                 <div className="px-4 py-3">
-                  {cartSummary.discountAmount && cartSummary.discountAmount > 0 && (
-                    <>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-ghibli-earth">Subtotal (original)</span>
-                        <span className="text-ghibli-earth line-through">
-                          €{(cartSummary.originalSubtotal || 0).toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-xs bg-green-50 rounded-lg px-2 py-1 mb-1.5">
-                        <span className="text-green-700 font-medium">
-                          🎉 Desconto
-                        </span>
-                        <span className="text-green-700 font-bold">
-                          -€{cartSummary.discountAmount.toFixed(2)}
-                        </span>
-                      </div>
-                    </>
-                  )}
+                  {/* ✅ REMOVIDO: Seção de desconto fake já aplicado no preço */}
                   
                   <div className="space-y-1">
                     <div className="flex justify-between text-sm">
@@ -410,9 +393,9 @@ export const CartBottomSheet: React.FC<CartBottomSheetProps> = ({
                           €{(cartSummary.subtotal + cartSummary.shipping).toFixed(2)}
                         </span>
                       </div>
-                      {cartSummary.originalSubtotal < 40 && cartSummary.shipping > 0 && (
+                      {cartSummary.subtotal < 40 && cartSummary.shipping > 0 && (
                         <p className="text-xs text-ghibli-earth/70 text-center mt-1">
-                          Adiciona €{(40 - cartSummary.originalSubtotal).toFixed(2)} para envio grátis!
+                          Adiciona €{(40 - cartSummary.subtotal).toFixed(2)} para envio grátis!
                         </p>
                       )}
                     </div>

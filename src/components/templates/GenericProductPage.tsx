@@ -1057,15 +1057,15 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                     {/* Preço e Quantidade */}
                     <div className="space-y-3">
                       <div className="text-center">
-                        {/* ✅ NOVO: Sistema de descontos fake */}
-                        {(() => {
-                          const fakeDiscountInfo = getFakeDiscountInfo(product.id);
-                          
-                          if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
+                                        {/* ✅ NOVO: Sistema de descontos fake DINÂMICO */}
+                {(() => {
+                  const fakeDiscountInfo = getFakeDiscountInfo(product.id, basePrice);
+
+                  if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
                             return (
-                              <div className="flex flex-col items-center">
+                          <div className="flex flex-col items-center">
                                 {/* Badge de desconto + preço fake riscado */}
-                                <div className="flex items-center gap-3 mb-3">
+                            <div className="flex items-center gap-3 mb-3">
                                   <motion.div 
                                     className="bg-gradient-to-r from-red-500 to-red-600 text-white text-lg font-black px-3 py-1 rounded-full shadow-lg"
                                     animate={{ 
@@ -1086,21 +1086,21 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                                   </motion.div>
                                   <div className="text-lg text-gray-500 line-through font-medium">
                                     €{(fakeDiscountInfo.fakePrice * quantity).toFixed(2)}
-                                  </div>
-                                </div>
+                              </div>
+                              </div>
                                 
                                 {/* Preço real (com desconto fake) */}
                                 <div className="text-4xl font-black text-green-600 mb-1">
                                   €{totalPrice.toFixed(2)}
-                                </div>
-                                
+                            </div>
+                            
                                 {/* ✅ REMOVIDO: Texto "Poupa €X.XX!" */}
-                              </div>
+                            </div>
                             );
                           } else {
                             // Produto sem desconto fake
                             return (
-                              <div className="flex items-baseline justify-center gap-2 mb-1">
+                          <div className="flex items-baseline justify-center gap-2 mb-1">
                                 <span className="text-4xl font-black text-ghibli-moss">€{totalPrice.toFixed(2)}</span>
                               </div>
                             );

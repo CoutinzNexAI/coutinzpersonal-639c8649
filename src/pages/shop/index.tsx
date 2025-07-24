@@ -85,9 +85,9 @@ const categories: Category[] = [
 ];
 
 // ✅ ATUALIZADO: Função para obter preço com fake discount
-const getProductPricing = (product: IndividualProduct) => {
-  const fakeDiscountInfo = getFakeDiscountInfo(product.id);
-  if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
+  const getProductPricing = (product: IndividualProduct) => {
+    const fakeDiscountInfo = getFakeDiscountInfo(product.id, product.price);
+    if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
     return {
       originalPrice: fakeDiscountInfo.fakePrice,
       discountedPrice: fakeDiscountInfo.realPrice,
@@ -409,11 +409,11 @@ const ShopPage: React.FC = () => {
                       {/* Preço centrado e destacado com suporte a desconto */}
                       <div className="flex flex-col items-center justify-center">
                         {(() => {
-                          const fakeDiscountInfo = getFakeDiscountInfo(product.id);
+                          const fakeDiscountInfo = getFakeDiscountInfo(product.id, product.price);
                           
                           if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
                             return (
-                              <>
+                                                            <>
                                 {/* Badge de desconto + preço fake riscado */}
                                 <div className="flex items-center justify-center gap-2 mb-2">
                                   <motion.div 

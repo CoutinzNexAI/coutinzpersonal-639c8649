@@ -104,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           metadata: {
             productId: item.productId,
             userImageId: item.userImageId || '',
-            transformationId: item.userImageId || '',
+              transformationId: item.userImageId || '',
             position: position
           }
         },

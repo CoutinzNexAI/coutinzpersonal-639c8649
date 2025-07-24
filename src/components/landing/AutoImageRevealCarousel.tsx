@@ -83,7 +83,7 @@ export const AutoImageRevealCarousel: React.FC = () => {
             transition={{ duration: 0.3 }}
             className="hidden md:block absolute top-2 left-2 z-20 bg-white/80 rounded-lg px-3 py-1 shadow text-ghibli-wood text-base font-semibold"
           >
-            <span>{item.title}</span>
+          <span>{item.title}</span>
           </motion.div>
         </AnimatePresence>
 
@@ -97,15 +97,15 @@ export const AutoImageRevealCarousel: React.FC = () => {
             transition={{ duration: 0.4, ease: 'easeOut' }}
             className="absolute inset-0 w-full h-full bg-ghibli-cream/80"
           >
-            <Image
-              src={getImageSrc('/' + item.before)}
-              alt={item.title + ' original'}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 40vw, 25vw"
-              priority
-            />
-          </motion.div>
+          <Image
+            src={getImageSrc('/' + item.before)}
+            alt={item.title + ' original'}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                sizes="(max-width: 640px) 90vw, (max-width: 1024px) 40vw, 25vw"
+                priority
+              />
+            </motion.div>
         </AnimatePresence>
 
         {/* Reveal da transformada - só aparece nas fases reveal e after */}

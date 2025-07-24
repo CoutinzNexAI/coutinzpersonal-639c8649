@@ -175,7 +175,8 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
             {/* Price - Centralized and prominent with discount support */}
             <div className="flex flex-col items-center justify-center">
               {(() => {
-                const fakeDiscountInfo = getFakeDiscountInfo(product.id);
+                const basePrice = product.price || 20.00;
+                const fakeDiscountInfo = getFakeDiscountInfo(product.id, basePrice);
                 
                 if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
                   return (

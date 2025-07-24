@@ -117,28 +117,29 @@ const MugShopPage: React.FC = () => {
                             {/* Price with Fake Discount */}
                             <div className="flex items-center justify-center">
                               {(() => {
-                                const fakeDiscountInfo = getFakeDiscountInfo(product.id);
+                                const basePrice = product.basePrice || product.price || 22.95;
+                                const fakeDiscountInfo = getFakeDiscountInfo(product.id, basePrice);
                                 if (fakeDiscountInfo && fakeDiscountInfo.hasDiscount) {
                                   return (
                                     <div className="text-center">
                                       <div className="flex items-center gap-2 mb-1 justify-center">
-                                        <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black px-2 py-1 rounded-full shadow-lg">
+                                    <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-black px-2 py-1 rounded-full shadow-lg">
                                           {fakeDiscountInfo.discountPercent}% OFF
-                                        </div>
-                                        <div className="text-sm text-red-500 line-through font-medium">
-                                          €{fakeDiscountInfo.fakePrice.toFixed(2)}
-                                        </div>
-                                      </div>
-                                      <div className="text-2xl font-bold text-ghibli-moss">
-                                        €{fakeDiscountInfo.realPrice.toFixed(2)}
-                                      </div>
                                     </div>
+                                    <div className="text-sm text-red-500 line-through font-medium">
+                                          €{fakeDiscountInfo.fakePrice.toFixed(2)}
+                                    </div>
+                                  </div>
+                                  <div className="text-2xl font-bold text-ghibli-moss">
+                                        €{fakeDiscountInfo.realPrice.toFixed(2)}
+                                  </div>
+                                </div>
                                   );
                                 } else {
                                   return (
-                                    <div className="text-2xl font-bold text-ghibli-moss">
-                                      €{product.basePrice || product.price || 25.00}
-                                    </div>
+                                <div className="text-2xl font-bold text-ghibli-moss">
+                                  €{product.basePrice || product.price || 25.00}
+                                </div>
                                   );
                                 }
                               })()}

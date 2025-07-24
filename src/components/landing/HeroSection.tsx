@@ -254,15 +254,15 @@ const HeroSection: React.FC = () => {
                     whileTap={{ scale: 0.95 }} 
                     className="w-full"
                   >
-                    <Button 
+                <Button 
                       className="w-full bg-gradient-to-r from-ghibli-moss via-green-600 to-ghibli-moss-light text-white font-bold py-7 text-xl rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 pointer-events-none"
-                      style={{ WebkitTapHighlightColor: 'transparent' }}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                       tabIndex={-1}
-                    >
-                      🎨 Transforma Grátis <span className="ml-2 animate-bounce">✨</span>
-                    </Button>
-                  </motion.div>
-                </Link>
+                >
+                  🎨 Transforma Grátis <span className="ml-2 animate-bounce">✨</span>
+                </Button>
+                </motion.div>
+              </Link>
               </div>
             </motion.div>
 

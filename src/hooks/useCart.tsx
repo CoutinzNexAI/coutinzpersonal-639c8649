@@ -46,7 +46,7 @@ export const useCart = () => {
         cart_value: cartSummary.subtotal,
         view_source: 'sidebar',
         items_by_category: getItemsByCategory(cartSummary.items),
-        discount_applied: cartSummary.discountAmount,
+        discount_applied: 0, // Fake discounts são aplicados no preço do item
         shipping_cost: cartSummary.shipping
       });
       setCartOpenTime(new Date());
