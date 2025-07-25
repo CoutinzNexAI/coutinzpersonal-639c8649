@@ -640,14 +640,41 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           {/* Layout Mobile */}
           <div className="block lg:hidden">
 
-            {/* ✅ CONTROLOS MOBILE */}
+            {/* ✅ MOCKUP MOBILE - AGORA USA O MESMO PRODUCTCANVAS */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-6"
+            >
+              <div className={`relative w-full h-[350px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20 mx-4`}>
+                <ProductCanvas
+                  key={`mobile-${mockupGenerationKey}`} // ✅ CHAVE DIFERENTE PARA MOBILE
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady} // ✅ MESMO HANDLER - COMPARTILHA ESTADO
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  hasGenerated={hasGenerated} // ✅ ESTADO COMPARTILHADO
+                  onMockupGenerated={handleMockupGenerated}
+                  mockupGenerationKey={`mobile-${mockupGenerationKey}`} // ✅ CHAVE DIFERENTE
+                  isGeneratingMockup={isGeneratingMockup}
+                />
+              </div>
+            </motion.div>
+
+            {/* ✅ CONTROLOS MOBILE - AGORA APÓS MOCKUPS */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               className="mb-6"
             >
-              {/* Controlos de Trocar Arte + Posição - PRIMEIRO */}
+              {/* Controlos de Trocar Arte + Posição */}
               <ProductMobileControls
                 selectedImageUrl={selectedImageUrl}
                 userImageDimensions={userImageDimensions}
@@ -657,11 +684,11 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 userInfo={userInfo}
                 onOpenGallery={handleOpenGallery}
                 onAdjustPosition={(position) => handleAdjustment('position', position)}
-                            positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
-            showPositionControls={config.positionControls?.showPositionControls !== false && !!coordinateConfig}
+                positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
+                showPositionControls={config.positionControls?.showPositionControls !== false && !!coordinateConfig}
               />
 
-              {/* Seletor de Variantes Mobile - DEPOIS */}
+              {/* Seletor de Variantes Mobile - DEPOIS DOS CONTROLOS */}
               <div className="px-4 mb-4 mt-4">
                 <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-ghibli-sand/30">
                   {(config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'PhoneCaseVariantSelector' ? (
@@ -701,35 +728,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   )}
                 </div>
               </div>
-              
 
-            </motion.div>
-
-            {/* ✅ MOCKUP MOBILE - AGORA USA O MESMO PRODUCTCANVAS */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-6"
-            >
-              <div className={`relative w-full h-[350px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20 mx-4`}>
-                <ProductCanvas
-                  key={`mobile-${mockupGenerationKey}`} // ✅ CHAVE DIFERENTE PARA MOBILE
-                  selectedProduct={product}
-                  userImageUrl={selectedImageUrl}
-                  userId={userInfo?.id}
-                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
-                  onPreviewReady={handlePreviewReady} // ✅ MESMO HANDLER - COMPARTILHA ESTADO
-                  onSelectImage={handleOpenGallery}
-                  imageAdjustments={imageAdjustments}
-                  onImageAdjust={setImageAdjustments}
-                  selectedPrintifyVariantId={selectedPrintifyVariantId}
-                  hasGenerated={hasGenerated} // ✅ ESTADO COMPARTILHADO
-                  onMockupGenerated={handleMockupGenerated}
-                  mockupGenerationKey={`mobile-${mockupGenerationKey}`} // ✅ CHAVE DIFERENTE
-                  isGeneratingMockup={isGeneratingMockup}
-                />
-              </div>
             </motion.div>
 
             {/* Quantidade e Preços Mobile */}

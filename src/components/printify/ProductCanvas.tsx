@@ -368,26 +368,6 @@ export default function ProductCanvas({
               className="w-64 h-64 object-contain opacity-60"
             />
           </div>
-            
-          {/* Call to action específico para hoodie */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Personaliza a tua Hoodie Jovem
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Combina logo, arte AI e frase personalizada para criar uma hoodie única.
-            </p>
-            
-            {onSelectImage && (
-                          <Button
-              onClick={onSelectImage}
-              className="bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              ✨ Faça a sua primeira transformação grátis!
-            </Button>
-              )}
-            </div>
         </div>
       );
     }
@@ -403,26 +383,6 @@ export default function ProductCanvas({
               alt="Escolha uma foto para personalizar"
               className="w-64 h-64 object-contain opacity-60"
             />
-          </div>
-          
-          {/* Call to action */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Personaliza a sua Caneca Coração
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma das suas fotos para dar vida à sua caneca.
-            </p>
-            
-            {onSelectImage && (
-              <Button
-                onClick={onSelectImage}
-                className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                ✨ Faça a sua primeira transformação grátis!
-              </Button>
-            )}
           </div>
         </div>
       );
@@ -440,54 +400,20 @@ export default function ProductCanvas({
               className="w-64 h-64 object-contain opacity-60"
           />
         </div>
-        
-        {/* Call to action */}
-        <div className="text-center max-w-md">
-          <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Personaliza a sua Caneca Cerâmica
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma das suas fotos para dar vida à sua caneca.
-            </p>
-            
-            {onSelectImage && (
-              <Button
-                onClick={onSelectImage}
-                className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                ✨ Faz a tua transformação grátis!
-              </Button>
-            )}
-          </div>
-        </div>
-      );
+      </div>
+    );
     }
 
     // Para canvas, mostrar estado específico sem botão
     if (selectedProduct.id === 'custom_canvas') {
       return (
         <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-8">
-          {/* Placeholder image do canvas */}
           <div className="mb-6">
             <img
               src={selectedProduct.mockupInitialPath}
               alt="Canvas personalizado"
               className="w-64 h-64 object-contain opacity-60"
             />
-          </div>
-          
-          {/* Call to action específico para canvas - SEM BOTÃO */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              {selectedProduct.id === 'custom_canvas' 
-                ? 'Canvas Personalizável' 
-                : 'Canvas com Moldura Personalizável'
-              }
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma foto e veja o seu canvas ganhar vida.
-            </p>
           </div>
         </div>
       );
@@ -505,16 +431,6 @@ export default function ProductCanvas({
               className="w-64 h-64 object-contain opacity-60"
             />
           </div>
-          
-          {/* Call to action específico para poster horizontal */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Poster Horizontal Personalizado
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma foto e veja o seu poster ganhar vida.
-            </p>
-          </div>
         </div>
       );
     }
@@ -529,16 +445,6 @@ export default function ProductCanvas({
               alt="Poster Vertical Personalizado"
               className="w-64 h-64 object-contain opacity-60"
             />
-          </div>
-          
-          {/* Call to action específico para poster vertical */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Poster Vertical Personalizado
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma foto e veja o seu poster ganhar vida.
-            </p>
           </div>
         </div>
       );
@@ -556,16 +462,6 @@ export default function ProductCanvas({
               className="w-64 h-64 object-contain opacity-60"
             />
           </div>
-          
-          {/* Call to action específico para capa */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Capa de Telemóvel Personalizada
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma foto e veja a sua capa ganhar vida.
-            </p>
-          </div>
         </div>
       );
     }
@@ -581,16 +477,6 @@ export default function ProductCanvas({
               alt="Saco Personalizado"
               className="w-64 h-64 object-contain opacity-60"
             />
-          </div>
-          
-          {/* Call to action específico para saco */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Saco Personalizado
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma foto e veja o seu tote bag ganhar vida.
-            </p>
           </div>
         </div>
       );
@@ -608,16 +494,6 @@ export default function ProductCanvas({
               className="w-64 h-64 object-contain opacity-60"
             />
           </div>
-          
-          {/* Call to action específico para caderno */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Caderno Personalizado
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma foto e veja o seu caderno ganhar vida.
-            </p>
-          </div>
         </div>
       );
     }
@@ -633,16 +509,6 @@ export default function ProductCanvas({
               alt="Mouse Pad Personalizado"
               className="w-64 h-64 object-contain opacity-60"
             />
-          </div>
-          
-          {/* Call to action específico para mouse pad */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Mouse Pad Personalizado
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma foto e veja o seu mouse pad ganhar vida.
-            </p>
           </div>
         </div>
       );
@@ -660,16 +526,6 @@ export default function ProductCanvas({
               className="w-64 h-64 object-contain opacity-60"
             />
           </div>
-          
-          {/* Call to action específico para peluche */}
-          <div className="text-center max-w-md">
-            <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-              Peluche com T-Shirt Personalizada
-            </h3>
-            <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-              Escolha uma foto e veja o seu peluche ganhar vida.
-            </p>
-          </div>
         </div>
       );
     }
@@ -682,26 +538,6 @@ export default function ProductCanvas({
           <div className="w-64 h-64 bg-ghibli-cream/50 rounded-xl border-2 border-dashed border-ghibli-sand flex items-center justify-center">
             <span className="text-6xl opacity-40">📷</span>
           </div>
-        </div>
-        
-        {/* Call to action genérico */}
-        <div className="text-center max-w-md">
-          <h3 className="text-xl font-semibold text-ghibli-earth mb-3">
-            Personaliza o seu produto
-          </h3>
-          <p className="text-ghibli-earth/70 mb-6 leading-relaxed hidden lg:block">
-            Escolha uma foto para dar vida ao seu produto.
-          </p>
-          
-          {onSelectImage && (
-            <Button
-              onClick={onSelectImage}
-              className="hidden bg-ghibli-moss hover:bg-ghibli-moss/90 text-white px-8 py-3"
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              ✨ Faça a sua primeira transformação grátis!
-            </Button>
-          )}
         </div>
       </div>
     );
