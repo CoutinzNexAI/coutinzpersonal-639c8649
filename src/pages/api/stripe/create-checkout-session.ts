@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { items, shippingMethod, userId, userName, userEmail, subtotal, originalSubtotal, discountAmount, discountCode, discountPercent, shipping, tax, total } = req.body;
+    const { items, shippingMethod, userId, userName, userEmail, subtotal, originalSubtotal, discountAmount, shipping, tax, total } = req.body;
 
     // Gerar referências únicas para este checkout e pedido
     const checkoutReference = `CHK-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
@@ -74,8 +74,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           subtotal,
           originalSubtotal,
           discountAmount,
-          discountCode,
-          discountPercent,
           shipping,
           tax,
           total
@@ -142,6 +140,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success_url: `${req.headers.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.referer || req.headers.origin + '/shop'}`,
       customer_email: userEmail,
+      allow_promotion_codes: true, // ✅ NOVO: Ativar códigos promocionais na interface do Stripe
       metadata: {
         userId,
         userName,

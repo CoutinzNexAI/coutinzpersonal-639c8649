@@ -637,189 +637,6 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
             </motion.div>
           </div>
 
-          {/* ✅ MOCKUP MOBILE ONLY - Display das imagens */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-6 block lg:hidden"
-          >
-            <div className={`relative w-full h-[350px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20`}>
-              {/* ✅ MOBILE: SÓ MOSTRA IMAGENS (não gera) */}
-              {printifyPreviewUrls.length > 0 ? (
-                <div className="relative w-full h-full flex items-center justify-center bg-transparent">
-                  <img
-                    src={printifyPreviewUrls[currentPreviewIndex] || printifyPreviewUrls[0]}
-                    alt="Preview mockup"
-                    className="max-w-full max-h-full object-contain drop-shadow-2xl"
-                    style={{ maxHeight: '90%' }}
-                  />
-                  
-                  {printifyPreviewUrls.length > 1 && (
-                    <>
-                      <Button
-                        onClick={() => setCurrentPreviewIndex(prev => prev === 0 ? printifyPreviewUrls.length - 1 : prev - 1)}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-ghibli-earth shadow-lg border border-ghibli-sand/30"
-                        size="sm"
-                      >
-                        <ChevronLeft className="w-5 h-5" />
-                      </Button>
-                      
-                      <Button
-                        onClick={() => setCurrentPreviewIndex(prev => prev === printifyPreviewUrls.length - 1 ? 0 : prev + 1)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-ghibli-earth shadow-lg border border-ghibli-sand/30"
-                        size="sm"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              ) : selectedImageUrl ? (
-                <div className="relative w-full h-full flex items-center justify-center bg-white">
-                  <div className="relative">
-                    <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <RotateCw className="w-8 h-8 animate-spin text-ghibli-moss" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-ghibli-earth font-semibold text-lg">A gerar...</p>
-                      <p className="text-ghibli-earth/60 text-sm mt-1">A reposicionar arte</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
-                  {/* ✅ MOBILE: Layout igual ao desktop com imagem específica do produto */}
-                  <div className="mb-4">
-                    {/* Imagem específica baseada no produto */}
-                    {product.id === 'custom_phone_case' && (
-                      <img
-                        src="/mockupproduto/telemovel.png"
-                        alt="Capa de Telemóvel Personalizada"
-                        className="w-32 h-32 object-contain opacity-60"
-                      />
-                    )}
-                    {product.id === 'custom_canvas' && (
-                      <img
-                        src="/mockupproduto/canva.png"
-                        alt="Canvas Personalizado"
-                        className="w-32 h-32 object-contain opacity-60"
-                      />
-                    )}
-
-                    {product.id === 'ceramic_mug' && (
-                      <img
-                        src="/mockupproduto/canecapersonalizada.png"
-                        alt="Caneca Personalizada"
-                        className="w-32 h-32 object-contain opacity-60"
-                      />
-                    )}
-                    {product.id === 'heart_mug' && (
-                      <img
-                        src="/mockupproduto/canecacoracao.png"
-                        alt="Caneca de Coração"
-                        className="w-32 h-32 object-contain opacity-60"
-                      />
-                    )}
-                    {product.id === 'poster_horizontal_semi_glossy' && (
-                      <img
-                        src="/mockupproduto/posterhorizontal.png"
-                        alt="Poster Horizontal"
-                        className="w-32 h-32 object-contain opacity-60"
-                      />
-                    )}
-                    {product.id === 'poster_vertical_semi_glossy' && (
-                      <img
-                        src="/mockupproduto/postervertical.png"
-                        alt="Poster Vertical"
-                        className="w-32 h-32 object-contain opacity-60"
-                      />
-                    )}
-                    {product.id === 'tote_bag' && (
-                      <img
-                        src="/mockupproduto/saco.png"
-                        alt="Saco Personalizado"
-                        className="w-32 h-32 object-contain opacity-60"
-                      />
-                    )}
-                    {product.id === 'spiral_journal' && (
-                      <img
-                        src="/mockupproduto/caderno.png"
-                        alt="Caderno Personalizado"
-                        className="w-32 h-32 object-contain opacity-60"
-                      />
-                    )}
-                    {product.id === 'mouse_pad' && (
-                      <img
-                        src="/mockupproduto/mousepad.png"
-                        alt="Mouse Pad Personalizado"
-                        className="w-32 h-32 object-contain opacity-60"
-                      />
-                    )}
-                    {product.id === 'plush_toy_tshirt' && (
-                      <img
-                        src="/mockupproduto/peluche.png"
-                        alt="Peluche com T-Shirt Personalizada"
-                        className="w-32 h-32 object-contain opacity-60"
-                      />
-                    )}
-                    {/* Fallback para produtos não especificados */}
-                    {!['custom_phone_case', 'custom_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad', 'plush_toy_tshirt'].includes(product.id) && (
-                      <div className="w-32 h-32 bg-ghibli-cream/50 rounded-xl border-2 border-dashed border-ghibli-sand flex items-center justify-center">
-                        <span className="text-4xl opacity-40">📷</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Texto personalizado baseado no produto */}
-                  <div className="text-center">
-                    <h3 className="text-lg font-semibold text-ghibli-earth mb-2">
-                      {product.id === 'custom_phone_case' && 'Capa de Telemóvel Personalizada'}
-                      {product.id === 'custom_canvas' && 'Canvas Personalizável'}
-
-                      {product.id === 'ceramic_mug' && 'Caneca Personalizada'}
-                      {product.id === 'heart_mug' && 'Caneca de Coração Personalizada'}
-                      {product.id === 'poster_horizontal_semi_glossy' && 'Poster Horizontal Personalizado'}
-                      {product.id === 'poster_vertical_semi_glossy' && 'Poster Vertical Personalizado'}
-                      {product.id === 'tote_bag' && 'Saco Personalizado'}
-                      {product.id === 'spiral_journal' && 'Caderno Personalizado'}
-                      {product.id === 'mouse_pad' && 'Mouse Pad Personalizado'}
-                      {product.id === 'plush_toy_tshirt' && 'Peluche com T-Shirt Personalizada'}
-                      {!['custom_phone_case', 'custom_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad', 'plush_toy_tshirt'].includes(product.id) && 'Escolha uma Foto'}
-                    </h3>
-                    <p className="text-ghibli-earth/70 text-sm leading-relaxed">
-                      {product.id === 'custom_phone_case' && 'Escolha uma foto e veja a sua capa personalizada ganhar vida.'}
-                      {product.id === 'custom_canvas' && 'Escolha uma foto e veja o seu canvas personalizado ganhar vida.'}
-
-                      {product.id === 'ceramic_mug' && 'Escolha uma foto e veja a sua caneca personalizada ganhar vida.'}
-                      {product.id === 'heart_mug' && 'Escolha uma foto e veja a sua caneca personalizada ganhar vida.'}
-                      {product.id === 'poster_horizontal_semi_glossy' && 'Escolha uma foto e veja o seu poster horizontal ganhar vida.'}
-                      {product.id === 'poster_vertical_semi_glossy' && 'Escolha uma foto e veja o seu poster vertical ganhar vida.'}
-                      {product.id === 'tote_bag' && 'Escolha uma foto e veja o seu saco sustentável ganhar vida.'}
-                      {product.id === 'spiral_journal' && 'Escolha uma foto e veja o seu caderno personalizado ganhar vida.'}
-                      {product.id === 'mouse_pad' && 'Escolha uma foto e veja o seu mouse pad personalizado ganhar vida.'}
-                      {product.id === 'plush_toy_tshirt' && 'Escolha uma foto e veja o seu peluche fofo com T-shirt personalizada ganhar vida.'}
-                      {!['custom_phone_case', 'custom_canvas', 'ceramic_mug', 'heart_mug', 'poster_horizontal_semi_glossy', 'poster_vertical_semi_glossy', 'tote_bag', 'spiral_journal', 'mouse_pad', 'plush_toy_tshirt'].includes(product.id) && 'Selecione uma das suas transformações AI para personalizar.'}
-                    </p>
-                  </div>
-                </div>
-              )}
-              
-              {/* ✅ OVERLAY MOBILE para mudança de posição - SÓ quando há imagem, está a gerar E não há previews */}
-              {isGeneratingMockup && selectedImageUrl && printifyPreviewUrls.length === 0 && (
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-ghibli-moss/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <RotateCw className="w-8 h-8 animate-spin text-ghibli-moss" />
-                    </div>
-                    <p className="text-ghibli-earth font-semibold text-lg">A gerar...</p>
-                    <p className="text-ghibli-earth/60 text-sm mt-1">A reposicionar arte</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-
           {/* Layout Mobile */}
           <div className="block lg:hidden">
 
@@ -852,19 +669,9 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                       product={product}
                       selectedVariantId={selectedPrintifyVariantId}
                       onVariantChange={(variantId) => handleAdjustment('size', variantId)}
-                      label={config.variantSelectorConfig?.label || "Modelo do Telemóvel"}
-                      emoji={config.variantSelectorConfig?.emoji || "📱"}
-                      customSingleVariantText={config.variantSelectorConfig?.getCustomSingleVariantText?.(product)}
-                      customSingleVariantSubtext={config.variantSelectorConfig?.getCustomSingleVariantSubtext?.(product)}
                     />
                   ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'FramedCanvasVariantSelector' ? (
                     <FramedCanvasVariantSelector
-                      product={product}
-                      selectedVariantId={selectedPrintifyVariantId}
-                      onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
-                    />
-                  ) : (config.getVariantSelectorComponent?.(product) || config.VariantSelectorComponent) === 'ToteBagVariantSelector' ? (
-                    <ToteBagVariantSelector
                       product={product}
                       selectedVariantId={selectedPrintifyVariantId}
                       onVariantSelect={(variantId) => handleAdjustment('size', variantId)}
@@ -898,6 +705,33 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
             </motion.div>
 
+            {/* ✅ MOCKUP MOBILE - AGORA USA O MESMO PRODUCTCANVAS */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-6"
+            >
+              <div className={`relative w-full h-[350px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20 mx-4`}>
+                <ProductCanvas
+                  key={`mobile-${mockupGenerationKey}`} // ✅ CHAVE DIFERENTE PARA MOBILE
+                  selectedProduct={product}
+                  userImageUrl={selectedImageUrl}
+                  userId={userInfo?.id}
+                  printifyGeneratedPreviewUrls={printifyPreviewUrls}
+                  onPreviewReady={handlePreviewReady} // ✅ MESMO HANDLER - COMPARTILHA ESTADO
+                  onSelectImage={handleOpenGallery}
+                  imageAdjustments={imageAdjustments}
+                  onImageAdjust={setImageAdjustments}
+                  selectedPrintifyVariantId={selectedPrintifyVariantId}
+                  hasGenerated={hasGenerated} // ✅ ESTADO COMPARTILHADO
+                  onMockupGenerated={handleMockupGenerated}
+                  mockupGenerationKey={`mobile-${mockupGenerationKey}`} // ✅ CHAVE DIFERENTE
+                  isGeneratingMockup={isGeneratingMockup}
+                />
+              </div>
+            </motion.div>
+
             {/* Quantidade e Preços Mobile */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -915,6 +749,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 loading={loading}
                 userInfo={userInfo}
                 selectedImageUrl={selectedImageUrl}
+                productId={product.id} // ✅ NOVO: Passar productId para fake discounts
               />
             </motion.div>
 

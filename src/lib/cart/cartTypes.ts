@@ -55,8 +55,6 @@ export interface CartSummary {
   subtotal: number; // Subtotal final com desconto aplicado
   originalSubtotal?: number; // Subtotal original antes do desconto
   discountAmount?: number; // Valor do desconto aplicado
-  discountCode?: string; // Código de desconto aplicado
-  discountPercent?: number; // Percentagem do desconto aplicado
   shipping: number;
   tax: number;
   total: number;

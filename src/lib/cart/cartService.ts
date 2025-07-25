@@ -6,11 +6,9 @@ import { notebookConfig } from '@/config/products/notebook.config';
 import { phoneCaseConfig } from '@/config/products/phoneCase.config';
 import { bagConfig } from '@/config/products/bag.config';
 import { mousepadConfig } from '@/config/products/mousepad.config';
-import * as fpixel from '@/lib/fpixel';
-import { validateDiscountCode, calculateDiscountAmount, type DiscountCode } from '@/lib/discountCodes'; 
+import * as fpixel from '@/lib/fpixel'; 
 
 const CART_STORAGE_KEY = 'pictuz_cart';
-const DISCOUNT_CODE_STORAGE_KEY = 'pictuz_discount_code';
 // ✅ REMOVIDO: const TAX_RATE = 0.23; // IVA agora incluído nos preços
 
 export class CartService {
@@ -153,32 +151,15 @@ export class CartService {
     return subtotal >= 40 ? 0 : 3.99;
   }
 
-  // ✅ ATUALIZADO: Calculate cart summary (com códigos de desconto)
+  // ✅ SIMPLIFICADO: Calculate cart summary (sem descontos de quantidade)
   static getCartSummary(): CartSummary {
     const items = this.getCart();
     
     // Subtotal simples - preços já são os finais (com descontos fake aplicados)
-    const originalSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
-    // Verificar se há código de desconto aplicado
-    const appliedDiscountCode = this.getAppliedDiscountCode();
-    let discountAmount = 0;
-    let discountCode: string | undefined;
-    let discountPercent: number | undefined;
-    
-    if (appliedDiscountCode) {
-      const validation = validateDiscountCode(appliedDiscountCode, originalSubtotal);
-      if (validation.valid && validation.discount) {
-        discountAmount = calculateDiscountAmount(validation.discount, originalSubtotal);
-        discountCode = appliedDiscountCode;
-        discountPercent = validation.discount.discountPercent;
-      }
-    }
-    
-    const subtotal = originalSubtotal - discountAmount;
-    
-    // Shipping baseado no subtotal ORIGINAL (antes do código de desconto)
-    const shipping = this.calculateShipping(originalSubtotal);
+    // Shipping baseado no subtotal
+    const shipping = this.calculateShipping(subtotal);
     
     // IVA incluído nos preços
     const tax = 0;
@@ -188,10 +169,8 @@ export class CartService {
     return {
       items,
       subtotal: Math.round(subtotal * 100) / 100,
-      originalSubtotal: Math.round(originalSubtotal * 100) / 100,
-      discountAmount: discountAmount > 0 ? Math.round(discountAmount * 100) / 100 : undefined,
-      discountCode,
-      discountPercent,
+      originalSubtotal: Math.round(subtotal * 100) / 100, // Mesmo valor
+      // ✅ REMOVIDO: discountAmount completamente (não enviar nem como 0)
       shipping: Math.round(shipping * 100) / 100,
       tax: Math.round(tax * 100) / 100,
       total: Math.round(total * 100) / 100,
@@ -245,32 +224,5 @@ export class CartService {
       imageAdjustments: item.imageAdjustments,
       price: item.price
     }));
-  }
-
-  // ✅ NOVO: Métodos para códigos de desconto
-  static applyDiscountCode(code: string): { success: boolean; error?: string; discount?: DiscountCode } {
-    if (typeof window === 'undefined') return { success: false, error: 'Não disponível no servidor' };
-    
-    const cartSummary = this.getCartSummary();
-    const validation = validateDiscountCode(code, cartSummary.originalSubtotal || cartSummary.subtotal);
-    
-    if (!validation.valid) {
-      return { success: false, error: validation.error };
-    }
-    
-    // Salvar código aplicado
-    localStorage.setItem(DISCOUNT_CODE_STORAGE_KEY, code.toUpperCase());
-    
-    return { success: true, discount: validation.discount };
-  }
-
-  static removeDiscountCode(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(DISCOUNT_CODE_STORAGE_KEY);
-  }
-
-  static getAppliedDiscountCode(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem(DISCOUNT_CODE_STORAGE_KEY);
   }
 } 

@@ -87,6 +87,9 @@ export default function ProductCanvas({
   // ✅ REF para rastrear última chave processada - previne loops infinitos
   const lastProcessedKeyRef = useRef<string | null>(null);
 
+  // ✅ PROTEÇÃO CONTRA DUPLICAÇÃO: Track de geração global para evitar mobile + desktop simultâneo
+  const globalGenerationLockRef = useRef<Set<string>>(new Set());
+
   // ✅ OTIMIZAÇÃO: Estado consolidado do Printify
   const [printifyData, setPrintifyData] = useState({
     previewUrls: [] as string[],
@@ -166,6 +169,17 @@ export default function ProductCanvas({
     if (!userImageUrl || !userId || isLoadingMockups) {
       return;
     }
+
+    // ✅ PROTEÇÃO GLOBAL: Verificar se já está a gerar este mockup
+    const lockKey = `${userImageUrl}-${selectedPrintifyVariantId}-${selectedProduct.id}`;
+    if (globalGenerationLockRef.current.has(lockKey)) {
+      console.log('🔒 [ProductCanvas] Mockup já em geração, ignorando duplicação:', lockKey);
+      return;
+    }
+
+    // ✅ LOCK: Marcar como em geração
+    globalGenerationLockRef.current.add(lockKey);
+
     setIsLoadingMockups(true);
     setError(null);
 
@@ -265,12 +279,16 @@ export default function ProductCanvas({
         if (onMockupGenerated) {
           onMockupGenerated();
         }
+        // ✅ UNLOCK: Remover o lock após sucesso
+        globalGenerationLockRef.current.delete(lockKey);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
       setIsLoadingMockups(false);
       setIsGenerating(false); // ✅ Reset guard local
+      // ✅ UNLOCK: Remover o lock após a geração
+      globalGenerationLockRef.current.delete(lockKey);
     }
   }, [
     userImageUrl, 

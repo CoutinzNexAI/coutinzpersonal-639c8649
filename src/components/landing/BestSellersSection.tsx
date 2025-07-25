@@ -48,7 +48,7 @@ const bestSellers: Product[] = [
     id: 'heart_mug',
     name: 'Caneca Coração',
     category: 'Canecas',
-    price: 22.95, // ✅ CORRIGIDO: Era 24.26, agora é 22.95
+    price: 22.95, // ✅ CORRIGIDO: Preço real da caneca coração
     imagePersonalized: '/Bestseller/canecacoracaofoto.png',
     imageBlank: '/Bestseller/canecacoracao.png',
     href: '/shop/mug/heart_mug',
