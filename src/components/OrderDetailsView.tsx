@@ -536,10 +536,6 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
 
         {/* Product List - Mobile */}
         <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-ghibli-earth mb-3 flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Detalhes do Produto
-          </h2>
           <ProductList items={order.items} fallbackOrder={order} />
         </div>
       </div>
