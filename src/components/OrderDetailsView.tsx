@@ -492,92 +492,55 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
       {/* Mobile: Layout com scroll geral */}
       <div className="lg:hidden flex-1 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-ghibli-moss/50 scrollbar-track-transparent" style={{ WebkitOverflowScrolling: 'touch' }}>
         {/* Status Timeline - Mobile */}
-        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-3 shadow-sm">
+        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-4 shadow-sm">
           <StatusTimeline status={order.status} printifyStatus={order.printify_status} />
         </div>
 
         {/* Order Header - Mobile */}
-        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-3 shadow-sm">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1 pr-3">
-              <h1 className="text-base font-bold text-ghibli-earth mb-1 leading-tight">
+        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-4 shadow-sm">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h1 className="text-xl font-bold text-ghibli-earth mb-2">
                 Encomenda #{order.order_reference || order.id.slice(0, 8)}
               </h1>
-              <Badge className={`${statusInfo.color} flex items-center gap-1 text-xs w-fit`}>
-                <StatusIcon className="w-3 h-3" />
+              <Badge className={`${statusInfo.color} flex items-center gap-1 text-sm w-fit`}>
+                <StatusIcon className="w-4 h-4" />
                 {statusInfo.label}
               </Badge>
             </div>
-            <div className="text-right flex-shrink-0">
-              <p className="text-lg font-bold text-ghibli-moss">
+            <div className="text-right">
+              <p className="text-xl font-bold text-ghibli-moss">
                 €{(order.total_amount || order.price).toFixed(2)}
               </p>
-              <p className="text-xs text-ghibli-earth/60">
+              <p className="text-sm text-ghibli-earth/60">
                 {formatDate(order.created_at)}
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Product Details - Mobile */}
-        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-3 shadow-sm">
-          <ProductList items={order.items} fallbackOrder={order} />
-        </div>
-
-        {/* Tracking Information - Mobile */}
-        {order.tracking_number && (
-          <div className="bg-blue-50 rounded-xl border border-blue-200 p-3 shadow-sm">
-            <h2 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
-              <Truck className="w-4 h-4" />
-              Informações de Envio
-            </h2>
-            
-            <div className="space-y-2">
-              <p className="text-blue-700 text-xs break-all">
-                <span className="font-medium">Número:</span> {order.tracking_number}
-              </p>
-              {order.tracking_url && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-100 text-xs h-8"
-                  onClick={() => window.open(order.tracking_url, '_blank')}
-                >
-                  <ExternalLink className="w-3 h-3 mr-1" />
-                  Seguir Encomenda
-                </Button>
-              )}
-            </div>
+          {/* Ações importantes - Mobile */}
+          <div className="flex flex-col gap-2 mt-4">
+            {order.tracking_url && (
+              <Button 
+                size="sm"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => window.open(order.tracking_url, '_blank')}
+              >
+                <Truck className="h-4 w-4 mr-2" />
+                Seguir Encomenda
+              </Button>
+            )}
+            <SupportButton order={order} />
           </div>
-        )}
+        </div>
 
-        {/* Order Timeline - Mobile */}
-        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-3 shadow-sm">
-          <h2 className="text-sm font-semibold text-ghibli-earth mb-2 flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            Histórico da Encomenda
+        {/* Product List - Mobile */}
+        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-4 shadow-sm">
+          <h2 className="text-lg font-semibold text-ghibli-earth mb-3 flex items-center gap-2">
+            <Package className="w-5 h-5" />
+            Detalhes do Produto
           </h2>
-          
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs">
-              <div className="w-2 h-2 bg-ghibli-moss rounded-full flex-shrink-0"></div>
-              <span className="text-ghibli-earth/60">Criada em:</span>
-              <span className="text-ghibli-earth">{formatDate(order.created_at)}</span>
-            </div>
-            
-            <div className="flex items-center gap-2 text-xs">
-              <div className="w-2 h-2 bg-ghibli-moss rounded-full flex-shrink-0"></div>
-              <span className="text-ghibli-earth/60">Última atualização:</span>
-              <span className="text-ghibli-earth">{formatDate(order.updated_at)}</span>
-            </div>
-            
-
-          </div>
-        </div>
-
-        {/* Support Button - Mobile */}
-        <div className="bg-white/90 rounded-xl border border-ghibli-stone/20 p-3 shadow-sm">
-          <SupportButton order={order} />
+          <ProductList items={order.items} fallbackOrder={order} />
         </div>
       </div>
 
@@ -644,28 +607,6 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({ order, onBac
           {/* Product List - Desktop (scrollable) */}
           <div className="flex-1 overflow-hidden">
             <ProductList items={order.items} fallbackOrder={order} />
-          </div>
-
-          {/* Histórico da Encomenda - Desktop (fixo) */}
-          <div className="mt-6 pt-6 border-t border-ghibli-stone/20 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-ghibli-earth mb-4 flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Histórico da Encomenda
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white/60 rounded-lg border border-ghibli-stone/10 p-3">
-                <p className="text-sm font-medium text-ghibli-earth mb-1">Criada em</p>
-                <p className="text-xs text-ghibli-earth/60">{formatDate(order.created_at)}</p>
-              </div>
-              
-              <div className="bg-white/60 rounded-lg border border-ghibli-stone/10 p-3">
-                <p className="text-sm font-medium text-ghibli-earth mb-1">Última atualização</p>
-                <p className="text-xs text-ghibli-earth/60">{formatDate(order.updated_at)}</p>
-              </div>
-              
-
-            </div>
           </div>
         </div>
       </div>

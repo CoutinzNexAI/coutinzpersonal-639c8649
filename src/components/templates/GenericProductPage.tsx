@@ -638,7 +638,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           </div>
 
           {/* Layout Mobile */}
-          <div className="block lg:hidden">
+          <div className="block lg:hidden px-4">
 
             {/* ✅ MOCKUP MOBILE - AGORA USA O MESMO PRODUCTCANVAS */}
             <motion.div
@@ -647,7 +647,7 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mb-6"
             >
-              <div className={`relative w-full h-[350px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20 mx-4`}>
+              <div className={`relative w-full h-[350px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20`}>
                 <ProductCanvas
                   key={`mobile-${mockupGenerationKey}`} // ✅ CHAVE DIFERENTE PARA MOBILE
                   selectedProduct={product}

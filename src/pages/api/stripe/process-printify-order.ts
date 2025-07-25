@@ -561,7 +561,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         external_id: orderReference,
         line_items: printifyLineItems,
         shipping_method: shippingMethodId,
-        send_shipping_notification: false,
+        send_shipping_notification: true, // ✅ ATIVADO: Clientes recebem emails da Printify
         address_to: printifyShippingAddress
       };
 
