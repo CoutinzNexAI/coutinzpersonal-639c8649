@@ -1,60 +1,78 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const MouseEffect = () => {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isPointer, setIsPointer] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const cursorDotRef = useRef<HTMLDivElement>(null);
+  const isPointerRef = useRef(false);
+  const rafIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Don't show on mobile devices for better performance
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if (isMobile) return;
-    
-    // Small delay to not show cursor during initial page load
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 1000);
 
     const updatePosition = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-      const target = e.target as HTMLElement;
-      setIsPointer(window.getComputedStyle(target).cursor === 'pointer');
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+
+      rafIdRef.current = requestAnimationFrame(() => {
+        const x = e.clientX;
+        const y = e.clientY;
+        const target = e.target as HTMLElement;
+        const isPointer = window.getComputedStyle(target).cursor === 'pointer';
+        
+        if (cursorRef.current) {
+          const scale = isPointer ? 1.5 : 1;
+          cursorRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
+        }
+        
+        if (cursorDotRef.current) {
+          const scale = isPointer ? 1.5 : 1;
+          cursorDotRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
+        }
+        
+        isPointerRef.current = isPointer;
+      });
     };
 
-    const updateTouchPosition = (e: TouchEvent) => {
-      setPosition({ x: e.touches[0].clientX, y: e.touches[0].clientY });
-    };
+    // Small delay to not show cursor during initial page load
+    const timer = setTimeout(() => {
+      if (cursorRef.current) {
+        cursorRef.current.style.opacity = '1';
+      }
+      if (cursorDotRef.current) {
+        cursorDotRef.current.style.opacity = '1';
+      }
+    }, 1000);
 
-    window.addEventListener('mousemove', updatePosition);
-    window.addEventListener('touchmove', updateTouchPosition);
+    window.addEventListener('mousemove', updatePosition, { passive: true });
 
     return () => {
       clearTimeout(timer);
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
       window.removeEventListener('mousemove', updatePosition);
-      window.removeEventListener('touchmove', updateTouchPosition);
     };
   }, []);
-
-  if (!isVisible) return null;
 
   return (
     <>
       <div 
-        className="fixed pointer-events-none z-50 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cosmic-blue/20 blur-sm will-change-transform"
+        ref={cursorRef}
+        className="fixed pointer-events-none z-50 h-7 w-7 rounded-full bg-cosmic-blue/20 blur-sm will-change-transform"
         style={{ 
-          left: `${position.x}px`,
-          top: `${position.y}px`,
-          transform: `translate(-50%, -50%) scale(${isPointer ? 1.5 : 1})`,
-          transition: 'transform 0.1s ease-out',
+          opacity: 0,
+          transition: 'transform 0.1s ease-out, opacity 0.3s ease',
         }}
       />
       <div 
-        className="fixed pointer-events-none z-50 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cosmic-blue will-change-transform"
+        ref={cursorDotRef}
+        className="fixed pointer-events-none z-50 h-2 w-2 rounded-full bg-cosmic-blue will-change-transform"
         style={{ 
-          left: `${position.x}px`,
-          top: `${position.y}px`,
-          transform: `translate(-50%, -50%) scale(${isPointer ? 1.5 : 1})`,
-          transition: 'transform 0.1s ease-out',
+          opacity: 0,
+          transition: 'transform 0.1s ease-out, opacity 0.3s ease',
         }}
       />
     </>

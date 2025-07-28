@@ -225,7 +225,8 @@ html {
   }
   
   .animate-neon-glow {
-    animation: neon-glow 2s ease-in-out infinite;
+    /* Removida animação que causava desfoque */
+    animation: none;
   }
   
   .animate-hologram {
@@ -253,8 +254,10 @@ html {
   }
   
   .section-title {
-    @apply text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-8 md:mb-16 cosmic-gradient-text animate-neon-glow;
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-8 md:mb-16 cosmic-gradient-text;
     font-family: 'Orbitron', monospace;
+    /* Removido animate-neon-glow que causava desfoque */
+    text-shadow: none; /* Removido text-shadow que causava blur */
   }
   
   .section-padding {
@@ -265,6 +268,9 @@ html {
     @apply text-transparent bg-clip-text bg-gradient-to-r from-cosmic-purple via-cosmic-blue to-cosmic-pink;
     background-size: 200% 200%;
     animation: gradient-shift 3s ease-in-out infinite;
+    /* Adicionado para melhor clareza */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .animate-bounce-slow {
@@ -405,3 +411,44 @@ html {
     transform: none;
   }
 }
+
+  /* Project showcase animations */
+  @keyframes project-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(217, 70, 239, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(139, 92, 246, 0.5), 0 0 60px rgba(217, 70, 239, 0.3);
+    }
+  }
+
+  @keyframes stats-counter {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes tech-badge-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(1deg); }
+  }
+
+  .project-showcase {
+    animation: project-glow 3s ease-in-out infinite;
+  }
+
+  .stats-animate {
+    animation: stats-counter 0.8s ease-out forwards;
+  }
+
+  .tech-badge {
+    animation: tech-badge-float 4s ease-in-out infinite;
+  }
+
+  .tech-badge:nth-child(odd) {
+    animation-delay: 0.5s;
+  }
+
+  .tech-badge:nth-child(even) {
+    animation-delay: 1s;
+  }

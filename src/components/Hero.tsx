@@ -10,7 +10,7 @@ import ScannerEffect from './hero/ScannerEffect';
 const Hero = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [typedText, setTypedText] = useState('');
-  const fullText = "Developer • Designer • Creative Thinker";
+  const fullText = "AI Developer • Machine Learning Engineer • Data Scientist";
   
   // Typing effect
   useEffect(() => {
@@ -24,7 +24,7 @@ const Hero = () => {
       if (index > fullText.length) {
         clearInterval(timer);
       }
-    }, 80);
+    }, 50); // Reduzido de 80ms para 50ms
     
     return () => clearInterval(timer);
   }, [isLoaded]);
@@ -33,7 +33,7 @@ const Hero = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true);
-    }, 500);
+    }, 200); // Reduzido de 500ms para 200ms
     
     return () => clearTimeout(timer);
   }, []);
@@ -44,7 +44,7 @@ const Hero = () => {
       <FloatingIcons />
       
       <div className="container mx-auto px-4 md:px-6 z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-20">
           {/* Profile Card Section */}
           <div 
             className={`transition-all duration-1000 ${
@@ -55,14 +55,14 @@ const Hero = () => {
           >
             <ProfileCard
               name="Diogo Coutinho"
-              title="Developer • Designer • Creative"
+              title="AI Developer • ML Engineer"
               handle="coutinzpersonal"
               status="Online"
               contactText="Contact Me"
               avatarUrl="/lovable-uploads/8ab72e60-58e6-4264-81a1-fb33f8f1df20.png"
               showUserInfo={true}
               enableTilt={true}
-              className="w-full max-w-sm mx-auto"
+              className="w-full max-w-md mx-auto" // Aumentado de max-w-sm para max-w-md
             />
           </div>
 

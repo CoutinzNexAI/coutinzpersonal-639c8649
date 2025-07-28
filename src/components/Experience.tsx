@@ -19,46 +19,55 @@ type ExperienceItem = {
 const experiences: ExperienceItem[] = [
   {
     id: 1,
-    title: "Intership: Mathematical Model Implementation & Operational Performance Analysis",
-    organization: "INESC TEC",
-    duration: "Feb 2025 – Present",
-    description: "•Implementing mathematical planning models • Analyzing operational performance of workshops • Supporting the team in process optimization.",
-    type: "work",
-    location: "Porto, Portugal"
+    title: "Master's in Data Science and Advanced Analytics",
+    organization: "Nova Information Management School (Nova IMS)",
+    duration: "Sep 2025 – Present",
+    description: "• Starting an incredible advanced master's program at Nova IMS, one of Europe's most prestigious and renowned institutions for data science and analytics • Diving deep into cutting-edge AI techniques, machine learning algorithms, and predictive analytics • Mastering advanced statistical modeling, deep learning frameworks, and big data technologies • This program will provide access to world-class faculty, industry partnerships, and revolutionary AI research projects",
+    type: "education",
+    location: "Portugal"
   },
   {
     id: 2,
-    title: "Erasmus Student Exchange",
+    title: "AI Research Intern: Mathematical Model Implementation & Operational Performance Analysis",
+    organization: "INESC TEC",
+    duration: "Feb 2025 – Aug 2025",
+    description: "• Implementing advanced machine learning models for predictive maintenance and production optimization • Developing time-series forecasting algorithms using LSTM and ensemble methods • Creating automated data pipelines for real-time analytics • Collaborating with PhD researchers on AI-driven optimization algorithms",
+    type: "work",
+    location: "Portugal"
+  },
+  {
+    id: 3,
+    title: "Erasmus Student Exchange - AI & Data Analytics Focus",
     organization: "UPC - EEBE (Polytechnic University of Catalonia)",
     duration: "Sep 2024 – Feb 2025",
-    description: "International study experience as part of the Industrial Engineering and Management degree.",
+    description: "International study experience specializing in Industrial Engineering with strong focus on AI applications, data analytics, and numerical simulation for industrial optimization.",
     type: "education",
     location: "Barcelona, Spain",
     projects: [
       { title: "Data Analytics Project", pdfUrl: "/Laboratory_task_code.pdf" },
-      { title: "Diapers Project", pdfUrl: "/Comparison of the environmental impact of disposable diapers vs cloth diapers FINAL.pdf" },
-      { title: "Numerical Simulation", pdfUrl: "/NSAE.pdf" }
+      { title: "Environmental Impact Analysis with ML", pdfUrl: "/Comparison of the environmental impact of disposable diapers vs cloth diapers FINAL.pdf" },
+      { title: "Numerical Simulation & Optimization", pdfUrl: "/NSAE.pdf" }
     ]
   },
   {
-    id: 3,
-    title: "Internship: Production Control",
+    id: 4,
+    title: "Production Control & Data Analysis Intern",
     organization: "Confeitarias Arca e Arcádia SA",
     duration: "Aug 2023",
-    description: "• Monitored production and logistics processes in the factories • Collaborated in preparing performance reports and metrics.",
+    description: "• Monitored and analyzed production KPIs using data-driven approaches • Implemented process optimization techniques and performance tracking systems • Collaborated in preparing automated reports and predictive analytics dashboards",
     type: "work",
-    location: "Grijó, Portugal"
+    location: "Portugal"
   },
   {
-    id: 4,
-    title: "Bachelor's Degree in Industrial Engineering and Management",
-    organization: "Instituto Superior de Engenharia do Porto (ISEP)",
+    id: 5,
+    title: "Bachelor's Degree in Industrial Engineering and Management - AI Specialization",
+    organization: "ISEP - Instituto Superior de Engenharia do Porto",
     duration: "Sep 2022 – Sep 2025",
-    description: "• Building a solid foundation in mathematics, physics, and management principles • Proactive, collaborative, strong problem-solving abilities.",
+    description: "• Building expertise in AI applications for industrial optimization and management • Strong foundation in mathematics, statistics, and machine learning principles • Focus on data-driven decision making and intelligent systems development",
     type: "education",
-    location: "Porto, Portugal",
+    location: "Portugal",
     projects: [
-      { title: "Second year final project", pdfUrl: "/ReCupBox_Relatório.pdf" },
+      { title: "AI-Driven Industrial Project (Second Year)", pdfUrl: "/ReCupBox_Relatório.pdf" },
     ]
   },
 ];

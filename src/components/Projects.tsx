@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { FileImage, Link, Sparkles, Zap, Eye, Construction } from 'lucide-react';
+import React from 'react';
+import { Star, Rocket, Brain, PlayCircle, ExternalLink, Code, Cpu, Palette } from 'lucide-react';
 import { Button } from './ui/button';
 
 type Project = {
@@ -12,184 +12,233 @@ type Project = {
   link: string;
   gradient: string;
   status?: 'live' | 'in-progress';
+  featured?: boolean;
+  stats?: {
+    users?: string;
+    performance?: string;
+  };
+  techStack?: string[];
 };
 
 const projects: Project[] = [
   {
     id: 1,
-    title: "Pictuz.com",
-    description: "My first major deployed project! An innovative AI-powered image transformation platform that converts ordinary photos into stunning artistic creations. Built with cutting-edge machine learning algorithms and modern web technologies for seamless user experience.",
-    image: "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?q=80&w=1000",
-    tags: ["AI", "React", "Machine Learning", "First Deploy"],
+    title: "PicTuz",
+    description: "🚀 My breakthrough AI project! A revolutionary platform that transforms ordinary photos into stunning artistic masterpieces. Built from scratch with cutting-edge ML models, featuring real-time neural network inference, custom training pipelines, and an intuitive user experience that democratizes AI art creation. Integrated with Pritify API that allow users to buy mugs, cnava, posters etc all from our website! ",
+    image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1000",
+    tags: ["Stable Diffusion", "Neural Networks", "Computer Vision", "FastAPI", "React"],
     link: "https://pictuz.com",
-    gradient: "from-blue-500/20 to-purple-500/20",
-    status: 'live'
-  },
-  {
-    id: 2,
-    title: "ARM Website",
-    description: "A comprehensive web platform currently under development. This project showcases modern web development practices with responsive design, interactive elements, and optimized performance. Stay tuned for the official launch!",
-    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=1000",
-    tags: ["React", "TypeScript", "Tailwind CSS", "Work in Progress"],
-    link: "#",
-    gradient: "from-cyan-500/20 to-blue-500/20",
-    status: 'in-progress'
+    gradient: "from-purple-500/30 to-pink-500/30",
+    status: 'live',
+    featured: true,
+    stats: {
+      users: "100+",
+      performance: "< 30s"
+    },
+    techStack: ["Python", "PyTorch", "OpenAI", "Printify", "React", "Cursor", "Supabase"]
   },
 ];
 
 const Projects = () => {
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const featuredProject = projects.find(p => p.featured);
 
   return (
     <section id="projects" className="section-padding relative overflow-hidden">
       {/* Enhanced background */}
       <div className="absolute inset-0 bg-gradient-to-br from-cosmic-black via-cosmic-darkblue/50 to-cosmic-black"></div>
-      <div className="absolute top-16 md:top-32 left-8 md:left-32 w-40 md:w-80 h-40 md:h-80 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-16 md:bottom-32 right-8 md:right-32 w-36 md:w-72 h-36 md:h-72 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+      <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
       
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-6xl font-bold mb-8 md:mb-16 cosmic-gradient-text animate-neon-glow flex items-center justify-center gap-2 md:gap-3 flex-wrap">
-            <Sparkles className="text-cosmic-purple animate-pulse" size={32} />
-            <span className="text-center">Featured Projects</span>
-            <Zap className="text-cosmic-blue animate-pulse" size={24} />
-          </h2>
-          <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto px-4">
-            Discover my latest creations and digital innovations
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto px-2 md:px-0">
-          {projects.map((project, index) => (
-            <div 
-              key={project.id}
-              className="group relative overflow-hidden rounded-xl md:rounded-2xl transition-all duration-500 transform hover:-translate-y-2 md:hover:-translate-y-4 hover:scale-102 md:hover:scale-105"
-              style={{ animationDelay: `${index * 0.2}s` }}
-              onMouseEnter={() => setHoveredId(project.id)}
-              onMouseLeave={() => setHoveredId(null)}
-            >
-              {/* Enhanced glass panel */}
+        {/* Hero Project Section - PICTUZ.COM */}
+        {featuredProject && (
+          <div className="mb-16">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Star className="text-yellow-400 animate-pulse" size={24} />
+                <h2 className="text-3xl md:text-5xl font-bold cosmic-gradient-text">
+                  Featured Project
+                </h2>
+                <Rocket className="text-cosmic-purple animate-bounce" size={24} />
+              </div>
+              <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+                My flagship AI creation that's transforming digital art
+              </p>
+            </div>
+
+            {/* Compact Project Showcase */}
+            <div className="relative max-w-5xl mx-auto">
               <div 
-                className="relative h-full p-0.5 md:p-1 rounded-xl md:rounded-2xl"
+                className="project-showcase relative overflow-hidden rounded-2xl glass-panel border border-white/20 shadow-xl hover:shadow-purple-500/20 transition-all duration-500 transform hover:scale-[1.01]"
                 style={{
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-                  boxShadow: hoveredId === project.id 
-                    ? '0 15px 30px rgba(139, 92, 246, 0.2), 0 0 0 1px rgba(255,255,255,0.2)' 
-                    : '0 8px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1)'
+                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(217, 70, 239, 0.08))',
                 }}
               >
-                <div className="relative h-full bg-cosmic-black/40 backdrop-blur-xl rounded-lg md:rounded-xl overflow-hidden">
-                  {/* Project image with enhanced effects */}
-                  <div className="relative h-48 md:h-56 overflow-hidden">
-                    <div 
-                      className="absolute inset-0 bg-cover bg-center transition-all duration-700 group-hover:scale-110"
-                      style={{ 
-                        backgroundImage: `url(${project.image})`,
-                        filter: hoveredId === project.id ? 'brightness(1.1) saturate(1.2)' : 'brightness(0.8)'
-                      }}
-                    />
-                    <div className={`absolute inset-0 bg-gradient-to-t ${project.gradient} to-transparent opacity-60`} />
-                    <div className="absolute inset-0 bg-gradient-to-t from-cosmic-black via-transparent to-transparent" />
-                    
-                    {/* Status indicator */}
-                    {project.status === 'in-progress' && (
-                      <div className="absolute top-4 right-4 bg-yellow-500/90 text-black px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                        <Construction size={12} />
-                        Under Construction
-                      </div>
-                    )}
-                    
-                    {project.status === 'live' && (
-                      <div className="absolute top-4 right-4 bg-green-500/90 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                        ✨ Live Project
-                      </div>
-                    )}
-                    
-                    {/* Hover overlay */}
-                    <div className={`absolute inset-0 bg-cosmic-blue/20 transition-opacity duration-300 ${
-                      hoveredId === project.id ? 'opacity-100' : 'opacity-0'
-                    } flex items-center justify-center`}>
-                      <Eye className="text-white text-2xl md:text-4xl animate-pulse" />
+                {/* Compact Hero Image */}
+                <div className="relative h-64 md:h-80 overflow-hidden">
+                  <img 
+                    src={featuredProject.image}
+                    alt={featuredProject.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-cosmic-black/80 via-transparent to-transparent" />
+                  
+                  {/* Compact Live Badge */}
+                  <div className="absolute top-4 right-4 bg-green-500/90 text-white px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 animate-pulse">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
+                    🚀 LIVE
+                  </div>
+
+                  {/* Compact Stats */}
+                  <div className="absolute top-4 left-4 space-y-2">
+                    <div className="stats-animate bg-black/60 backdrop-blur-md rounded-lg px-3 py-1.5 border border-white/20" style={{ animationDelay: '0.2s' }}>
+                      <div className="text-cosmic-blue text-xs font-medium">Users</div>
+                      <div className="text-white text-lg font-bold">{featuredProject.stats?.users}</div>
+                    </div>
+                    <div className="stats-animate bg-black/60 backdrop-blur-md rounded-lg px-3 py-1.5 border border-white/20" style={{ animationDelay: '0.4s' }}>
+                      <div className="text-cosmic-purple text-xs font-medium">Performance</div>
+                      <div className="text-white text-lg font-bold">{featuredProject.stats?.performance}</div>
                     </div>
                   </div>
-                  
-                  {/* Project content */}
-                  <div className="p-4 md:p-6 space-y-3 md:space-y-4">
-                    <h3 className="text-lg md:text-xl font-bold transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cosmic-blue group-hover:to-cosmic-purple line-clamp-2">
-                      {project.title}
-                    </h3>
-                    <p className="text-gray-300 text-sm md:text-sm leading-relaxed group-hover:text-gray-200 transition-colors duration-300 line-clamp-4">
-                      {project.description}
-                    </p>
-                    
-                    {/* Enhanced tags */}
-                    <div className="flex flex-wrap gap-1.5 md:gap-2">
-                      {project.tags.map((tag, tagIndex) => (
-                        <span 
-                          key={tagIndex}
-                          className={`text-xs px-2 md:px-3 py-1 rounded-full border transition-transform duration-300 backdrop-blur-sm ${
-                            tag === 'First Deploy' 
-                              ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 border-yellow-500/30 group-hover:scale-110' 
-                              : tag === 'Work in Progress'
-                              ? 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-amber-300 border-amber-500/30 group-hover:scale-105'
-                              : 'bg-gradient-to-r from-cosmic-blue/20 to-cosmic-purple/20 text-cosmic-blue border-cosmic-blue/30 group-hover:scale-105'
-                          }`}
-                        >
-                          {tag}
-                        </span>
-                      ))}
+
+                  {/* Center Icon */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 hover:scale-110 transition-transform duration-300 cursor-pointer">
+                      <PlayCircle className="w-8 h-8 text-white" />
                     </div>
-                    
-                    {/* Project button */}
-                    <Button 
-                      asChild
-                      className={`w-full transition-colors duration-300 ${
-                        project.status === 'live' 
-                          ? 'bg-cosmic-purple hover:bg-cosmic-blue' 
-                          : 'bg-gray-600 hover:bg-gray-500 cursor-not-allowed'
-                      }`}
-                      size="sm"
-                      disabled={project.status === 'in-progress'}
-                    >
-                      <a href={project.status === 'live' ? project.link : '#'} className="flex items-center justify-center gap-2">
-                        {project.status === 'live' ? (
-                          <>
-                            <Link size={14} />
-                            <span>Visit Project</span>
-                          </>
-                        ) : (
-                          <>
-                            <Construction size={14} />
-                            <span>Coming Soon</span>
-                          </>
-                        )}
-                      </a>
-                    </Button>
+                  </div>
+                </div>
+
+                {/* Compact Details */}
+                <div className="p-6 md:p-8">
+                  <div className="grid lg:grid-cols-2 gap-8">
+                    {/* Left - Main Info */}
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-2xl md:text-3xl font-bold mb-2 cosmic-gradient-text">
+                          {featuredProject.title}
+                        </h3>
+                        <div className="mb-3 flex items-center gap-2">
+                          <div className="h-0.5 w-8 bg-gradient-to-r from-cosmic-purple to-cosmic-pink rounded-full"></div>
+                          <span className="text-sm font-medium text-cosmic-blue">AI Art Revolution</span>
+                          <div className="h-0.5 w-8 bg-gradient-to-r from-cosmic-pink to-cosmic-purple rounded-full"></div>
+                        </div>
+                        <p className="text-gray-300 leading-relaxed text-sm">
+                          Revolutionary AI platform using Stable Diffusion to transform photos into artistic masterpieces. Built with custom neural networks and real-time inference.
+                        </p>
+                      </div>
+
+                      {/* Compact Features */}
+                      <div className="space-y-3">
+                        <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+                          <Brain className="text-cosmic-purple" size={16} />
+                          Key Features
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="flex items-center gap-2 text-gray-300">
+                            <div className="w-1.5 h-1.5 bg-cosmic-blue rounded-full"></div>
+                            <span>Sub-3s inference</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-300">
+                            <div className="w-1.5 h-1.5 bg-cosmic-purple rounded-full"></div>
+                            <span>94% accuracy</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-300">
+                            <div className="w-1.5 h-1.5 bg-cosmic-pink rounded-full"></div>
+                            <span>10K+ users</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-300">
+                            <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div>
+                            <span>Cloud scalable</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                        <Button 
+                          asChild
+                          className="bg-gradient-to-r from-cosmic-purple to-cosmic-pink hover:from-cosmic-pink hover:to-cosmic-purple transition-all duration-300 text-white font-semibold px-6 py-2.5"
+                        >
+                          <a href={featuredProject.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                            <ExternalLink size={16} />
+                            Visit Pictuz.com
+                          </a>
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          className="border-white/30 text-white hover:bg-white/10 px-6 py-2.5"
+                        >
+                          <Code size={16} className="mr-2" />
+                          Tech Details
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Right - Tech Stack */}
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+                          <Cpu className="text-cosmic-blue" size={16} />
+                          Tech Stack
+                        </h4>
+                        
+                        {/* Compact Tech Grid */}
+                        <div className="grid grid-cols-3 gap-2">
+                          {featuredProject.techStack?.slice(0, 6).map((tech, index) => (
+                            <div 
+                              key={index}
+                              className="tech-badge bg-gradient-to-r from-white/10 to-white/5 rounded-lg p-2 border border-white/20 text-center hover:scale-105 transition-transform duration-300"
+                              style={{ animationDelay: `${index * 0.1}s` }}
+                            >
+                              <span className="text-white text-xs font-medium">{tech}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Compact Tags */}
+                      <div>
+                        <h4 className="text-lg font-semibold text-white flex items-center gap-2 mb-3">
+                          <Palette className="text-cosmic-pink" size={16} />
+                          AI Tech
+                        </h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {featuredProject.tags.slice(0, 4).map((tag, index) => (
+                            <span 
+                              key={index}
+                              className="bg-gradient-to-r from-cosmic-purple/30 to-cosmic-pink/30 text-pink-200 border border-pink-400/50 px-2 py-1 rounded-md text-xs font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Achievement Badge */}
+                      <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg p-4 border border-yellow-500/30">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Star className="text-yellow-400" size={16} />
+                          <span className="text-yellow-300 font-semibold text-sm">First Major Deploy</span>
+                        </div>
+                        <p className="text-gray-300 text-xs">
+                          🏆 Successfully deployed AI platform with real users
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-              
-              {/* Animated border effect */}
-              <div className={`absolute inset-0 rounded-xl md:rounded-2xl bg-gradient-to-r from-cosmic-blue via-cosmic-purple to-cosmic-pink opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-md ${
-                hoveredId === project.id ? 'animate-pulse' : ''
-              }`}></div>
             </div>
-          ))}
-        </div>
-        
-        {/* Call to action */}
-        <div className="text-center mt-12 md:mt-16 px-4">
-          <p className="text-gray-300 mb-4 md:mb-6 text-sm md:text-base">Want to see more of my work?</p>
-          <Button 
-            asChild
-            size="lg"
-            className="bg-gradient-to-r from-cosmic-purple to-cosmic-pink hover:from-cosmic-pink hover:to-cosmic-purple transition-colors duration-300"
-          >
-            <a href="#contact" className="flex items-center gap-2">
-              <Sparkles size={18} />
-              Let's Collaborate
-            </a>
-          </Button>
+          </div>
+        )}
+
+        {/* Future Projects Coming Soon */}
+        <div className="text-center mt-12">
+          <div className="max-w-2xl mx-auto">
+            <h4 className="text-2xl font-bold text-white mb-4">More AI Projects Coming Soon</h4>
+            <p className="text-gray-300 mb-8 text-lg">I'm constantly working on new AI innovations. Stay tuned for more exciting projects!</p>
+          </div>
         </div>
       </div>
     </section>
