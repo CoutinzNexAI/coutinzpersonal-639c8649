@@ -259,11 +259,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     if (onContactClick) {
       onContactClick();
     } else {
-      // Scroll to contact section by default
-      const contactSection = document.getElementById('contact');
-      if (contactSection) {
-        contactSection.scrollIntoView({ behavior: 'smooth' });
-      }
+      // Abrir WhatsApp com o número especificado
+      const phoneNumber = "351965449996";
+      const message = "Olá! Vi o seu site e gostaria de entrar em contacto.";
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
     }
   }, [onContactClick]);
 

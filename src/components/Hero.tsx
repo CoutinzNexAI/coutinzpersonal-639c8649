@@ -55,8 +55,8 @@ const Hero = () => {
           >
             <ProfileCard
               name="Diogo Coutinho"
-              title="AI Developer • ML Engineer"
-              handle="coutinzpersonal"
+              title="AI Developer • Data Scientist"
+              handle="DiogoCoutinho"
               status="Online"
               contactText="Contact Me"
               avatarUrl="/lovable-uploads/8ab72e60-58e6-4264-81a1-fb33f8f1df20.png"

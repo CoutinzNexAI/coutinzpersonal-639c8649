@@ -11,7 +11,7 @@ interface HeroContentProps {
 
 const HeroContent = ({ isLoaded, typedText, fullText }: HeroContentProps) => {
   return (
-    <div className="flex-1 max-w-3xl text-center lg:text-left">
+    <div className="flex-1 max-w-4xl text-center lg:text-left">
       <div 
         className={`glass-panel p-8 md:p-10 lg:p-16 transition-all duration-700 backdrop-blur-xl border-2 border-white/20 shadow-2xl ${
           isLoaded 
@@ -24,10 +24,10 @@ const HeroContent = ({ isLoaded, typedText, fullText }: HeroContentProps) => {
         }}
       >
         <div className="relative mb-8 md:mb-10 inline-block">
-          <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold relative z-10 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold relative z-10 tracking-tight leading-tight">
             <span className="cosmic-gradient-text drop-shadow-lg">Building the Future with</span>
             <br />
-            <span className="cosmic-gradient-text drop-shadow-lg">Artificial Intelligence</span>
+            <span className="cosmic-gradient-text drop-shadow-lg whitespace-nowrap">Artificial Intelligence</span>
             <Sparkles className="inline-block ml-2 text-yellow-400 animate-pulse" size={24} />
           </h1>
           <div className="absolute -inset-2 bg-gradient-to-r from-cosmic-purple via-cosmic-blue to-cosmic-pink opacity-60 blur-2xl rounded-xl -z-10 animate-pulse"></div>
@@ -45,7 +45,7 @@ const HeroContent = ({ isLoaded, typedText, fullText }: HeroContentProps) => {
               : "opacity-0 translate-y-8"
           }`}
         >
-          Passionate about Machine Learning, Deep Learning, and transforming data into intelligent solutions. I build AI systems that solve real-world problems.
+          Passionate about Machine Learning, Deep Learning, and transforming data into intelligent solutions. I build programs that solve real-world problems.
         </p>
         
         <div 
