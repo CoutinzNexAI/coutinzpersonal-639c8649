@@ -10,7 +10,7 @@ import ScannerEffect from './hero/ScannerEffect';
 const Hero = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [typedText, setTypedText] = useState('');
-  const fullText = "AI Developer • Machine Learning Engineer • Data Scientist";
+  const fullText = "";
   
   // Typing effect
   useEffect(() => {
