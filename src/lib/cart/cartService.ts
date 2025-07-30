@@ -148,7 +148,7 @@ export class CartService {
   // ✅ SIMPLIFICADO: Calculate shipping based on subtotal
   static calculateShipping(subtotal: number): number {
     // 🚨 TESTE TEMPORÁRIO: Entrega sempre grátis para testar fluxo
-    return 0; // TESTE: Era subtotal >= 40 ? 0 : 3.99
+    return 0.1; // TESTE: Era subtotal >= 40 ? 0 : 3.99
   }
 
   // ✅ SIMPLIFICADO: Calculate cart summary (sem descontos de quantidade)
