@@ -641,13 +641,13 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
           <div className="block lg:hidden px-4">
 
             {/* ✅ MOCKUP MOBILE - AGORA USA O MESMO PRODUCTCANVAS */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
               className="mb-6"
-            >
-              <div className={`relative w-full h-[350px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20`}>
+          >
+            <div className={`relative w-full h-[350px] ${printifyPreviewUrls.length > 0 ? 'bg-transparent' : 'bg-white'} rounded-2xl shadow-xl overflow-hidden border border-ghibli-sand/20`}>
                 <ProductCanvas
                   key={`mobile-${mockupGenerationKey}`} // ✅ CHAVE DIFERENTE PARA MOBILE
                   selectedProduct={product}
@@ -664,8 +664,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                   mockupGenerationKey={`mobile-${mockupGenerationKey}`} // ✅ CHAVE DIFERENTE
                   isGeneratingMockup={isGeneratingMockup}
                 />
-              </div>
-            </motion.div>
+            </div>
+          </motion.div>
 
             {/* ✅ CONTROLOS MOBILE - AGORA APÓS MOCKUPS */}
             <motion.div
@@ -684,8 +684,8 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
                 userInfo={userInfo}
                 onOpenGallery={handleOpenGallery}
                 onAdjustPosition={(position) => handleAdjustment('position', position)}
-                positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
-                showPositionControls={config.positionControls?.showPositionControls !== false && !!coordinateConfig}
+                            positionType={(coordinateConfig?.positionType as 'vertical' | 'horizontal') || 'vertical'}
+            showPositionControls={config.positionControls?.showPositionControls !== false && !!coordinateConfig}
               />
 
               {/* Seletor de Variantes Mobile - DEPOIS DOS CONTROLOS */}

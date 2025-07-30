@@ -25,8 +25,8 @@ import * as fpixel from '@/lib/fpixel';
 
 // Transformações são agora gratuitas - 10 por dia
 const MAX_POLL_ATTEMPTS_CONST = 36; // 36 tentativas total = max 6 minutos
-// POLLING ADAPTATIVO: Intervalos progressivos para detectar jobs rápidos mais cedo
-const POLLING_INTERVALS_MS = [2000, 3000, 5000, 8000, 10000, 15000]; // 2s→3s→5s→8s→10s→15s
+// POLLING ADAPTATIVO: Intervalos progressivos otimizados para detectar jobs rápidos mais cedo
+const POLLING_INTERVALS_MS = [1000, 1500, 2000, 3000, 5000, 8000]; // 1s→1.5s→2s→3s→5s→8s (OTIMIZADO)
 const getPollingInterval = (attempt: number): number => {
   return POLLING_INTERVALS_MS[Math.min(attempt, POLLING_INTERVALS_MS.length - 1)];
 };

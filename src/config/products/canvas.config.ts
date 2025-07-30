@@ -13,13 +13,13 @@ export const canvasConfig = {
     const selectedVariant = product.variants?.find(v => v.id === selectedPrintifyVariantId);
     if (!selectedVariant) return product.basePrice || 20.00;
     
-    // Canvas Sem Borda: basePrice 20 + priceAdjustment
+    // 🚨 TESTE TEMPORÁRIO: Canvas a 50 cents para testar fluxo
     if (selectedVariant.id >= 91656 && selectedVariant.id <= 101418) {
-      return 20.00 + (selectedVariant.priceAdjustment || 0);
+      return 0.50; // TESTE: Era 20.00 + priceAdjustment
     }
     
-    // Canvas com Moldura: basePrice 40 + priceAdjustment
-    return 40.00 + (selectedVariant.priceAdjustment || 0);
+    // Canvas com Moldura também a 50 cents para teste
+    return 0.50; // TESTE: Era 40.00 + priceAdjustment
   },
 
   getBasePrice: (product: PrintifyProductMapping, selectedPrintifyVariantId: number | null): number => {
@@ -29,11 +29,11 @@ export const canvasConfig = {
     if (!selectedVariant) {
       originalPrice = product.basePrice || 20.00;
     } else if (selectedVariant.id >= 91656 && selectedVariant.id <= 101418) {
-    // Canvas Sem Borda: basePrice 20 + priceAdjustment
-      originalPrice = 20.00 + (selectedVariant.priceAdjustment || 0);
+    // 🚨 TESTE TEMPORÁRIO: Canvas Sem Borda a 50 cents
+      originalPrice = 0.50; // TESTE: Era 20.00 + priceAdjustment
     } else {
-    // Canvas com Moldura: basePrice 40 + priceAdjustment
-      originalPrice = 40.00 + (selectedVariant.priceAdjustment || 0);
+    // 🚨 TESTE TEMPORÁRIO: Canvas com Moldura a 50 cents
+      originalPrice = 0.50; // TESTE: Era 40.00 + priceAdjustment
     }
     
     // ✅ NOVO: Usar preço real com desconto fake se aplicável

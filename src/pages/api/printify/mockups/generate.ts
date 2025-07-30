@@ -619,10 +619,14 @@ export default async function handler(
 
       const createdProductId = printifyProductResponse.id;
 
-      // Polling para obter mockups
+      // Polling para obter mockups (OTIMIZADO)
       let finalPreviewUrls: string[] = [];
-      const maxAttempts = 15;
-      const delayMs = 8000;
+      const maxAttempts = 8; // Reduzido de 15 para 8
+      const POLLING_INTERVALS_MS = [1000, 1500, 2000, 3000, 5000, 8000]; // Intervalos otimizados
+      
+      const getPollingDelay = (attempt: number): number => {
+        return POLLING_INTERVALS_MS[Math.min(attempt - 1, POLLING_INTERVALS_MS.length - 1)];
+      };
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         // Polling Printify para gerar mockups
@@ -645,6 +649,7 @@ export default async function handler(
         }
 
         if (attempt < maxAttempts) {
+          const delayMs = getPollingDelay(attempt);
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       }
@@ -819,11 +824,14 @@ export default async function handler(
     }
     const createdPrintifyProductId = printifyProductResponse.id;
 
-    // PASSO 4: Polling dos Mockups do Produto Printify (OTIMIZADO)
+    // PASSO 4: Polling dos Mockups do Produto Printify (SUPER OTIMIZADO)
     let finalPreviewUrls: string[] = [];
-    const maxAttempts = 12; // Reduzido de 15 para 12
-    let delayMs = 3000; // Começar com 3s em vez de 8s
-    const maxDelay = 15000; // Máximo de 15s
+    const maxAttempts = 8; // Reduzido de 12 para 8
+    const POLLING_INTERVALS_MS = [1000, 1500, 2000, 3000, 5000, 8000]; // Intervalos otimizados
+    
+    const getPollingDelay = (attempt: number): number => {
+      return POLLING_INTERVALS_MS[Math.min(attempt - 1, POLLING_INTERVALS_MS.length - 1)];
+    };
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -844,10 +852,8 @@ export default async function handler(
       }
 
       if (attempt < maxAttempts) {
+        const delayMs = getPollingDelay(attempt);
         await new Promise(resolve => setTimeout(resolve, delayMs));
-        
-        // Backoff exponencial: aumentar delay gradualmente
-        delayMs = Math.min(delayMs * 1.3, maxDelay);
       }
     }
 

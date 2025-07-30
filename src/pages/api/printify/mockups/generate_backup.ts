@@ -862,11 +862,15 @@ export default async function handler(
     const createdPrintifyProductId = printifyProductResponse.id;
     console.log(`✅ STEP 3 Success: Printify product created. ID: ${createdPrintifyProductId}`);
 
-    // PASSO 4: Polling dos Mockups do Produto Printify
+    // PASSO 4: Polling dos Mockups do Produto Printify (SUPER OTIMIZADO)
     console.log('🔄 STEP 4: Polling Printify product for mockups...');
     let finalPreviewUrls: string[] = [];
-    const maxAttempts = 15;
-    const delayMs = 8000;
+    const maxAttempts = 8; // Reduzido de 15 para 8
+    const POLLING_INTERVALS_MS = [1000, 1500, 2000, 3000, 5000, 8000]; // Intervalos otimizados
+    
+    const getPollingDelay = (attempt: number): number => {
+      return POLLING_INTERVALS_MS[Math.min(attempt - 1, POLLING_INTERVALS_MS.length - 1)];
+    };
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       console.log(`--> 🔍 Attempt ${attempt}/${maxAttempts}: Fetching Printify product ${createdPrintifyProductId} details...`);
@@ -883,6 +887,7 @@ export default async function handler(
         }
 
         if (attempt < maxAttempts) {
+        const delayMs = getPollingDelay(attempt);
         console.log(`⏳ Printify product mockups not ready yet. Waiting ${delayMs}ms before next attempt...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
