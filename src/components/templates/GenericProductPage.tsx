@@ -387,17 +387,23 @@ const GenericProductPage: React.FC<GenericProductPageProps> = ({ product, config
 
   // Handle image selection from gallery
   const handleSelectImageFromGallery = useCallback((imageUrl: string, imageId: string) => {
+    // ✅ BUGFIX: Verificar se é a mesma imagem antes de resetar
+    if (selectedImageUrl === imageUrl && selectedImageId === imageId) {
+      setIsGalleryModalOpen(false); // Só fecha modal
+      return; // Não faz mais nada - evita transformação desnecessária
+    }
+    
     setSelectedImageUrl(imageUrl);
     setSelectedImageId(imageId);
     setIsGalleryModalOpen(false);
     
-    // Reset states for new image
+    // Só reseta se for imagem diferente
     setPrintifyPreviewUrls([]);
     setPrintifyImageId('');
     setPrintifyProductId('');
     setImageAdjustments(undefined);
     setHasGenerated(false);
-  }, []);
+  }, [selectedImageUrl, selectedImageId]); // ✅ Adicionar deps necessárias
 
   // Handle adjustments (position and size)
   const handleAdjustment = useCallback(async (type: 'position' | 'size', value: string | number) => {

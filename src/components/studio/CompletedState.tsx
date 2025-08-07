@@ -2,10 +2,14 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Style } from '../StyleSelectorModal';
 import Image from 'next/image';
-import { Download, AlertTriangle, Loader2, RefreshCw, ShoppingBag, ArrowRight, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Loader2, RefreshCw, ShoppingBag, Grid3x3, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/router';
+import { getFakeDiscountInfo } from '@/lib/fakeDiscounts';
+import { canvasConfig } from '@/config/products/canvas.config';
+import { useCart } from '@/hooks/useCart';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface CompletedStateProps {
   transformedImageUrl: string;
@@ -24,7 +28,12 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   initialRating,
   onNewImage,
 }) => {
+  const router = useRouter();
+  const { userInfo } = useAuth();
+  const { addToCart } = useCart();
+  
   const [imageError, setImageError] = React.useState(false);
+  const [isOtherProductsModalOpen, setIsOtherProductsModalOpen] = React.useState(false);
   const [canvasMockupUrls, setCanvasMockupUrls] = React.useState<string[]>([]);
   const [posterMockupUrls, setPosterMockupUrls] = React.useState<string[]>([]);
   const [mugMockupUrls, setMugMockupUrls] = React.useState<string[]>([]);
@@ -36,9 +45,6 @@ const CompletedState: React.FC<CompletedStateProps> = ({
   const [mugMockupError, setMugMockupError] = React.useState(false);
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0); // 0 = canvas, 1 = poster, 2 = caneca, 3 = original
   const [showProductCarousel, setShowProductCarousel] = React.useState(false);
-  
-  const { userInfo } = useAuth();
-  const router = useRouter();
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.error('[CompletedState Image] Erro ao carregar a imagem:', e.currentTarget.src);
@@ -198,6 +204,51 @@ const CompletedState: React.FC<CompletedStateProps> = ({
     }
   }, [transformedImageUrl, userInfo?.id, canvasMockupUrls.length, posterMockupUrls.length, mugMockupUrls.length, canvasMockupError, posterMockupError, mugMockupError, isGeneratingCanvasMockup, isGeneratingPosterMockup, isGeneratingMugMockup, generateCanvasMockup, generatePosterMockup, generateMugMockup]);
 
+  // Função para comprar Canvas diretamente
+  const handleBuyCanvasDirect = async () => {
+    if (!userInfo?.id) {
+      toast.error('Faça login para adicionar ao carrinho!');
+      return;
+    }
+
+    try {
+      // Configuração do Canvas 16x16 (variante padrão)
+      const canvasVariantId = 91659; // Canvas 16x16 sem moldura
+      const canvasProduct = {
+        id: 'custom_canvas',
+        name: 'Canvas Personalizado 16x16',
+        category: 'canvas'
+      };
+
+      // Calcular preço com desconto fake - usar preço real para Canvas 12x12
+      const realPrice = 36.95; // Preço real Canvas 12x12 após desconto fake de 40%
+
+      await addToCart({
+        productId: 'custom_canvas',
+        productName: 'Canvas Personalizado 12x12',
+        productCategory: 'canvas',
+        userImageUrl: transformedImageUrl,
+        userImageId: transformationId || 'auto',
+        price: realPrice,
+        quantity: 1,
+        customizations: {
+          variantId: canvasVariantId, // 91657 = Canvas 12x12
+          scale: 1.05, // Scale padrão do Canvas (com efeito fill)
+          x: 0.5,
+          y: 0.5,
+          angle: 0,
+          position: 'center',
+          print_on_side: 'mirror' // Borda espelhada padrão do Canvas
+        }
+      });
+
+      toast.success('Canvas adicionado ao carrinho! 🎨');
+    } catch (error) {
+      toast.error('Erro ao adicionar ao carrinho');
+      console.error('Erro ao comprar Canvas:', error);
+    }
+  };
+
   const handleGoToProduct = () => {
     let productUrl = '';
     
@@ -334,187 +385,212 @@ const CompletedState: React.FC<CompletedStateProps> = ({
     }
   };
 
+  // Calcular preços do Canvas para showcase
+  const canvasVariantId = 91657; // Canvas 12x12 (30cm x 30cm) sem moldura
+  const realPrice = 36.95; // Preço real Canvas 12x12 após desconto fake de 40%
+  const fakeDiscountInfo = getFakeDiscountInfo('custom_canvas', realPrice);
+
+  // Lista de outros produtos para o modal
+  const otherProducts = [
+    {
+      id: 'poster_vertical',
+      name: 'Poster Vertical',
+      image: '/mockupproduto/postervertical.png',
+      url: `/shop/poster/poster_vertical_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`
+    },
+    {
+      id: 'poster_horizontal', 
+      name: 'Poster Horizontal',
+      image: '/mockupproduto/posterhorizontal.png',
+      url: `/shop/poster/poster_horizontal_semi_glossy?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`
+    },
+    {
+      id: 'heart_mug',
+      name: 'Caneca Coração',
+      image: '/mockupproduto/canecacoracao.png',
+      url: `/shop/mug/heart_mug?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`
+    },
+    {
+      id: 'notebook',
+      name: 'Caderno',
+      image: '/mockupproduto/caderno.png',
+      url: `/shop/escritorio/notebook?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`
+    }
+  ];
+
   return (
     <div className="relative w-full h-full flex flex-col min-h-0">
       
-      {/* Área da Imagem Principal - Carrossel de 4 imagens (só aparece quando showProductCarousel for true) */}
+      {/* NOVO: Canvas Showcase - 3 Mockups + Preço + Comprar */}
       <div className="flex-1 flex items-center justify-center p-4 md:p-6 min-h-0">
-        <div className="w-full max-w-sm min-h-[280px] max-h-[350px] aspect-square relative rounded-xl shadow-xl overflow-hidden border-2 border-gray-200 bg-gray-100">
+        <div className="w-full max-w-lg">
           {!showProductCarousel ? (
-            // Mostrar loading até pelo menos 1 mockup estar pronto - NUNCA mostrar imagem transformada sozinha
-            <div className="absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-center text-sm text-ghibli-moss p-4">
-              <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
-              <p className="font-medium mb-1">A finalizar...</p>
-            </div>
-          ) : isCurrentlyLoading() ? (
-            <div className="absolute inset-0 w-full h-full bg-gray-100 flex flex-col items-center justify-center text-center text-sm text-ghibli-moss p-4">
-              <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
-              <p className="font-medium mb-1">A finalizar...</p>
-            </div>
-          ) : hasCurrentError() ? (
-            <div className="absolute inset-0 w-full h-full bg-gray-200 flex flex-col items-center justify-center text-center text-sm text-gray-600 p-4">
-              <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-gray-500" />
-              <p className="font-medium mb-1">
-                {currentImageIndex === 3 ? 'Erro ao carregar imagem' : 'Erro no mockup'}
-              </p>
-              {currentImageIndex !== 3 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRetryCurrentMockup}
-                  className="text-xs mt-2"
-                >
-                  Tentar novamente
-                </Button>
-              )}
-            </div>
-          ) : currentImage ? (
-            <div className="relative w-full h-full">
-            <Image 
-                key={`${currentImage.url}-${currentImageIndex}`}
-                src={currentImage.url} 
-                alt={
-                  currentImage.type === 'poster' ? 'Preview do poster' :
-                  currentImage.type === 'mug' ? 'Preview da caneca' :
-                  currentImage.type === 'notebook' ? 'Preview do caderno' :
-                  `Imagem transformada no estilo ${selectedStyle.name}`
-                } 
-              fill
-              sizes="(max-width: 768px) 80vw, (max-width: 1200px) 50vw, 30vw"
-              style={{ 
-                objectFit: "contain",
-                width: "100%",
-                height: "100%" 
-              }}
-              className="bg-gray-100"
-              priority
-              unoptimized={true}
-                onError={currentImage.type === 'original' ? handleImageError : undefined}
-              onLoad={() => {
-                  if (currentImage.type === 'original') {
-                setImageError(false);
-                  }
-              }}
-            />
-              
-              {/* Setas de Navegação */}
-              <>
-                {/* Seta Esquerda */}
-                <button
-                  onClick={handlePrevImage}
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 border border-gray-200"
-                  title="Produto anterior"
-                >
-                  <ChevronLeft className="w-4 h-4 text-ghibli-moss" />
-                </button>
-                
-                {/* Seta Direita */}
-                <button
-                  onClick={handleNextImage}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 border border-gray-200"
-                  title="Próximo produto"
-                >
-                  <ChevronRight className="w-4 h-4 text-ghibli-moss" />
-                </button>
-              </>
-              
-              {/* Indicador do tipo de imagem - melhorado */}
-              <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20">
-                {currentImage.type === 'poster' ? 'Poster' : 
-                 currentImage.type === 'mug' ? 'Caneca' : 
-                 currentImage.type === 'notebook' ? 'Caderno' : 'Original'}
-              </div>
-              
-              {/* Indicador de posição no carrossel - melhorado */}
-              <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full border border-white/20">
-                {currentImageIndex + 1}/4
-              </div>
-              
-              {/* Indicador de loading discreto quando gerando mockup */}
-              {((currentImageIndex === 0 && isGeneratingCanvasMockup) || 
-                (currentImageIndex === 1 && isGeneratingPosterMockup) ||
-                (currentImageIndex === 2 && isGeneratingMugMockup)) && (
-                <div className="absolute top-2 right-2 bg-ghibli-moss/90 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  A gerar...
-                </div>
-              )}
+            <div className="bg-gray-100 rounded-xl p-6 text-center">
+              <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin text-ghibli-moss" />
+              <p className="font-medium mb-1 text-ghibli-moss">A finalizar...</p>
             </div>
           ) : (
-            <div className="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center">
-              <div className="text-center text-ghibli-earth/60">
-                <p className="text-sm">A preparar preview...</p>
+            <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
+              
+              {/* Header com título */}
+              <div className="bg-gradient-to-r from-ghibli-moss/10 to-ghibli-sky/10 p-4 border-b border-gray-100">
+                <div className="text-center">
+                  <h3 className="text-lg font-bold text-ghibli-wood mb-1">
+                    🎨 Canvas Personalizado
+                  </h3>
+                  <p className="text-sm text-ghibli-earth/70">
+                    Transformação: {selectedStyle.name}
+                  </p>
+                  {/* Oferta limitada - discreto */}
+                  <div className="mt-2">
+                    <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                      ⏰ Oferta limitada
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Mockups do Canvas em grid */}
+              <div className="p-4">
+                {canvasMockupUrls.length >= 3 ? (
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    {canvasMockupUrls.slice(0, 3).map((url, index) => (
+                      <div key={index} className="aspect-square relative rounded-lg overflow-hidden border border-gray-200">
+                        <Image
+                          src={url}
+                          alt={`Canvas mockup ${index + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 30vw, 20vw"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : isGeneratingCanvasMockup ? (
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 animate-spin text-ghibli-moss" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-6 mb-4 text-center">
+                    <p className="text-sm text-gray-600">A gerar mockups do Canvas...</p>
+                  </div>
+                )}
+
+                {/* Preços com desconto fake */}
+                {fakeDiscountInfo && (
+                  <div className="text-center mb-4">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <span className="text-lg text-green-600 line-through">
+                        €{fakeDiscountInfo.fakePrice.toFixed(2)}
+                      </span>
+                      <span className="text-xl font-bold text-red-600">
+                        €{fakeDiscountInfo.realPrice.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="inline-block bg-red-100 text-red-800 text-sm font-semibold px-2 py-1 rounded-full">
+                      {fakeDiscountInfo.badge}
+                    </div>
+                  </div>
+                )}
+
+                {/* Botão Comprar Canvas + Ver Produto */}
+                <div className="space-y-2">
+                  <Button
+                    onClick={handleBuyCanvasDirect}
+                    className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 font-bold text-base rounded-lg shadow-lg"
+                    disabled={!userInfo || imageError}
+                  >
+                    <ShoppingBag className="w-4 h-4 mr-2" />
+                    Comprar Canvas 12x12
+                  </Button>
+                  
+                  <Button
+                    onClick={() => router.push(`/shop/canvas/custom_canvas?imageUrl=${encodeURIComponent(transformedImageUrl)}&imageId=${transformationId || 'auto'}&fromTransformation=true`)}
+                    variant="outline"
+                    className="w-full py-2 text-sm"
+                  >
+                    Ver Página do Produto
+                  </Button>
+                </div>
               </div>
             </div>
           )}
         </div>
       </div>
       
-      {/* Informações do Resultado - só aparece quando showProductCarousel for true */}
+      {/* NOVO: Botões de Ação - Outros Produtos + Nova Imagem */}
       {showProductCarousel && (
-        <div className="px-4 pt-2 pb-3 flex-shrink-0 border-t border-gray-200">
-          <div className="text-center">
-            <p className="text-lg font-medium text-ghibli-wood">
-              Transformação concluída!
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Estilo: {selectedStyle.name}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Seção do Produto em Destaque - só aparece quando showProductCarousel for true */}
-      {showProductCarousel && (
-        <div className="px-4 pb-2 flex-shrink-0">
-          <div className="bg-gradient-to-r from-ghibli-moss/5 to-ghibli-sky/5 rounded-xl p-4 border border-ghibli-moss/20">
-            <div className="text-center mb-3">
-              <h3 className="font-semibold text-ghibli-wood flex items-center justify-center gap-2">
-                <ShoppingBag className="w-4 h-4" />
-                Produto Recomendado
-              </h3>
-              <p className="text-sm text-ghibli-earth/70">{getProductText()}</p>
-            </div>
-            
-            {/* Botão Principal Destacado */}
-            <Button 
-              onClick={handleGoToProduct}
-              className="w-full bg-ghibli-moss hover:bg-ghibli-moss/90 text-white py-3 text-base font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-              disabled={imageError}
-            >
-              <span className="flex items-center justify-center gap-2">
-                Ver Produto
-                <ArrowRight className="w-4 h-4" />
-              </span>
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Botões Secundários - só aparece quando showProductCarousel for true */}
-      {showProductCarousel && (
-        <div className="px-4 pb-4 flex-shrink-0 space-y-3">
+        <div className="px-4 pb-4 flex-shrink-0">
           <div className="grid grid-cols-2 gap-3">
-          <Button 
+            <Button 
               variant="outline"
-            onClick={onDownload}
-              className="py-2 text-sm"
-            disabled={imageError}
-          >
-              <Download className="w-4 h-4 mr-2" /> 
-              Original
+              onClick={() => setIsOtherProductsModalOpen(true)}
+              className="py-3 text-sm font-medium"
+            >
+              <Grid3x3 className="w-4 h-4 mr-2" /> 
+              Outros Produtos
             </Button>
             <Button 
               variant="outline"
               onClick={onNewImage || (() => window.location.reload())}
-              className="py-2 text-sm"
+              className="py-3 text-sm font-medium"
             >
               <RefreshCw className="w-4 h-4 mr-2" /> 
               Nova Imagem
-          </Button>
+            </Button>
           </div>
         </div>
       )}
+
+      {/* NOVO: Modal Outros Produtos */}
+      <Dialog open={isOtherProductsModalOpen} onOpenChange={setIsOtherProductsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Outros Produtos Disponíveis</DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 p-2">
+            {otherProducts.map((product) => (
+              <button
+                key={product.id}
+                onClick={() => {
+                  router.push(product.url);
+                  setIsOtherProductsModalOpen(false);
+                }}
+                className="group relative bg-white border border-gray-200 rounded-lg p-3 hover:border-ghibli-moss hover:shadow-md transition-all duration-200"
+              >
+                <div className="aspect-square relative rounded-md overflow-hidden mb-2">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-200"
+                    sizes="(max-width: 768px) 40vw, 20vw"
+                  />
+                </div>
+                <p className="text-sm font-medium text-center text-ghibli-earth group-hover:text-ghibli-moss">
+                  {product.name}
+                </p>
+              </button>
+            ))}
+          </div>
+          
+          <div className="text-center pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsOtherProductsModalOpen(false)}
+              size="sm"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
