@@ -1,15 +1,12 @@
 
 import GlowingButton from '../GlowingButton';
 import { Sparkles, Zap } from 'lucide-react';
-import TypewriterText from './TypewriterText';
 
 interface HeroContentProps {
   isLoaded: boolean;
-  typedText: string;
-  fullText: string;
 }
 
-const HeroContent = ({ isLoaded, typedText, fullText }: HeroContentProps) => {
+const HeroContent = ({ isLoaded }: HeroContentProps) => {
   return (
     <div className="flex-1 max-w-4xl text-center lg:text-left">
       <div 
@@ -33,14 +30,11 @@ const HeroContent = ({ isLoaded, typedText, fullText }: HeroContentProps) => {
           <div className="absolute -inset-2 bg-gradient-to-r from-cosmic-purple via-cosmic-blue to-cosmic-pink opacity-60 blur-2xl rounded-xl -z-10 animate-pulse"></div>
         </div>
         
-        <TypewriterText 
-          text={fullText}
-          isLoaded={isLoaded}
-        />
+
         
         <p 
           className={`text-lg md:text-xl lg:text-2xl text-gray-300 mb-10 md:mb-14 leading-relaxed transition-all duration-500 px-2 ${
-            isLoaded && typedText === fullText 
+            isLoaded 
               ? "opacity-100 translate-y-0" 
               : "opacity-0 translate-y-8"
           }`}
@@ -49,8 +43,8 @@ const HeroContent = ({ isLoaded, typedText, fullText }: HeroContentProps) => {
         </p>
         
         <div 
-          className={`flex flex-col sm:flex-row gap-6 md:gap-8 justify-center lg:justify-start transition-all duration-500 ${
-            isLoaded && typedText === fullText 
+          className={`flex flex-col sm:flex-row gap-6 md:gap-8 justify-center transition-all duration-500 ${
+            isLoaded 
               ? "opacity-100 translate-y-0" 
               : "opacity-0 translate-y-12"
           }`}

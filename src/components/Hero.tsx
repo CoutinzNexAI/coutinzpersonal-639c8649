@@ -9,31 +9,12 @@ import ScannerEffect from './hero/ScannerEffect';
 
 const Hero = () => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [typedText, setTypedText] = useState('');
-  const fullText = "";
-  
-  // Typing effect
-  useEffect(() => {
-    if (!isLoaded) return;
-    
-    let index = 0;
-    const timer = setInterval(() => {
-      setTypedText(fullText.substring(0, index));
-      index++;
-      
-      if (index > fullText.length) {
-        clearInterval(timer);
-      }
-    }, 50); // Reduzido de 80ms para 50ms
-    
-    return () => clearInterval(timer);
-  }, [isLoaded]);
   
   // Main entrance animation
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true);
-    }, 200); // Reduzido de 500ms para 200ms
+    }, 200);
     
     return () => clearTimeout(timer);
   }, []);
@@ -43,8 +24,8 @@ const Hero = () => {
       <HeroBackground isLoaded={isLoaded} />
       <FloatingIcons />
       
-      <div className="container mx-auto px-4 md:px-6 z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-20">
+      <div className="container mx-auto px-4 md:px-6 z-10 pt-24 sm:pt-28 md:pt-0">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-20 sm:gap-24 lg:gap-20">
           {/* Profile Card Section */}
           <div 
             className={`transition-all duration-1000 ${
@@ -59,7 +40,7 @@ const Hero = () => {
               handle="DiogoCoutinho"
               status="Online"
               contactText="Contact Me"
-              avatarUrl="/lovable-uploads/8ab72e60-58e6-4264-81a1-fb33f8f1df20.png"
+                              avatarUrl="/8ab72e60-58e6-4264-81a1-fb33f8f1df20.png"
               showUserInfo={true}
               enableTilt={true}
               className="w-full max-w-md mx-auto" // Aumentado de max-w-sm para max-w-md
@@ -69,16 +50,12 @@ const Hero = () => {
           {/* Content Section */}
           <HeroContent 
             isLoaded={isLoaded}
-            typedText={typedText}
-            fullText={fullText}
           />
         </div>
       </div>
       
       <ScrollIndicator 
         isLoaded={isLoaded}
-        typedText={typedText}
-        fullText={fullText}
       />
       
       <ScannerEffect isLoaded={isLoaded} />

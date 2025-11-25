@@ -3,15 +3,13 @@ import { ArrowDown } from 'lucide-react';
 
 interface ScrollIndicatorProps {
   isLoaded: boolean;
-  typedText: string;
-  fullText: string;
 }
 
-const ScrollIndicator = ({ isLoaded, typedText, fullText }: ScrollIndicatorProps) => {
+const ScrollIndicator = ({ isLoaded }: ScrollIndicatorProps) => {
   return (
     <div 
       className={`absolute bottom-5 md:bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center transition-all duration-1000 ${
-        isLoaded && typedText === fullText 
+        isLoaded 
           ? "opacity-100 translate-y-0" 
           : "opacity-0 translate-y-8"
       }`}
